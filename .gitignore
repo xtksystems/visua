@@ -21,3 +21,14 @@ playwright-report/
 /blob-report/
 # Local corpus downloads flagged as non-redistributable are kept out of git
 corpus/**/.local/
+
+# AICPA SOC 2 corpus: © AICPA, not redistributable (see corpus/README.md).
+# Only Visua's manifest and structure notes are committed; the documents and
+# everything derived from them (verbatim criteria, mappings, search chunks)
+# stay in the local installation.
+corpus/aicpa-soc2/**
+!corpus/aicpa-soc2/manifest.json
+!corpus/aicpa-soc2/STRUCTURE.md
+packages/frameworks/data/aicpa-*.json
+packages/frameworks/data/mappings/*tsc-2017*.json
+packages/frameworks/data/chunks/aicpa-soc2.json

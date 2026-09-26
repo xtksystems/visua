@@ -38,8 +38,8 @@ colors:
   status-in-progress-container: "#33270D"
   status-implemented: "#3CCB8C"
   status-implemented-container: "#0F2E22"
-  status-verified: "#35D6E0"
-  status-verified-container: "#0C2C30"
+  status-verified: "#45D0FF"
+  status-verified-container: "#0B2838"
   status-at-risk: "#FF6B6B"
   status-at-risk-container: "#3A1418"
   status-not-applicable: "#475269"
@@ -126,7 +126,6 @@ typography:
     fontWeight: 500
     lineHeight: 1
     letterSpacing: -0.03em
-    fontFeature: "'tnum' 1"
 rounded:
   none: 0px
   xs: 2px
@@ -492,7 +491,7 @@ Violet) and framework identity (used only when frameworks share a view).
   - Not started — Dormant Slate (#8D9BB3)
   - In progress — Solar Amber (#F2B544)
   - Implemented — Signal Green (#3CCB8C)
-  - Verified (evidence accepted / assessed) — Verified Cyan (#35D6E0)
+  - Verified (evidence accepted / assessed) — Verified Sky (#45D0FF)
   - At risk (failing, expired evidence, overdue) — Flare Coral (#FF6B6B)
   - Not applicable — Dust (#475269)
 
@@ -517,8 +516,10 @@ Three families with strict roles:
   in 3D labels.
 
 Rules: `label-caps` is uppercase with 0.12em tracking and is used for section
-eyebrows and table headers only. `metric-xl` uses tabular numerals so scores
-do not jitter while animating. Never use more than two weights on one panel.
+eyebrows and table headers only. `metric-xl` keeps proportional figures (tabular
+figures make large standalone numbers look loose); use `font-variant-numeric:
+tabular-nums` only where numbers align in columns — tables and chart axes.
+Never use more than two weights on one panel.
 
 ## Layout
 

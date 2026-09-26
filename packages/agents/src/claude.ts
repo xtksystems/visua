@@ -12,23 +12,9 @@ import { systemPrompt } from "./agents.ts";
 import type { AgentHost, AgentResult } from "./host.ts";
 import { toolByName, type AgentTool } from "./tools.ts";
 
-/** Default model: override with VISUA_MODEL. */
-export const DEFAULT_MODEL = "claude-opus-5";
+import { claudeEnabled, configuredModel, DEFAULT_MODEL } from "./mode.ts";
 
-export function configuredModel(): string {
-  return process.env["VISUA_MODEL"]?.trim() || DEFAULT_MODEL;
-}
-
-/**
- * Agent mode resolution. `VISUA_AGENT_MODE=claude|offline|auto` (default auto):
- * auto uses Claude when an API credential is present in the environment.
- */
-export function claudeEnabled(): boolean {
-  const mode = (process.env["VISUA_AGENT_MODE"] ?? "auto").toLowerCase();
-  if (mode === "offline") return false;
-  if (mode === "claude") return true;
-  return Boolean(process.env["ANTHROPIC_API_KEY"] || process.env["ANTHROPIC_AUTH_TOKEN"]);
-}
+export { claudeEnabled, configuredModel, DEFAULT_MODEL };
 
 type BetaTool = Anthropic.Beta.BetaTool;
 type BetaMessageParam = Anthropic.Beta.BetaMessageParam;

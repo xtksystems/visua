@@ -103,6 +103,39 @@ describe("RMF", () => {
   });
 });
 
+describe("SOC 2 and the crosswalk", () => {
+  it("scopes SOC 2 by trust services category", async () => {
+    const res = await api<{ frameworks: { id: string; total: number }[] }>("PUT", `/api/workspaces/${wsId}/frameworks/aicpa-tsc-2017`, {
+      enabled: true,
+      soc2: { categories: ["security", "availability"], reportType: "type2" },
+    });
+    expect(res.status).toBe(200);
+    // 33 Common Criteria + 3 Availability criteria.
+    expect(res.json.frameworks.find((f) => f.id === "aicpa-tsc-2017")?.total).toBe(36);
+  });
+
+  it("drafts DC 200 system description facts, never the description itself", async () => {
+    await api("PATCH", `/api/workspaces/${wsId}/requirements/aicpa-tsc-2017:CC6.4`, { applicable: false, applicabilityRationale: "No physical facilities: all infrastructure is hosted by the cloud provider (carved out)." });
+    const res = await api<{ items: { id: string; derived: { status: string; facts: string[] } }[] }>("GET", `/api/workspaces/${wsId}/soc2/description`);
+    expect(res.json.items.map((i) => i.id)).toEqual(["DC1", "DC2", "DC3", "DC4", "DC5", "DC6", "DC7", "DC8", "DC9"]);
+    const dc8 = res.json.items.find((i) => i.id === "DC8")!;
+    expect(dc8.derived.facts.some((f) => f.startsWith("CC6.4 not relevant"))).toBe(true);
+    expect(res.json.items.find((i) => i.id === "DC6")!.derived.status).toBe("needs-input");
+  });
+
+  it("aggregates authoritative mappings into Nexus bundles and rows with live levels", async () => {
+    const overview = await api<{ frameworks: { id: string; groups: { id: string }[] }[]; sets: { id: string; authority: string }[]; bundles: { a: string; b: string; count: number }[] }>("GET", `/api/workspaces/${wsId}/crosswalk`);
+    expect(overview.json.frameworks.find((f) => f.id === "nist-csf-2.0")!.groups).toHaveLength(22);
+    expect(overview.json.sets.find((s) => s.id === "sp-800-53-r5--csf-2.0")!.authority).toBe("NIST OLIR");
+    const bundle = overview.json.bundles.find((b) => b.a === "nist-sp-800-53-r5:AC" && b.b === "nist-csf-2.0:PR.AA");
+    expect(bundle?.count).toBeGreaterThan(5);
+    const rows = await api<{ source: { code: string }; target: { code: string; current: number } }[]>("GET", `/api/workspaces/${wsId}/crosswalk/rows?node=${encodeURIComponent("nist-csf-2.0:PR.AA-01")}`);
+    expect(rows.json.length).toBeGreaterThan(0);
+    expect(rows.json.every((r) => r.target.code === "PR.AA-01" || r.source.code === "PR.AA-01")).toBe(true);
+    expect(rows.json.find((r) => r.target.code === "PR.AA-01")?.target.current).toBe(3);
+  });
+});
+
 describe("agents (offline playbooks) with human-in-the-loop proposals", () => {
   const run = async (agent: string, goal: string, input: Record<string, unknown> = {}) =>
     (await api<{ status: string; mode: string; summary: string; steps: { type: string }[]; proposals: { id: string; type: string; status: string }[] }>("POST", `/api/workspaces/${wsId}/runs?wait=1`, { agent, goal, input })).json;
@@ -187,6 +220,60 @@ describe("evidence, monitoring and exports", () => {
     expect(ok.headers.get("content-type")).toBe("application/pdf");
     const bad = await app.request("/api/corpus/file/..%2F..%2Fpackage.json");
     expect(bad.status).toBe(400);
+  });
+});
+
+describe("integrity guardrails", () => {
+  it("requires a written rationale to mark a requirement not applicable", async () => {
+    const bad = await api("PATCH", `/api/workspaces/${wsId}/requirements/nist-csf-2.0:PR.IR-02`, { applicable: false });
+    expect(bad.status).toBe(400);
+    const ok = await api("PATCH", `/api/workspaces/${wsId}/requirements/nist-csf-2.0:PR.IR-02`, { applicable: false, applicabilityRationale: "No on-premises facilities; environmental threats are handled by the cloud provider (inherited)." });
+    expect(ok.status).toBe(200);
+  });
+
+  it("never lets a scope change overwrite a person's documented exclusion", async () => {
+    const id = "nist-sp-800-53-r5:AC-8";
+    const excluded = await api<{ applicable: boolean }>("PATCH", `/api/workspaces/${wsId}/requirements/${id}`, { applicable: false, applicabilityRationale: "System use notification is enforced by the upstream identity provider (inherited)." });
+    expect(excluded.json.applicable).toBe(false);
+    // Re-categorize (re-scopes every control); AC-8 stays in the baseline, so the person's decision must stand.
+    await api("POST", `/api/workspaces/${wsId}/rmf/categorize`, {
+      informationTypes: [{ id: "payments", name: "Payment transactions", confidentiality: "moderate", integrity: "moderate", availability: "low" }],
+    });
+    const after = (await api<{ state: { applicable: boolean; applicabilityRationale: string; userExclusion?: { rationale: string } } }>("GET", `/api/workspaces/${wsId}/requirements/${id}`)).json.state;
+    expect(after.applicable).toBe(false);
+    expect(after.userExclusion?.rationale).toMatch(/identity provider/);
+    // Out-of-scope-by-configuration requirements cannot be forced back in without changing the scope.
+    const outOfBaseline = await api("PATCH", `/api/workspaces/${wsId}/requirements/nist-sp-800-53-r5:AC-2(11)`, { applicable: true });
+    expect(outOfBaseline.status).toBe(400);
+    // Restoring applicability clears the exclusion and restores a target.
+    const restored = await api<{ applicable: boolean; target: number; userExclusion?: unknown }>("PATCH", `/api/workspaces/${wsId}/requirements/${id}`, { applicable: true });
+    expect(restored.json.applicable).toBe(true);
+    expect(restored.json.userExclusion).toBeUndefined();
+    expect(restored.json.target).toBeGreaterThan(0);
+  });
+
+  it("keeps a tamper-evident, hash-chained audit trail", async () => {
+    const verified = await api<{ valid: boolean; events: number }>("GET", `/api/workspaces/${wsId}/activity/verify`);
+    expect(verified.json.valid).toBe(true);
+    expect(verified.json.events).toBeGreaterThan(10);
+    // Tamper with one historical event directly in storage: verification must fail.
+    const events = svc.store.activity.list(wsId).sort((a, b) => (a.seq ?? 0) - (b.seq ?? 0));
+    const victim = events[3]!;
+    svc.store.activity.put({ ...victim, summary: `${victim.summary} (edited)` }, `${victim.at}#${String(victim.seq).padStart(9, "0")}`);
+    const tampered = await api<{ valid: boolean; brokenAt: number }>("GET", `/api/workspaces/${wsId}/activity/verify`);
+    expect(tampered.json.valid).toBe(false);
+    expect(tampered.json.brokenAt).toBe(victim.seq);
+    svc.store.activity.put(victim, `${victim.at}#${String(victim.seq).padStart(9, "0")}`);
+    expect((await api<{ valid: boolean }>("GET", `/api/workspaces/${wsId}/activity/verify`)).json.valid).toBe(true);
+  });
+
+  it("never lets the task executor file an implementation guide as evidence", async () => {
+    const tasks = (await api<{ id: string; automation?: { action: string } }[]>("GET", `/api/workspaces/${wsId}/tasks`)).json;
+    const technical = tasks.find((t) => t.automation?.action === "implementation-guide");
+    if (!technical) return;
+    const r = (await api<{ proposals: { type: string }[] }>("POST", `/api/workspaces/${wsId}/runs?wait=1`, { agent: "task-executor", goal: "Execute", input: { taskId: technical.id } })).json;
+    expect(r.proposals.some((p) => p.type === "create-evidence")).toBe(false);
+    expect(r.proposals.some((p) => p.type === "update-task")).toBe(true);
   });
 });
 

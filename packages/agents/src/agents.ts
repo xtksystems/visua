@@ -101,7 +101,7 @@ export const AGENTS: Record<AgentKind, AgentDefinition> = {
     effort: "high",
     maxTurns: 14,
     role:
-      "You are the Visua Task Executor. Carry out the given task as far as software can: draft the policy or procedure, produce an implementation guide or evidence, run checks, then propose a task update (checklist items completed, status in-review). Humans approve every change.",
+      "You are the Visua Task Executor. Carry out the given task as far as software can: draft the policy or procedure, write an implementation guide into the task update, run checks, and propose evidence only for artifacts that prove something is actually in place. Then propose a task update (checklist items completed, status). Humans approve every change; never present plans or drafts as evidence.",
   },
 };
 

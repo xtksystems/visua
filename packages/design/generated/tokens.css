@@ -29,8 +29,8 @@
   --color-status-in-progress-container: #33270D;
   --color-status-implemented: #3CCB8C;
   --color-status-implemented-container: #0F2E22;
-  --color-status-verified: #35D6E0;
-  --color-status-verified-container: #0C2C30;
+  --color-status-verified: #45D0FF;
+  --color-status-verified-container: #0B2838;
   --color-status-at-risk: #FF6B6B;
   --color-status-at-risk-container: #3A1418;
   --color-status-not-applicable: #475269;
@@ -206,8 +206,8 @@
   --chip-status-implemented-fg: #3CCB8C;
   --chip-status-implemented-radius: 9999px;
   --chip-status-implemented-height: 22px;
-  --chip-status-verified-bg: #0C2C30;
-  --chip-status-verified-fg: #35D6E0;
+  --chip-status-verified-bg: #0B2838;
+  --chip-status-verified-fg: #45D0FF;
   --chip-status-verified-radius: 9999px;
   --chip-status-verified-height: 22px;
   --chip-status-at-risk-bg: #3A1418;
@@ -296,7 +296,7 @@
   --scene-node-in-progress-fg: #06090F;
   --scene-node-implemented-bg: #3CCB8C;
   --scene-node-implemented-fg: #06090F;
-  --scene-node-verified-bg: #35D6E0;
+  --scene-node-verified-bg: #45D0FF;
   --scene-node-verified-fg: #06090F;
   --scene-node-at-risk-bg: #FF6B6B;
   --scene-node-at-risk-fg: #06090F;
@@ -396,5 +396,4 @@
   font-weight: var(--font-metric-xl-weight);
   line-height: var(--font-metric-xl-line-height);
   letter-spacing: var(--font-metric-xl-letter-spacing);
-  font-feature-settings: 'tnum' 1;
 }

@@ -46,6 +46,8 @@ export interface FrameworkDescriptor {
   /** Vocabulary used in the UI and by agents ("outcome", "criterion", "control"). */
   unitLabel: string;
   unitLabelPlural: string;
+  /** Licensing / provenance notice for the requirement text shown to users. */
+  contentNotice?: string;
 }
 
 export interface ImplementationExample {
@@ -240,8 +242,11 @@ export interface RequirementState {
   /** Target implementation level (0–4). */
   target: number;
   priority: Priority;
+  /** Effective applicability: scope settings (SOC 2 categories, RMF baseline/tailoring) first, then a person's documented exclusion. */
   applicable: boolean;
   applicabilityRationale?: string;
+  /** A person's documented "not applicable" decision. Kept separately so scope changes never overwrite it. */
+  userExclusion?: { rationale: string; at: string; by: string };
   owner?: string;
   notes?: string;
   /** Set when an assessor (human or approved agent) verified the implementation. */
@@ -518,4 +523,10 @@ export interface ActivityEvent {
   entityId: string;
   summary: string;
   data?: Record<string, unknown>;
+  /** Monotonic position in the workspace's audit trail. */
+  seq?: number;
+  /** SHA-256 of the previous event (hash chain → tamper-evident audit trail). */
+  prevHash?: string;
+  /** SHA-256 over (prevHash + canonical event body). */
+  hash?: string;
 }

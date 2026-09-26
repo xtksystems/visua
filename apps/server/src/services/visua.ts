@@ -38,11 +38,33 @@ import {
 } from "@visua/core";
 import { executeAgent, type AgentHost, type ProposalInput } from "@visua/agents";
 import type { FrameworkRegistry } from "@visua/frameworks";
+import { createHash } from "node:crypto";
 import type { EventBus, VisuaEventType } from "../bus.ts";
 import { FRAMEWORK_OF_REF, connectorKind, type RequirementRefs } from "../connectors/index.ts";
 import type { Store } from "../db.ts";
 
 export class NotFoundError extends Error {}
+
+const GENESIS = "0".repeat(64);
+
+/** Canonical JSON (sorted keys) so the hash is independent of property order. */
+function canonical(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value as Record<string, unknown>)
+      .filter((k) => (value as Record<string, unknown>)[k] !== undefined)
+      .sort()
+      .map((k) => `${JSON.stringify(k)}:${canonical((value as Record<string, unknown>)[k])}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+export function chainHash(prevHash: string, event: ActivityEvent): string {
+  const { hash: _ignored, ...body } = event;
+  void _ignored;
+  return createHash("sha256").update(prevHash).update(canonical(body)).digest("hex");
+}
 export class ValidationError extends Error {}
 
 const PRIORITY_ORDER: Priority[] = ["low", "medium", "high", "critical"];
@@ -57,6 +79,13 @@ export interface CreateWorkspaceInput {
   soc2?: Partial<Soc2Settings>;
   rmf?: Partial<RmfSettings>;
   planInitialTasks?: boolean;
+}
+
+/** Scope settings win; otherwise a person's documented exclusion stands. */
+function effectiveScope(scope: { applicable: boolean; rationale?: string }, exclusion: RequirementState["userExclusion"]): { applicable: boolean; rationale?: string } {
+  if (!scope.applicable) return scope;
+  if (exclusion) return { applicable: false, rationale: exclusion.rationale };
+  return scope;
 }
 
 export class VisuaService {
@@ -86,11 +115,34 @@ export class VisuaService {
     this.bus.publish(workspaceId, type, data);
   }
 
+  private readonly chainHead = new Map<string, { seq: number; hash: string }>();
+
+  /** Append to the workspace's hash-chained, tamper-evident audit trail. */
   log(workspaceId: string, actor: string, action: string, entity: string, entityId: string, summary: string, data?: Record<string, unknown>): ActivityEvent {
-    const event: ActivityEvent = { id: newId("act"), workspaceId, at: now(), actor, action, entity, entityId, summary, data };
-    this.store.activity.put(event, event.at);
+    const head = this.chainHead.get(workspaceId) ?? this.loadChainHead(workspaceId);
+    const body: ActivityEvent = { id: newId("act"), workspaceId, at: now(), actor, action, entity, entityId, summary, data, seq: head.seq + 1, prevHash: head.hash };
+    const event: ActivityEvent = { ...body, hash: chainHash(head.hash, body) };
+    this.chainHead.set(workspaceId, { seq: event.seq!, hash: event.hash! });
+    this.store.activity.put(event, `${event.at}#${String(event.seq).padStart(9, "0")}`);
     this.bus.publish(workspaceId, "activity", event);
     return event;
+  }
+
+  private loadChainHead(workspaceId: string): { seq: number; hash: string } {
+    const last = this.store.activity.recent(workspaceId, 1)[0];
+    return last?.hash ? { seq: last.seq ?? 0, hash: last.hash } : { seq: 0, hash: GENESIS };
+  }
+
+  /** Recompute every link of the audit trail; any edit, deletion or reordering breaks the chain. */
+  verifyAuditTrail(workspaceId: string): { valid: boolean; events: number; brokenAt?: number; head?: string } {
+    const events = this.store.activity.list(workspaceId).sort((a, b) => (a.seq ?? 0) - (b.seq ?? 0));
+    let prev = GENESIS;
+    for (const e of events) {
+      const { hash, ...body } = e;
+      if (e.prevHash !== prev || chainHash(prev, body as ActivityEvent) !== hash) return { valid: false, events: events.length, brokenAt: e.seq };
+      prev = hash!;
+    }
+    return { valid: true, events: events.length, head: prev };
   }
 
   workspace(idOrSlug: string): Workspace {
@@ -113,6 +165,8 @@ export class VisuaService {
     const requested = input.frameworks?.length ? input.frameworks : [rec.frameworks[0]!.frameworkId];
     const frameworkIds = requested.filter((id) => this.registry.framework(id));
     if (!frameworkIds.includes("nist-csf-2.0") && this.registry.framework("nist-csf-2.0")) frameworkIds.unshift("nist-csf-2.0");
+    // The SP 800-53 control catalog is operated through the RMF process: track its 47 tasks too.
+    if (frameworkIds.includes("nist-sp-800-53-r5") && !frameworkIds.includes("nist-rmf") && this.registry.framework("nist-rmf")) frameworkIds.push("nist-rmf");
     let slug = slugify(input.name) || "workspace";
     if (this.store.workspaces.get(slug)) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
     const ts = now();
@@ -220,7 +274,14 @@ export class VisuaService {
       const scope = this.scopeOf(ws, node.id);
       const baseTarget = frameworkId === "nist-csf-2.0" ? targetFor(priority, rec) : settings?.defaultTarget ?? 3;
       if (existing) {
-        this.store.states.put(ws.id, { ...existing, applicable: scope.applicable, applicabilityRationale: scope.rationale });
+        const effective = effectiveScope(scope, existing.userExclusion);
+        const becameApplicable = effective.applicable && !existing.applicable;
+        this.store.states.put(ws.id, {
+          ...existing,
+          applicable: effective.applicable,
+          applicabilityRationale: effective.rationale,
+          target: becameApplicable && existing.target === 0 ? baseTarget : existing.target,
+        });
         continue;
       }
       this.store.states.put(ws.id, {
@@ -270,6 +331,9 @@ export class VisuaService {
     });
     this.emit(ws.id, "workspace.updated", next);
     this.log(ws.id, actor, existing ? "updated" : "enabled", "framework", frameworkId, `${existing ? "Updated" : "Enabled"} ${this.registry.framework(frameworkId)!.graph.framework.shortName}`);
+    if (frameworkId === "nist-sp-800-53-r5" && merged.enabled && !this.frameworkSettings(next, "nist-rmf")?.enabled && this.registry.framework("nist-rmf")) {
+      return this.enableFramework(id, "nist-rmf", {}, actor);
+    }
     return next;
   }
 
@@ -361,16 +425,29 @@ export class VisuaService {
     const prev =
       this.store.states.get(ws.id, node.id) ??
       ({ nodeId: node.id, current: 0, target: 3, priority: "medium", applicable: true, updatedAt: now(), updatedBy: actor } satisfies RequirementState);
+    const scope = this.scopeOf(ws, node.id);
+    let scoping: Partial<RequirementState> = {};
+    if (patch.applicable === false) {
+      const rationale = patch.applicabilityRationale?.trim() || (prev.userExclusion ? prev.applicabilityRationale?.trim() : "");
+      if (!rationale) throw new ValidationError("Marking a requirement not applicable requires a written rationale that auditors can review");
+      scoping = { applicable: false, applicabilityRationale: rationale, userExclusion: { rationale, at: now(), by: actor } };
+    } else if (patch.applicable === true) {
+      if (!scope.applicable) throw new ValidationError(`Out of scope by configuration — ${scope.rationale}. Change the scope (SOC 2 categories or RMF baseline/tailoring) instead.`);
+      scoping = { applicable: true, applicabilityRationale: scope.rationale, userExclusion: undefined };
+      if (prev.target === 0 && patch.target === undefined) scoping.target = this.frameworkSettings(ws, node.frameworkId)?.defaultTarget ?? 3;
+    }
     const next: RequirementState = {
       ...prev,
       ...patch,
+      ...scoping,
       nodeId: node.id,
       current: patch.current !== undefined ? clampLevel(patch.current) : prev.current,
-      target: patch.target !== undefined ? clampLevel(patch.target) : prev.target,
+      target: patch.target !== undefined ? clampLevel(patch.target) : scoping.target ?? prev.target,
       updatedAt: now(),
       updatedBy: actor,
     };
     if (patch.statusOverride === null) delete next.statusOverride;
+    if (!next.userExclusion) delete next.userExclusion;
     this.store.states.put(ws.id, next);
     this.emit(ws.id, "state.updated", next);
     const changes = Object.entries(patch)
@@ -713,7 +790,8 @@ export class VisuaService {
           collectedAt: observedAt,
           validUntil: new Date(Date.now() + 30 * 86_400_000).toISOString(),
           content: r.detail,
-          data: { checkId: r.checkId, observed: r.observed },
+          data: { checkId: r.checkId, observed: r.observed, automation: "api-automated" },
+          sha256: createHash("sha256").update(canonical({ checkId: r.checkId, observed: r.observed, observedAt })).digest("hex"),
         },
         `connector:${connector.kind}`,
       );

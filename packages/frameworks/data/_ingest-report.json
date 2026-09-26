@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-26T08:06:08.442Z",
+  "generatedAt": "2026-09-26T08:57:37.114Z",
   "frameworks": [
     {
       "id": "nist-csf-2.0",
@@ -29,6 +29,16 @@
         "step": 7,
         "task": 47
       }
+    },
+    {
+      "id": "aicpa-tsc-2017",
+      "nodes": 86,
+      "assessable": 61,
+      "byKind": {
+        "category": 5,
+        "series": 20,
+        "criterion": 61
+      }
     }
   ],
   "mappings": [
@@ -46,12 +56,26 @@
       "id": "sp-800-53-r5--rmf-tasks",
       "count": 77,
       "authority": "Visua editorial (SP 800-37 Rev. 2)"
+    },
+    {
+      "id": "sp-800-53-r5--tsc-2017",
+      "count": 1033,
+      "authority": "AICPA"
+    },
+    {
+      "id": "csf-2.0--tsc-2017",
+      "count": 157,
+      "authority": "AICPA + NIST OLIR (composed)"
     }
   ],
   "corpus": {
-    "chunks": 4911,
-    "pdfDocuments": 35,
+    "chunks": 5649,
+    "pdfDocuments": 49,
     "manifests": [
+      {
+        "framework": "aicpa-soc2",
+        "documents": 33
+      },
       {
         "framework": "nist-csf-2.0",
         "documents": 47
@@ -63,6 +87,26 @@
     ]
   },
   "sources": [
+    {
+      "id": "tsc-2017-rev-pof-2022",
+      "sha256": "23a099dd1dc273b7a45fda2351f376344c33fcb2911d586036c0e0d631b8ad69"
+    },
+    {
+      "id": "tsc-2017-rev-pof-2022-redlined",
+      "sha256": "57eb09540ad59fd5b01409aab5f7faf1822fc3e803f4e80ce2113064911f0dd4"
+    },
+    {
+      "id": "tsc-2017-march-2020-updates",
+      "sha256": "b3eeb82c7e493bbd694d16b3f4ebc381183908ead2321f587f3531f7c4abe15b"
+    },
+    {
+      "id": "tsc-2017-march-2020-updates-redlined",
+      "sha256": "a2545e2cf88bcf14a679d61589078b1a6ff9bd64dc4a36889f4fea2eaf302a3d"
+    },
+    {
+      "id": "tsc-2017-original-april-2017",
+      "sha256": "c8cf39e30683a65c8a1cb405ab042688268ef87a5ecb1f32f6205797d52ef08d"
+    },
     {
       "id": "csf-2-0-reference-tool-elements-json",
       "sha256": "68ae33559e65b6597b89b1647a8be28ec9d5d8e4a5b52bf02bd7ff77a25b345e"

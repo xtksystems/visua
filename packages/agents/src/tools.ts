@@ -15,6 +15,7 @@ import {
 } from "@visua/core";
 import type { SearchHit } from "@visua/frameworks";
 import type { AgentHost } from "./host.ts";
+import { licensedTextToModel, WITHHELD_NOTICE } from "./mode.ts";
 
 export interface AgentTool<S extends z.ZodType = z.ZodType> {
   name: string;
@@ -70,6 +71,18 @@ function short(text: string, n = 180): string {
   return t.length > n ? `${t.slice(0, n - 1)}…` : t;
 }
 
+/** Requirement text as it may be sent to the model (licensed AICPA text is withheld unless permitted). */
+export function modelText(node: RequirementNode): string {
+  if (node.attributes?.["licensed"] === true && !licensedTextToModel()) return `${node.title}. ${String(node.attributes["summary"] ?? "")} ${WITHHELD_NOTICE}`;
+  return node.text;
+}
+
+/** Whether a corpus document's passages may be sent to the model. */
+function passageAllowed(host: AgentHost, documentId: string): boolean {
+  if (licensedTextToModel()) return true;
+  return host.registry.documents.get(documentId)?.framework !== "aicpa-soc2";
+}
+
 export function statusOf(host: AgentHost, nodeId: string) {
   return host.score(frameworkOf(nodeId)).statuses.get(nodeId);
 }
@@ -93,7 +106,7 @@ export const searchCorpus = defineTool({
     const citations = hits.map(hitToCitation);
     if (citations.length) host.step({ type: "citation", title: `Corpus: “${short(input.query, 60)}”`, citations });
     return {
-      hits: citations.map((c) => ({ documentId: c.documentId, documentTitle: c.documentTitle, page: c.page, locator: c.locator, quote: c.quote })),
+      hits: citations.map((c) => ({ documentId: c.documentId, documentTitle: c.documentTitle, page: c.page, locator: c.locator, quote: passageAllowed(host, c.documentId) ? c.quote : WITHHELD_NOTICE })),
     };
   },
 });
@@ -115,7 +128,7 @@ export const getRequirement = defineTool({
     const mappings = host.registry.crosswalk.related(node.id).slice(0, 24).map((e) => {
       const target = host.registry.node(e.to);
       const s = host.state(e.to);
-      return { id: e.to, code: codeOf(e.to), framework: frameworkOf(e.to), relationship: e.relationship, text: target ? short(target.text, 120) : undefined, current: s?.current };
+      return { id: e.to, code: codeOf(e.to), framework: frameworkOf(e.to), relationship: e.relationship, text: target ? short(modelText(target), 120) : undefined, current: s?.current };
     });
     host.step({ type: "thought", title: `Reviewed ${node.code}`, nodeIds: [node.id] });
     return {
@@ -124,11 +137,11 @@ export const getRequirement = defineTool({
       kind: node.kind,
       framework: node.frameworkId,
       title: node.title,
-      text: node.text,
+      text: modelText(node),
       guidance: node.guidance ? short(node.guidance, 900) : undefined,
       ancestors: index.ancestors(node.id).map((a) => ({ code: a.code, title: a.title })),
       examples: node.examples?.map((e) => e.text),
-      pointsOfFocus: (node.attributes?.["pointsOfFocus"] as { title: string }[] | undefined)?.map((p) => p.title),
+      pointsOfFocus: licensedTextToModel() ? (node.attributes?.["pointsOfFocus"] as { title: string }[] | undefined)?.map((p) => p.title) : undefined,
       citation: node.citation,
       assessment: state
         ? {
@@ -181,7 +194,7 @@ export const listRequirements = defineTool({
       if (input.priority && (!s || !input.priority.includes(s.priority))) continue;
       const gap = s ? Math.max(0, s.target - s.current) : 0;
       if (input.minGap !== undefined && gap < input.minGap) continue;
-      rows.push({ id: node.id, code: node.code, text: short(node.text, 140), status, current: s?.current ?? 0, target: s?.target ?? 0, gap, priority: s?.priority });
+      rows.push({ id: node.id, code: node.code, text: short(modelText(node), 140), status, current: s?.current ?? 0, target: s?.target ?? 0, gap, priority: s?.priority });
     }
     // Highest leverage first: gap weighted by priority.
     const weight = { critical: 4, high: 3, medium: 2, low: 1 } as const;
@@ -367,7 +380,8 @@ export const proposePolicy = defineTool({
 
 export const proposeEvidence = defineTool({
   name: "propose_evidence",
-  description: "Propose an evidence record (e.g. an implementation guide, configuration export, attestation) linked to requirements.",
+  description:
+    "Propose an evidence record for an artifact that demonstrates an implemented control — a configuration export, log extract, system record or signed attestation — linked to requirements. Never use it for plans, drafts, guides or anything that describes intended work: evidence must show what is actually in place.",
   writes: true,
   schema: z.object({
     title: z.string().min(4),
@@ -500,7 +514,7 @@ export const crosswalk = defineTool({
       node: node.code,
       mappings: edges.slice(0, 40).map((e) => {
         const t = host.registry.node(e.to);
-        return { id: e.to, code: codeOf(e.to), framework: frameworkOf(e.to), relationship: e.relationship, authority: e.authority, text: t ? short(t.text, 120) : undefined, current: host.state(e.to)?.current };
+        return { id: e.to, code: codeOf(e.to), framework: frameworkOf(e.to), relationship: e.relationship, authority: e.authority, text: t ? short(modelText(t), 120) : undefined, current: host.state(e.to)?.current };
       }),
     };
   },

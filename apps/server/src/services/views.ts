@@ -3,6 +3,9 @@
  * the inspector, and per-framework state bundles.
  */
 import { codeOf, frameworkOf, groupStatus, type FrameworkGraph, type RequirementNode, type Workspace } from "@visua/core";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
+import { CORPUS_DIR } from "@visua/frameworks";
 import type { VisuaService } from "./visua.ts";
 
 export interface LeanNode {
@@ -86,7 +89,10 @@ export function nodeDetail(svc: VisuaService, ws: Workspace, node: RequirementNo
     proposals,
     activity,
     mappings,
-    source: doc ? { id: doc.id, title: doc.title, identifier: doc.identifier, path: doc.path, url: doc.url, page: node.citation.page, locator: node.citation.locator } : null,
+    source: doc
+      ? { id: doc.id, title: doc.title, identifier: doc.identifier, path: doc.path, url: doc.url, page: node.citation.page, locator: node.citation.locator, present: existsSync(resolve(CORPUS_DIR, doc.path)) }
+      : null,
+    contentNotice: svc.registry.framework(node.frameworkId)?.graph.framework.contentNotice,
   };
 }
 
@@ -117,6 +123,7 @@ export function frameworkState(svc: VisuaService, ws: Workspace, frameworkId: st
           reasons: score.statuses.get(s.nodeId)?.reasons ?? [],
           openTasks: openTasks.get(s.nodeId) ?? 0,
           evidence: evidenceCount.get(s.nodeId) ?? 0,
+          mapped: svc.registry.crosswalk.related(s.nodeId).length,
         },
       ]),
     ),

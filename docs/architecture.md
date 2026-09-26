@@ -1,0 +1,237 @@
+# Visua architecture
+
+Visua has five layers. The official corpus is ingested into normalized framework
+graphs. A domain engine scores a workspace against those graphs. Agents read through a
+narrow host contract and *propose* changes. An API persists state and streams events.
+A web client renders all of it as navigable 3D space with a 2D twin.
+
+```
+corpus/                     official publications, manifests (SHA-256, license), structure notes
+  │ pnpm ingest  (packages/frameworks/scripts/ingest.ts)
+  ▼
+packages/frameworks/data/   <framework>.json graphs · mappings/*.json · chunks/<corpus>.json
+  │ FrameworkRegistry.load()
+  ▼
+packages/core               FrameworkIndex · scoring · status · planner · crosswalk · tiers · FIPS 199
+packages/agents             AgentHost contract · 16 tools · Claude runtime · offline playbooks
+apps/server                 VisuaService (SQLite) · Hono API · SSE · connectors · exports
+apps/web                    React 19 · react-three-fiber scenes · TanStack Query · DESIGN.md tokens
+packages/design             DESIGN.md → CSS variables + typed tokens (shared by web and scenes)
+```
+
+## 1. Corpus → framework graphs
+
+**Graph model.** Every framework is a `FrameworkGraph`: a descriptor plus a flat list of
+`RequirementNode`s. Node ids are global (`<frameworkId>:<code>`, for example
+`nist-csf-2.0:PR.AA-01` or `nist-sp-800-53-r5:AC-2(1)`). Each node carries its official
+text, its parent, its depth, and whether it is *assessable* (a unit of work). Each node
+also carries a **citation**: the corpus document id, a locator, and the PDF page where
+one exists.
+
+| Framework | Source of truth | Units of work |
+|---|---|---|
+| NIST CSF 2.0 | CSF 2.0 Reference Tool JSON (elements + OLIR metadata), page citations from CSWP 29 | 106 subcategories (6 functions, 22 categories), 363 Implementation Examples |
+| SP 800-53 Rev. 5.2.0 | OSCAL catalog 5.2.0 + SP 800-53B baseline profiles; SP 800-53A objectives; page citations from the 2020 PDF (OSCAL release locator for controls added later) | 1,014 active controls and enhancements in 20 families; LOW 149 · MODERATE 287 · HIGH 370 · PRIVACY 96 |
+| NIST RMF | SP 800-37r2, extracted to `corpus/nist-rmf/rmf-tasks.json` | 47 tasks across 7 steps |
+| SOC 2 (TSC 2017) | Visua's skeleton; overlaid with the verbatim criteria and points of focus from a licensed local copy | 61 criteria in 20 series across 5 categories |
+
+Tests in `packages/frameworks/test` pin these official counts. Ingestion is
+deterministic: the same corpus in produces the same data out.
+
+**Crosswalk mapping sets.** Each set records its authority. The UI and the agents
+show that authority wherever a mapping appears.
+
+| Set | Authority | Links |
+|---|---|---|
+| SP 800-53 r5 → CSF 2.0 | NIST OLIR (concept crosswalk, 5.2.0) | 745 |
+| SP 800-37r2 tasks → CSF 2.0 | NIST OLIR | 176 |
+| SP 800-53 → RMF tasks | Visua editorial (flagged) | 77 |
+| SP 800-53 r5 → TSC | AICPA workbook (local copy only) | 1,033 |
+| CSF 2.0 → TSC | AICPA TSC → CSF v1.1, carried to 2.0 via NIST OLIR v1.1 → v2.0 (composed, weaker) | 157 |
+
+**Corpus search.** Search is a BM25 index over two kinds of chunk. *Structured chunks*
+hold one requirement each, with its text, examples or points of focus, and discussion.
+*Page chunks* come from the core PDFs, one per page. The tokenizer keeps identifiers
+such as `gv.oc-01` and `ac-2(1)` intact. A hit returns a verbatim quote and a page
+citation. Chunks are stored per corpus (`chunks/<corpus>.json`), so licensed corpora
+stay local.
+
+## 2. Domain engine (`packages/core`)
+
+- **Workspace.** An organization profile (industry, size, data types, drivers,
+  environments, CSF tier, guidance mode). It also holds the enabled frameworks and their
+  settings (the SOC 2 scope and report type; the RMF system, categorization, baseline,
+  tailoring and authorization), agent autonomy per proposal type, and the trust-center
+  settings.
+- **RequirementState.** The state of one assessable requirement: current and target on
+  a 0–4 scale per framework family, priority, owner, notes, `verifiedAt`, applicability
+  and the rationale for it. The scales are:
+  - CSF: tier-aligned, Not performed → Adaptive
+  - SOC 2: control readiness, Not designed → Assured
+  - RMF/800-53: OSCAL-aligned implementation status, Not implemented → Assessed — satisfied
+- **Scope engine.** `scopeOf()` derives applicability from the settings: SOC 2
+  categories, the 800-53B baseline plus the optional PRIVACY baseline, and tailoring
+  decisions. A person's documented "not applicable" is stored separately as
+  `userExclusion`. When scope changes, the settings are applied first and the person's
+  exclusion is then re-applied. A settings change therefore never silently overwrites a
+  documented human decision.
+- **Status derivation** (`deriveStatus`). The first rule that matches wins:
+  1. not applicable
+  2. manual override
+  3. **at risk**: a failing monitoring check, expired evidence on an implemented
+     requirement, or overdue work
+  4. **verified**: the target is met, the requirement is verified, and it has valid
+     evidence
+  5. **implemented**: the target is met
+  6. **in progress**
+  7. **not started**
+
+  Each status comes with human-readable reasons.
+- **Scoring.** Readiness is `min(current/target, 1)`, weighted by priority (critical 4,
+  high 3, medium 2, low 1). It rolls up the hierarchy together with the gap count, gap
+  score, evidence coverage and verified share.
+- **Planner.** Turns gaps into tasks, ordered by governance first and then by
+  priority × gap. Checklists come from the official material: CSF Implementation
+  Examples, SOC 2 point-of-focus titles, SP 800-53A objectives, or the control statement
+  items. Each task records its basis.
+- **Crosswalk engine.** A bidirectional index with relationship strengths. It projects
+  progress onto another framework with an explicit confidence. Projections only ever
+  become *proposals*: a mapping is never evidence.
+- **CSF Tiers** (the CSWP 29 Appendix B statements, verbatim) and **FIPS 199**
+  categorization (the high-water mark selects the baseline).
+
+## 3. Agents (`packages/agents`)
+
+**Contract.** Agents never touch storage. They read through `AgentHost` (workspace,
+states, scores, tasks, evidence, policies, connectors, registry) and change things only
+through `propose()`. The host decides from the workspace's autonomy settings whether a
+proposal is applied at once or waits in the approvals inbox. Every step (plan, thought,
+tool call, citation, proposal, message) is written to the run's **flight recorder** and
+streamed over SSE. The 3D scene shows agent activity as violet comets on the
+requirements being touched.
+
+**Agents.** Copilot, Assessor, Planner, Policy Author, Evidence Collector, Crosswalk
+Analyst, Audit Prep and Task Executor. They share 16 tools:
+
+- Read tools: `workspace_overview`, `search_corpus`, `get_requirement`,
+  `list_requirements`, `crosswalk`, `list_tasks`, `list_evidence`, `focus`
+- Proposal tools: `propose_assessment`, `propose_target`, `propose_applicability`,
+  `propose_task`, `propose_policy`, `propose_evidence`
+- Action tools: `update_task`, `run_checks`
+
+The system prompt sets two principles: *propose, don't mutate*, and *no citation, no
+claim*.
+
+**Claude runtime.** A streamed, manual tool loop on `client.beta.messages.stream`:
+
+- Default model `claude-opus-5` (override with `VISUA_MODEL`), adaptive thinking with
+  summarized display (reasoning appears in the flight recorder), and `effort` per agent.
+- The static system prompt is prompt-cached.
+- `eager_input_streaming`, with zod validation of every tool input before it runs.
+- Server-side refusal fallbacks. `refusal`, `pause_turn` and `max_tokens` are handled.
+
+**Offline playbooks.** Deterministic implementations of all eight agents on the same
+tools. They are used when no API key is configured, and they are what the tests
+exercise.
+
+**Integrity rules in code:**
+
+- The Task Executor records implementation guides as task notes and never files them
+  as evidence.
+- Marking something not applicable requires a written rationale.
+- Evidence proposals are restricted, and the trust center publishes computed facts only.
+
+**Licensed text gate.** When agents run on Claude, AICPA criterion text, points of
+focus and AICPA corpus passages are replaced in tool results with Visua's summary and a
+notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`.
+
+## 4. Server (`apps/server`)
+
+- **Store.** `node:sqlite`, with JSON documents per collection (workspaces, states,
+  tasks, evidence, policies, risks, connectors, checks, runs, proposals, activity). It
+  runs as a single process, and SQLite transactions wrap the bulk operations.
+- **Audit trail.** Every change is an `ActivityEvent` with `seq`, `prevHash` and
+  `hash = SHA-256(prevHash ‖ canonical(event))`, chained from a zero genesis.
+  `GET /activity/verify` recomputes the chain and reports the first broken link.
+- **API.** A Hono app with about 55 routes. They cover:
+  - metadata, the recommendation engine and framework graphs
+  - corpus search and corpus files (path-traversal safe; `.local/` never served)
+  - workspace CRUD, framework settings, requirement states, tiers, and RMF
+    categorize/tailor/authorize
+  - tasks, the plan, evidence (with SHA-256), policies (lifecycle), risks, connectors,
+    checks, agent runs, proposals and decisions
+  - activity, crosswalk overview and rows, the SOC 2 description
+  - exports and the public trust center
+  - `GET /events` (SSE) pushes invalidations and agent steps to clients.
+- **Connectors.** *Web posture* (HTTPS redirect, HSTS, TLS protocol and certificate
+  expiry, security headers, `security.txt`) and *repository hygiene* (SECURITY.md,
+  CODEOWNERS, CI, dependency automation, lockfile, secret patterns). Results become
+  checks mapped to CSF, SOC 2 and 800-53 requirements. Passing results become hashed
+  evidence.
+- **Exports.**
+  - CSF Organizational Profile (NIST template columns)
+  - action plan, evidence index and SOC 2 PBC list (CSV)
+  - readiness report (Markdown)
+  - OSCAL 1.1.2 SSP and POA&M (JSON)
+
+## 5. Web (`apps/web`)
+
+- **Shell.** A rail with Mission control, Observatory, Plan, Evidence, Agents, Policies,
+  Profile, Crosswalk, SOC 2, RMF, Reports and Settings. It also has a command palette
+  (⌘K: search requirements or ask the copilot), a live approvals badge and toasts.
+- **Observatory.** Instanced hex prisms in two layouts:
+  - *constellation*: radial sectors per top-level group
+  - *readiness terrain*: a honeycomb
+
+  Height is the current level; translucent "gap glass" rises to the target. Task
+  satellites, evidence crystals and agent comets orbit the prisms. The five lenses
+  recolor the scene without moving anything.
+
+  CameraControls fly to a selection. Labels are billboards with level-of-detail
+  sizing, and large labels fade out when the camera comes close. Bloom and vignette
+  are applied under a performance monitor.
+
+  The outline is a full 2D twin with tree semantics and keyboard control (←/→ siblings,
+  Enter drill in, Esc up, F frame, L lens, / filter). Deep links use `?select=`.
+- **Crosswalk Nexus.** Frameworks sit as sectors on one ring and requirement groups as
+  pillars. Pillar height is log(units) and color is group status. Arcs bundle the
+  unit-level mappings, with width ∝ √count and a color gradient from the source
+  framework to the target. Selecting a group flies the camera behind it, animates its
+  arcs and lists every mapping with live status. A searchable group list is the
+  keyboard path.
+- **Programs.**
+  - *CSF*: Profile with bullet charts and the Tier assessment
+  - *SOC 2*: scope, observation window, DC 200 checklist, readiness by series
+  - *RMF*: lifecycle, FIPS 199, tailoring, authorization, readiness by family
+- **Design system.** All colors, type, spacing, radii and component tokens come from
+  `DESIGN.md`, compiled by `packages/design` into CSS variables and typed tokens.
+  - Status colors are semantic and always come with a glyph.
+  - Framework hues identify frameworks.
+  - Aurora Violet is reserved for AI.
+
+## 6. Testing
+
+- `packages/*/test` and `apps/server/test` (Vitest, 48 tests):
+  - official counts and citations
+  - identifier normalization
+  - the SOC 2 skeleton and the licensed overlay
+  - agent licensing gates
+  - API flows: onboarding, RMF categorize/tailor/OSCAL, SOC 2 scoping and DC 200,
+    Nexus bundles
+  - all eight offline agents, autonomy, connectors, evidence hashing
+  - integrity guardrails: N/A rationale, scope preservation, audit-chain tamper
+    detection, and no plan-as-evidence
+- `e2e/` (Playwright, 7 tests) runs against the production bundle served by the API,
+  with an in-memory seeded database and WebGL on SwiftShader. It covers Home, the
+  Observatory and its 2D twin, the Nexus, RMF, SOC 2, an agent run with citations, and
+  the trust center.
+
+## 7. Known limitations
+
+- There is no authentication, authorization or tenant isolation yet. Run it locally or
+  behind an SSO proxy.
+- It runs as a single process on SQLite.
+- Connectors cover web posture and repository hygiene only. Cloud, IdP, HRIS and MDM
+  integrations are on the roadmap.
+- The SOC 2 structured extraction tooling is not in the repository. Installations
+  without a local copy run on the skeleton.

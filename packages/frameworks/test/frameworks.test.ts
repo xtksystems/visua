@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { FrameworkRegistry, loadCorpusManifests, loadFrameworkGraphs, loadMappingSets } from "../src/index.ts";
 import { normalize80053, rmfTaskCode } from "../src/ingest/csf.ts";
+import { buildTscGraph, loadLicensedTsc } from "../src/ingest/tsc.ts";
+import { normalize80053 as normalizeAicpa80053 } from "../src/ingest/tsc-mappings.ts";
 import { tokenize } from "../src/search.ts";
 
 const registry = FrameworkRegistry.load();
@@ -42,6 +44,32 @@ describe("ingested framework graphs match the official sources", () => {
     expect(rmf.get("C-2")!.title).toBe("Security Categorization");
   });
 
+  it("AICPA TSC 2017 (SOC 2): 5 categories, 20 series, 61 criteria — runs without the licensed text", () => {
+    const skeleton = buildTscGraph(null);
+    const byKind = (k: string) => skeleton.nodes.filter((n) => n.kind === k);
+    expect(byKind("category").map((n) => n.code)).toEqual(["CC", "A", "PI", "C", "P"]);
+    expect(byKind("series")).toHaveLength(20);
+    expect(byKind("criterion")).toHaveLength(61);
+    const count = (prefix: RegExp) => byKind("criterion").filter((n) => prefix.test(n.code)).length;
+    expect([count(/^CC/), count(/^A/), count(/^PI/), count(/^C\d/), count(/^P\d/)]).toEqual([33, 3, 5, 2, 18]);
+    // COSO principles 1–17 map to CC1.1–CC5.3; the skeleton carries no AICPA text.
+    expect(byKind("criterion").filter((n) => n.attributes?.["cosoPrinciple"]).map((n) => n.attributes?.["cosoPrinciple"]).sort((a, b) => Number(a) - Number(b))).toEqual(Array.from({ length: 17 }, (_, i) => i + 1));
+    expect(skeleton.nodes.every((n) => n.attributes?.["licensed"] === false)).toBe(true);
+    expect(skeleton.framework.contentNotice).toMatch(/not bundled/);
+  });
+
+  it("overlays the verbatim criteria from a licensed local copy when present", () => {
+    const licensed = loadLicensedTsc();
+    if (!licensed) return; // Fresh clones do not include AICPA content.
+    const graph = buildTscGraph(licensed);
+    const cc61 = graph.nodes.find((n) => n.code === "CC6.1")!;
+    expect(cc61.attributes?.["licensed"]).toBe(true);
+    expect(cc61.text).toMatch(/^The entity implements logical access security software/);
+    expect(cc61.citation.page).toBeGreaterThan(0);
+    const pof = graph.nodes.filter((n) => n.kind === "criterion").reduce((s, n) => s + ((n.attributes?.["pointsOfFocus"] as unknown[]) ?? []).length, 0);
+    expect(pof).toBe(330);
+  });
+
   it("every mapping endpoint exists", () => {
     for (const set of loadMappingSets()) {
       expect(set.mappings.length).toBeGreaterThan(0);
@@ -79,5 +107,8 @@ describe("identifier normalization", () => {
     expect(normalize80053("SR-03")).toBe("SR-3");
     expect(normalize80053("AC-02(01)")).toBe("AC-2(1)");
     expect(rmfTaskCode("RMF Prepare Step (System Level): TASK P-14 Risk Assessment—System")).toBe("P-14");
+    expect(normalizeAicpa80053("PS-6a")).toBe("PS-6");
+    expect(normalizeAicpa80053("AC-2(1)(a)")).toBe("AC-2(1)");
+    expect(normalizeAicpa80053("SA-08(21)")).toBe("SA-8(21)");
   });
 });

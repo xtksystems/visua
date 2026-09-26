@@ -111,6 +111,40 @@ export async function seedDemo(svc: VisuaService): Promise<string> {
     });
   }
 
+  // RMF Categorize (FIPS 199 via SP 800-60 information types): high-water mark → MODERATE baseline.
+  if (svc.frameworkSettings(svc.workspace(ws.id), "nist-sp-800-53-r5")) {
+    svc.categorizeSystem(
+      ws.id,
+      {
+        systemName: "Northwind Clinic Cloud",
+        systemDescription: "Multi-tenant SaaS for outpatient scheduling, e-prescribing and billing.",
+        informationTypes: [
+          { id: "health-care-delivery", name: "Health care delivery services (PHI)", confidentiality: "moderate", integrity: "moderate", availability: "low" },
+          { id: "scheduling", name: "Patient scheduling", confidentiality: "low", integrity: "moderate", availability: "moderate" },
+          { id: "billing", name: "Billing and payments", confidentiality: "moderate", integrity: "moderate", availability: "low" },
+        ],
+        privacyBaseline: true,
+      },
+      actor,
+    );
+    svc.tailorControl(ws.id, "nist-sp-800-53-r5:PE-3", "remove", "Physical access control is inherited from the cloud provider's data centers (carve-out).", actor);
+  }
+
+  // RMF lifecycle: the demo system is prepared, categorized and has its baseline selected; implementation is under way.
+  const rmf = svc.registry.framework("nist-rmf");
+  if (rmf && svc.frameworkSettings(svc.workspace(ws.id), "nist-rmf")) {
+    const stepLevel: Record<string, number> = { P: 3, C: 3, S: 3, I: 2, A: 1, R: 0, M: 1 };
+    svc.store.transaction(() => {
+      for (const node of rmf.assessable) {
+        const prev = svc.store.states.get(ws.id, node.id);
+        if (!prev || !prev.applicable) continue;
+        const level = stepLevel[node.code.split("-")[0]!] ?? 0;
+        const current = Math.max(0, Math.min(prev.target, level - (rand(`rmf:${node.code}`) > 0.8 ? 1 : 0)));
+        svc.store.states.put(ws.id, { ...prev, current, owner: node.code.startsWith("R-") ? "Authorizing Official" : "System Owner", updatedAt: daysFromNow(-10), updatedBy: actor });
+      }
+    });
+  }
+
   // Policies (approved ones become evidence automatically).
   const nodesUnder = (code: string) => csf.assessableUnder(csf.get(code)!.id).map((n) => n.id);
   const isp = svc.createPolicy(ws.id, { title: "Information Security Policy", body: policyBody("Information Security Policy", "establish management direction for protecting Northwind Health information"), requirementIds: [...nodesUnder("GV.PO"), ...nodesUnder("GV.OC").slice(0, 2)], owner: "CISO" }, actor);

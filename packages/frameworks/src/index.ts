@@ -7,9 +7,11 @@ import { resolve } from "node:path";
 import { CrosswalkIndex, FrameworkIndex, type FrameworkGraph, type MappingSet } from "@visua/core";
 import { CORPUS_DIR, DATA_DIR } from "./paths.ts";
 import { CorpusSearch, type CorpusChunk } from "./search.ts";
+import { buildTscGraph, loadDescriptionCriteria, TSC_ID, type DescriptionCriterion } from "./ingest/tsc.ts";
 
 export { CORPUS_DIR, DATA_DIR, REPO_ROOT } from "./paths.ts";
 export { CorpusSearch, tokenize, bestQuote, type CorpusChunk, type SearchHit } from "./search.ts";
+export { buildTscGraph, loadDescriptionCriteria, TSC_ID, type DescriptionCriterion } from "./ingest/tsc.ts";
 
 export interface CorpusDocument {
   id: string;
@@ -49,6 +51,9 @@ export function loadFrameworkGraphs(dataDir: string = DATA_DIR): FrameworkGraph[
     .filter((f) => f.endsWith(".json") && !f.startsWith("corpus-") && !f.startsWith("_"))
     .map((f) => readJson<FrameworkGraph>(resolve(dataDir, f)))
     .filter((g) => g?.framework?.id && Array.isArray(g.nodes));
+  // SOC 2 criteria are not redistributed: without a local ingest, run on Visua's skeleton
+  // (overlaid with a licensed local copy of the official text when one is present).
+  if (!graphs.some((g) => g.framework.id === TSC_ID)) graphs.push(buildTscGraph());
   return graphs.sort((a, b) => {
     const ia = FRAMEWORK_ORDER.indexOf(a.framework.id);
     const ib = FRAMEWORK_ORDER.indexOf(b.framework.id);
@@ -64,9 +69,14 @@ export function loadMappingSets(dataDir: string = DATA_DIR): MappingSet[] {
     .map((f) => readJson<MappingSet>(resolve(dir, f)));
 }
 
+/** Search chunks are stored per corpus (data/chunks/<corpus>.json) so licensed corpora stay local. */
 export function loadCorpusChunks(dataDir: string = DATA_DIR): CorpusChunk[] {
-  const path = resolve(dataDir, "corpus-chunks.json");
-  return existsSync(path) ? readJson<CorpusChunk[]>(path) : [];
+  const dir = resolve(dataDir, "chunks");
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((f) => f.endsWith(".json"))
+    .sort()
+    .flatMap((f) => readJson<CorpusChunk[]>(resolve(dir, f)));
 }
 
 export function loadCorpusManifests(corpusDir: string = CORPUS_DIR): CorpusManifest[] {
@@ -83,6 +93,8 @@ export class FrameworkRegistry {
   readonly search: CorpusSearch;
   readonly documents = new Map<string, CorpusDocument & { framework: string }>();
   readonly manifests: CorpusManifest[];
+  /** AICPA DC 200 description criteria (Visua titles; official text only from a licensed local copy). */
+  readonly descriptionCriteria: DescriptionCriterion[] = loadDescriptionCriteria();
 
   constructor(input: { graphs: FrameworkGraph[]; mappings: MappingSet[]; chunks: CorpusChunk[]; manifests: CorpusManifest[] }) {
     for (const g of input.graphs) this.indexes.set(g.framework.id, new FrameworkIndex(g));

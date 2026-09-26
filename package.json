@@ -7,7 +7,7 @@
   "type": "module",
   "packageManager": "pnpm@10.33.0",
   "engines": {
-    "node": ">=22.13"
+    "node": ">=22.18"
   },
   "scripts": {
     "dev": "pnpm --filter @visua/design build && pnpm -r --parallel --filter @visua/server --filter @visua/web dev",
@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "@google/design.md": "0.4.0",
+    "@playwright/test": "1.56.1",
     "@types/node": "^22.20.4",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",

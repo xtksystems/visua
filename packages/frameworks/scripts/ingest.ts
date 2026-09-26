@@ -3,12 +3,12 @@
  *
  *   corpus/<framework>/…  ──►  packages/frameworks/data/<framework-id>.json
  *                              packages/frameworks/data/mappings/*.json
- *                              packages/frameworks/data/corpus-chunks.json
+ *                              packages/frameworks/data/chunks/<corpus>.json
  *                              packages/frameworks/data/_ingest-report.json
  *
  * Run with `pnpm ingest`. Deterministic: same corpus in, same data out.
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { FrameworkGraph, MappingSet, RequirementNode } from "@visua/core";
 import { loadCorpusManifests, type CorpusDocument } from "../src/index.ts";
@@ -18,7 +18,8 @@ import { csfMappingSets, ingestCsf } from "../src/ingest/csf.ts";
 import { chunkPages, pdfPages } from "../src/ingest/pdf.ts";
 import { ingestRmf, rmfToControls } from "../src/ingest/rmf.ts";
 import { ingest80053 } from "../src/ingest/sp80053.ts";
-import { ingestTsc, tscMappingSets } from "../src/ingest/tsc.ts";
+import { buildTscGraph } from "../src/ingest/tsc.ts";
+import { aicpaTscMappingSets } from "../src/ingest/tsc-mappings.ts";
 
 const started = Date.now();
 const log = (msg: string) => console.log(`[ingest ${((Date.now() - started) / 1000).toFixed(1)}s] ${msg}`);
@@ -38,13 +39,10 @@ const rmf = ingestRmf();
 graphs.push(rmf.graph);
 log(`NIST RMF: ${rmf.graph.nodes.length} nodes (${rmf.graph.nodes.filter((n) => n.assessable).length} tasks)`);
 
-const tsc = await ingestTsc();
-if (tsc) {
-  graphs.push(tsc.graph);
-  log(`AICPA TSC (SOC 2): ${tsc.graph.nodes.length} nodes (${tsc.graph.nodes.filter((n) => n.assessable).length} criteria)`);
-} else {
-  log("AICPA TSC (SOC 2): corpus not available — skipped");
-}
+const tsc = buildTscGraph();
+graphs.push(tsc);
+const tscLicensed = tsc.nodes.filter((n) => n.attributes?.["licensed"] === true).length;
+log(`AICPA TSC (SOC 2): ${tsc.nodes.length} nodes (${tsc.nodes.filter((n) => n.assessable).length} criteria; ${tscLicensed ? `official text from the local licensed copy for ${tscLicensed}` : "Visua skeleton — no licensed local copy"})`);
 
 const ids = new Set(graphs.flatMap((g) => g.nodes.map((n) => n.id)));
 const exists = (id: string) => ids.has(id);
@@ -52,7 +50,9 @@ const exists = (id: string) => ids.has(id);
 // Drop dangling cross-framework node links in informative references.
 for (const g of graphs) for (const n of g.nodes) for (const r of n.references ?? []) if (r.nodeId && !exists(r.nodeId)) delete r.nodeId;
 
-const mappingSets: MappingSet[] = [...csfMappingSets(csf.crosswalkRefs, exists), rmfToControls(exists), ...(tsc ? tscMappingSets(tsc, exists) : [])];
+const aicpa = await aicpaTscMappingSets(exists);
+for (const [k, v] of Object.entries(aicpa.report)) log(`  ${k}: ${v}`);
+const mappingSets: MappingSet[] = [...csfMappingSets(csf.crosswalkRefs, exists), rmfToControls(exists), ...aicpa.sets];
 for (const set of mappingSets) {
   writeFileSync(resolve(DATA_DIR, "mappings", `${set.id}.json`), JSON.stringify(set, null, 1));
   log(`mapping ${set.id}: ${set.mappings.length}`);
@@ -92,7 +92,19 @@ for (const g of graphs) for (const n of g.nodes) if (n.text) chunks.push(nodeChu
 log(`structured chunks: ${chunks.length}`);
 
 const INCLUDED_ROLES = new Set(["core", "quick-start-guide", "categorization", "criteria", "description-criteria", "guide", "profile"]);
-const EXCLUDED_DOCS = new Set(["csf-2-0-implementation-examples-pdf", "nist-sp-800-53r5", "nist-sp-800-53ar5", "nist-sp-800-60r2-iwd"]);
+const EXCLUDED_DOCS = new Set([
+  "csf-2-0-implementation-examples-pdf",
+  "nist-sp-800-53r5",
+  "nist-sp-800-53ar5",
+  "nist-sp-800-60r2-iwd",
+  // Superseded AICPA editions and red-lines: the current 2022 editions are indexed instead.
+  "tsc-2017-rev-pof-2022-redlined",
+  "tsc-2017-march-2020-updates",
+  "tsc-2017-march-2020-updates-redlined",
+  "tsc-2017-original-april-2017",
+  "dc200-2018-original",
+  "dc200a-2015-description-criteria",
+]);
 const isDraft = (d: CorpusDocument) => /draft|\(ipd\)|\(iprd\)|\(2pd\)|\(iwd\)/i.test(`${d.version ?? ""} ${d.identifier ?? ""}`) || /\/drafts\/|\.ipd\.|\.iprd\.|\.2pd\.|\.iwd\./.test(d.path);
 
 let pdfCount = 0;
@@ -110,7 +122,15 @@ for (const d of docs.values()) {
     log(`  ${d.id}: FAILED (${(err as Error).message})`);
   }
 }
-writeFileSync(resolve(DATA_DIR, "corpus-chunks.json"), JSON.stringify(chunks));
+// One file per corpus: licensed corpora (AICPA) stay local and git-ignored.
+mkdirSync(resolve(DATA_DIR, "chunks"), { recursive: true });
+const byCorpus = new Map<string, CorpusChunk[]>();
+for (const c of chunks) byCorpus.set(c.framework, [...(byCorpus.get(c.framework) ?? []), c]);
+for (const [corpus, list] of byCorpus) {
+  writeFileSync(resolve(DATA_DIR, "chunks", `${corpus}.json`), JSON.stringify(list));
+  log(`  chunks/${corpus}.json: ${list.length}`);
+}
+if (existsSync(resolve(DATA_DIR, "corpus-chunks.json"))) rmSync(resolve(DATA_DIR, "corpus-chunks.json"));
 log(`corpus index: ${chunks.length} chunks from ${pdfCount} PDFs + structured requirements`);
 
 const report = {

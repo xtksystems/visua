@@ -77,7 +77,8 @@ export function checklistFor(node: RequirementNode, idFactory: () => string): Ch
   if (node.examples?.length) items.push(...node.examples.map((e) => e.text));
   const pof = node.attributes?.["pointsOfFocus"];
   if (Array.isArray(pof)) {
-    for (const p of pof as { title?: string; text?: string }[]) items.push(p.title ? `${p.title} — ${p.text ?? ""}`.trim() : (p.text ?? ""));
+    // Point-of-focus titles only: concise checklist items (the full text stays on the requirement).
+    for (const p of pof as { title?: string; text?: string }[]) items.push(p.title?.trim() || (p.text ?? ""));
   }
   const objectives = node.attributes?.["objectives"];
   if (!items.length && Array.isArray(objectives)) items.push(...(objectives as string[]).slice(0, 8));

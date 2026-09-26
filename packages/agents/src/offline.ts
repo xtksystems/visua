@@ -27,7 +27,6 @@ import {
   hitToCitation,
   listRequirements,
   proposeAssessment,
-  proposeEvidence,
   proposePolicy,
   proposeTask,
   runChecks,
@@ -565,15 +564,9 @@ const taskExecutor: Playbook = async (host, goal, input) => {
   guide.push("", "## Verification", "", "- Confirm the outcome is achieved in production, not only documented.", "- Capture evidence (configuration export, screenshot, record) with a date.", "- Link evidence to the requirement(s) and request review in Visua.");
   const citations = nodes[0] ? citeFor(host, nodes[0], 2) : [];
   if (citations.length) host.step({ type: "citation", title: "Official basis", citations });
-  await proposeEvidence.run(host, {
-    title: `Implementation guide: ${shortStatement(task.title, 80)}`,
-    requirementIds: task.requirementIds,
-    kind: "document",
-    content: guide.join("\n"),
-    validDays: 365,
-  });
-  await updateTask.run(host, { taskId: task.id, status: "in-progress", note: "Implementation guide drafted; execute the steps and attach evidence." });
-  return `Prepared an implementation guide for **${task.title}** with ${task.checklist.length} step(s) and mapped control guidance. Approve it to attach it to the task's requirements.`;
+  // A plan is not proof: the guide is attached to the task, never filed as evidence.
+  await updateTask.run(host, { taskId: task.id, status: "in-progress", note: guide.join("\n") });
+  return `Prepared an implementation guide for **${task.title}** with ${task.checklist.length} step(s) and mapped control guidance. Approve it to attach the guide to the task; evidence is collected only after the work is done.`;
 };
 
 export const PLAYBOOKS: Record<AgentKind, Playbook> = {

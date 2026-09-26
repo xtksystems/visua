@@ -22,6 +22,8 @@ import { AGENTS, claudeEnabled, configuredModel } from "@visua/agents";
 import { CORPUS_DIR } from "@visua/frameworks";
 import { CONNECTOR_KINDS } from "./connectors/index.ts";
 import { actionPlanCsv, csfProfileCsv, evidenceIndexCsv, oscalPoam, oscalSsp, readinessMarkdown, soc2PbcCsv } from "./services/exports.ts";
+import { crosswalkOverview, crosswalkRows } from "./services/crosswalk.ts";
+import { soc2Description } from "./services/soc2.ts";
 import { frameworkState, leanGraph, nodeDetail, workspaceSummary } from "./services/views.ts";
 import { NotFoundError, ValidationError, type VisuaService } from "./services/visua.ts";
 
@@ -263,7 +265,16 @@ export function createApp(svc: VisuaService): Hono {
     return c.json({ nodes: nodes.slice(0, 20), passages });
   });
 
-  app.get("/api/corpus", (c) => c.json(svc.registry.manifests));
+  app.get("/api/corpus", (c) =>
+    c.json(
+      svc.registry.manifests.map((m) => ({
+        ...m,
+        // AICPA documents are © AICPA and only present where the installation holds its own copy.
+        restricted: m.framework === "aicpa-soc2",
+        documents: m.documents.map((d) => ({ ...d, present: existsSync(resolve(CORPUS_DIR, d.path)) })),
+      })),
+    ),
+  );
 
   app.get("/api/corpus/file/*", (c) => {
     const rel = decodeURIComponent(c.req.path.replace(/^\/api\/corpus\/file\//, ""));
@@ -448,7 +459,21 @@ export function createApp(svc: VisuaService): Hono {
   });
 
   // ---------------------------------------------------------------- activity & events
+  app.get("/api/workspaces/:ws/crosswalk", (c) => c.json(crosswalkOverview(svc, svc.workspace(c.req.param("ws")))));
+  app.get("/api/workspaces/:ws/crosswalk/rows", (c) =>
+    c.json(
+      crosswalkRows(svc, svc.workspace(c.req.param("ws")), {
+        setId: c.req.query("set") || undefined,
+        groupId: c.req.query("group") || undefined,
+        nodeId: c.req.query("node") || undefined,
+        limit: c.req.query("limit") ? Math.min(5000, Number(c.req.query("limit"))) : undefined,
+      }),
+    ),
+  );
+  app.get("/api/workspaces/:ws/soc2/description", (c) => c.json(soc2Description(svc, svc.workspace(c.req.param("ws")))));
+
   app.get("/api/workspaces/:ws/activity", (c) => c.json(svc.store.activity.recent(svc.workspace(c.req.param("ws")).id, Number(c.req.query("limit") ?? 100))));
+  app.get("/api/workspaces/:ws/activity/verify", (c) => c.json(svc.verifyAuditTrail(svc.workspace(c.req.param("ws")).id)));
 
   app.get("/api/workspaces/:ws/events", (c) => {
     const ws = svc.workspace(c.req.param("ws"));

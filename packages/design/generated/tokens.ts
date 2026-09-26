@@ -32,8 +32,8 @@ export const designSystem = {
     "status-in-progress-container": "#33270D",
     "status-implemented": "#3CCB8C",
     "status-implemented-container": "#0F2E22",
-    "status-verified": "#35D6E0",
-    "status-verified-container": "#0C2C30",
+    "status-verified": "#45D0FF",
+    "status-verified-container": "#0B2838",
     "status-at-risk": "#FF6B6B",
     "status-at-risk-container": "#3A1418",
     "status-not-applicable": "#475269",
@@ -131,8 +131,7 @@ export const designSystem = {
       "fontSize": "44px",
       "fontWeight": 500,
       "lineHeight": 1,
-      "letterSpacing": "-0.03em",
-      "fontFeature": "'tnum' 1"
+      "letterSpacing": "-0.03em"
     }
   },
   "rounded": {
@@ -379,8 +378,8 @@ export const designSystem = {
       "height": "22px"
     },
     "chip-status-verified": {
-      "backgroundColor": "#0C2C30",
-      "textColor": "#35D6E0",
+      "backgroundColor": "#0B2838",
+      "textColor": "#45D0FF",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "12px",
@@ -539,8 +538,7 @@ export const designSystem = {
         "fontSize": "44px",
         "fontWeight": 500,
         "lineHeight": 1,
-        "letterSpacing": "-0.03em",
-        "fontFeature": "'tnum' 1"
+        "letterSpacing": "-0.03em"
       },
       "rounded": "12px",
       "padding": "16px"
@@ -651,7 +649,7 @@ export const designSystem = {
       "textColor": "#06090F"
     },
     "scene-node-verified": {
-      "backgroundColor": "#35D6E0",
+      "backgroundColor": "#45D0FF",
       "textColor": "#06090F"
     },
     "scene-node-at-risk": {
