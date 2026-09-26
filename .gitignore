@@ -1,0 +1,23 @@
+node_modules/
+dist/
+build/
+coverage/
+.vite/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+# Runtime data (SQLite databases, uploaded evidence)
+/data/
+apps/server/data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+# Test artifacts
+test-results/
+playwright-report/
+/blob-report/
+# Local corpus downloads flagged as non-redistributable are kept out of git
+corpus/**/.local/

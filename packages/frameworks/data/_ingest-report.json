@@ -1,0 +1,139 @@
+{
+  "generatedAt": "2026-09-26T08:06:08.442Z",
+  "frameworks": [
+    {
+      "id": "nist-csf-2.0",
+      "nodes": 134,
+      "assessable": 106,
+      "byKind": {
+        "function": 6,
+        "category": 22,
+        "subcategory": 106
+      }
+    },
+    {
+      "id": "nist-sp-800-53-r5",
+      "nodes": 1034,
+      "assessable": 1014,
+      "byKind": {
+        "family": 20,
+        "control": 300,
+        "enhancement": 714
+      }
+    },
+    {
+      "id": "nist-rmf",
+      "nodes": 54,
+      "assessable": 47,
+      "byKind": {
+        "step": 7,
+        "task": 47
+      }
+    }
+  ],
+  "mappings": [
+    {
+      "id": "sp-800-53-r5--csf-2.0",
+      "count": 745,
+      "authority": "NIST OLIR"
+    },
+    {
+      "id": "rmf-tasks--csf-2.0",
+      "count": 176,
+      "authority": "NIST OLIR"
+    },
+    {
+      "id": "sp-800-53-r5--rmf-tasks",
+      "count": 77,
+      "authority": "Visua editorial (SP 800-37 Rev. 2)"
+    }
+  ],
+  "corpus": {
+    "chunks": 4911,
+    "pdfDocuments": 35,
+    "manifests": [
+      {
+        "framework": "nist-csf-2.0",
+        "documents": 47
+      },
+      {
+        "framework": "nist-rmf",
+        "documents": 66
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "csf-2-0-reference-tool-elements-json",
+      "sha256": "68ae33559e65b6597b89b1647a8be28ec9d5d8e4a5b52bf02bd7ff77a25b345e"
+    },
+    {
+      "id": "csf-2-0-reference-tool-olirs-json",
+      "sha256": "d64a4d125e80c1079d8878cad541d302c8a7869cd7199102d5e765c09e932d71"
+    },
+    {
+      "id": "cprt-csf-2-0-export-json",
+      "sha256": "28ba53c5ea2f57fd7fcb56d7f512ab8b28c19516af411dffac6c782debc6c7e1"
+    },
+    {
+      "id": "cprt-csf-2-0-export-xlsx",
+      "sha256": "f3c6f62ac738cdc03eafb4b3100456bd4fb04cf44190dfba1a87ff2ff2356c80"
+    },
+    {
+      "id": "csf-2-0-informative-references-xlsx",
+      "sha256": "74b9f7b9c982a58f9e56ddcf086550a390173bc2203c356d56d17d93d18b7c44"
+    },
+    {
+      "id": "csf-2-0-implementation-examples-xlsx",
+      "sha256": "ee5fc03a68fa3800988dceecf6aed05d67a196da2a97a9c9967399c3abde11a5"
+    },
+    {
+      "id": "oscal-csf-2-0-catalog-json",
+      "sha256": "4836943f21d393f2821df85ada4e6f3c0617243b4ddf44263fe68205400210b4"
+    },
+    {
+      "id": "cprt-sp-800-37r2-json",
+      "sha256": "f6b9af408d6a933b65891b7ca3c30ca619bd4b8044940c405de53e56710890db"
+    },
+    {
+      "id": "oscal-sp-800-53r5-catalog",
+      "sha256": "01f37cf90ea99d92242c936cbfbdebcc338eef1f71454e2acac36cc56e9bc062"
+    },
+    {
+      "id": "oscal-sp-800-53r5-low-baseline-profile",
+      "sha256": "8fd206017c8d718b44bdef612c2ff321a9fd84d97a515c8ec33c4619accbef6e"
+    },
+    {
+      "id": "oscal-sp-800-53r5-moderate-baseline-profile",
+      "sha256": "9030dbf1f13169947eb97eb101b4bd2f00d3c151b100455a923ac75803f00ea1"
+    },
+    {
+      "id": "oscal-sp-800-53r5-high-baseline-profile",
+      "sha256": "60576970caef91b2cba56d46e5948b72e3b879434fc2a4840bc4179e5e75cfd7"
+    },
+    {
+      "id": "oscal-sp-800-53r5-privacy-baseline-profile",
+      "sha256": "7e650c4397ad633eadeaf510baa523372849b1fa3e18207b6c6b70ed456224f9"
+    },
+    {
+      "id": "oscal-sp-800-53r5-low-baseline-resolved-catalog",
+      "sha256": "6c4a292a358f436a7534e340e0e9f7ee1faa57ff1d3936fbab250cc08c1d85ed"
+    },
+    {
+      "id": "oscal-sp-800-53r5-moderate-baseline-resolved-catalog",
+      "sha256": "6669b5c0af9004e4ae422f43aad02facb3d0a2a9ff1ff611984c7be6a2b89073"
+    },
+    {
+      "id": "oscal-sp-800-53r5-high-baseline-resolved-catalog",
+      "sha256": "e2c1a3dbc1d003ce2aea7e70f64527b17fea3a032b972a5fcb8645d1a75f9ed0"
+    },
+    {
+      "id": "oscal-sp-800-53r5-privacy-baseline-resolved-catalog",
+      "sha256": "95a7fdb6fa56a8360c23e9b8e55a267148b9ffb8f2a6dd653458d3847deb02cb"
+    },
+    {
+      "id": "oscal-sp-800-171r3-catalog",
+      "sha256": "21b6f3b118b6e5b305aaed3a0e4b70fa5d1d9aa388a0b92e7d6ddfed69e93ac3"
+    }
+  ]
+}

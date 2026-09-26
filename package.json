@@ -1,0 +1,33 @@
+{
+  "name": "visua",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Visua — the spatial, AI-first compliance automation platform. See, navigate and execute NIST CSF 2.0, SOC 2 and NIST RMF programs in 3D.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @visua/design build && pnpm -r --parallel --filter @visua/server --filter @visua/web dev",
+    "build": "pnpm --filter @visua/design build && pnpm --filter @visua/web build",
+    "start": "pnpm --filter @visua/server start",
+    "design:lint": "designmd lint DESIGN.md",
+    "design:tokens": "pnpm --filter @visua/design build",
+    "corpus:verify": "node scripts/corpus.ts verify",
+    "corpus:sync": "node scripts/corpus.ts sync",
+    "ingest": "pnpm --filter @visua/frameworks ingest",
+    "typecheck": "pnpm -r typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@google/design.md": "0.4.0",
+    "@types/node": "^22.20.4",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  }
+}

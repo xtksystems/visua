@@ -1,0 +1,24 @@
+{
+  "name": "@visua/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Visua API: workspaces, assessments, tasks, evidence, policies, agents (Claude + offline), connectors, exports, trust center and live events (SSE).",
+  "scripts": {
+    "dev": "node --disable-warning=ExperimentalWarning --watch src/index.ts",
+    "start": "node --disable-warning=ExperimentalWarning src/index.ts",
+    "seed": "node --disable-warning=ExperimentalWarning src/seed/cli.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.1",
+    "@visua/agents": "workspace:*",
+    "@visua/core": "workspace:*",
+    "@visua/frameworks": "workspace:*",
+    "hono": "^4.13.9",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0"
+  }
+}

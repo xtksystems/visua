@@ -1,0 +1,22 @@
+{
+  "name": "@visua/agents",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Glass-box compliance agents: Claude tool-use loop with human-in-the-loop proposals, corpus-grounded citations, and deterministic offline playbooks.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
+    "@visua/core": "workspace:*",
+    "@visua/frameworks": "workspace:*",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0"
+  }
+}

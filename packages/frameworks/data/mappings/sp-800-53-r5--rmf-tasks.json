@@ -1,0 +1,702 @@
+{
+ "id": "sp-800-53-r5--rmf-tasks",
+ "title": "SP 800-53 controls supporting RMF tasks",
+ "sourceFramework": "nist-sp-800-53-r5",
+ "targetFramework": "nist-rmf",
+ "authority": "Visua editorial (SP 800-37 Rev. 2)",
+ "mappings": [
+  {
+   "source": "nist-sp-800-53-r5:PM-2",
+   "target": "nist-rmf:P-1",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PM-29",
+   "target": "nist-rmf:P-1",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PM-9",
+   "target": "nist-rmf:P-2",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PM-28",
+   "target": "nist-rmf:P-2",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:RA-3",
+   "target": "nist-rmf:P-3",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PM-16",
+   "target": "nist-rmf:P-3",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PM-28",
+   "target": "nist-rmf:P-3",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PL-10",
+   "target": "nist-rmf:P-4",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PL-11",
+   "target": "nist-rmf:P-4",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PM-1",
+   "target": "nist-rmf:P-5",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PM-31",
+   "target": "nist-rmf:P-7",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-7",
+   "target": "nist-rmf:P-7",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PM-11",
+   "target": "nist-rmf:P-8",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CM-8",
+   "target": "nist-rmf:P-10",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PM-5",
+   "target": "nist-rmf:P-10",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PL-2",
+   "target": "nist-rmf:P-11",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:RA-2",
+   "target": "nist-rmf:P-12",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PM-11",
+   "target": "nist-rmf:P-12",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:SI-12",
+   "target": "nist-rmf:P-13",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:RA-3",
+   "target": "nist-rmf:P-14",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:RA-5",
+   "target": "nist-rmf:P-14",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:SA-4",
+   "target": "nist-rmf:P-15",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PM-11",
+   "target": "nist-rmf:P-15",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PM-7",
+   "target": "nist-rmf:P-16",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PL-8",
+   "target": "nist-rmf:P-16",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:SA-17",
+   "target": "nist-rmf:P-16",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PL-8",
+   "target": "nist-rmf:P-17",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PM-5",
+   "target": "nist-rmf:P-18",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PL-2",
+   "target": "nist-rmf:C-1",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CM-8",
+   "target": "nist-rmf:C-1",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:RA-2",
+   "target": "nist-rmf:C-2",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:RA-2",
+   "target": "nist-rmf:C-3",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PL-2",
+   "target": "nist-rmf:S-1",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PL-10",
+   "target": "nist-rmf:S-1",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PL-11",
+   "target": "nist-rmf:S-2",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PL-2",
+   "target": "nist-rmf:S-3",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PL-8",
+   "target": "nist-rmf:S-3",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PL-2",
+   "target": "nist-rmf:S-4",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:SA-4",
+   "target": "nist-rmf:S-4",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-7",
+   "target": "nist-rmf:S-5",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PL-2",
+   "target": "nist-rmf:S-6",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CM-2",
+   "target": "nist-rmf:I-1",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CM-6",
+   "target": "nist-rmf:I-1",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PL-2",
+   "target": "nist-rmf:I-2",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CM-2",
+   "target": "nist-rmf:I-2",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-2",
+   "target": "nist-rmf:A-1",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-2(1)",
+   "target": "nist-rmf:A-1",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-2",
+   "target": "nist-rmf:A-2",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-2",
+   "target": "nist-rmf:A-3",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-8",
+   "target": "nist-rmf:A-3",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-2",
+   "target": "nist-rmf:A-4",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-2",
+   "target": "nist-rmf:A-5",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:SI-2",
+   "target": "nist-rmf:A-5",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-5",
+   "target": "nist-rmf:A-6",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PM-4",
+   "target": "nist-rmf:A-6",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-6",
+   "target": "nist-rmf:R-1",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PL-2",
+   "target": "nist-rmf:R-1",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:RA-3",
+   "target": "nist-rmf:R-2",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PM-9",
+   "target": "nist-rmf:R-2",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-5",
+   "target": "nist-rmf:R-3",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PM-4",
+   "target": "nist-rmf:R-3",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PM-9",
+   "target": "nist-rmf:R-3",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-6",
+   "target": "nist-rmf:R-4",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-6",
+   "target": "nist-rmf:R-5",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CM-3",
+   "target": "nist-rmf:M-1",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CM-4",
+   "target": "nist-rmf:M-1",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-2",
+   "target": "nist-rmf:M-2",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-7",
+   "target": "nist-rmf:M-2",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-5",
+   "target": "nist-rmf:M-3",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-7",
+   "target": "nist-rmf:M-3",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-6",
+   "target": "nist-rmf:M-4",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-7",
+   "target": "nist-rmf:M-4",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:PL-2",
+   "target": "nist-rmf:M-4",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-7",
+   "target": "nist-rmf:M-5",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CA-6",
+   "target": "nist-rmf:M-6",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:MP-6",
+   "target": "nist-rmf:M-7",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  },
+  {
+   "source": "nist-sp-800-53-r5:CM-8",
+   "target": "nist-rmf:M-7",
+   "relationship": "supports",
+   "origin": {
+    "documentId": "nist-sp-800-37r2",
+    "authority": "Visua editorial mapping of SP 800-37 Rev. 2 tasks to supporting SP 800-53 controls"
+   }
+  }
+ ]
+}

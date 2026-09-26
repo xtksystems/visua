@@ -1,0 +1,23 @@
+{
+  "name": "@visua/frameworks",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Ingestion pipeline from the local official documentation corpus (corpus/) into normalized Visua framework graphs, crosswalk mapping sets and a citation-ready corpus search index.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./search": "./src/search.ts"
+  },
+  "scripts": {
+    "ingest": "node scripts/ingest.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@visua/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "exceljs": "^4.4.0",
+    "unpdf": "^1.8.1"
+  }
+}

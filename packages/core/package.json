@@ -1,0 +1,16 @@
+{
+  "name": "@visua/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Framework-agnostic compliance domain model and engines: framework graphs, implementation levels, status derivation, readiness scoring, gap analysis, planning, crosswalks, maturity-adaptive recommendations and exports.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0"
+  }
+}
