@@ -2,8 +2,11 @@
  * U.S. state AI laws view: jurisdictions → laws with their status, dates,
  * enforcement and safe harbors, the roles each law defines, what the
  * workspace said applies, and progress on the obligations in scope.
+ *
+ * Readiness counts the obligations in force today. Obligations in scope that take
+ * effect later are upcoming: they can be prepared for, and have their own figure.
  */
-import { groupStatus, type Status, type Workspace } from "@visua/core";
+import { groupStatus, obligationTiming, type Status, type Workspace } from "@visua/core";
 import { STATE_LAWS_ID } from "@visua/frameworks";
 import { NotFoundError, type VisuaService } from "./visua.ts";
 
@@ -44,7 +47,9 @@ export async function lawsOverview(svc: VisuaService, ws: Workspace) {
       }
       for (const [date, n] of byDate) timeline.push({ date, lawCode: l.code, lawId, label: l.title, obligations: n, past: date <= today });
       const applicability = settings?.law?.applicability[lawId] ?? null;
-      const inScope = obligations.filter((o) => states.get(o.id)?.applicable);
+      const inScope = obligations.filter((o) => states.get(o.id)?.applicable && obligationTiming(o, today) !== "ended");
+      const upcomingInScope = inScope.filter((o) => obligationTiming(o, today) === "upcoming");
+      const u = score?.upcoming?.scores.get(l.id);
       return {
         id: l.id,
         lawId,
@@ -63,21 +68,28 @@ export async function lawsOverview(svc: VisuaService, ws: Workspace) {
         applicability,
         obligations: obligations.length,
         inScope: inScope.length,
+        /** In force today and in scope. */
+        inForce: inScope.length - upcomingInScope.length,
         readiness: s && s.total ? s.readiness : 0,
         gaps: s?.gaps ?? 0,
         counts: s?.counts,
-        status_: (s ? groupStatus(s) : null) as Status | null,
+        status_: (s && s.total ? groupStatus(s) : null) as Status | null,
         upcoming: [...byDate.keys()].filter((d) => d > today).sort()[0] ?? null,
+        /** In scope but not yet in effect: prepared share, not counted in today's readiness. */
+        upcomingInScope: { total: upcomingInScope.length, readiness: u && u.total ? u.readiness : 0, next: upcomingInScope.map((o) => String(o.attributes?.["effective"])).sort()[0] ?? null },
       };
     }),
   }));
   timeline.sort((x, y) => x.date.localeCompare(y.date) || x.lawCode.localeCompare(y.lawCode));
+  const upcoming = score?.upcoming?.overall;
   return {
     enabled,
     framework: index.graph.framework,
+    /** Obligations in force today and in scope. */
     readiness: score?.overall.readiness ?? 0,
     gaps: score?.overall.gaps ?? 0,
     total: score?.overall.total ?? 0,
+    upcoming: { total: upcoming?.total ?? 0, readiness: upcoming?.readiness ?? 0, gaps: upcoming?.gaps ?? 0 },
     obligations: index.assessable.length,
     laws: jurisdictions.reduce((n, j) => n + j.laws.length, 0),
     jurisdictions,

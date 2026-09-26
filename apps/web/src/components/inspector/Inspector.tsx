@@ -95,6 +95,15 @@ function Overview({ data }: { data: NodeDetail }) {
   return (
     <div className="stack" style={{ gap: 16 }}>
       <p style={{ whiteSpace: "pre-line", lineHeight: 1.6 }}>{node.text}</p>
+      {data.timing && (
+        <div className="callout" role="note" style={{ fontSize: 12.5 }}>
+          {data.timing.state === "upcoming"
+            ? `○ Takes effect on ${data.timing.effective}. Until then it is prepared for, not counted in today's readiness.`
+            : data.timing.state === "ended"
+              ? `No longer in effect after ${data.timing.until}.`
+              : `● In force since ${data.timing.effective}${data.timing.until ? `, until ${data.timing.until}` : ""}.`}
+        </div>
+      )}
       {data.source && (
         <div className="muted" style={{ fontSize: 12 }}>
           Source:{" "}

@@ -39,17 +39,23 @@ interface Law {
   applicability: { roles: string[]; note?: string; decidedAt: string; decidedBy: string } | null;
   obligations: number;
   inScope: number;
+  /** In scope and in force today. */
+  inForce: number;
   readiness: number;
   gaps: number;
   counts?: Record<Status, number>;
   status_: Status | null;
   upcoming: string | null;
+  /** In scope but not in effect yet: prepared share, not counted in readiness. */
+  upcomingInScope: { total: number; readiness: number; next: string | null };
 }
 interface LawsOverview {
   enabled: boolean;
+  /** Obligations in force today and in scope. */
   readiness: number;
   gaps: number;
   total: number;
+  upcoming: { total: number; readiness: number; gaps: number };
   obligations: number;
   laws: number;
   jurisdictions: { id: string; code: string; name: string; laws: Law[] }[];
@@ -143,7 +149,7 @@ function Obligations({ ws, law }: { ws: string; law: Law }) {
   const graph = useQuery({ queryKey: keys.graph(LAWS), queryFn: () => api.get<{ nodes: (Obligation & { parentId: string | null })[] }>(`/frameworks/${LAWS}`), staleTime: Infinity });
   const state = useQuery({
     queryKey: keys.state(ws, LAWS),
-    queryFn: () => api.get<{ units: Record<string, { applicable: boolean; status: Status; current: number; target: number }> }>(`/workspaces/${enc(ws)}/frameworks/${LAWS}/state`),
+    queryFn: () => api.get<{ units: Record<string, { applicable: boolean; status: Status; current: number; target: number; upcoming?: string }> }>(`/workspaces/${enc(ws)}/frameworks/${LAWS}/state`),
   });
   const rows = (graph.data?.nodes ?? []).filter((n) => n.parentId === law.id);
   return (
@@ -175,7 +181,18 @@ function Obligations({ ws, law }: { ws: string; law: Law }) {
               <td className="mono" style={{ fontSize: 12 }}>
                 {String(meta["effective"] ?? law.effective ?? "—")}
               </td>
-              <td>{u ? <StatusChip status={u.applicable ? u.status : "not-applicable"} /> : null}</td>
+              <td>
+                {u ? (
+                  <span className="row row--wrap" style={{ gap: 4 }}>
+                    <StatusChip status={u.applicable ? u.status : "not-applicable"} />
+                    {u.applicable && u.upcoming ? (
+                      <span className="chip" style={{ cursor: "default", height: 22 }} title={`Takes effect ${u.upcoming}: not counted in today's readiness`}>
+                        ○ upcoming
+                      </span>
+                    ) : null}
+                  </span>
+                ) : null}
+              </td>
             </tr>
           );
         })}
@@ -282,24 +299,28 @@ function LawCard({ ws, law, onCollapse }: { ws: string; law: Law; onCollapse?: (
           </div>
         )}
       </fieldset>
-      <div className="row" style={{ gap: 12 }}>
-        <div style={{ width: 150 }}>
-          <span className="mono">{law.inScope}</span> <span className="muted">of {law.obligations} in scope</span>
+      <div className="row row--wrap law-card__score" style={{ gap: 12 }}>
+        <div style={{ minWidth: 150 }}>
+          <span className="mono">{law.inForce}</span> <span className="muted">in force · {law.inScope} of {law.obligations} in scope</span>
         </div>
-        <div style={{ flex: 1 }}>{law.counts && law.inScope ? <StatusBar counts={law.counts} height={6} /> : <Progress value={0} />}</div>
-        <span className="mono" style={{ width: 44, textAlign: "right" }}>
-          {Math.round(law.readiness * 100)}%
+        <div style={{ flex: "1 1 160px" }}>{law.counts && law.inForce ? <StatusBar counts={law.counts} height={6} /> : <Progress value={0} />}</div>
+        <span className="mono" style={{ width: 44, textAlign: "right" }} title="Readiness of the obligations in force today">
+          {law.inForce ? `${Math.round(law.readiness * 100)}%` : "—"}
         </span>
         <span className="muted" style={{ width: 70 }}>
           {law.gaps} gaps
         </span>
-        {law.status_ && law.inScope > 0 && <StatusChip status={law.status_} />}
+        {law.status_ && law.inForce > 0 && <StatusChip status={law.status_} />}
       </div>
-      {law.upcoming && (
+      {law.upcomingInScope.total > 0 ? (
+        <div className="muted" style={{ fontSize: 12 }}>
+          ○ {law.upcomingInScope.total} obligation{law.upcomingInScope.total === 1 ? "" : "s"} in scope take{law.upcomingInScope.total === 1 ? "s" : ""} effect from <strong>{law.upcomingInScope.next}</strong>: {Math.round(law.upcomingInScope.readiness * 100)}% prepared, not counted in today's readiness.
+        </div>
+      ) : law.upcoming ? (
         <div className="muted" style={{ fontSize: 12 }}>
           Next obligations take effect on <strong>{law.upcoming}</strong>.
         </div>
-      )}
+      ) : null}
       {law.safeHarbors.length > 0 && (
         <details>
           <summary className="eyebrow" style={{ cursor: "pointer" }}>
@@ -381,8 +402,13 @@ export function LawsPage() {
         <div>
           <div className="eyebrow">AI laws · United States</div>
           <h1>
-            State AI laws{enabled && data.total ? ` · ${Math.round(data.readiness * 100)}% of applicable obligations` : ""}
+            State AI laws{enabled && data.total ? ` · ${Math.round(data.readiness * 100)}% of obligations in force` : ""}
           </h1>
+          {enabled && data.upcoming.total > 0 && (
+            <p className="muted" style={{ marginTop: 4 }}>
+              ○ {data.upcoming.total} more obligation{data.upcoming.total === 1 ? "" : "s"} in scope take effect later: {Math.round(data.upcoming.readiness * 100)}% prepared.
+            </p>
+          )}
           <p>
             {data.laws} laws and regulations, {data.obligations} obligations quoted from the statutes and adopted regulations. Record the role you hold under each law —
             developer, deployer, employer, operator… as the law defines it — and Visua scopes its obligations. This is a tracking tool, not legal advice.

@@ -12,3 +12,4 @@ export * from "./rmf.ts";
 export * from "./access.ts";
 export * from "./overlays.ts";
 export * from "./trust.ts";
+export * from "./laws.ts";

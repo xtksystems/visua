@@ -113,7 +113,7 @@ export function HomePage() {
                 </div>
                 <StatusBar counts={f.counts} />
                 <div className="muted" style={{ fontSize: 12, marginTop: 8 }}>
-                  {f.total} in scope · {f.gaps} gaps · evidence {pct(f.evidenceCoverage)}
+                  {f.upcoming ? `${f.total} in force · ${f.upcoming.total} upcoming` : `${f.total} in scope`} · {f.gaps} gaps · evidence {pct(f.evidenceCoverage)}
                   {f.settings.soc2 ? ` · ${f.settings.soc2.reportType === "type1" ? "Type 1" : "Type 2"}` : ""}
                   {f.settings.rmf ? ` · ${f.settings.rmf.baseline?.toUpperCase()} baseline` : ""}
                 </div>

@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { FrameworkRegistry, REPO_ROOT } from "@visua/frameworks";
 import { createApp } from "../src/app.ts";
 import { loadAuthConfig } from "../src/auth/config.ts";
@@ -11,6 +11,8 @@ import { AuthService } from "../src/auth/service.ts";
 import { CONNECTOR_KINDS } from "../src/connectors/index.ts";
 import { createService } from "../src/context.ts";
 import { seedDemo } from "../src/seed/demo.ts";
+import { lawsOverview } from "../src/services/laws.ts";
+import { nodeDetail } from "../src/services/views.ts";
 import { TestClient } from "./client.ts";
 import { testDatabase } from "./db.ts";
 
@@ -475,6 +477,51 @@ describe("assessment guardrails: threat catalogs, enabled frameworks and scope",
     expect((await patch(outcome, { current: 2 })).status).toBe(400);
     expect((await patch(outcome, { applicable: false, applicabilityRationale: "Still excluded for audit purposes here", current: 1 })).status).toBe(400);
     expect((await patch(outcome, { applicable: true, current: 2 })).json.current).toBe(2);
+  });
+});
+
+describe.skipIf(!registry.framework("us-state-ai-laws"))("state AI laws: dates decide what counts today", () => {
+  const today = new Date().toISOString().slice(0, 10);
+  const law = registry.framework("us-state-ai-laws")?.graph.nodes.find((n) => n.code === "CA-SB243");
+  // Only meaningful while CA-SB243-04 (2027-07-01) is still ahead and CA-SB243-03 (until 2026-12-31) not yet ended.
+  const applicable = !!law && today < "2026-12-31";
+  it.skipIf(!applicable)("counts obligations in force, prepares upcoming ones apart, and drops ended ones when read", async () => {
+    const created = await api<{ workspace: { id: string } }>("POST", "/api/workspaces", {
+      name: "Chatbot Co",
+      profile: { industry: "saas", size: "11-50", dataTypes: ["pii", "children"], drivers: ["ai-systems"], environments: ["cloud"], maturityTier: 2, guidance: "guided", securityTeamSize: 2 },
+      frameworks: ["nist-csf-2.0", "us-state-ai-laws"],
+    });
+    const cw = created.json.workspace.id;
+    await api("PUT", `/api/workspaces/${cw}/laws/ca-companion-chatbots/applicability`, { roles: ["operator"] });
+    const obligation = (n: string) => `us-state-ai-laws:CA-SB243-0${n}`;
+    // Everything in force today is met; the reporting duty (from 2027-07-01) is not started.
+    for (const n of ["1", "2", "3", "5", "6"]) expect((await api("PATCH", `/api/workspaces/${cw}/requirements/${encodeURIComponent(obligation(n))}`, { current: 3, target: 3 })).status).toBe(200);
+    type Law = { code: string; inScope: number; inForce: number; readiness: number; upcomingInScope: { total: number; readiness: number; next: string | null } };
+    type Overview = { readiness: number; total: number; upcoming: { total: number; readiness: number }; jurisdictions: { laws: Law[] }[] };
+    const ca = (o: Overview) => o.jurisdictions.flatMap((j) => j.laws).find((l) => l.code === "CA-SB243")!;
+    const now = (await api<Overview>("GET", `/api/workspaces/${cw}/laws`)).json;
+    expect(ca(now)).toMatchObject({ inScope: 6, inForce: 5, readiness: 1, upcomingInScope: { total: 1, readiness: 0, next: "2027-07-01" } });
+    expect(now).toMatchObject({ readiness: 1, total: 5, upcoming: { total: 1, readiness: 0 } });
+    const state = await api<{ units: Record<string, { upcoming?: string; applicable: boolean }>; upcoming: { total: number } }>("GET", `/api/workspaces/${cw}/frameworks/us-state-ai-laws/state`);
+    expect(state.json.units[obligation("4")]).toMatchObject({ upcoming: "2027-07-01", applicable: true });
+    expect(state.json.upcoming.total).toBe(1);
+    // Months later, with nothing changed in the workspace: the minors duty ended on 2026-12-31, the reporting duty is in force.
+    const ws = await svc.workspace(cw);
+    vi.useFakeTimers({ toFake: ["Date"], now: new Date("2027-01-15T12:00:00Z") });
+    try {
+      const january = await lawsOverview(svc, ws);
+      expect(ca(january as unknown as Overview)).toMatchObject({ inScope: 5, inForce: 4, readiness: 1 });
+      const detail = await nodeDetail(svc, ws, registry.node(obligation("3"))!);
+      expect(detail.status?.status).toBe("not-applicable");
+      expect(detail.status?.reasons[0]).toBe("No longer in effect after 2026-12-31");
+      expect(detail.timing).toMatchObject({ state: "ended", until: "2026-12-31" });
+      vi.setSystemTime(new Date("2027-08-01T12:00:00Z"));
+      const august = (await lawsOverview(svc, ws)) as unknown as Overview;
+      expect(ca(august)).toMatchObject({ inScope: 5, inForce: 5, upcomingInScope: { total: 0 } });
+      expect(ca(august).readiness).toBeLessThan(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

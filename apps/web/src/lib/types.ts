@@ -54,6 +54,8 @@ export interface FrameworkSummary {
   counts: Record<Status, number>;
   /** Whether the public trust center publishes this framework's readiness. */
   onTrustCenter: boolean;
+  /** Statutory obligations in scope that are not in effect yet (not counted in readiness). */
+  upcoming?: { total: number; readiness: number };
 }
 
 export interface WorkspaceSummary {
@@ -101,6 +103,8 @@ export interface UnitState {
   mapped: number;
   /** Level in the framework's overlay lens (profile priority 1–3, or control-overlay selection 1–2). */
   overlay?: number;
+  /** Statutory obligations not in effect yet: the date they take effect (not counted in today's readiness). */
+  upcoming?: string;
 }
 
 export interface FrameworkStateBundle {
@@ -108,6 +112,8 @@ export interface FrameworkStateBundle {
   overall: NodeScore;
   groups: Record<string, NodeScore & { status: Status }>;
   units: Record<string, UnitState>;
+  /** Statutory obligations in scope but not in effect yet, scored apart. */
+  upcoming?: NodeScore;
   overlay: { id: string; shortName: string; status: string; adopted: boolean; lenses: string[]; levels: { level: number; label: string }[] } | null;
   /** Threat catalogs: the bundle carries derived coverage (THREAT_SCALE), not assessments. */
   threat?: { minStatus: MinStatus; levels: { level: number; label: string; description: string }[] };
@@ -143,6 +149,8 @@ export interface NodeDetail {
   source: { id: string; title: string; identifier?: string; path: string; url: string; page?: number; locator?: string; present: boolean } | null;
   /** Licensing / provenance notice for the requirement text (e.g. AICPA). */
   contentNotice?: string;
+  /** Statutory obligations: when they bind. */
+  timing: { state: "upcoming" | "in-force" | "ended"; effective?: string; until?: string } | null;
   /** Overlays (Cyber AI Profile, COSAiS…) with an entry for this requirement. */
   overlays: NodeOverlay[];
   /** Threat-catalog nodes only: derived coverage and the requirements linked to the threat. */

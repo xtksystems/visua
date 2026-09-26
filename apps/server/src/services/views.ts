@@ -2,7 +2,7 @@
  * API view models: lean graphs for the 3D Observatory, full node detail for
  * the inspector, and per-framework state bundles.
  */
-import { codeOf, frameworkOf, groupStatus, trustCenterPublishes, type FrameworkGraph, type RequirementNode, type Workspace } from "@visua/core";
+import { codeOf, frameworkOf, groupStatus, obligationTiming, trustCenterPublishes, type FrameworkGraph, type RequirementNode, type Workspace } from "@visua/core";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { CORPUS_DIR, FRAMEWORK_ORDER } from "@visua/frameworks";
@@ -108,6 +108,11 @@ export async function nodeDetail(svc: VisuaService, ws: Workspace, node: Require
       ? { id: doc.id, title: doc.title, identifier: doc.identifier, path: doc.path, url: doc.url, page: node.citation.page, locator: node.citation.locator, present: existsSync(resolve(CORPUS_DIR, doc.path)) }
       : null,
     contentNotice: svc.registry.framework(node.frameworkId)?.graph.framework.contentNotice,
+    // Statutory obligations: when they bind (upcoming ones are not counted in today's readiness).
+    timing:
+      index.graph.framework.family === "law" && node.assessable
+        ? { state: obligationTiming(node, new Date().toISOString().slice(0, 10)), effective: node.attributes?.["effective"] as string | undefined, until: node.attributes?.["until"] as string | undefined }
+        : null,
     threat,
     threats: isThreat ? [] : threatsAddressedBy(svc, node.id),
     overlays: svc.registry.overlaysOf(node.id).map(({ overlay, entry }) => ({
@@ -148,9 +153,15 @@ export async function frameworkState(svc: VisuaService, ws: Workspace, framework
   const overlayLenses = overlay ? (adoption?.lenses ?? overlay.lenses?.map((l) => l.id) ?? []) : [];
   const evidenceCount = new Map<string, number>();
   for (const e of evidence) if (e.status === "accepted") for (const id of e.requirementIds) evidenceCount.set(id, (evidenceCount.get(id) ?? 0) + 1);
+  // Statutory obligations: scoped by date when read (see VisuaService.scoreOf).
+  const index = svc.registry.framework(frameworkId)!;
+  const law = index.graph.framework.family === "law";
+  const today = new Date().toISOString().slice(0, 10);
+  const timing = (nodeId: string) => (law ? obligationTiming(index.byId.get(nodeId) ?? {}, today) : "in-force");
   return {
     frameworkId,
     overall: score.overall,
+    ...(score.upcoming ? { upcoming: score.upcoming.overall } : {}),
     groups: Object.fromEntries([...score.scores.entries()].map(([id, s]) => [id, { ...s, status: groupStatus(s) }])),
     units: Object.fromEntries(
       states.map((s) => [
@@ -159,8 +170,9 @@ export async function frameworkState(svc: VisuaService, ws: Workspace, framework
           current: s.current,
           target: s.target,
           priority: s.priority,
-          applicable: s.applicable,
+          applicable: s.applicable && timing(s.nodeId) !== "ended",
           owner: s.owner,
+          ...(timing(s.nodeId) === "upcoming" ? { upcoming: String(index.byId.get(s.nodeId)?.attributes?.["effective"]) } : {}),
           status: score.statuses.get(s.nodeId)?.status ?? "not-started",
           reasons: score.statuses.get(s.nodeId)?.reasons ?? [],
           openTasks: openTasks.get(s.nodeId) ?? 0,
@@ -203,6 +215,8 @@ export async function workspaceSummary(svc: VisuaService, ws: Workspace) {
       counts: s.counts,
       /** Whether the public trust center publishes this framework's readiness. */
       onTrustCenter: trustCenterPublishes(ws.trustCenter, f.frameworkId, index.graph.framework.family),
+      /** Statutory obligations in scope that are not in effect yet (not counted above). */
+      ...(scores[i]!.upcoming ? { upcoming: { total: scores[i]!.upcoming!.overall.total, readiness: scores[i]!.upcoming!.overall.readiness } } : {}),
     };
   });
   const [tasks, proposals, runs, evidenceTotal, policies] = await Promise.all([

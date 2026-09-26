@@ -163,7 +163,13 @@ stay local.
   scope until the organization records, per law, the roles it holds under that law's
   own definitions (`LawSettings.applicability`, a decision reserved for approvers and
   recorded in the audit trail). `scopeOf()` then scopes exactly the obligations of
-  those roles, and an obligation whose `until` date has passed drops out.
+  those roles. Dates are applied when a score is read, not only when settings change:
+  an obligation past its `until` date is out of scope ("No longer in effect after …"),
+  and one whose effective date is still ahead is *upcoming*: it stays in scope so it can
+  be assessed and planned, has a status of its own, and is scored apart (`upcoming`,
+  "prepared") instead of counting toward today's readiness. Scores are cached per
+  workspace revision and per hour, so date-driven changes (and overdue tasks or expired
+  evidence) show up without any edit to the workspace.
 - **Threat coverage** (paths in `packages/frameworks/src/threat-paths.ts`, coverage in
   `apps/server/src/services/threats.ts`). Threat catalogs are never enabled or assessed.
   A threat's coverage is derived from the requirements linked to it, reached three ways:

@@ -431,6 +431,7 @@ export function ObservatoryPage() {
                 <span className="mono muted">
                   {hoveredUnit.current}→{hoveredUnit.target}
                 </span>
+                {hoveredUnit.upcoming ? <span className="muted">○ takes effect {hoveredUnit.upcoming}</span> : null}
                 {hoveredUnit.openTasks ? <span className="muted">{hoveredUnit.openTasks} task(s)</span> : null}
                 {hoveredUnit.evidence ? <span className="muted">{hoveredUnit.evidence} evidence</span> : null}
               </div>

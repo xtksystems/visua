@@ -1,6 +1,6 @@
 import type { FrameworkIndex } from "./graph.ts";
 import { deriveStatus, isEvidenceValid, type DerivedStatus } from "./status.ts";
-import type { CheckResult, Evidence, Priority, RequirementState, Status, Task } from "./types.ts";
+import type { CheckResult, Evidence, Priority, RequirementNode, RequirementState, Status, Task } from "./types.ts";
 import { STATUSES } from "./types.ts";
 
 export const PRIORITY_WEIGHT: Record<Priority, number> = { critical: 4, high: 3, medium: 2, low: 1 };
@@ -38,6 +38,14 @@ export interface FrameworkScore {
   statuses: Map<string, DerivedStatus>;
   scores: Map<string, NodeScore>;
   overall: NodeScore;
+}
+
+export interface ScoreOptions {
+  /**
+   * Which units count toward the roll-ups (readiness, gaps, totals); by default all.
+   * Units left out still get a status: e.g. statutory obligations not yet in effect.
+   */
+  counts?: (node: RequirementNode) => boolean;
 }
 
 interface Acc {
@@ -122,7 +130,7 @@ function unitAcc(status: DerivedStatus, state: RequirementState | undefined, evi
 }
 
 /** Derive statuses and roll readiness up the framework hierarchy. */
-export function scoreFramework(index: FrameworkIndex, snapshot: WorkspaceSnapshot, now: Date = new Date()): FrameworkScore {
+export function scoreFramework(index: FrameworkIndex, snapshot: WorkspaceSnapshot, now: Date = new Date(), opts: ScoreOptions = {}): FrameworkScore {
   const statuses = new Map<string, DerivedStatus>();
   const scores = new Map<string, NodeScore>();
 
@@ -140,7 +148,7 @@ export function scoreFramework(index: FrameworkIndex, snapshot: WorkspaceSnapsho
         now,
       });
       statuses.set(node.id, status);
-      merge(acc, unitAcc(status, state, evidence, now));
+      if (opts.counts?.(node) !== false) merge(acc, unitAcc(status, state, evidence, now));
     }
     const kids = nodeId === null ? index.roots() : index.childrenOf(nodeId);
     for (const child of kids) merge(acc, visit(child.id));

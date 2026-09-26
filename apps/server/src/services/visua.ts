@@ -12,6 +12,7 @@ import {
   codeOf,
   frameworkOf,
   newId,
+  obligationTiming,
   overlayPriority,
   planTasks,
   recommend,
@@ -28,6 +29,7 @@ import {
   type CheckResult,
   type Connector,
   type Evidence,
+  type FrameworkIndex,
   type FrameworkOverlay,
   type FrameworkScore,
   type OrganizationProfile,
@@ -101,6 +103,9 @@ export interface CreateWorkspaceInput {
   tenantId?: string;
 }
 
+/** A framework's score; statutory obligations not yet in effect are scored apart. */
+export type WorkspaceScore = FrameworkScore & { upcoming?: FrameworkScore };
+
 /** Scope settings win; otherwise a person's documented exclusion stands. */
 function effectiveScope(scope: { applicable: boolean; rationale?: string }, exclusion: RequirementState["userExclusion"]): { applicable: boolean; rationale?: string } {
   if (!scope.applicable) return scope;
@@ -163,7 +168,7 @@ export class VisuaService {
   readonly store: Store;
   readonly registry: FrameworkRegistry;
   readonly bus: EventBus;
-  private readonly scoreCache = new Map<string, { rev: number; score: FrameworkScore }>();
+  private readonly scoreCache = new Map<string, { rev: number; hour: string; score: WorkspaceScore }>();
   private readonly running = new Map<string, AbortController>();
 
   constructor(store: Store, registry: FrameworkRegistry, bus: EventBus) {
@@ -799,22 +804,41 @@ export class VisuaService {
   // Assessment
   // -------------------------------------------------------------------------
 
-  async score(workspaceId: string, frameworkId: string): Promise<FrameworkScore> {
+  /**
+   * Score one framework as of now. Statutory obligations are scoped by date when read:
+   * one past its end date is out of scope, one not yet in effect is scored apart
+   * (`upcoming`) and never counts toward today's readiness.
+   */
+  scoreOf(index: FrameworkIndex, input: { states: RequirementState[]; evidence: Evidence[]; tasks: Task[]; checks: CheckResult[] }, at = new Date()): WorkspaceScore {
+    if (index.graph.framework.family !== "law") return scoreFramework(index, buildSnapshot(input), at);
+    const today = at.toISOString().slice(0, 10);
+    const states = input.states.map((s) => {
+      const node = index.byId.get(s.nodeId);
+      return node && s.applicable && obligationTiming(node, today) === "ended" ? { ...s, applicable: false, applicabilityRationale: `No longer in effect after ${String(node.attributes?.["until"])}` } : s;
+    });
+    const snapshot = buildSnapshot({ ...input, states });
+    const upcoming = (node: RequirementNode) => obligationTiming(node, today) === "upcoming";
+    return { ...scoreFramework(index, snapshot, at, { counts: (node) => !upcoming(node) }), upcoming: scoreFramework(index, snapshot, at, { counts: upcoming }) };
+  }
+
+  async score(workspaceId: string, frameworkId: string): Promise<WorkspaceScore> {
     const index = this.registry.framework(frameworkId);
     if (!index) throw new NotFoundError(`Framework '${frameworkId}' not found`);
     const rev = await this.store.workspaces.rev(workspaceId);
     const key = `${workspaceId}|${frameworkId}`;
+    // Statuses also move with the clock (overdue tasks, expired evidence, effective dates).
+    const hour = now().slice(0, 13);
     const cached = this.scoreCache.get(key);
-    if (cached && cached.rev === rev) return cached.score;
+    if (cached && cached.rev === rev && cached.hour === hour) return cached.score;
     const [states, evidence, tasks, checks] = await Promise.all([
       this.store.states.list(workspaceId, frameworkId),
       this.store.evidence.list(workspaceId),
       this.store.tasks.list(workspaceId),
       this.store.checks.list(workspaceId),
     ]);
-    const score = scoreFramework(index, buildSnapshot({ states, evidence, tasks, checks }));
+    const score = this.scoreOf(index, { states, evidence, tasks, checks });
     // Only committed revisions are cached: a transaction's own revision may still roll back.
-    if (!this.store.inTransaction) this.scoreCache.set(key, { rev, score });
+    if (!this.store.inTransaction) this.scoreCache.set(key, { rev, hour, score });
     return score;
   }
 
@@ -1390,7 +1414,7 @@ export class VisuaService {
         if (!score) {
           const index = this.registry.framework(frameworkId);
           if (!index) throw new NotFoundError(`Framework '${frameworkId}' not found`);
-          score = scoreFramework(index, buildSnapshot({ states: states.filter((s) => frameworkOf(s.nodeId) === frameworkId), evidence, tasks, checks }));
+          score = this.scoreOf(index, { states: states.filter((s) => frameworkOf(s.nodeId) === frameworkId), evidence, tasks, checks });
           scores.set(frameworkId, score);
         }
         return score;
