@@ -492,3 +492,312 @@ python3 tools/verify_corpus.py       # hashes, sizes, parseability, unlisted fil
 - `tools/common.py` holds the shared helpers: ligature fix, comparison normalisation and the hyphenation oracle.
 - The extractions are deterministic. Re-running them on the files listed in `manifest.json` reproduces the committed JSON byte for byte.
 - After re-downloading, run `build_manifest.py` and then `verify_corpus.py`. The XLSX exports and the Google-Sheets glossary change bytes on every download.
+
+## 11. Draft extractions: Cyber AI Profile (`cyber-ai-profile.json`) and COSAiS (`cosais.json`)
+
+> **Both files are built from drafts.** `cyber-ai-profile.json` comes from the *initial preliminary draft* of NIST IR 8596; `cosais.json` comes from a *concept paper* and an *annotated outline issued for discussion*. Neither source is a final NIST publication, and NIST says both will change. Label everything derived from them as draft, cite the draft's document id and page, and do not treat priorities, considerations or control selections as NIST requirements.
+
+### 11.1 Currency, re-checked on 2026-09-26
+
+**Verdict: no newer draft of either publication exists.** The files in `drafts/` are still the latest versions, so `manifest.json` is unchanged.
+
+| What was checked | Result |
+|---|---|
+| [CSRC IR 8596 page](https://csrc.nist.gov/pubs/ir/8596/iprd) | Document history lists only "12/16/25: IR 8596 (Draft)". Planning note of 04/21/2026 (spring 2026 working sessions). Comment period closed 2026-01-30 |
+| CSRC [draft list](https://csrc.nist.gov/publications/draft-pubs) (newest entry 2026-09-21) and [IR list](https://csrc.nist.gov/publications/ir) | IR 8596 appears only as the iprd of 12/16/2025. No IR 8605 entry |
+| CSRC `pubs/ir/8596/{ipd,2iprd,final}`, `pubs/ir/8605/{ipd,iprd,final}`, `pubs/ir/8605/a/ipd` | All 404 |
+| nvlpubs `ir/2025/` and `ir/2026/NIST.IR.8596.ipd.pdf`, `ir/2026/NIST.IR.8596.pdf`, `NIST.IR.8605.pdf`, `NIST.IR.8605.ipd.pdf`, `NIST.IR.8605.iprd.pdf`, `NIST.IR.8605A.pdf`, `NIST.IR.8605A.ipd.pdf`, `NIST.IR.8605B.ipd.pdf`, `NIST.IR.8605C.ipd.pdf`, `NIST.IR.8605D.ipd.pdf` | All 404 (GET) |
+| DOI registrations (doi.org handle API) | **Reserved but not live:** `10.6028/NIST.IR.8596.ipd` (registered 2025-09-29) and `10.6028/NIST.IR.8605`, `8605.ipd`, `8605A`, `8605A.ipd`, `8605B.ipd`, `8605C.ipd`, `8605D.ipd` (registered 2026-01-06). Every target URL returns 404. The DOIs show the planned identifiers, not published documents |
+| [COSAiS project page](https://csrc.nist.gov/projects/cosais) | Created 2025-07-10, updated 2026-01-08. Newest item: the annotated outline (2026-01-08, feedback by 2026-02-13). The Publications tab lists only AI 100-2 E2025. The FAQ still says a first public draft was the goal for "early FY26" |
+| **New related documents (not drafts of either publication)** | [NIST IR 8578](https://csrc.nist.gov/pubs/ir/8578/final) and [NIST IR 8607](https://csrc.nist.gov/pubs/ir/8607/final), *Workshop Summary Report for "Cyber AI Profile" Hybrid Workshop #1 / #2*, both final, published 2026-08-03 ("August 2026"). IR 8607, §4 (printed p. 22): NIST will use the workshop and comment input "to guide the next version of the Cyber AI Profile (the IPD) for public comment in summer 2026". That IPD had not appeared by 2026-09-26. IR 8607 §2.5.2 also summarises the COSAiS breakout: participants suggested the Low baseline instead of the proposed Moderate baseline and a modular approach. The two reports were read but not added to the corpus, because they are workshop summaries, not profile or overlay content |
+| nist.gov news RSS (newest item 2026-09-18) and CSRC news | Last Cyber AI Profile item: "Draft NIST Guidelines Rethink Cybersecurity for the AI Era" (2025-12-16). Nothing on COSAiS after 2026-01-08 |
+| NCCoE Cyber AI Profile project page | Not reachable: Cloudflare challenge (HTTP 403), as in §9 |
+
+### 11.2 `cyber-ai-profile.json` (NIST IR 8596 iprd, Tables 1–6)
+
+Source: `drafts/NIST.IR.8596.iprd.pdf` (document id `nist-ir-8596-iprd`, 107 pages). Tables 1–6 cover physical pages 25–96 (landscape). In the body, printed page = physical page − 9. All pages in this file are physical pages.
+
+#### Schema
+
+```jsonc
+{
+  "source": {"documentId": "nist-ir-8596-iprd", "title", "identifier": "NIST IR 8596 iprd", "version", "status": "initial preliminary draft",
+             "published": "2025-12-16", "path", "sha256", "url", "doi", "landingPage", "commentPeriod",
+             "draftNotice": {"text": "NOTE: Work remains ongoing … significant changes are possible …", "page": 24}, "pageNumbering", "extraction"},
+  "focusAreas": [{"id": "secure", "short": "Secure", "title": "Securing AI System Components",
+                  "description": "…",          // first paragraph of §2.1.1 / 2.1.2 / 2.1.3, verbatim
+                  "page": 18, "section": "2.1.1",
+                  "summary": "Focuses on managing …", "summaryPage": 16, "summarySection": "2.1"}],   // the §2.1 bullet
+  "priorityLevels": [{"level": 1, "label": "High", "description": "…", "printedAs": "“1” for High Priority", "page": 23, "section": "2.2"}],
+  "counts": {"entries": 106, "priorities": {...}, "refs": 2640, "refsByScheme": {...}},
+  "entries": [{
+    "subcategory": "GV.OC-01",
+    "text": "The organizational mission is understood and informs cybersecurity risk management",   // CSF statement as printed
+    "page": 25, "pageEnd": 25,                  // pageEnd is always present (= page when the row fits on one page)
+    "general": {"considerations": "…" | null,
+                "note": "No general considerations identified—see Focus Area Considerations." | null,
+                "references": ["NIST SP 800-53, Rev 5: PM-11"],   // verbatim, split on ';'
+                "referencesNote"?: "AI-specific Example Informative References pending additional inputs.",
+                "sp80053": ["PM-11"]},                               // Visua ids; family-only tokens (PT, CP, IR) kept out
+    "focus": {
+      "secure": {"priority": 3, "considerations": "…" | null, "references": [...], "referencesNote"?: "…"},
+      "defend": {"priority": 3, "opportunities": "…" | null, "considerations": "…" | null, "references": [...], "referencesNote"?: "…"},
+      "thwart": {"priority": 3, "considerations": "…" | null, "references": [...], "referencesNote"?: "…"}},
+    "refs": [{"scheme": "nist-sp-800-53", "id": "PM-11", "text": "NIST SP 800-53, Rev 5: PM-11", "column": "general", "note"?: "…"}],
+    "footnotes"?: [{"marker": "6", "column": "general", "text": "America’s AI Action Plan, …", "page": 51}]
+  }]
+}
+```
+
+Field notes:
+- **Text is verbatim.** Runs of white space are collapsed. Typos are kept, and so are the four dash spellings of the "No general considerations identified" note. A superscript "TM" is written as "™", and superscript footnote markers are removed (see `footnotes`).
+- **`references`** holds the printed strings split on `;` only. **`refs`** is our classification layer on top of them:
+  - A string that holds several ids becomes several records: `DASF 13, 40, 51-53` gives DASF 13, 40, 51, 52, 53; `NIST SP 800-53, Rev 5: CP-06, CP-09` gives CP-6 and CP-9. Each record keeps the verbatim string in `text`.
+  - Two references printed without a separator are split, and the split is noted in `note`. Example: "OWASP AI Exchange: AI Security Overview https://arxiv.org/pdf/2311.05232".
+- **`referencesNote`** carries the placeholder sentence "AI-specific Example Informative References pending additional inputs." That sentence is not a reference, so it is kept out of `references`.
+- **Schemes** and their `id` values:
+
+  | Scheme | `id` |
+  |---|---|
+  | `atlas` | `AML.M0020` |
+  | `owasp-llm` | `LLM03` |
+  | `owasp-ai-exchange` | Section or control name as printed, e.g. "General Governance Controls" |
+  | `owasp-genai` | Name as printed ("Monitor") |
+  | `dasf` | `DASF 50` |
+  | `nist-ai-100-2` | null (whole document) |
+  | `nist-sp-800-53` | Visua id, e.g. `SC-7(10)`. A family-only token such as `PT` is kept as id `PT` with a note |
+  | `nist-ai-rmf` | AI 600-1 action id, e.g. `MP-5.1-002`, checked against `genai-profile.json` |
+  | `enisa` | null |
+  | **`mitre-attack`** | ATT&CK mitigation id, e.g. `M1047`, or null for "ATT&CK" alone. **This scheme was added because the requested list had none for ATT&CK** |
+  | `other` | `arXiv:<id>` for arXiv URLs, otherwise null. Covers NIST SP 800-161/172/207/218/218A, NTIA SBOM, "Reflections from the First Cyber AI Profile Workshop", "OWASP (all)" and URLs |
+
+  Printed names without the "AI Exchange" qualifier are attributed to the OWASP AI Exchange, and `note` says so. Examples: "OWASP Conventional Runtime Controls", "OWASP Model Input Confidentiality", "OWASP General". The attribution is based on the section and control names on owaspai.org (1.1 General governance controls, 1.3 Controls to limit the effects of unwanted behaviour, #MODEL INPUT CONFIDENTIALITY, and so on).
+- **`general.sp80053`**: §2.2 says these General-column controls "are listed exactly as they appear in the crosswalk available through the NIST … OLIR Catalog" (CSF 2.0 ↔ SP 800-53 Rev 5, referenceId 131, accessed 2025-12-05). **They are NIST's generic CSF-to-800-53 mapping, not an AI-specific control selection.**
+
+#### Counts
+
+The file has **106 entries**: every CSF 2.0 subcategory, in CSF order, and no extra ids. It also has 6 function rows and 22 category rows, which are reported but not stored. All **318 priorities** were parsed.
+
+| Focus area | Priority 1 (High) | 2 (Moderate) | 3 (Foundational) | Considerations | Of which exactly "Standard cybersecurity practices apply." | "(Rationale)" given | Placeholder instead of references |
+|---|---|---|---|---|---|---|---|
+| Secure | 23 | 33 | 50 | 106 | 47 | 9 | 1 |
+| Defend | 28 | 43 | 35 | 105 | 18 | 1 | 1 |
+| Thwart | 24 | 44 | 38 | 106 | 37 | 20 | 43 |
+
+- **General column**: 56 entries have general considerations; 50 have the "No general considerations identified" note instead.
+- **Defend opportunities**: 42 entries have "Sample Opportunities". One of them is exactly "Standard cybersecurity practices apply.".
+- **The most common priority patterns** (Secure-Defend-Thwart) are 3-3-3 (14 entries), 2-2-2 (10) and 3-2-2 (9). There are 23 patterns in all.
+
+References: 1,810 printed strings (General 741, Secure 565, Defend 357, Thwart 147), classified into 2,640 `refs`.
+
+| Scheme | refs | Distinct ids |
+|---|---|---|
+| `dasf` | 1,045 | 63 (DASF 1–64 except 49) |
+| `nist-sp-800-53` | 739 (737 General, 2 Thwart) | 210 controls in `general.sp80053` (734 list entries), plus family-only tokens PT (GV.OC-03), CP and IR (PR.IR-03); CP-6 and CP-9 in the Thwart column of PR.DS-11 |
+| `enisa` | 184 | ENISA Threat Landscape 2025 only |
+| `owasp-ai-exchange` | 169 | 22 names |
+| `other` | 164 | 10 distinct arXiv papers; `https://arxiv.org/html/2503.11917v3` is cited 82 times |
+| `atlas` | 129 | 26 mitigations (AML.M0000–AML.M0028 except M0001, M0010, M0022) |
+| `nist-ai-100-2` | 95 | whole document |
+| `owasp-llm` | 67 | **1**: LLM03 (Supply Chain) is the only OWASP LLM Top 10 item cited |
+| `mitre-attack` | 26 | 16 mitigations (M1015–M1057) |
+| `owasp-genai` | 20 | "Monitor" |
+| `nist-ai-rmf` | 2 | AI 600-1 action MP-5.1-002 (PR.AT-01 and PR.AT-02, Thwart) |
+
+**No AI 100-1 (AI RMF) subcategory is cited.** Footnote 5 of the draft (physical page 23) explains why: "Per the AI Action Plan, the AI RMF is currently in revision and will be included in a future version."
+
+#### Method
+
+Tool: `tools/extract_cyber_ai_profile.py`.
+
+- **Rows** are the bands between the table's own horizontal rules. Only rules that start at a column boundary count, so hyperlink underlines are ignored. A band also has to lie on the table's left border, so the heading and caption of a table that starts mid-page are never read as cell text. This happens on pages 60, 83 and 91.
+- **Columns** are cut at the page's six vertical rules. There are two rule sets: pages 25–44 and pages 45–96.
+- **Continuations.** A band whose CSF cell does not start a Function, Category or Subcategory continues the previous row. 61 of the 106 rows cross a page break.
+- **Dropped text:** the line-number margin (x < 36 pt), the running header and footer, and the repeated header rows. After this, the only text left outside the bands is the six section headings and six table captions.
+- **Cell sections** begin at their bold labels. A label counts only if at least 60 % of its letters are bold, so running text such as "see Focus Area Considerations." is never read as a label.
+- **Line joins.** Wrapped lines are joined with a space, with these exceptions:
+  - 194 joins after a line-final hyphen with no trailing space, for example "AI-" + "enabled" and "SR-" + "06".
+  - 1 join after an em dash ("cybersecurity—including").
+  - 105 joins inside a URL that wraps, for example "https://arxiv.org/html/2503.1191" + "7v3", including across page breaks.
+  - Every join is logged in the report.
+
+#### Verification
+
+The report is `tools/reports/cyber-ai-profile-verification.json`.
+
+- **Ids and statements.** The id set and order are identical to the 106 subcategories in `packages/frameworks/data/nist-csf-2.0.json`. All 106 printed statements match the CSF 2.0 text when quotes, dashes and a final period are ignored. The function and category rows match too, with one exception: the draft prints the PR.AA category as "**Identify** Management, Authentication, and Access Control" (a typo in the source).
+- **SP 800-53 ids.** Every `general.sp80053` id is a node in `nist-sp-800-53-r5.json` except **RA-4**, cited by DE.AE-06. RA-4 is withdrawn in Rev. 5 ("[Withdrawn: Incorporated into RA-3.]", `nist-rmf/controls/sp800-53r5-control-catalog.xlsx`). NIST's own OLIR mapping carries it for DE.AE-06 as well.
+- **Comparison with the OLIR mapping.** 103 of the 106 lists are identical to the CSF 2.0 → SP 800-53 Rev 5.2.0 mapping in Visua's CSF data. In the other three, the draft omits one control from its printed list:
+  - ID.IM-03: SR-5.
+  - PR.PS-04: SA-15(13).
+  - RS.MA-03: IR-6.
+  - All three were checked against the page.
+- **Independent containment check (pypdf).** 2,426 extracted fields (statements, considerations, opportunities, notes and every reference string) were searched for, ignoring white space, in pypdf's text of the entry's pages. A field that crosses a page break may be split once per break. 2,425 were found. The one miss is ID.RA-02's general considerations: pypdf keeps its footnote markers 6 and 7 inline.
+- **Visual spot-check.** Rendered pages were compared field by field for GV.OC-01, GV.RR-03, GV.RR-04, ID.RA-01, ID.RA-02, PR.DS-10, PR.DS-11, PR.PS-05, PR.PS-06, DE.AE-08 and RS.MA-01, and for the row tails of ID.AM-08, ID.RA-03 and PR.PS-04. All matched. These include the page-break rows, the footnotes, the ™ sign, URL joins, both label variants and the missing label.
+- **Determinism.** `--check` reproduces the JSON and the report byte for byte.
+
+#### Source defects kept as printed
+
+The report lists them in `sourceAnomalies`, `labelVariants` and `cellsWithoutAnExpectedLabel`.
+
+**Missing or variant labels**
+- GV.RR-03 Defend has no "Sample Focus Area Considerations:" label, so its `considerations` is null.
+- PR.DS-10 Defend prints "Example Informative References" without a colon.
+- PR.PS-06 Secure prints "Focus Area Consideration:".
+
+**References printed without a `;` separator** (split in `refs`)
+- GV.OC-01 Defend.
+- ID.RA-01 Secure: "https://arxiv.org/pdf/2409.08831v1 Governance". The leftover "Governance" becomes an `other` record with a note.
+- PR.AA-05 Secure.
+- PR.DS-01 Defend.
+- RS.AN-06 Defend: "DASF 25,39,41, ENISA …".
+- RS.CO-02 Defend.
+- GV.OV-01 Thwart: references and the "pending" placeholder with no separator.
+
+**Typos in reference strings**
+- "WASP AI Exchange" (PR.AA-01 Defend).
+- "AML.M0014)" (PR.AA-02 Defend).
+- "ATLAS AML-M0028" (PR.AA-05 Defend); the id is normalized to AML.M0028.
+- "ENISA Theat Landscape 2025" (RC.RP-05 and RC.RP-06).
+- "ENISA Threat Landscape 202" (PR.AT-01 and DE.CM-03).
+- A stray `"` (PR.DS-10 Defend).
+- "CM-07 (09)" with a space (PR.PS-03 General).
+- "NIST SP 800-281 (all)": no such publication exists, probably SP 800-218 (ID.AM-08 Thwart).
+- "55" after a DASF list (GV.SC-07 Secure); read as DASF 55.
+
+**DASF list items not expanded** (no ids recorded for them)
+- "v30" (PR.IR-04).
+- "4-42" (DE.CM-09; probably 41-42).
+- "35-339" (DE.AE-02; probably 35-39).
+
+**Footnotes**
+- 6 and 7 are attached to ID.RA-02 General.
+- 8 is attached to ID.RA-05 Defend.
+
+### 11.3 `cosais.json` (COSAiS concept paper and predictive-AI annotated outline)
+
+Sources:
+- `drafts/NIST-Overlays-SecuringAI-concept-paper.pdf` (`nist-cosais-concept-paper`, 2025-08-14, 7 pages).
+- `drafts/COSAiS-Predictive-AI-annotated-outline-Jan2026.pdf` (`nist-cosais-predictive-ai-annotated-outline`, 2026-01-08, 12 pages).
+
+#### Schema
+
+```jsonc
+{
+  "sources": [{"documentId", "title", "status", "published", "path", "sha256", "url"}],
+  "status": "Pre-draft material: …",
+  "publicationPlan": {"volumes": [{"identifier": "NISTIR 8605A", "title": "Control Overlays for Securing AI Systems: Using and Fine-Tuning Predictive AI", "page": 2}],
+                      "timeline": "NIST intends to issue NISTIR 8605 and NISTIR 8605A as drafts for public comment by Q3 FY2026 …", "page": 2, "documentId"},
+  "plannedOverlays": [{"id": "predictive-ai-use-finetune", "useCase": 2, "title": "Using and Fine-Tuning Predictive AI",
+                       "description": "…" | null, "audience": "…", "purpose": "…",
+                       "scenarios": [{"id": "A", "text": "…", "page": 5}], "note"?: "…", "page": 4,
+                       "plannedPublication": {"identifier": "NISTIR 8605A", "title", "documentId", "page"}}],
+  "overlays": [{
+    "id": "predictive-ai-use-finetune",
+    "title": "NIST SP 800-53 Control Overlay for Securing AI Systems: Using and Fine-Tuning Predictive AI",
+    "subtitle": "Annotated Outline for Cyber AI Profile Workshop #2",
+    "status": "annotated outline (draft)", "complete": false,
+    "note": "The list of controls identified for potential inclusion in this overlay is not complete. …", "notePage": 6,
+    "summaryTableNote": "All selected controls … The table below is populated with only a subset of example controls …",
+    "documentId", "plannedPublication",
+    "useCasesIntro", "useCases": [{"id": "A", "text", "page": 3}], "useCasesNote": {"text", "page"},
+    "assumptions": ["…"],                        // bullets of "Development Approach and Assumptions" that state an assumption
+    "developmentApproach": [{"text", "page"}],   // all bullets of that section; sub-bullets as "\n- …"
+    "footnotes": {"1": {"text", "page"}},
+    "lifecyclePhases": ["Model Training", "Model Deployment", "Model Maintenance", "Continuous"],
+    "controls": [{
+      "id": "SA-11(2)", "idAsPrinted": "SA-11(02)",
+      "title": "Developer Testing and Evaluation | Threat Modeling and Vulnerability Analyses",
+      "titleAsPrinted": null | {"summaryTable": "…", "annotation": "…"},     // only when the printed titles differ
+      "inSummaryTable": true, "annotated": true, "proposedAdditional": false,
+      "lifecyclePhases": ["Model Training", "Model Deployment"] | null,    // summary-table checkboxes; null when not in the table
+      "tailoring": {"controlRequirement": false, "organizationDefinedParameter": false, "discussion": true} | null,
+      "annotation": {"selectedInModerateBaseline": "No", "lifecyclePhases": [...],   // as printed in the annotation
+                     "assumptions": "…", "controlTailoring": "[Discussion] …",       // paragraphs separated by "\n"
+                     "controlTailoringSections": [{"label": "Discussion", "text": "…"}],
+                     "attackIds": ["NISTAML.013", …], "attackIdsNormalized": [...],
+                     "text": "Control ID: SA-11(02), …\nSelected in …\n…", "page": 9, "pageEnd": 9} | null,
+      "page": 5, "summaryTablePage"?: 5, "additionalListPage"?: 6}]
+  }]
+}
+```
+
+- **`plannedOverlays`** holds the concept paper's five use cases, with `title`, `audience`, `purpose` and `description` verbatim. Use Case 4 has a `note`. Use Case 5 has no description row, so `description` is null.
+- **`plannedPublication`** pairs each use case with a NISTIR volume from the outline's "Proposed Deliverables and Timeline". The pairing is ours, and the extractor asserts it on key phrases present in both titles:
+
+  | Use case | Volume |
+  |---|---|
+  | 1 | 8605B |
+  | 2 | 8605A |
+  | 3 and 4 | 8605D |
+  | 5 | 8605C |
+
+- **`controls`** are in SP 800-53 catalog order, with ids normalized to Visua form ("AC-06" → "AC-6", "SC-07(10)" → "SC-7(10)"). `title` comes from the annotation if the control has one, otherwise from the additional-controls list or the summary table.
+- **`attackIdsNormalized`** makes one change: "NIST AML.011" becomes "NISTAML.011". "NISTAML.03" and "NISTAML.05" are valid category-level ids (Privacy Compromises, Supply Chain Attacks). **Do not "correct" them.**
+
+#### Counts
+
+- **Planned overlays:** 5, with 2 + 4 + 2 + 0 + 0 lettered scenarios.
+- **Predictive-AI overlay controls: 59.**
+  - 11 are in the summary table, and all 11 are annotated.
+  - 48 are in the "Additional controls and control enhancements proposed" list.
+  - No control is both in the table and in the list.
+  - 26 are enhancements.
+  - By family: AC 3, AU 2, CA 3, CM 6, PE 2, PT 4, RA 2, SA 11, SC 8, SI 16, SR 2.
+- **Summary-table tailoring:** Discussion is marked for all 11 controls, Organization-Defined Parameter only for RA-5, Control Requirement for none.
+- **Attack ids:** 12 distinct AI 100-2 attack ids are cited.
+
+#### Lifecycle checkboxes
+
+The phases are determinable from the PDF, but not from its text layer: the checkboxes have no glyphs.
+- Each box is an 11 pt square drawn as vector graphics.
+- A marked box has two diagonal strokes drawn inside it.
+- The extractor reads the geometry and cross-checks the result against each annotation's printed "Applicable AI Lifecycle Phase(s)".
+- A render of pages 5–6 confirmed all 44 boxes.
+- `lifecyclePhases` is null for the 48 list-only controls, because the outline gives them no phases.
+
+#### Verification
+
+The report is `tools/reports/cosais-verification.json`.
+
+- **All 59 ids** are nodes in `nist-sp-800-53-r5.json`. None is withdrawn.
+- **Moderate baseline.** For all 11 annotated controls, "Selected in SP 800-53B Moderate Baseline: Yes/No" agrees with `nist-rmf/controls/sp800-53b-control-baselines.xlsx`.
+- **Attack ids.** All 12 are ids of the CPRT `AI_TAXONOMY_1_0_0` taxonomy.
+- **Summary-table tailoring marks** agree with the bracketed sections of every annotation ([Organization-Defined Parameters] only in RA-5).
+- **Lifecycle phases: two disagreements between the summary table and the annotation.** Both values are kept.
+  - CM-4: the table marks Model Training, Model Maintenance and Continuous; the annotation says "Continuous".
+  - SA-15(8): the table marks Model Training and Model Deployment; the annotation adds Model Maintenance.
+- **Titles differ from SP 800-53 in four places:**
+  - The summary table prints SA-15(1) and SA-15(8) as "**System and Services Acquisition** | …" instead of "Development Process, Standards, and Tools | …". The annotations are correct.
+  - SI-19(7) is printed "De-Identification | Algorithms and Software" (SP 800-53: "Validated Algorithms and Software").
+  - SI-12(2) lacks the serial comma.
+- **Other anomaly:** SC-7(10)'s attack-id list ends in "NISTAML.034)".
+- **Independent pypdf check.** 203 extracted strings were searched for in pypdf's text with running headers and footers removed. All were found except "…(use cases):", where pypdf keeps footnote marker 3 inline.
+- **Determinism.** `--check` reproduces the files byte for byte.
+
+#### Caveats for the product
+
+- **COSAiS is not a publication.** There is no draft NISTIR 8605 or 8605A. The outline calls its control list illustrative: "The list of controls identified for potential inclusion in this overlay is not complete". Its summary table holds "only a subset of example controls".
+- **The plan has slipped.** NIST said it would issue the NISTIR 8605/8605A drafts "by Q3 FY2026" (ended 2026-06-30), and they have not appeared.
+- **The baseline assumption may change.** The overlay assumes the SP 800-53B **moderate** baseline is implemented, and footnote 1 says NIST "intends to revisit this assumption". Workshop participants proposed the Low baseline (IR 8607).
+- **18 of the 48 "additional" controls are already in the moderate baseline** (AC-3, AC-22, AU-2, AU-6, CA-3, CA-7, CM-3, CM-5, CM-6, SC-5, SC-23, SC-28, SC-39, SI-3, SI-4, SI-7, SI-10, SR-11). The outline gives no tailoring for them.
+- **Use cases changed between documents.** The outline replaced the concept paper's four predictive-AI scenarios (A–D) with two (A, B) that each cover on-premises and third-party models (footnote 3).
+- **Cyber AI Profile:** show `status` and `draftNotice`. §2.2 calls the priorities "a subjective exercise", and "Foundational" (3) "does not equate to low priority".
+- **Informative references are examples.** 43 Thwart cells, one Secure cell (GV.RR-03) and one Defend cell (GV.RR-03) say references are still pending.
+- **Third-party names only.** Neither file contains third-party text. OWASP, DASF, ENISA, MITRE ATLAS and ATT&CK appear only as names and ids; the NIST text is public domain.
+
+### 11.4 Tools
+
+```sh
+python3 tools/extract_cyber_ai_profile.py   # -> cyber-ai-profile.json (+ tools/reports/cyber-ai-profile-verification.json)
+python3 tools/extract_cosais.py             # -> cosais.json (+ tools/reports/cosais-verification.json)
+```
+
+- **Dependencies.** Both tools need PyMuPDF and pypdf. The COSAiS tool also needs openpyxl for the baseline check.
+- **`--check`** rebuilds both the JSON and the report in memory and compares them with the files on disk. It writes nothing and exits with status 1 on any difference.
+- **Cross-check inputs** are read-only:
+  - `packages/frameworks/data/nist-csf-2.0.json` and `nist-sp-800-53-r5.json`.
+  - `../nist-rmf/controls/sp800-53r5-control-catalog.xlsx` and `sp800-53b-control-baselines.xlsx`.
+  - `machine-readable/cprt-AI_TAXONOMY_1_0_0-export.json` and `genai-profile.json`.
+  - If one of them is missing, its report section is empty, and `--check` then reports the report file as different.
+- **`tools/verify_corpus.py`** now also checks both files: source hashes against `manifest.json`, 106 entries with 318 parsed priorities, and 5 planned overlays with 59 controls, 11 of them annotated.

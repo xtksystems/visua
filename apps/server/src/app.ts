@@ -29,6 +29,7 @@ import { AuthService, ForbiddenError, UnauthorizedError } from "./auth/service.t
 import { CONNECTOR_KINDS } from "./connectors/index.ts";
 import { actionPlanCsv, aiRmfProfileCsv, csfProfileCsv, evidenceIndexCsv, oscalPoam, oscalSsp, readinessMarkdown, soc2PbcCsv } from "./services/exports.ts";
 import { aiOverview } from "./services/ai.ts";
+import { overlayMeta, overlaySummary } from "./services/overlays.ts";
 import { crosswalkOverview, crosswalkRows } from "./services/crosswalk.ts";
 import { soc2Description } from "./services/soc2.ts";
 import { frameworkState, leanGraph, nodeDetail, workspaceSummary } from "./services/views.ts";
@@ -251,6 +252,7 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
       ai: { mode: claudeEnabled() ? "claude" : "offline", model: claudeEnabled() ? configuredModel() : null },
       corpus: svc.registry.manifests.map((m) => ({ framework: m.framework, title: m.title, retrieved: m.retrieved, documents: m.documents.length })),
       crosswalk: svc.registry.crosswalk.sets.map((s) => ({ id: s.id, title: s.title, authority: s.authority, count: s.mappings.length })),
+      overlays: svc.registry.overlays.map(overlayMeta),
       exampleInformationTypes: EXAMPLE_INFORMATION_TYPES,
     }),
   );
@@ -263,6 +265,13 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
     if (!index) throw new NotFoundError(`Framework '${c.req.param("id")}' not found`);
     c.header("Cache-Control", "private, max-age=300");
     return c.json(leanGraph(index.graph));
+  });
+
+  app.get("/api/overlays/:id", (c) => {
+    const overlay = svc.registry.overlay(c.req.param("id"));
+    if (!overlay) throw new NotFoundError("Overlay not found");
+    c.header("Cache-Control", "private, max-age=300");
+    return c.json(overlay);
   });
 
   app.get("/api/frameworks/:id/nodes/:code", (c) => {
@@ -403,6 +412,22 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
   app.post("/api/workspaces/:ws/rmf/authorize", need("work.approve"), async (c) => {
     const input = await body(c, Schemas.authorize);
     return c.json(await summary(c, await svc.setAuthorization(wsId(c), input, actorOf(c))));
+  });
+
+  // ---------------------------------------------------------------- overlays (Cyber AI Profile, COSAiS)
+  app.get("/api/workspaces/:ws/overlays/:id", async (c) => c.json(await overlaySummary(svc, wsOf(c), c.req.param("id"))));
+  app.put("/api/workspaces/:ws/overlays/:id", need("workspace.configure"), async (c) => {
+    const input = await body(c, z.object({ lenses: z.array(z.string().max(40)).max(10).optional() }));
+    await svc.adoptOverlay(wsId(c), c.req.param("id"), input, actorOf(c));
+    return c.json(await overlaySummary(svc, await svc.workspace(wsId(c)), c.req.param("id")));
+  });
+  app.delete("/api/workspaces/:ws/overlays/:id", need("workspace.configure"), async (c) => {
+    await svc.dropOverlay(wsId(c), c.req.param("id"), actorOf(c));
+    return c.json(await overlaySummary(svc, await svc.workspace(wsId(c)), c.req.param("id")));
+  });
+  app.post("/api/workspaces/:ws/overlays/:id/apply-priorities", need("work.approve"), async (c) => {
+    const result = await svc.applyOverlayPriorities(wsId(c), c.req.param("id"), actorOf(c));
+    return c.json({ ...result, summary: await overlaySummary(svc, await svc.workspace(wsId(c)), c.req.param("id")) });
   });
 
   // ---------------------------------------------------------------- AI governance

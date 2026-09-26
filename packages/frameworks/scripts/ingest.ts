@@ -10,7 +10,7 @@
  */
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import type { FrameworkGraph, MappingSet, RequirementNode } from "@visua/core";
+import type { FrameworkGraph, FrameworkOverlay, MappingSet, RequirementNode } from "@visua/core";
 import { loadCorpusManifests, type CorpusDocument } from "../src/index.ts";
 import { CORPUS_DIR, DATA_DIR } from "../src/paths.ts";
 import type { CorpusChunk } from "../src/search.ts";
@@ -19,6 +19,7 @@ import { chunkPages, pdfPages } from "../src/ingest/pdf.ts";
 import { ingestRmf, rmfToControls } from "../src/ingest/rmf.ts";
 import { ingest80053 } from "../src/ingest/sp80053.ts";
 import { ingestAiRmf } from "../src/ingest/ai-rmf.ts";
+import { ingestCosais, ingestCyberAiProfile } from "../src/ingest/ai-overlays.ts";
 import { buildTscGraph } from "../src/ingest/tsc.ts";
 import { aicpaTscMappingSets } from "../src/ingest/tsc-mappings.ts";
 
@@ -70,6 +71,15 @@ for (const set of mappingSets) {
 
 for (const g of graphs) writeFileSync(resolve(DATA_DIR, `${g.framework.id}.json`), JSON.stringify(g));
 
+// Overlays: NIST drafts that specialize CSF 2.0 and SP 800-53 for AI systems.
+mkdirSync(resolve(DATA_DIR, "overlays"), { recursive: true });
+const overlays = [ingestCyberAiProfile(ids), ingestCosais(ids)].filter((o): o is FrameworkOverlay => !!o);
+for (const o of overlays) {
+  writeFileSync(resolve(DATA_DIR, "overlays", `${o.id}.json`), JSON.stringify(o));
+  const priorities = o.lenses?.map((l) => `${l.short} ${[1, 2, 3].map((p) => o.entries.filter((e) => e.lenses?.[l.id]?.priority === p).length).join("/")}`).join(", ");
+  log(`overlay ${o.id} (${o.status}) on ${o.frameworkId}: ${o.entries.length} entries${priorities ? `; priorities 1/2/3: ${priorities}` : ""}`);
+}
+
 // ---------------------------------------------------------------------------
 // Corpus search index
 // ---------------------------------------------------------------------------
@@ -103,6 +113,38 @@ function nodeChunk(n: RequirementNode): CorpusChunk {
   };
 }
 for (const g of graphs) for (const n of g.nodes) if (n.text) chunks.push(nodeChunk(n));
+
+/** Overlay entries are searchable too, always labeled with the draft's status. */
+const nodeById = new Map(graphs.flatMap((g) => g.nodes.map((n) => [n.id, n] as const)));
+for (const o of overlays) {
+  const doc = docs.get(o.documentId);
+  for (const e of o.entries) {
+    const node = nodeById.get(e.nodeId);
+    const parts = [`${o.shortName} (${o.identifier}, ${o.status}) for ${node?.code ?? e.nodeId}${node?.title ? ` ${node.title}` : ""}.`];
+    if (e.general?.considerations) parts.push(`General considerations: ${e.general.considerations}`);
+    for (const l of o.lenses ?? []) {
+      const f = e.lenses?.[l.id];
+      if (!f) continue;
+      const level = o.priorityLevels?.find((p) => p.level === f.priority)?.label;
+      parts.push(`${l.short}: proposed priority ${f.priority}${level ? ` (${level})` : ""}.${f.opportunities ? ` Opportunities: ${f.opportunities}` : ""}${f.considerations ? ` Considerations: ${f.considerations}` : ""}${f.references.length ? ` Example informative references: ${f.references.join("; ")}.` : ""}`);
+    }
+    if (e.control) {
+      const c = e.control;
+      parts.push(`Selected in the overlay${c.annotated ? " (annotated)" : c.proposedAdditional ? " (additional proposed control)" : ""}.${c.lifecyclePhases?.length ? ` AI lifecycle phases: ${c.lifecyclePhases.join(", ")}.` : ""}${c.assumptions ? ` Assumptions: ${c.assumptions}` : ""}`);
+      for (const t of c.tailoringSections ?? []) parts.push(`${t.label}: ${t.text}`);
+      if (c.attackIds?.length) parts.push(`NIST AI 100-2 attacks: ${c.attackIds.join(", ")}.`);
+    }
+    chunks.push({
+      id: `overlay:${o.id}:${e.nodeId}`,
+      documentId: o.documentId,
+      documentTitle: doc?.title ?? o.title,
+      framework: doc?.framework ?? "nist-ai-rmf",
+      page: e.citation.page,
+      locator: e.citation.locator ?? e.nodeId,
+      text: parts.join("\n"),
+    });
+  }
+}
 log(`structured chunks: ${chunks.length}`);
 
 const INCLUDED_ROLES = new Set(["core", "quick-start-guide", "categorization", "criteria", "description-criteria", "guide", "profile"]);
@@ -156,6 +198,7 @@ const report = {
     byKind: g.nodes.reduce<Record<string, number>>((acc, n) => ((acc[n.kind] = (acc[n.kind] ?? 0) + 1), acc), {}),
   })),
   mappings: mappingSets.map((m) => ({ id: m.id, count: m.mappings.length, authority: m.authority })),
+  overlays: overlays.map((o) => ({ id: o.id, frameworkId: o.frameworkId, status: o.status, entries: o.entries.length })),
   corpus: { chunks: chunks.length, pdfDocuments: pdfCount, manifests: manifests.map((m) => ({ framework: m.framework, documents: m.documents.length })) },
   sources: manifests.flatMap((m) => m.documents.filter((d) => d.role === "machine-readable" || d.role === "criteria").map((d) => ({ id: d.id, sha256: d.sha256 }))),
 };

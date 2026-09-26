@@ -1,0 +1,1457 @@
+{
+ "sources": [
+  {
+   "documentId": "nist-cosais-concept-paper",
+   "title": "SP 800-53 Control Overlays for Securing AI Systems Concept Paper",
+   "status": "concept paper (pre-draft)",
+   "published": "2025-08-14",
+   "path": "nist-ai-rmf/drafts/NIST-Overlays-SecuringAI-concept-paper.pdf",
+   "sha256": "37f0beea5afaad6441c29a94323c1133c970234fdd1b64747e29a5c7f18082c0",
+   "url": "https://csrc.nist.gov/csrc/media/Projects/cosais/documents/NIST-Overlays-SecuringAI-concept-paper.pdf"
+  },
+  {
+   "documentId": "nist-cosais-predictive-ai-annotated-outline",
+   "title": "NIST SP 800-53 Control Overlays for Securing AI Systems: Using and Fine-Tuning Predictive AI — Draft Annotated Outline (January 2026)",
+   "status": "annotated outline / discussion draft",
+   "published": "2026-01-08",
+   "path": "nist-ai-rmf/drafts/COSAiS-Predictive-AI-annotated-outline-Jan2026.pdf",
+   "sha256": "517ef2c1cb8762c9f9932297d56ed2e506b36122208366781835b016e6f5d0d9",
+   "url": "https://csrc.nist.gov/csrc/media/Projects/cosais/documents/COSAiS-Predictive-AI-annotated-outline-Jan2026.pdf"
+  }
+ ],
+ "status": "Pre-draft material: a concept paper and an annotated outline issued for discussion. No COSAiS overlay has been published as a draft or final NIST publication; the outline itself says its control list is not complete.",
+ "publicationPlan": {
+  "volumes": [
+   {
+    "identifier": "NISTIR 8605",
+    "title": "Control Overlays for Securing AI Systems: Overview and Methodology",
+    "page": 2
+   },
+   {
+    "identifier": "NISTIR 8605A",
+    "title": "Control Overlays for Securing AI Systems: Using and Fine-Tuning Predictive AI",
+    "page": 2
+   },
+   {
+    "identifier": "NISTIR 8605B",
+    "title": "Control Overlays for Securing AI Systems: Adapting and Using Generative AI",
+    "page": 2
+   },
+   {
+    "identifier": "NISTIR 8605C",
+    "title": "Control Overlays for Securing AI Systems: Security Controls for AI Developers",
+    "page": 2
+   },
+   {
+    "identifier": "NISTIR 8605D",
+    "title": "Control Overlays for Securing AI Systems: Using Agentic AI: Single Agent and Multi-Agent",
+    "page": 2
+   }
+  ],
+  "timeline": "NIST intends to issue NISTIR 8605 and NISTIR 8605A as drafts for public comment by Q3 FY2026 and continue release additional volumes for drafts through 2026 and 2027, refining previous draft volumes based on ongoing lessons learned and feedback. The series (all volumes) will be finalized in 2027, pending available resources. The overlays (Volumes A-D) will be available in the publications and made available online in different data formats through the NIST Cybersecurity and Privacy Reference Tool when finalized.",
+  "page": 2,
+  "documentId": "nist-cosais-predictive-ai-annotated-outline"
+ },
+ "plannedOverlays": [
+  {
+   "id": "genai-assistant-llm",
+   "useCase": 1,
+   "title": "Adapting and Using Generative AI – Assistant/Large Language Model (LLM)",
+   "description": "This use case will cover examples of generative AI used for internal business augmentation (e.g., creating summaries, analyzing data) by internal users.",
+   "audience": "Organizations interested in using AI for creating new content (e.g., text, images).",
+   "purpose": "Generative AI creates new content (e.g., text, images, audio, video) based on user prompts by learning from large datasets and identifying patterns in the datasets.",
+   "scenarios": [
+    {
+     "id": "A",
+     "text": "On-premises hosted LLM with supporting infrastructure: Retrieval-augmented generation (RAG) with proprietary local data sources, mixed local and web sources, and external web sources only.",
+     "page": 4
+    },
+    {
+     "id": "B",
+     "text": "Third-party hosted LLM with supporting infrastructure: RAG with proprietary local data sources, mixed local and web sources, and external web sources only.",
+     "page": 4
+    }
+   ],
+   "page": 4,
+   "plannedPublication": {
+    "identifier": "NISTIR 8605B",
+    "title": "Control Overlays for Securing AI Systems: Adapting and Using Generative AI",
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "page": 2
+   }
+  },
+  {
+   "id": "predictive-ai-use-finetune",
+   "useCase": 2,
+   "title": "Using and Fine-Tuning Predictive AI",
+   "description": "These use cases will address cybersecurity risks at three stages of the predictive AI life cycle: (i) model training, (ii) model deployment, and (iii) model maintenance. Each scenario will address a different business workflow example focused on unique cybersecurity risks of using AI systems (e.g., on-premises or third-party hosted AI model, using propriety data or publicly available data).",
+   "audience": "Organizations using predictive AI systems to analyze historical data to inform decision-making (e.g., for business and service augmentation).",
+   "purpose": "Predictive AI uses statistical analytics and machine learning to analyze historical data and predict future outcomes, trends, or behaviors. Examples may include recommendation services, classification services, and business workflow efficiency improvements through automated decision-making (e.g., resume review for hiring, credit underwriting).",
+   "scenarios": [
+    {
+     "id": "A",
+     "text": "Automation of business workflow with predictive AI using a third-party hosted model with proprietary input data: Identify a legitimate need for physical access for authorized users and update the model with refined data for improvement after observation and false positive/false negative rates.",
+     "page": 5
+    },
+    {
+     "id": "B",
+     "text": "Automation of business workflow with predictive AI using a third-party hosted model with public-facing input data: Identify “bad actors” and update the model with refined data for improvement after observation and false positive/false negative rates.",
+     "page": 5
+    },
+    {
+     "id": "C",
+     "text": "Automation of business workflow with predictive AI using an on-premises model with proprietary data only: Assess the credit worthiness of loan applicants and update the model with refined data for improvement after successful or unsuccessful loan allocations.",
+     "page": 5
+    },
+    {
+     "id": "D",
+     "text": "Automation of business workflow with predictive AI using an on-premises model with public-facing input data: Used for hiring purposes (e.g., identifying resumes of candidates to interview/hire based on organization-defined criteria) and updated with refined data for improvement after successful or unsuccessful interview/hires.",
+     "page": 5
+    }
+   ],
+   "page": 4,
+   "plannedPublication": {
+    "identifier": "NISTIR 8605A",
+    "title": "Control Overlays for Securing AI Systems: Using and Fine-Tuning Predictive AI",
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "page": 2
+   }
+  },
+  {
+   "id": "ai-agents-single-agent",
+   "useCase": 3,
+   "title": "Using AI Agent Systems (AI Agents) – Single Agent",
+   "description": "This use case will cover examples of AI agent system use.",
+   "audience": "Organizations interested in using AI agent systems to automate business tasks and workflows.",
+   "purpose": "AI agent systems have the capability for autonomous decision-making and taking action to operate with limited human supervision to achieve complex goals. Characteristics of AI agent systems include the ability to understand context, reason, plan, adapt, and execute tasks.",
+   "scenarios": [
+    {
+     "id": "A",
+     "text": "Enterprise Copilot - Connected to the user’s personal enterprise environment, including emails, files, calendar, or internal enterprise systems (e.g., CRM, IT requests). In addition, Enterprise Copilot can assist the user with common tasks, such as creating calendar events, streamlining workflows, and providing contextual insights. Uses MCP to access data sources. An example of this architecture is available in OWASP Agentic AI Threats and Mitigations.",
+     "page": 5
+    },
+    {
+     "id": "B",
+     "text": "Coding Assistant — Understands the enterprise codebase and automates the development of software through natural language commands. Uses MCP to access data sources. This scenario will include:\na. Connecting to the source code repository to enable the editing of files;\nb. Interacting with a code repository to create and commit pull requests (PRs), resolve merge conflicts, and similar actions;\nc. Developing, executing, and fixing unit and integration tests;\nd. Browsing proprietary and web resources;\ne. Assisting in the deployment of software.",
+     "page": 5
+    }
+   ],
+   "page": 5,
+   "plannedPublication": {
+    "identifier": "NISTIR 8605D",
+    "title": "Control Overlays for Securing AI Systems: Using Agentic AI: Single Agent and Multi-Agent",
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "page": 2
+   }
+  },
+  {
+   "id": "ai-agents-multi-agent",
+   "useCase": 4,
+   "title": "Using AI Agent Systems (AI Agents) – Multi-Agent",
+   "description": "Multiple agents working in concert to extract data and take actions on the basis of that data, leveraging standardized protocols such as MCP or A2A for agent-to agent communication. For example, based on reference architectures from OWASP Multi-Agentic System Threat Modeling Guide: Robotic Process Automation Expense Reimbursement Agent. Multiple agents responsible for extracting information from expense claims (e.g., submitted receipts, forms), validating the claims against company policy leveraging RAG, and routing approved claims for payment to automate the employee reimbursement workflow in the enterprise.",
+   "audience": "Organizations interested in using AI agent systems to automate complex business tasks and workflows with multiple interacting workstreams.",
+   "purpose": "Multi-agent AI systems have the capability for autonomous decision-making and have multiple agents working in concert taking action to operate cooperatively with limited human supervision to achieve complex goals. Characteristics of multi-agent AI systems include the ability to understand context, reason, plan, adapt, coordinate actions, and execute tasks.",
+   "scenarios": [],
+   "note": "This use case is currently the least mature in terms of adoption, but it is expected to evolve and be refined as understanding deepens, and implementation challenges are identified and addressed.",
+   "page": 6,
+   "plannedPublication": {
+    "identifier": "NISTIR 8605D",
+    "title": "Control Overlays for Securing AI Systems: Using Agentic AI: Single Agent and Multi-Agent",
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "page": 2
+   }
+  },
+  {
+   "id": "ai-developers",
+   "useCase": 5,
+   "title": "Security Controls for AI Developers",
+   "description": null,
+   "audience": "AI developers",
+   "purpose": "NIST developed an SSDF Community Profile: Secure Software Development Practices for Generative AI and Dual-Use Foundation Models (SP 800-218A), which identifies critical-for-security model artifacts and good practices for securing them. NIST CAISI published Managing Misuse Risk for Dual-Use Foundation Models (Draft AI 800-1) as a resource for AI developers. A mapping from the security controls in SP 800-53 to these artifacts and practices in SP 800-218A and in Draft AI 800-1, resources pending, can benefit the community of AI developers and allow for effective risk management built upon existing organizational practices.",
+   "scenarios": [],
+   "page": 6,
+   "plannedPublication": {
+    "identifier": "NISTIR 8605C",
+    "title": "Control Overlays for Securing AI Systems: Security Controls for AI Developers",
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "page": 2
+   }
+  }
+ ],
+ "overlays": [
+  {
+   "id": "predictive-ai-use-finetune",
+   "title": "NIST SP 800-53 Control Overlay for Securing AI Systems: Using and Fine-Tuning Predictive AI",
+   "subtitle": "Annotated Outline for Cyber AI Profile Workshop #2",
+   "status": "annotated outline (draft)",
+   "complete": false,
+   "note": "The list of controls identified for potential inclusion in this overlay is not complete. The intent of this annotated outline is to provide some illustrative examples of the level of detail proposed for the overlay.",
+   "notePage": 6,
+   "summaryTableNote": "All selected controls for the overlay will be listed in this summary table in the order they appear in SP 800-53. The table below is populated with only a subset of example controls for the annotated outline.",
+   "documentId": "nist-cosais-predictive-ai-annotated-outline",
+   "plannedPublication": {
+    "identifier": "NISTIR 8605A",
+    "title": "Control Overlays for Securing AI Systems: Using and Fine-Tuning Predictive AI",
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "page": 2
+   },
+   "useCasesIntro": "This overlay addresses the use of predictive AI to automate 2 different business workflows (use cases):",
+   "useCases": [
+    {
+     "id": "A",
+     "text": "(On-premises model and third-party (cloud) model, proprietary data): Support of Operations and Supply Chain – Predictive Maintenance. Use of predictive AI to analyze sensor or continuous monitoring data of systems/system components to predict failures, automate work orders for preventative maintenance. Update the model based on actual maintenance needed.",
+     "page": 3
+    },
+    {
+     "id": "B",
+     "text": "(On-premises model and third-party (cloud) model, public-facing input data): Candidate Recruitment Automation. Use of predictive AI to scan candidate resumes, predict candidate success, and automate initial screening to streamline the hiring process. Update the model after successful or unsuccessful interviews and hires.",
+     "page": 3
+    }
+   ],
+   "useCasesNote": {
+    "text": "The use cases has been updated from the Concept Paper to use a two use cases for both on-premises and third-party models and proprietary and public-facing input data instead of four.",
+    "page": 3
+   },
+   "assumptions": [
+    "The overlays in this series assume the implementing organization has a risk management process and cybersecurity program in place (i.e., it is assumed that a process to select, implement, assess, determine and manage cybersecurity risk, existing cybersecurity controls are in place organization wide, such as policy and procedures, and controls to manage risk to other enterprise systems).",
+    "It is assumed that the AI systems are categorized as (FIPS 199) moderate impact for security, and the NIST SP 800-53B moderate impact baseline is selected and implemented.",
+    "This overlay may include control enhancements without the base control selected. In this scenario, it is assumed the organization has implemented the base control as part of the underlying IT system supporting the machine learning functionalities."
+   ],
+   "developmentApproach": [
+    {
+     "text": "Background on Overlays:\n- Offers organizations additional customization options for control baselines and may be a fully specified set of controls, control enhancements, and other supporting information (e.g., parameter values) derived from the application of tailoring guidance to SP 800-53B control baselines or derived independently of control baselines.\n- Provides an opportunity to build consensus across communities of interest and develop a starting point of controls that have broad-based support for very specific circumstances, situations, and/or conditions.",
+     "page": 2
+    },
+    {
+     "text": "The overlays in this series assume the implementing organization has a risk management process and cybersecurity program in place (i.e., it is assumed that a process to select, implement, assess, determine and manage cybersecurity risk, existing cybersecurity controls are in place organization wide, such as policy and procedures, and controls to manage risk to other enterprise systems).",
+     "page": 2
+    },
+    {
+     "text": "It is assumed that the AI systems are categorized as (FIPS 199) moderate impact for security, and the NIST SP 800-53B moderate impact baseline is selected and implemented.",
+     "page": 3
+    },
+    {
+     "text": "For organizations utilizing different types of AI (predictive, generative, etc.), overlays can be used collectively to manage risks. The control sets for each overlay will be distinct for the application of the control to address specific risks associated with the different types of AI.",
+     "page": 3
+    },
+    {
+     "text": "These use cases will address cybersecurity risks at three stages of the AI life cycle: (i) model training, (ii) model deployment, and (iii) model maintenance. Each scenario will address a different business workflow scenario (e.g., a specific application of an on-premises or third-party hosted AI model, using propriety data or publicly available data).",
+     "page": 3
+    },
+    {
+     "text": "This overlay may include control enhancements without the base control selected. In this scenario, it is assumed the organization has implemented the base control as part of the underlying IT system supporting the machine learning functionalities.",
+     "page": 3
+    },
+    {
+     "text": "The overlays are developed by:\n- Mapping NIST AI 100-2e2025 AI Taxonomy to NIST SP 800-53 controls for attacks/mitigations\n- Identifying controls that are assumed to be implemented by organization (i.e., included in the NIST SP 800-53B Moderate Impact Security Control Baseline)\n- Tailoring controls for the use case",
+     "page": 3
+    }
+   ],
+   "footnotes": {
+    "1": {
+     "text": "NIST intends to revisit this assumption and revise as needed based on workshop and written feedback.",
+     "page": 3
+    },
+    "2": {
+     "text": "The selected controls are tailored for each use case; organizations consider the need to further refine based on their own implementation.",
+     "page": 3
+    },
+    "3": {
+     "text": "The use cases has been updated from the Concept Paper to use a two use cases for both on-premises and third-party models and proprietary and public-facing input data instead of four.",
+     "page": 3
+    },
+    "4": {
+     "text": "Note that this is the narrative structure proposed for the NISTIR document series to facilitate ease of review and providing feedback. When the NISTIR series is finalized, the overlays will be released in different data formats to facilitate ease of use.",
+     "page": 4
+    }
+   },
+   "lifecyclePhases": [
+    "Model Training",
+    "Model Deployment",
+    "Model Maintenance",
+    "Continuous"
+   ],
+   "controls": [
+    {
+     "id": "AC-3",
+     "idAsPrinted": "AC-03",
+     "title": "Access Enforcement",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 6,
+     "additionalListPage": 6
+    },
+    {
+     "id": "AC-6",
+     "idAsPrinted": "AC-06",
+     "title": "Least Privilege",
+     "titleAsPrinted": null,
+     "inSummaryTable": true,
+     "annotated": true,
+     "proposedAdditional": false,
+     "lifecyclePhases": [
+      "Continuous"
+     ],
+     "tailoring": {
+      "controlRequirement": false,
+      "organizationDefinedParameter": false,
+      "discussion": true
+     },
+     "annotation": {
+      "selectedInModerateBaseline": "Yes",
+      "lifecyclePhases": [
+       "Continuous"
+      ],
+      "assumptions": "AI system access control may be integrated into the organization-wide (enterprise) ICAM implementation.",
+      "controlTailoring": "[Discussion] To ensure the model is only available to authorized and appropriate individuals, the organization identifies and authorizes the minimum set of access rights for users, services, models, and pipelines to perform the assigned functions of the predictive AI system. Least privilege applies to humans, non-human identities to include machines (e.g., services, AI agents) and data access throughout the AI model lifecycle. Organizations consider assigning unique, non-shared identities to training pipelines, inference services, and model monitoring agents, and restricts service accounts to only specific datasets, model artifacts and compute resources. It is expected that the access and permissions required by humans and non-human identities acting on behalf of an individual will change throughout the lifecycle.",
+      "controlTailoringSections": [
+       {
+        "label": "Discussion",
+        "text": "To ensure the model is only available to authorized and appropriate individuals, the organization identifies and authorizes the minimum set of access rights for users, services, models, and pipelines to perform the assigned functions of the predictive AI system. Least privilege applies to humans, non-human identities to include machines (e.g., services, AI agents) and data access throughout the AI model lifecycle. Organizations consider assigning unique, non-shared identities to training pipelines, inference services, and model monitoring agents, and restricts service accounts to only specific datasets, model artifacts and compute resources. It is expected that the access and permissions required by humans and non-human identities acting on behalf of an individual will change throughout the lifecycle."
+       }
+      ],
+      "attackIds": [
+       "NIST AML.011",
+       "NIST AML.013"
+      ],
+      "attackIdsNormalized": [
+       "NISTAML.011",
+       "NISTAML.013"
+      ],
+      "text": "Control ID: AC-06, Least Privilege\nSelected in SP 800-53B Moderate Baseline: Yes\nApplicable AI Lifecycle Phase(s): Continuous\nAssumptions: AI system access control may be integrated into the organization-wide (enterprise) ICAM implementation.\nControl Tailoring:\n[Discussion] To ensure the model is only available to authorized and appropriate individuals, the organization identifies and authorizes the minimum set of access rights for users, services, models, and pipelines to perform the assigned functions of the predictive AI system. Least privilege applies to humans, non-human identities to include machines (e.g., services, AI agents) and data access throughout the AI model lifecycle. Organizations consider assigning unique, non-shared identities to training pipelines, inference services, and model monitoring agents, and restricts service accounts to only specific datasets, model artifacts and compute resources. It is expected that the access and permissions required by humans and non-human identities acting on behalf of an individual will change throughout the lifecycle.\nRelevant NIST AI 100-2e2025 Attack ID: NIST AML.011, NIST AML.013",
+      "page": 7,
+      "pageEnd": 8
+     },
+     "page": 5,
+     "summaryTablePage": 5
+    },
+    {
+     "id": "AC-22",
+     "idAsPrinted": "AC-22",
+     "title": "Publicly Accessible Content",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 6,
+     "additionalListPage": 6
+    },
+    {
+     "id": "AU-2",
+     "idAsPrinted": "AU-02",
+     "title": "Event Logging",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 6,
+     "additionalListPage": 6
+    },
+    {
+     "id": "AU-6",
+     "idAsPrinted": "AU-06",
+     "title": "Audit Record Review, Analysis, and Reporting",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 6,
+     "additionalListPage": 6
+    },
+    {
+     "id": "CA-3",
+     "idAsPrinted": "CA-03",
+     "title": "Information Exchange",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 6,
+     "additionalListPage": 6
+    },
+    {
+     "id": "CA-7",
+     "idAsPrinted": "CA-07",
+     "title": "Continuous Monitoring",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 6,
+     "additionalListPage": 6
+    },
+    {
+     "id": "CA-8",
+     "idAsPrinted": "CA-08",
+     "title": "Penetration Testing",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 6,
+     "additionalListPage": 6
+    },
+    {
+     "id": "CM-2",
+     "idAsPrinted": "CM-02",
+     "title": "Baseline Configuration",
+     "titleAsPrinted": null,
+     "inSummaryTable": true,
+     "annotated": true,
+     "proposedAdditional": false,
+     "lifecyclePhases": [
+      "Model Training",
+      "Model Maintenance"
+     ],
+     "tailoring": {
+      "controlRequirement": false,
+      "organizationDefinedParameter": false,
+      "discussion": true
+     },
+     "annotation": {
+      "selectedInModerateBaseline": "Yes",
+      "lifecyclePhases": [
+       "Model Training",
+       "Model Maintenance"
+      ],
+      "assumptions": "AI system configuration management may be integrated into organization-wide (enterprise).",
+      "controlTailoring": "[Discussion] Predictive AI systems may introduce additional configuration elements that are not explicitly addressed in baseline configurations of enterprise IT systems to potentially include machine learning frameworks and libraries, model architectures, and certain compute environments. The organization considers AI components and dynamic models in scope for the baseline configuration, including infrastructure components, the AI software stack, data and pipeline configurations, and model configuration artifacts.",
+      "controlTailoringSections": [
+       {
+        "label": "Discussion",
+        "text": "Predictive AI systems may introduce additional configuration elements that are not explicitly addressed in baseline configurations of enterprise IT systems to potentially include machine learning frameworks and libraries, model architectures, and certain compute environments. The organization considers AI components and dynamic models in scope for the baseline configuration, including infrastructure components, the AI software stack, data and pipeline configurations, and model configuration artifacts."
+       }
+      ],
+      "attackIds": [
+       "NISTAML.024",
+       "NISTAML.026"
+      ],
+      "attackIdsNormalized": [
+       "NISTAML.024",
+       "NISTAML.026"
+      ],
+      "text": "Control ID: CM-02, Baseline Configuration\nSelected in SP 800-53B Moderate Baseline: Yes\nApplicable AI Lifecycle Phase(s): Model Training; Model Maintenance\nAssumptions: AI system configuration management may be integrated into organization-wide (enterprise).\nControl Tailoring:\n[Discussion] Predictive AI systems may introduce additional configuration elements that are not explicitly addressed in baseline configurations of enterprise IT systems to potentially include machine learning frameworks and libraries, model architectures, and certain compute environments. The organization considers AI components and dynamic models in scope for the baseline configuration, including infrastructure components, the AI software stack, data and pipeline configurations, and model configuration artifacts.\nRelevant NIST AI 100-2e2025 Attack ID: NISTAML.024, NISTAML.026",
+      "page": 8,
+      "pageEnd": 8
+     },
+     "page": 5,
+     "summaryTablePage": 5
+    },
+    {
+     "id": "CM-3",
+     "idAsPrinted": "CM-03",
+     "title": "Configuration Change Control",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 6,
+     "additionalListPage": 6
+    },
+    {
+     "id": "CM-4",
+     "idAsPrinted": "CM-04",
+     "title": "Impact Analyses",
+     "titleAsPrinted": null,
+     "inSummaryTable": true,
+     "annotated": true,
+     "proposedAdditional": false,
+     "lifecyclePhases": [
+      "Model Training",
+      "Model Maintenance",
+      "Continuous"
+     ],
+     "tailoring": {
+      "controlRequirement": false,
+      "organizationDefinedParameter": false,
+      "discussion": true
+     },
+     "annotation": {
+      "selectedInModerateBaseline": "Yes",
+      "lifecyclePhases": [
+       "Continuous"
+      ],
+      "assumptions": "Impact analyses for the AI system can leverage and build on existing organization-wide or system processes.",
+      "controlTailoring": "[Discussion] Minor configuration changes could significantly alter model behavior for predictive AI systems, potentially introducing bias, drift or impacting the accuracy of the outputs. The impact analysis is expanded to include analysis of the infrastructure and platform system components, software (to include machine learning frameworks, libraries, and containers), and data pipeline for security and privacy impact, model behavior and overall risk.",
+      "controlTailoringSections": [
+       {
+        "label": "Discussion",
+        "text": "Minor configuration changes could significantly alter model behavior for predictive AI systems, potentially introducing bias, drift or impacting the accuracy of the outputs. The impact analysis is expanded to include analysis of the infrastructure and platform system components, software (to include machine learning frameworks, libraries, and containers), and data pipeline for security and privacy impact, model behavior and overall risk."
+       }
+      ],
+      "attackIds": [
+       "NISTAML.022"
+      ],
+      "attackIdsNormalized": [
+       "NISTAML.022"
+      ],
+      "text": "Control ID: CM-04, Impact Analyses\nSelected in SP 800-53B Moderate Baseline: Yes\nApplicable AI Lifecycle Phase(s): Continuous\nAssumptions: Impact analyses for the AI system can leverage and build on existing organization-wide or system processes.\nControl Tailoring:\n[Discussion] Minor configuration changes could significantly alter model behavior for predictive AI systems, potentially introducing bias, drift or impacting the accuracy of the outputs. The impact analysis is expanded to include analysis of the infrastructure and platform system components, software (to include machine learning frameworks, libraries, and containers), and data pipeline for security and privacy impact, model behavior and overall risk.\nRelevant NIST AI 100-2e2025 Attack ID: NISTAML.022",
+      "page": 8,
+      "pageEnd": 8
+     },
+     "page": 5,
+     "summaryTablePage": 5
+    },
+    {
+     "id": "CM-4(1)",
+     "idAsPrinted": "CM-04(01)",
+     "title": "Impact Analyses | Separate Test Environments",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 6,
+     "additionalListPage": 6
+    },
+    {
+     "id": "CM-5",
+     "idAsPrinted": "CM-05",
+     "title": "Access Restrictions for Change",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 6,
+     "additionalListPage": 6
+    },
+    {
+     "id": "CM-6",
+     "idAsPrinted": "CM-06",
+     "title": "Configuration Settings",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 6,
+     "additionalListPage": 6
+    },
+    {
+     "id": "PE-9(2)",
+     "idAsPrinted": "PE-09(02)",
+     "title": "Power Equipment and Cabling | Automatic Voltage Controls",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 6,
+     "additionalListPage": 6
+    },
+    {
+     "id": "PE-14(2)",
+     "idAsPrinted": "PE-14(02)",
+     "title": "Environmental Controls | Monitoring with Alarms and Notifications",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "PT-3(1)",
+     "idAsPrinted": "PT-03(01)",
+     "title": "Personally Identifiable Information Processing Purposes | Data Tagging",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "PT-4",
+     "idAsPrinted": "PT-04",
+     "title": "Consent",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "PT-6",
+     "idAsPrinted": "PT-06",
+     "title": "System of Records Notice",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "PT-7",
+     "idAsPrinted": "PT-07",
+     "title": "Specific Categories of Personally Identifiable Information",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "RA-3(2)",
+     "idAsPrinted": "RA-03(02)",
+     "title": "Risk Assessment | Use of All-Source Intelligence",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "RA-5",
+     "idAsPrinted": "RA-05",
+     "title": "Vulnerability Monitoring and Scanning",
+     "titleAsPrinted": null,
+     "inSummaryTable": true,
+     "annotated": true,
+     "proposedAdditional": false,
+     "lifecyclePhases": [
+      "Continuous"
+     ],
+     "tailoring": {
+      "controlRequirement": false,
+      "organizationDefinedParameter": true,
+      "discussion": true
+     },
+     "annotation": {
+      "selectedInModerateBaseline": "Yes",
+      "lifecyclePhases": [
+       "Continuous"
+      ],
+      "assumptions": "Vulnerability Monitoring and Scanning can leverage and build upon existing organization-wide or system processes and tools.",
+      "controlTailoring": "[Organization-Defined Parameters]\n- [Assignment: organization-defined frequency and/or randomly in accordance with organization-defined process]: at system deployment, after significant AI model or pipeline changes, at organization-defined intervals based on risk assessment\n[Discussion] The potential attack surface for predictive AI systems differs from traditional, enterprise IT systems. Organizations consider how to include and tailor existing processes and tools for the unique components of predictive AI systems such as machine learning frameworks, specialized libraries that are updated frequently, dynamic compute resources, different model artifacts.",
+      "controlTailoringSections": [
+       {
+        "label": "Organization-Defined Parameters",
+        "text": "- [Assignment: organization-defined frequency and/or randomly in accordance with organization-defined process]: at system deployment, after significant AI model or pipeline changes, at organization-defined intervals based on risk assessment"
+       },
+       {
+        "label": "Discussion",
+        "text": "The potential attack surface for predictive AI systems differs from traditional, enterprise IT systems. Organizations consider how to include and tailor existing processes and tools for the unique components of predictive AI systems such as machine learning frameworks, specialized libraries that are updated frequently, dynamic compute resources, different model artifacts."
+       }
+      ],
+      "attackIds": [
+       "NISTAML.024",
+       "NISTAML.026"
+      ],
+      "attackIdsNormalized": [
+       "NISTAML.024",
+       "NISTAML.026"
+      ],
+      "text": "Control ID: RA-05, Vulnerability Monitoring and Scanning\nSelected in SP 800-53B Moderate Baseline: Yes\nApplicable AI Lifecycle Phase(s): Continuous\nAssumptions: Vulnerability Monitoring and Scanning can leverage and build upon existing organization-wide or system processes and tools.\nControl Tailoring:\n[Organization-Defined Parameters]\n- [Assignment: organization-defined frequency and/or randomly in accordance with organization-defined process]: at system deployment, after significant AI model or pipeline changes, at organization-defined intervals based on risk assessment\n[Discussion] The potential attack surface for predictive AI systems differs from traditional, enterprise IT systems. Organizations consider how to include and tailor existing processes and tools for the unique components of predictive AI systems such as machine learning frameworks, specialized libraries that are updated frequently, dynamic compute resources, different model artifacts.\nRelevant NIST AI 100-2e2025 Attack ID: NISTAML.024, NISTAML.026",
+      "page": 9,
+      "pageEnd": 9
+     },
+     "page": 5,
+     "summaryTablePage": 5
+    },
+    {
+     "id": "SA-8(14)",
+     "idAsPrinted": "SA-08(14)",
+     "title": "Security and Privacy Engineering Principles | Least Privilege",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SA-8(19)",
+     "idAsPrinted": "SA-08(19)",
+     "title": "Security and Privacy Engineering Principles | Continuous Protection",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SA-8(22)",
+     "idAsPrinted": "SA-08(22)",
+     "title": "Security and Privacy Engineering Principles | Accountability and Traceability",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SA-11(2)",
+     "idAsPrinted": "SA-11(02)",
+     "title": "Developer Testing and Evaluation | Threat Modeling and Vulnerability Analyses",
+     "titleAsPrinted": null,
+     "inSummaryTable": true,
+     "annotated": true,
+     "proposedAdditional": false,
+     "lifecyclePhases": [
+      "Model Training",
+      "Model Deployment"
+     ],
+     "tailoring": {
+      "controlRequirement": false,
+      "organizationDefinedParameter": false,
+      "discussion": true
+     },
+     "annotation": {
+      "selectedInModerateBaseline": "No",
+      "lifecyclePhases": [
+       "Model Training",
+       "Model Deployment"
+      ],
+      "assumptions": "The threat modeling and vulnerability analysis methods applied to the AI system are consistent whether the development and training of the AI system is performed within the system authorization boundary, performed by a separate development group within the organization, or is performed as part of a product delivered by a third-party vendor.",
+      "controlTailoring": "[Discussion] From development to deployment, developers update their understanding of the threats that can affect the deployment and track the vulnerabilities associated with the model, data sets, and tools used to create the predictive AI system environment. Given the scope of Predictive AI systems, additional focus may be applied to the system services supporting the machine learning.",
+      "controlTailoringSections": [
+       {
+        "label": "Discussion",
+        "text": "From development to deployment, developers update their understanding of the threats that can affect the deployment and track the vulnerabilities associated with the model, data sets, and tools used to create the predictive AI system environment. Given the scope of Predictive AI systems, additional focus may be applied to the system services supporting the machine learning."
+       }
+      ],
+      "attackIds": [
+       "NISTAML.013",
+       "NISTAML.022",
+       "NISTAML.05",
+       "NISTAML.051"
+      ],
+      "attackIdsNormalized": [
+       "NISTAML.013",
+       "NISTAML.022",
+       "NISTAML.05",
+       "NISTAML.051"
+      ],
+      "text": "Control ID: SA-11(02), Developer Testing and Evaluation | Threat Modeling and Vulnerability Analyses\nSelected in SP 800-53B Moderate Baseline: No\nApplicable AI Lifecycle Phase(s): Model Training; Model Deployment\nAssumptions: The threat modeling and vulnerability analysis methods applied to the AI system are consistent whether the development and training of the AI system is performed within the system authorization boundary, performed by a separate development group within the organization, or is performed as part of a product delivered by a third-party vendor.\nControl Tailoring:\n[Discussion] From development to deployment, developers update their understanding of the threats that can affect the deployment and track the vulnerabilities associated with the model, data sets, and tools used to create the predictive AI system environment. Given the scope of Predictive AI systems, additional focus may be applied to the system services supporting the machine learning.\nRelevant NIST AI 100-2e2025 Attack ID: NISTAML.013, NISTAML.022, NISTAML.05, NISTAML.051",
+      "page": 9,
+      "pageEnd": 9
+     },
+     "page": 5,
+     "summaryTablePage": 5
+    },
+    {
+     "id": "SA-11(5)",
+     "idAsPrinted": "SA-11(05)",
+     "title": "Developer Testing and Evaluation | Penetration Testing",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SA-11(9)",
+     "idAsPrinted": "SA-11(09)",
+     "title": "Developer Testing and Evaluation | Interactive Application Security Testing",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SA-15(1)",
+     "idAsPrinted": "SA-15(01)",
+     "title": "Development Process, Standards, and Tools | Quality Metrics",
+     "titleAsPrinted": {
+      "summaryTable": "System and Services Acquisition | Quality Metrics",
+      "annotation": "Development Process, Standards, and Tools | Quality Metrics"
+     },
+     "inSummaryTable": true,
+     "annotated": true,
+     "proposedAdditional": false,
+     "lifecyclePhases": [
+      "Model Training",
+      "Model Deployment"
+     ],
+     "tailoring": {
+      "controlRequirement": false,
+      "organizationDefinedParameter": false,
+      "discussion": true
+     },
+     "annotation": {
+      "selectedInModerateBaseline": "No",
+      "lifecyclePhases": [
+       "Model Training",
+       "Model Deployment"
+      ],
+      "assumptions": "The quality metrics applied to the AI system are consistent whether the development and training of the AI system is performed within the system authorization boundary, performed by a separate development group within the organization, or is performed as part of a product delivered by a third-party vendor.",
+      "controlTailoring": "[Discussion] Metrics can include acceptable levels of trust and reliability associated with the training data and the machine learning algorithms as benchmarks for resilience against known attack types. Periodic reviews of the model against the metrics can establish ongoing efforts to build security into the model. Models are not expected to be deployed unless they meet the organization-defined quality metrics.",
+      "controlTailoringSections": [
+       {
+        "label": "Discussion",
+        "text": "Metrics can include acceptable levels of trust and reliability associated with the training data and the machine learning algorithms as benchmarks for resilience against known attack types. Periodic reviews of the model against the metrics can establish ongoing efforts to build security into the model. Models are not expected to be deployed unless they meet the organization-defined quality metrics."
+       }
+      ],
+      "attackIds": [
+       "NISTAML.022"
+      ],
+      "attackIdsNormalized": [
+       "NISTAML.022"
+      ],
+      "text": "Control ID: SA-15(01), Development Process, Standards, and Tools | Quality Metrics\nSelected in SP 800-53B Moderate Baseline: No\nApplicable AI Lifecycle Phase(s): Model Training; Model Deployment\nAssumptions: The quality metrics applied to the AI system are consistent whether the development and training of the AI system is performed within the system authorization boundary, performed by a separate development group within the organization, or is performed as part of a product delivered by a third-party vendor.\nControl Tailoring:\n[Discussion] Metrics can include acceptable levels of trust and reliability associated with the training data and the machine learning algorithms as benchmarks for resilience against known attack types. Periodic reviews of the model against the metrics can establish ongoing efforts to build security into the model. Models are not expected to be deployed unless they meet the organization-defined quality metrics.\nRelevant NIST AI 100-2e2025 Attack ID: NISTAML.022",
+      "page": 9,
+      "pageEnd": 10
+     },
+     "page": 5,
+     "summaryTablePage": 5
+    },
+    {
+     "id": "SA-15(2)",
+     "idAsPrinted": "SA-15(02)",
+     "title": "Development Process, Standards, and Tools | Security and Privacy Tracking Tools",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SA-15(6)",
+     "idAsPrinted": "SA-15(06)",
+     "title": "Development Process, Standards, and Tools | Continuous Improvement",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SA-15(8)",
+     "idAsPrinted": "SA-15(08)",
+     "title": "Development Process, Standards, and Tools | Reuse of Threat and Vulnerability Information",
+     "titleAsPrinted": {
+      "summaryTable": "System and Services Acquisition | Reuse of Threat and Vulnerability Information",
+      "annotation": "Development Process, Standards, and Tools | Reuse of Threat and Vulnerability Information"
+     },
+     "inSummaryTable": true,
+     "annotated": true,
+     "proposedAdditional": false,
+     "lifecyclePhases": [
+      "Model Training",
+      "Model Deployment"
+     ],
+     "tailoring": {
+      "controlRequirement": false,
+      "organizationDefinedParameter": false,
+      "discussion": true
+     },
+     "annotation": {
+      "selectedInModerateBaseline": "No",
+      "lifecyclePhases": [
+       "Model Training",
+       "Model Deployment",
+       "Model Maintenance"
+      ],
+      "assumptions": "The use and reuse of threat and vulnerability information applied to the AI system are consistent whether the development and training of the AI system is performed within the system authorization boundary, performed by a separate development group within the organization, or is performed as part of a product delivered by a third-party vendor.",
+      "controlTailoring": "[Discussion] Lessons learned from existing predictive AI deployments can be included in the development toolset for future development and guide the establishment of standardized processes for the development of new predictive AI systems. Understanding the threats and vulnerabilities associated common to the type of system and the development tools enables developers to establish “best practices” for securing the training model and associated applications.",
+      "controlTailoringSections": [
+       {
+        "label": "Discussion",
+        "text": "Lessons learned from existing predictive AI deployments can be included in the development toolset for future development and guide the establishment of standardized processes for the development of new predictive AI systems. Understanding the threats and vulnerabilities associated common to the type of system and the development tools enables developers to establish “best practices” for securing the training model and associated applications."
+       }
+      ],
+      "attackIds": [
+       "NISTAML.022"
+      ],
+      "attackIdsNormalized": [
+       "NISTAML.022"
+      ],
+      "text": "Control ID: SA-15(08), Development Process, Standards, and Tools | Reuse of Threat and Vulnerability Information\nSelected in SP 800-53B Moderate Baseline: No\nApplicable AI Lifecycle Phase(s): Model Training; Model Deployment; Model Maintenance\nAssumptions: The use and reuse of threat and vulnerability information applied to the AI system are consistent whether the development and training of the AI system is performed within the system authorization boundary, performed by a separate development group within the organization, or is performed as part of a product delivered by a third-party vendor.\nControl Tailoring:\n[Discussion] Lessons learned from existing predictive AI deployments can be included in the development toolset for future development and guide the establishment of standardized processes for the development of new predictive AI systems. Understanding the threats and vulnerabilities associated common to the type of system and the development tools enables developers to establish “best practices” for securing the training model and associated applications.\nRelevant NIST AI 100-2e2025 Attack ID: NISTAML.022",
+      "page": 10,
+      "pageEnd": 10
+     },
+     "page": 5,
+     "summaryTablePage": 5
+    },
+    {
+     "id": "SA-17(3)",
+     "idAsPrinted": "SA-17(03)",
+     "title": "Developer Security and Privacy Architecture and Design | Formal Correspondence",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SC-5",
+     "idAsPrinted": "SC-05",
+     "title": "Denial-of-Service Protection",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SC-5(3)",
+     "idAsPrinted": "SC-05(03)",
+     "title": "Denial-of-Service Protection | Detection and Monitoring",
+     "titleAsPrinted": null,
+     "inSummaryTable": true,
+     "annotated": true,
+     "proposedAdditional": false,
+     "lifecyclePhases": [
+      "Model Deployment",
+      "Model Maintenance"
+     ],
+     "tailoring": {
+      "controlRequirement": false,
+      "organizationDefinedParameter": false,
+      "discussion": true
+     },
+     "annotation": {
+      "selectedInModerateBaseline": "No",
+      "lifecyclePhases": [
+       "Model Deployment",
+       "Model Maintenance"
+      ],
+      "assumptions": "IT services provide denial-of-service protections to mitigate availability risks to the system.",
+      "controlTailoring": "[Discussion] Protect against data being introduced to the model that can result in corruption of the data, uncontrolled queries, or introduces addition perturbations of testing samples that can affect system performance relative to performance objectives and thresholds. Monitoring for activity outside of known parameters and performance thresholds can be an indicator of a potential attack that should result in notifications and incident response measures. A key objective is to ensure that the model is not resulting in a self-inflicted DoS resulting from uncontrolled iterations updating the training model.",
+      "controlTailoringSections": [
+       {
+        "label": "Discussion",
+        "text": "Protect against data being introduced to the model that can result in corruption of the data, uncontrolled queries, or introduces addition perturbations of testing samples that can affect system performance relative to performance objectives and thresholds. Monitoring for activity outside of known parameters and performance thresholds can be an indicator of a potential attack that should result in notifications and incident response measures. A key objective is to ensure that the model is not resulting in a self-inflicted DoS resulting from uncontrolled iterations updating the training model."
+       }
+      ],
+      "attackIds": [
+       "NISTAML.031"
+      ],
+      "attackIdsNormalized": [
+       "NISTAML.031"
+      ],
+      "text": "Control ID: SC-05(03), Denial-of-Service Protection | Detection and Monitoring\nSelected in SP 800-53B Moderate Baseline: No\nApplicable AI Lifecycle Phase(s): Model Deployment; Model Maintenance\nAssumptions: IT services provide denial-of-service protections to mitigate availability risks to the system.\nControl Tailoring:\n[Discussion] Protect against data being introduced to the model that can result in corruption of the data, uncontrolled queries, or introduces addition perturbations of testing samples that can affect system performance relative to performance objectives and thresholds. Monitoring for activity outside of known parameters and performance thresholds can be an indicator of a potential attack that should result in notifications and incident response measures. A key objective is to ensure that the model is not resulting in a self-inflicted DoS resulting from uncontrolled iterations updating the training model.\nRelevant NIST AI 100-2e2025 Attack ID: NISTAML.031",
+      "page": 10,
+      "pageEnd": 11
+     },
+     "page": 6,
+     "summaryTablePage": 6
+    },
+    {
+     "id": "SC-7(10)",
+     "idAsPrinted": "SC-07(10)",
+     "title": "Boundary Protection | Prevent Exfiltration",
+     "titleAsPrinted": null,
+     "inSummaryTable": true,
+     "annotated": true,
+     "proposedAdditional": false,
+     "lifecyclePhases": [
+      "Model Deployment",
+      "Model Maintenance"
+     ],
+     "tailoring": {
+      "controlRequirement": false,
+      "organizationDefinedParameter": false,
+      "discussion": true
+     },
+     "annotation": {
+      "selectedInModerateBaseline": "No",
+      "lifecyclePhases": [
+       "Model Deployment",
+       "Model Maintenance"
+      ],
+      "assumptions": "The impact from data exfiltration may be lower during development and training activities where exfiltration may be preventable using IT methods. In the deployment phase, the AI system boundary protections are implemented to prevent the exfiltration of the deployed model algorithms, data structures, and training data as a function of application usage.",
+      "controlTailoring": "[Discussion] The exfiltration of information about the training model can lead to the development of more sophisticated attacks that subvert the ability of the model to meet objectives and requirements. Additional protections are needed to prevent the exfiltration of information that can be used to engineer data privacy attacks and model privacy attacks.\nTests for exfiltration can include methods to identify potential seeding by an attacker, identifying where an attacker is able to introduce data into the model that enables the extraction of additional information from the training model data sets. The frequency of testing may depend on the sensitivity of the data being used in the model and the criticality of the system relative to organization and system objectives for the system.\n“extraction attacks are more successful when the model is seeded with more specific and complete information — the more the attacker knows, the more they can extract” (NIST AI 100-2e2025, 3.3.2)",
+      "controlTailoringSections": [
+       {
+        "label": "Discussion",
+        "text": "The exfiltration of information about the training model can lead to the development of more sophisticated attacks that subvert the ability of the model to meet objectives and requirements. Additional protections are needed to prevent the exfiltration of information that can be used to engineer data privacy attacks and model privacy attacks.\nTests for exfiltration can include methods to identify potential seeding by an attacker, identifying where an attacker is able to introduce data into the model that enables the extraction of additional information from the training model data sets. The frequency of testing may depend on the sensitivity of the data being used in the model and the criticality of the system relative to organization and system objectives for the system.\n“extraction attacks are more successful when the model is seeded with more specific and complete information — the more the attacker knows, the more they can extract” (NIST AI 100-2e2025, 3.3.2)"
+       }
+      ],
+      "attackIds": [
+       "NISTAML.03",
+       "NISTAML.031",
+       "NISTAML.032",
+       "NISTAML.033",
+       "NISTAML.034"
+      ],
+      "attackIdsNormalized": [
+       "NISTAML.03",
+       "NISTAML.031",
+       "NISTAML.032",
+       "NISTAML.033",
+       "NISTAML.034"
+      ],
+      "text": "Control ID: SC-07(10), Boundary Protection | Prevent Exfiltration\nSelected in SP 800-53B Moderate Baseline: No\nApplicable AI Lifecycle Phase(s): Model Deployment; Model Maintenance\nAssumptions: The impact from data exfiltration may be lower during development and training activities where exfiltration may be preventable using IT methods. In the deployment phase, the AI system boundary protections are implemented to prevent the exfiltration of the deployed model algorithms, data structures, and training data as a function of application usage.\nControl Tailoring:\n[Discussion] The exfiltration of information about the training model can lead to the development of more sophisticated attacks that subvert the ability of the model to meet objectives and requirements. Additional protections are needed to prevent the exfiltration of information that can be used to engineer data privacy attacks and model privacy attacks.\nTests for exfiltration can include methods to identify potential seeding by an attacker, identifying where an attacker is able to introduce data into the model that enables the extraction of additional information from the training model data sets. The frequency of testing may depend on the sensitivity of the data being used in the model and the criticality of the system relative to organization and system objectives for the system.\n“extraction attacks are more successful when the model is seeded with more specific and complete information — the more the attacker knows, the more they can extract” (NIST AI 100-2e2025, 3.3.2)\nRelevant NIST AI 100-2e2025 Attack ID: NISTAML.03, NISTAML.031, NISTAML.032, NISTAML.033, NISTAML.034)",
+      "page": 11,
+      "pageEnd": 11
+     },
+     "page": 6,
+     "summaryTablePage": 6
+    },
+    {
+     "id": "SC-23",
+     "idAsPrinted": "SC-23",
+     "title": "Session Authenticity",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SC-28",
+     "idAsPrinted": "SC-28",
+     "title": "Protection of Information at Rest",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SC-32",
+     "idAsPrinted": "SC-32",
+     "title": "System Partitioning",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SC-39",
+     "idAsPrinted": "SC-39",
+     "title": "Process Isolation",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SC-43",
+     "idAsPrinted": "SC-43",
+     "title": "Usage Restrictions",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SI-3",
+     "idAsPrinted": "SI-03",
+     "title": "Malicious Code Protection",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SI-3(8)",
+     "idAsPrinted": "SI-03(08)",
+     "title": "Malicious Code Protection | Detect Unauthorized Commands",
+     "titleAsPrinted": null,
+     "inSummaryTable": true,
+     "annotated": true,
+     "proposedAdditional": false,
+     "lifecyclePhases": [
+      "Continuous"
+     ],
+     "tailoring": {
+      "controlRequirement": false,
+      "organizationDefinedParameter": false,
+      "discussion": true
+     },
+     "annotation": {
+      "selectedInModerateBaseline": "No",
+      "lifecyclePhases": [
+       "Continuous"
+      ],
+      "assumptions": "Malicious code protections may already exist within the organization and system environments to address specific IT-related threats.",
+      "controlTailoring": "[Discussion] Detecting unauthorized activity for all access points of the model, whether as it is being trained or once it is deployed, it a critical element of preventing the release of information about the model that can be used to subvert to trustworthiness and reliability of the system objectives. Data ingest methods should be able to parse input to ensure that system level commands are not being submitted, much in the way that SQL injection attacks are identified. While submitted commands may not be able to be executed based on the submission path, the submission still represents an attempt to gain a response from the system that an attacker can use to refine their attack strategy. Understanding the relationship of the machine learning tools, the model, and the data storage components can enable the identification and disabling of malicious code before it can subvert any portion of the system.",
+      "controlTailoringSections": [
+       {
+        "label": "Discussion",
+        "text": "Detecting unauthorized activity for all access points of the model, whether as it is being trained or once it is deployed, it a critical element of preventing the release of information about the model that can be used to subvert to trustworthiness and reliability of the system objectives. Data ingest methods should be able to parse input to ensure that system level commands are not being submitted, much in the way that SQL injection attacks are identified. While submitted commands may not be able to be executed based on the submission path, the submission still represents an attempt to gain a response from the system that an attacker can use to refine their attack strategy. Understanding the relationship of the machine learning tools, the model, and the data storage components can enable the identification and disabling of malicious code before it can subvert any portion of the system."
+       }
+      ],
+      "attackIds": [
+       "NISTAML.026"
+      ],
+      "attackIdsNormalized": [
+       "NISTAML.026"
+      ],
+      "text": "Control ID: SI-03(08), Malicious Code Protection | Detect Unauthorized Commands\nSelected in SP 800-53B Moderate Baseline: No\nApplicable AI Lifecycle Phase(s): Continuous\nAssumptions: Malicious code protections may already exist within the organization and system environments to address specific IT-related threats.\nControl Tailoring:\n[Discussion] Detecting unauthorized activity for all access points of the model, whether as it is being trained or once it is deployed, it a critical element of preventing the release of information about the model that can be used to subvert to trustworthiness and reliability of the system objectives. Data ingest methods should be able to parse input to ensure that system level commands are not being submitted, much in the way that SQL injection attacks are identified. While submitted commands may not be able to be executed based on the submission path, the submission still represents an attempt to gain a response from the system that an attacker can use to refine their attack strategy. Understanding the relationship of the machine learning tools, the model, and the data storage components can enable the identification and disabling of malicious code before it can subvert any portion of the system.\nRelevant NIST AI 100-2e2025 Attack ID: NISTAML.026",
+      "page": 11,
+      "pageEnd": 12
+     },
+     "page": 6,
+     "summaryTablePage": 6
+    },
+    {
+     "id": "SI-4",
+     "idAsPrinted": "SI-04",
+     "title": "System Monitoring",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SI-4(2)",
+     "idAsPrinted": "SI-04(02)",
+     "title": "System Monitoring | Automated Tools and Mechanisms for Real-Time Analysis",
+     "titleAsPrinted": null,
+     "inSummaryTable": true,
+     "annotated": true,
+     "proposedAdditional": false,
+     "lifecyclePhases": [
+      "Continuous"
+     ],
+     "tailoring": {
+      "controlRequirement": false,
+      "organizationDefinedParameter": false,
+      "discussion": true
+     },
+     "annotation": {
+      "selectedInModerateBaseline": "Yes",
+      "lifecyclePhases": [
+       "Continuous"
+      ],
+      "assumptions": "System monitoring tools are in place to analyze all IT-related activity.",
+      "controlTailoring": "[Discussion] System monitoring tools track interactions with all data sets and algorithms that are applied to the development and training of the model, and to all activity associated with the model once deployed. Automated methods identify attempts to subvert the model (i.e., poisoning, evasion) and distinguishes activity outside of established parameters for the model responses which can indicate attempts by an attacker to extract information about the model which can be used to craft future attacks. Appropriate personnel are notified of alerts based on organization-defined prioritizations and thresholds associated with the severity of the identified alert.",
+      "controlTailoringSections": [
+       {
+        "label": "Discussion",
+        "text": "System monitoring tools track interactions with all data sets and algorithms that are applied to the development and training of the model, and to all activity associated with the model once deployed. Automated methods identify attempts to subvert the model (i.e., poisoning, evasion) and distinguishes activity outside of established parameters for the model responses which can indicate attempts by an attacker to extract information about the model which can be used to craft future attacks. Appropriate personnel are notified of alerts based on organization-defined prioritizations and thresholds associated with the severity of the identified alert."
+       }
+      ],
+      "attackIds": [
+       "NISTAML.031"
+      ],
+      "attackIdsNormalized": [
+       "NISTAML.031"
+      ],
+      "text": "Control ID: SI-04(02), System Monitoring | Automated Tools and Mechanisms for Real-Time Analysis\nSelected in SP 800-53B Moderate Baseline: Yes\nApplicable AI Lifecycle Phase(s): Continuous\nAssumptions: System monitoring tools are in place to analyze all IT-related activity.\nControl Tailoring:\n[Discussion] System monitoring tools track interactions with all data sets and algorithms that are applied to the development and training of the model, and to all activity associated with the model once deployed. Automated methods identify attempts to subvert the model (i.e., poisoning, evasion) and distinguishes activity outside of established parameters for the model responses which can indicate attempts by an attacker to extract information about the model which can be used to craft future attacks. Appropriate personnel are notified of alerts based on organization-defined prioritizations and thresholds associated with the severity of the identified alert.\nRelevant NIST AI 100-2e2025 Attack ID: NISTAML.031",
+      "page": 12,
+      "pageEnd": 12
+     },
+     "page": 6,
+     "summaryTablePage": 6
+    },
+    {
+     "id": "SI-7",
+     "idAsPrinted": "SI-07",
+     "title": "Software, Firmware, and Information Integrity",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SI-7(5)",
+     "idAsPrinted": "SI-07(05)",
+     "title": "Software, Firmware, and Information Integrity | Automated Response to Integrity Violations",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SI-10",
+     "idAsPrinted": "SI-10",
+     "title": "Information Input Validation",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SI-10(3)",
+     "idAsPrinted": "SI-10(03)",
+     "title": "Information Input Validation | Predictable Behavior",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SI-10(5)",
+     "idAsPrinted": "SI-10(05)",
+     "title": "Information Input Validation | Restrict Inputs to Trusted Sources and Approved Formats",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SI-12(2)",
+     "idAsPrinted": "SI-12(02)",
+     "title": "Information Management and Retention | Minimize Personally Identifiable Information in Testing, Training and Research",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SI-15",
+     "idAsPrinted": "SI-15",
+     "title": "Information Output Filtering",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SI-17",
+     "idAsPrinted": "SI-17",
+     "title": "Fail-Safe Procedures",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SI-18",
+     "idAsPrinted": "SI-18",
+     "title": "Personally Identifiable Information Quality Operations",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SI-19(6)",
+     "idAsPrinted": "SI-19(06)",
+     "title": "De-Identification | Differential Privacy",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SI-19(7)",
+     "idAsPrinted": "SI-19(07)",
+     "title": "De-Identification | Algorithms and Software",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SI-23",
+     "idAsPrinted": "SI-23",
+     "title": "Information Fragmentation",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SR-4",
+     "idAsPrinted": "SR-04",
+     "title": "Provenance",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    },
+    {
+     "id": "SR-11",
+     "idAsPrinted": "SR-11",
+     "title": "Component Authenticity",
+     "titleAsPrinted": null,
+     "inSummaryTable": false,
+     "annotated": false,
+     "proposedAdditional": true,
+     "lifecyclePhases": null,
+     "tailoring": null,
+     "annotation": null,
+     "page": 7,
+     "additionalListPage": 7
+    }
+   ]
+  }
+ ]
+}

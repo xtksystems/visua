@@ -11,7 +11,7 @@ import { StatusBar, StatusGlyph } from "../components/ui/index.tsx";
 import { FRAMEWORK_SHORT, STATUS_LABEL, truncate } from "../lib/format.ts";
 import { useFrameworkState, useGraph, useWorkspace } from "../lib/queries.ts";
 import type { FrameworkStateBundle, LeanNode } from "../lib/types.ts";
-import { LENS_INFO } from "../scene/colors.ts";
+import { LENS_INFO, overlaySwatch } from "../scene/colors.ts";
 import { computeLayout } from "../scene/layout.ts";
 import { Observatory } from "../scene/Observatory.tsx";
 import { useAgentActivity } from "../state/agentActivity.ts";
@@ -215,7 +215,17 @@ export function ObservatoryPage() {
   const hovered = hoveredId && byId ? byId.get(hoveredId) : undefined;
   const hoveredUnit = hoveredId ? state.data?.units[hoveredId] : undefined;
   const hoveredGroup = hoveredId ? state.data?.groups[hoveredId] : undefined;
-  const lensInfo = LENS_INFO[lens];
+  // The overlay lens exists only where the framework has an overlay (CSF: Cyber AI Profile; SP 800-53: COSAiS).
+  const overlay = state.data?.overlay ?? null;
+  const activeLens: Lens = lens === "overlay" && !overlay ? "status" : lens;
+  const lensInfo =
+    activeLens === "overlay" && overlay
+      ? {
+          title: overlay.shortName,
+          description: LENS_INFO.overlay.description,
+          legend: [...overlay.levels.map((l) => ({ label: l.label, color: overlaySwatch(l.level) })), { label: "Not in the overlay", color: LENS_INFO.overlay.legend.at(-1)!.color }],
+        }
+      : LENS_INFO[activeLens];
   const breadcrumb: LeanNode[] = [];
   let cur = selectedId && byId ? byId.get(selectedId) : undefined;
   while (cur) {
@@ -241,7 +251,7 @@ export function ObservatoryPage() {
           <Observatory
             layout={layout}
             state={state.data}
-            lens={lens}
+            lens={activeLens}
             selectedId={selectedId}
             hoveredId={hoveredId}
             focusIds={focusIds}
@@ -292,8 +302,8 @@ export function ObservatoryPage() {
             <span className="eyebrow" style={{ marginRight: 4 }}>
               Lens
             </span>
-            {LENSES.map((l: Lens) => (
-              <button key={l} className="chip" aria-pressed={lens === l} onClick={() => ui.setLens(l)} title={LENS_INFO[l].description}>
+            {LENSES.filter((l) => l !== "overlay" || overlay).map((l: Lens) => (
+              <button key={l} className="chip" aria-pressed={activeLens === l} onClick={() => ui.setLens(l)} title={LENS_INFO[l].description}>
                 {LENS_INFO[l].title}
               </button>
             ))}

@@ -4,7 +4,7 @@
  */
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
-import { CrosswalkIndex, FrameworkIndex, type FrameworkGraph, type MappingSet } from "@visua/core";
+import { CrosswalkIndex, FrameworkIndex, type FrameworkGraph, type FrameworkOverlay, type MappingSet, type OverlayEntry } from "@visua/core";
 import { CORPUS_DIR, DATA_DIR } from "./paths.ts";
 import { CorpusSearch, type CorpusChunk } from "./search.ts";
 import { buildTscGraph, loadDescriptionCriteria, TSC_ID, type DescriptionCriterion } from "./ingest/tsc.ts";
@@ -12,6 +12,7 @@ import { buildTscGraph, loadDescriptionCriteria, TSC_ID, type DescriptionCriteri
 export { CORPUS_DIR, DATA_DIR, REPO_ROOT } from "./paths.ts";
 export { CorpusSearch, tokenize, bestQuote, type CorpusChunk, type SearchHit } from "./search.ts";
 export { buildTscGraph, loadDescriptionCriteria, TSC_ID, type DescriptionCriterion } from "./ingest/tsc.ts";
+export { CYBER_AI_PROFILE_ID, COSAIS_PREDICTIVE_ID } from "./ingest/ai-overlays.ts";
 
 export interface CorpusDocument {
   id: string;
@@ -69,6 +70,15 @@ export function loadMappingSets(dataDir: string = DATA_DIR): MappingSet[] {
     .map((f) => readJson<MappingSet>(resolve(dir, f)));
 }
 
+export function loadOverlays(dataDir: string = DATA_DIR): FrameworkOverlay[] {
+  const dir = resolve(dataDir, "overlays");
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((f) => f.endsWith(".json"))
+    .sort()
+    .map((f) => readJson<FrameworkOverlay>(resolve(dir, f)));
+}
+
 /** Search chunks are stored per corpus (data/chunks/<corpus>.json) so licensed corpora stay local. */
 export function loadCorpusChunks(dataDir: string = DATA_DIR): CorpusChunk[] {
   const dir = resolve(dataDir, "chunks");
@@ -95,13 +105,20 @@ export class FrameworkRegistry {
   readonly manifests: CorpusManifest[];
   /** AICPA DC 200 description criteria (Visua titles; official text only from a licensed local copy). */
   readonly descriptionCriteria: DescriptionCriterion[] = loadDescriptionCriteria();
+  /** Community profiles and control overlays on the frameworks above. */
+  readonly overlays: FrameworkOverlay[];
+  private readonly overlayByNode = new Map<string, { overlay: FrameworkOverlay; entry: OverlayEntry }[]>();
 
-  constructor(input: { graphs: FrameworkGraph[]; mappings: MappingSet[]; chunks: CorpusChunk[]; manifests: CorpusManifest[] }) {
+  constructor(input: { graphs: FrameworkGraph[]; mappings: MappingSet[]; chunks: CorpusChunk[]; manifests: CorpusManifest[]; overlays?: FrameworkOverlay[] }) {
     for (const g of input.graphs) this.indexes.set(g.framework.id, new FrameworkIndex(g));
     this.crosswalk = new CrosswalkIndex(input.mappings);
     this.search = new CorpusSearch(input.chunks);
     this.manifests = input.manifests;
     for (const m of input.manifests) for (const d of m.documents) this.documents.set(d.id, { ...d, framework: m.framework });
+    this.overlays = (input.overlays ?? []).filter((o) => this.indexes.has(o.frameworkId));
+    for (const overlay of this.overlays) {
+      for (const entry of overlay.entries) this.overlayByNode.set(entry.nodeId, [...(this.overlayByNode.get(entry.nodeId) ?? []), { overlay, entry }]);
+    }
   }
 
   static load(): FrameworkRegistry {
@@ -110,7 +127,17 @@ export class FrameworkRegistry {
       mappings: loadMappingSets(),
       chunks: loadCorpusChunks(),
       manifests: loadCorpusManifests(),
+      overlays: loadOverlays(),
     });
+  }
+
+  overlay(id: string): FrameworkOverlay | undefined {
+    return this.overlays.find((o) => o.id === id);
+  }
+
+  /** Overlay entries that attach to one node. */
+  overlaysOf(nodeId: string): { overlay: FrameworkOverlay; entry: OverlayEntry }[] {
+    return this.overlayByNode.get(nodeId) ?? [];
   }
 
   get frameworks() {

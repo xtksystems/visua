@@ -19,6 +19,7 @@ export const TOKENS = {
   muted: hex(c["on-surface-muted"]),
   secondary: hex(c.secondary),
   primaryContainer: hex(c["primary-container"]),
+  frameworkAi: hex(c["framework-ai"]),
   status: {
     "not-started": hex(c["status-not-started"]),
     "in-progress": hex(c["status-in-progress"]),
@@ -28,6 +29,14 @@ export const TOKENS = {
     "not-applicable": hex(c["status-not-applicable"]),
   } satisfies Record<Status, Color>,
 };
+
+/**
+ * The overlay lens: one Circuit Copper ramp (AI governance, DESIGN.md), strongest
+ * for the highest proposed priority, fading toward the scene's neutral.
+ */
+const aiRamp = [0, 0.52, 0.8].map((t) => TOKENS.frameworkAi.clone().lerp(TOKENS.neutral, t));
+export const overlayColor = (level: number | undefined) => (level === undefined ? TOKENS.status["not-applicable"] : aiRamp[Math.min(Math.max(level, 1), 3) - 1]!);
+export const overlaySwatch = (level: number) => `#${overlayColor(level).getHexString()}`;
 
 export interface LensLegendItem {
   label: string;
@@ -77,6 +86,16 @@ export const LENS_INFO: Record<Lens, { title: string; description: string; legen
       { label: "Low", color: c["status-not-started"] },
     ],
   },
+  overlay: {
+    title: "AI overlay",
+    description: "Proposed priority in the NIST Cyber AI Profile (draft) for the focus areas you follow, or selection in the COSAiS control overlay.",
+    legend: [
+      { label: "1 High", color: `#${aiRamp[0]!.getHexString()}` },
+      { label: "2 Moderate", color: `#${aiRamp[1]!.getHexString()}` },
+      { label: "3 Foundational", color: `#${aiRamp[2]!.getHexString()}` },
+      { label: "Not in the overlay", color: c["status-not-applicable"] },
+    ],
+  },
   crosswalk: {
     title: "Crosswalk",
     description: "How many authoritative mappings connect the unit to other frameworks.",
@@ -110,5 +129,7 @@ export function unitColor(lens: Lens, unit: (UnitState & { mapped?: number }) | 
       const m = unit.mapped ?? 0;
       return out.copy(m === 0 ? TOKENS.status["not-applicable"] : m < 4 ? TOKENS.secondary : m < 10 ? TOKENS.primary : TOKENS.status.verified);
     }
+    case "overlay":
+      return out.copy(overlayColor(unit.overlay));
   }
 }

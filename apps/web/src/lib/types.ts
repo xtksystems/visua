@@ -21,6 +21,8 @@ import type {
   WorkspaceFramework,
   RmfSettings,
   FrameworkProfile,
+  OverlayAdoption,
+  OverlayEntry,
 } from "@visua/core";
 
 export type { ActivityEvent, AgentRun, CheckResult, Connector, Evidence, Policy, Proposal, RequirementNode, RequirementState, Risk, Status, Task, Workspace };
@@ -94,6 +96,8 @@ export interface UnitState {
   evidence: number;
   /** Authoritative crosswalk mappings to other frameworks. */
   mapped: number;
+  /** Level in the framework's overlay lens (profile priority 1–3, or control-overlay selection 1–2). */
+  overlay?: number;
 }
 
 export interface FrameworkStateBundle {
@@ -101,6 +105,7 @@ export interface FrameworkStateBundle {
   overall: NodeScore;
   groups: Record<string, NodeScore & { status: Status }>;
   units: Record<string, UnitState>;
+  overlay: { id: string; shortName: string; status: string; adopted: boolean; lenses: string[]; levels: { level: number; label: string }[] } | null;
 }
 
 export interface MappingView {
@@ -133,6 +138,23 @@ export interface NodeDetail {
   source: { id: string; title: string; identifier?: string; path: string; url: string; page?: number; locator?: string; present: boolean } | null;
   /** Licensing / provenance notice for the requirement text (e.g. AICPA). */
   contentNotice?: string;
+  /** Overlays (Cyber AI Profile, COSAiS…) with an entry for this requirement. */
+  overlays: NodeOverlay[];
+}
+
+export interface NodeOverlay {
+  id: string;
+  kind: "community-profile" | "control-overlay";
+  shortName: string;
+  identifier: string;
+  status: string;
+  documentId: string;
+  notice: { text: string; citation: { documentId: string; locator?: string; page?: number } };
+  lenses?: { id: string; short: string; title: string }[];
+  priorityLevels?: { level: number; label: string }[];
+  adoption: OverlayAdoption | null;
+  source: { path: string; title: string; present: boolean } | null;
+  entry: OverlayEntry;
 }
 
 export interface RunWithProposals extends AgentRun {

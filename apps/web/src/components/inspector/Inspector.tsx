@@ -13,6 +13,7 @@ import { useGraph, useMeta, useNodeDetail, useWsMutation } from "../../lib/queri
 import type { NodeDetail } from "../../lib/types.ts";
 import { useUi } from "../../state/ui.ts";
 import { AgentBadge, CodeTag, Dialog, Empty, FrameworkBadge, LevelPips, StatusBar, StatusChip, Tabs, toast } from "../ui/index.tsx";
+import { OverlaySections } from "./Overlays.tsx";
 
 type Tab = "overview" | "tasks" | "evidence" | "mappings" | "history";
 
@@ -110,6 +111,7 @@ function Overview({ data }: { data: NodeDetail }) {
         </div>
       )}
       {node.assessable && data.state ? <Assessment data={data} family={family} /> : null}
+      <OverlaySections data={data} />
       {!node.assessable && data.score ? (
         <div className="panel panel--raised stack">
           <div className="row">

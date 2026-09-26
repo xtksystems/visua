@@ -1,0 +1,3361 @@
+{
+ "source": {
+  "path": "nist-ai-rmf/drafts/NIST.IR.8596.iprd.pdf",
+  "sha256": "4744b04dd75a278476b618b39ff57daef45c46760ec623f3e31543e73112cfde",
+  "tablePages": [
+   25,
+   96
+  ],
+  "tablePageCount": 72
+ },
+ "subcategories": {
+  "entries": 106,
+  "distinct": 106,
+  "functionRows": [
+   "GV",
+   "ID",
+   "PR",
+   "DE",
+   "RS",
+   "RC"
+  ],
+  "categoryRows": 22,
+  "csfSubcategories": 106,
+  "missing": [],
+  "extra": [],
+  "sameOrderAsCsf": true,
+  "subcategoryTextDifferences": [],
+  "textComparison": "quotes, dashes, case and a final period ignored",
+  "functionAndCategoryDifferences": [
+   {
+    "id": "PR.AA",
+    "field": "title",
+    "pdf": "Identify Management, Authentication, and Access Control",
+    "csf": "Identity Management, Authentication, and Access Control"
+   }
+  ]
+ },
+ "priorities": {
+  "secure": {
+   "1": 23,
+   "2": 33,
+   "3": 50,
+   "unparsed": 0
+  },
+  "defend": {
+   "1": 28,
+   "2": 43,
+   "3": 35,
+   "unparsed": 0
+  },
+  "thwart": {
+   "1": 24,
+   "2": 44,
+   "3": 38,
+   "unparsed": 0
+  }
+ },
+ "priorityPatterns": {
+  "111": 6,
+  "112": 3,
+  "113": 5,
+  "121": 2,
+  "122": 3,
+  "123": 2,
+  "131": 1,
+  "132": 1,
+  "211": 4,
+  "212": 2,
+  "221": 4,
+  "222": 10,
+  "223": 4,
+  "232": 5,
+  "233": 4,
+  "312": 4,
+  "313": 4,
+  "321": 4,
+  "322": 9,
+  "323": 5,
+  "331": 3,
+  "332": 7,
+  "333": 14
+ },
+ "cells": {
+  "generalConsiderations": 56,
+  "generalNoConsiderationsNote": 50,
+  "generalNoteSpellings": {
+   "No general considerations identified - see Focus Area Considerations.": 17,
+   "No general considerations identified – see Focus Area Considerations.": 1,
+   "No general considerations identified —see Focus Area Considerations.": 1,
+   "No general considerations identified—see Focus Area Considerations.": 31
+  },
+  "secure": {
+   "considerations": 106,
+   "considerationsExactlyStandardPractices": 47,
+   "considerationsStartingWithStandardPractices": 56,
+   "considerationsWithRationale": 9,
+   "referencesPendingNote": 1,
+   "cellsWithoutReferences": 1
+  },
+  "defend": {
+   "considerations": 105,
+   "considerationsExactlyStandardPractices": 18,
+   "considerationsStartingWithStandardPractices": 20,
+   "considerationsWithRationale": 1,
+   "referencesPendingNote": 1,
+   "cellsWithoutReferences": 1,
+   "opportunities": 42,
+   "opportunitiesExactlyStandardPractices": 1
+  },
+  "thwart": {
+   "considerations": 106,
+   "considerationsExactlyStandardPractices": 37,
+   "considerationsStartingWithStandardPractices": 70,
+   "considerationsWithRationale": 20,
+   "referencesPendingNote": 43,
+   "cellsWithoutReferences": 42
+  }
+ },
+ "references": {
+  "referenceStrings": {
+   "general": 741,
+   "secure": 565,
+   "defend": 357,
+   "thwart": 147
+  },
+  "refs": 2640,
+  "refsByScheme": {
+   "atlas": 129,
+   "dasf": 1045,
+   "enisa": 184,
+   "mitre-attack": 26,
+   "nist-ai-100-2": 95,
+   "nist-ai-rmf": 2,
+   "nist-sp-800-53": 739,
+   "other": 164,
+   "owasp-ai-exchange": 169,
+   "owasp-genai": 20,
+   "owasp-llm": 67
+  },
+  "refsBySchemeAndColumn": {
+   "atlas": {
+    "defend": 71,
+    "secure": 47,
+    "thwart": 11
+   },
+   "dasf": {
+    "defend": 216,
+    "secure": 828,
+    "thwart": 1
+   },
+   "enisa": {
+    "defend": 93,
+    "secure": 91
+   },
+   "mitre-attack": {
+    "thwart": 26
+   },
+   "nist-ai-100-2": {
+    "defend": 39,
+    "secure": 28,
+    "thwart": 28
+   },
+   "nist-ai-rmf": {
+    "thwart": 2
+   },
+   "nist-sp-800-53": {
+    "general": 737,
+    "thwart": 2
+   },
+   "other": {
+    "defend": 39,
+    "general": 4,
+    "secure": 43,
+    "thwart": 78
+   },
+   "owasp-ai-exchange": {
+    "defend": 18,
+    "secure": 151
+   },
+   "owasp-genai": {
+    "secure": 20
+   },
+   "owasp-llm": {
+    "secure": 67
+   }
+  },
+  "distinctIds": {
+   "atlas": [
+    "AML.M0000",
+    "AML.M0002",
+    "AML.M0003",
+    "AML.M0004",
+    "AML.M0005",
+    "AML.M0006",
+    "AML.M0007",
+    "AML.M0008",
+    "AML.M0009",
+    "AML.M0011",
+    "AML.M0012",
+    "AML.M0013",
+    "AML.M0014",
+    "AML.M0015",
+    "AML.M0016",
+    "AML.M0017",
+    "AML.M0018",
+    "AML.M0019",
+    "AML.M0020",
+    "AML.M0021",
+    "AML.M0023",
+    "AML.M0024",
+    "AML.M0025",
+    "AML.M0026",
+    "AML.M0027",
+    "AML.M0028"
+   ],
+   "owasp-llm": [
+    "LLM03"
+   ],
+   "owasp-ai-exchange": [
+    "AI Security Overview",
+    "AI Transparency",
+    "Controls to Limit the Effects of Unwanted Behavior",
+    "Controls to limit the effects of the unwanted behavior",
+    "Conventional Runtime Controls",
+    "Conventional runtime controls",
+    "General",
+    "General Governance Controls",
+    "How about Generative AI?",
+    "How about Responsible or Trustworthy Al?",
+    "Least Model Privilege",
+    "Model Access Control",
+    "Model Input Confidentiality",
+    "Model Input Controls",
+    "Model Inversion and Membership Inference",
+    "Model input confidentiality",
+    "Monitor Use",
+    "Obscure Confidence",
+    "Oversight",
+    "Rate Limit",
+    "Risk Treatment",
+    "Supply Chain Management"
+   ],
+   "owasp-genai": [
+    "Monitor"
+   ],
+   "dasf": [
+    "DASF 1",
+    "DASF 2",
+    "DASF 3",
+    "DASF 4",
+    "DASF 5",
+    "DASF 6",
+    "DASF 7",
+    "DASF 8",
+    "DASF 9",
+    "DASF 10",
+    "DASF 11",
+    "DASF 12",
+    "DASF 13",
+    "DASF 14",
+    "DASF 15",
+    "DASF 16",
+    "DASF 17",
+    "DASF 18",
+    "DASF 19",
+    "DASF 20",
+    "DASF 21",
+    "DASF 22",
+    "DASF 23",
+    "DASF 24",
+    "DASF 25",
+    "DASF 26",
+    "DASF 27",
+    "DASF 28",
+    "DASF 29",
+    "DASF 30",
+    "DASF 31",
+    "DASF 32",
+    "DASF 33",
+    "DASF 34",
+    "DASF 35",
+    "DASF 36",
+    "DASF 37",
+    "DASF 38",
+    "DASF 39",
+    "DASF 40",
+    "DASF 41",
+    "DASF 42",
+    "DASF 43",
+    "DASF 44",
+    "DASF 45",
+    "DASF 46",
+    "DASF 47",
+    "DASF 48",
+    "DASF 50",
+    "DASF 51",
+    "DASF 52",
+    "DASF 53",
+    "DASF 54",
+    "DASF 55",
+    "DASF 56",
+    "DASF 57",
+    "DASF 58",
+    "DASF 59",
+    "DASF 60",
+    "DASF 61",
+    "DASF 62",
+    "DASF 63",
+    "DASF 64"
+   ],
+   "mitre-attack": [
+    "M1015",
+    "M1016",
+    "M1017",
+    "M1027",
+    "M1028",
+    "M1029",
+    "M1032",
+    "M1033",
+    "M1034",
+    "M1041",
+    "M1044",
+    "M1047",
+    "M1051",
+    "M1053",
+    "M1054",
+    "M1057"
+   ],
+   "nist-ai-rmf": [
+    "MP-5.1-002"
+   ],
+   "nist-sp-800-53 (general column)": [
+    "AC-1",
+    "AC-2",
+    "AC-3",
+    "AC-4",
+    "AC-5",
+    "AC-6",
+    "AC-7",
+    "AC-9",
+    "AC-10",
+    "AC-12",
+    "AC-14",
+    "AC-16",
+    "AC-17",
+    "AC-18",
+    "AC-19",
+    "AC-20",
+    "AC-24",
+    "AT-1",
+    "AT-2",
+    "AT-3",
+    "AU-1",
+    "AU-2",
+    "AU-3",
+    "AU-6",
+    "AU-7",
+    "AU-9",
+    "AU-11",
+    "AU-12",
+    "AU-13",
+    "AU-16",
+    "CA-1",
+    "CA-2",
+    "CA-3",
+    "CA-5",
+    "CA-7",
+    "CA-8",
+    "CA-9",
+    "CM-1",
+    "CM-2",
+    "CM-3",
+    "CM-4",
+    "CM-5",
+    "CM-6",
+    "CM-7",
+    "CM-7(2)",
+    "CM-7(4)",
+    "CM-7(5)",
+    "CM-7(9)",
+    "CM-8",
+    "CM-9",
+    "CM-10",
+    "CM-11",
+    "CM-12",
+    "CM-13",
+    "CP",
+    "CP-1",
+    "CP-2",
+    "CP-2(8)",
+    "CP-4",
+    "CP-6",
+    "CP-7",
+    "CP-8",
+    "CP-9",
+    "CP-10",
+    "IA-1",
+    "IA-2",
+    "IA-3",
+    "IA-4",
+    "IA-5",
+    "IA-6",
+    "IA-7",
+    "IA-8",
+    "IA-9",
+    "IA-10",
+    "IA-11",
+    "IA-12",
+    "IA-13",
+    "IR",
+    "IR-1",
+    "IR-3",
+    "IR-4",
+    "IR-5",
+    "IR-6",
+    "IR-7",
+    "IR-8",
+    "MA-1",
+    "MA-2",
+    "MA-3(6)",
+    "MA-6",
+    "MP-1",
+    "MP-8",
+    "PE-1",
+    "PE-2",
+    "PE-3",
+    "PE-4",
+    "PE-5",
+    "PE-6",
+    "PE-8",
+    "PE-9",
+    "PE-10",
+    "PE-11",
+    "PE-12",
+    "PE-13",
+    "PE-14",
+    "PE-15",
+    "PE-18",
+    "PE-19",
+    "PE-20",
+    "PE-23",
+    "PL-1",
+    "PL-2",
+    "PL-8",
+    "PM-1",
+    "PM-2",
+    "PM-3",
+    "PM-4",
+    "PM-5",
+    "PM-6",
+    "PM-7",
+    "PM-8",
+    "PM-9",
+    "PM-11",
+    "PM-12",
+    "PM-13",
+    "PM-15",
+    "PM-16",
+    "PM-18",
+    "PM-19",
+    "PM-22",
+    "PM-23",
+    "PM-24",
+    "PM-28",
+    "PM-29",
+    "PM-30",
+    "PM-30(1)",
+    "PM-31",
+    "PS-1",
+    "PS-7",
+    "PS-9",
+    "PT",
+    "PT-1",
+    "RA-1",
+    "RA-2",
+    "RA-3",
+    "RA-4",
+    "RA-5",
+    "RA-7",
+    "RA-8",
+    "RA-9",
+    "RA-10",
+    "SA-1",
+    "SA-3",
+    "SA-4",
+    "SA-5",
+    "SA-8",
+    "SA-9",
+    "SA-10",
+    "SA-10(1)",
+    "SA-10(3)",
+    "SA-11",
+    "SA-11(2)",
+    "SA-15",
+    "SA-15(7)",
+    "SA-15(8)",
+    "SA-15(13)",
+    "SA-17",
+    "SA-17(6)",
+    "SA-22",
+    "SA-24",
+    "SC-1",
+    "SC-3(1)",
+    "SC-4",
+    "SC-5",
+    "SC-6",
+    "SC-7",
+    "SC-8",
+    "SC-11",
+    "SC-12",
+    "SC-13",
+    "SC-16",
+    "SC-24",
+    "SC-28",
+    "SC-32",
+    "SC-34",
+    "SC-35",
+    "SC-36",
+    "SC-39",
+    "SC-39(1)",
+    "SC-40",
+    "SC-43",
+    "SC-49",
+    "SC-51",
+    "SI-1",
+    "SI-2",
+    "SI-2(7)",
+    "SI-3",
+    "SI-4",
+    "SI-5",
+    "SI-7",
+    "SI-10",
+    "SI-12",
+    "SI-13",
+    "SI-16",
+    "SI-18",
+    "SR-1",
+    "SR-2",
+    "SR-3",
+    "SR-5",
+    "SR-6",
+    "SR-8",
+    "SR-10",
+    "SR-11",
+    "SR-12"
+   ],
+   "nist-sp-800-53 (focus columns)": [
+    "CP-6",
+    "CP-9"
+   ],
+   "arXiv (other)": [
+    "arXiv:2303.00654",
+    "arXiv:2305.06972",
+    "arXiv:2309.01029",
+    "arXiv:2311.05232",
+    "arXiv:2409.08831v1",
+    "arXiv:2503.11917v3",
+    "arXiv:2504.11168",
+    "arXiv:2505.14534v1",
+    "arXiv:2505.14835",
+    "arXiv:2511.22189v1"
+   ]
+  },
+  "distinctCounts": {
+   "atlas": 26,
+   "owasp-llm": 1,
+   "owasp-ai-exchange": 22,
+   "owasp-genai": 1,
+   "dasf": 63,
+   "mitre-attack": 16,
+   "nist-ai-rmf": 1,
+   "nist-sp-800-53 (general column)": 213,
+   "nist-sp-800-53 (focus columns)": 2,
+   "arXiv (other)": 10
+  },
+  "otherTexts": {
+   "Governance": 1,
+   "NIST SP 800-161 Rev. 1": 10,
+   "NIST SP 800-172 - Configuration Management (3.4.1e-3.4.3e)": 1,
+   "NIST SP 800-172 Configuration Management 3.4.1e-3.4.3e": 3,
+   "NIST SP 800-172 Identification and Authentication (3.5)": 1,
+   "NIST SP 800-172 – Awareness and Training (3.2)": 2,
+   "NIST SP 800-172 – Configuration Management (3.4)": 1,
+   "NIST SP 800-172 – Incident Response (3.6.1e-3.6.2e)": 1,
+   "NIST SP 800-172 – Security Assessment (3.12.1e)": 2,
+   "NIST SP 800-207 – Zero Trust Architecture": 1,
+   "NIST SP 800-218 (all)": 9,
+   "NIST SP 800-218A": 1,
+   "NIST SP 800-281 (all)": 1,
+   "NTIA SBOM (all)": 5,
+   "OWASP (all)": 1,
+   "Reflections from the First Cyber AI Profile Workshop": 4,
+   "https://arxiv.org/html/2503.11917v3": 82,
+   "https://arxiv.org/html/2511.22189v1": 1,
+   "https://arxiv.org/pdf/2303.00654": 3,
+   "https://arxiv.org/pdf/2305.06972": 2,
+   "https://arxiv.org/pdf/2309.01029": 18,
+   "https://arxiv.org/pdf/2311.05232": 2,
+   "https://arxiv.org/pdf/2409.08831v1": 2,
+   "https://arxiv.org/pdf/2504.11168": 7,
+   "https://arxiv.org/pdf/2505.14534v1": 1,
+   "https://arxiv.org/pdf/2505.14835": 1,
+   "https://ieeexplore.ieee.org/document/10747338": 1
+  },
+  "maxDasfNumberCited": 64
+ },
+ "sp80053": {
+  "distinctIdsInGeneralSp80053": 210,
+  "totalGeneralSp80053": 734,
+  "familyOnlyTokens": [
+   {
+    "subcategory": "GV.OC-03",
+    "token": "PT"
+   },
+   {
+    "subcategory": "PR.IR-03",
+    "token": "CP"
+   },
+   {
+    "subcategory": "PR.IR-03",
+    "token": "IR"
+   }
+  ],
+  "catalogUnits": 1014,
+  "notInCatalog": [
+   "RA-4"
+  ],
+  "notInCatalogDetails": [
+   {
+    "id": "RA-4",
+    "citedBy": [
+     "DE.AE-06"
+    ],
+    "catalogStatus": "[Withdrawn: Incorporated into RA-3.]"
+   }
+  ],
+  "comparedWith": "the CSF 2.0 -> SP 800-53 Rev 5.2.0 OLIR mapping in packages/frameworks/data/nist-csf-2.0.json; the Profile says it lists the controls exactly as in the CSF 2.0 / SP 800-53 Rev 5 OLIR crosswalk (referenceId=131, accessed 2025-12-05)",
+  "identicalLists": 103,
+  "differentLists": [
+   {
+    "subcategory": "ID.IM-03",
+    "profile": [
+     "AC-1",
+     "AT-1",
+     "AU-1",
+     "CA-1",
+     "CM-1",
+     "CP-1",
+     "IA-1",
+     "IR-1",
+     "MA-1",
+     "MP-1",
+     "PE-1",
+     "PL-1",
+     "PM-1",
+     "PS-1",
+     "PT-1",
+     "RA-1",
+     "SA-1",
+     "SC-1",
+     "SI-1",
+     "SR-1",
+     "CA-2",
+     "CA-5",
+     "CA-7",
+     "CA-8",
+     "CP-2",
+     "IR-4",
+     "IR-8",
+     "PL-2",
+     "PM-4",
+     "PM-31",
+     "RA-3",
+     "RA-5",
+     "RA-7",
+     "SA-4",
+     "SA-8",
+     "SA-11",
+     "SI-2",
+     "SI-4"
+    ],
+    "csfMapping": [
+     "AC-1",
+     "AT-1",
+     "AU-1",
+     "CA-1",
+     "CM-1",
+     "CP-1",
+     "IA-1",
+     "IR-1",
+     "MA-1",
+     "MP-1",
+     "PE-1",
+     "PL-1",
+     "PM-1",
+     "PS-1",
+     "PT-1",
+     "RA-1",
+     "SA-1",
+     "SC-1",
+     "SI-1",
+     "SR-1",
+     "CA-2",
+     "CA-5",
+     "CA-7",
+     "CA-8",
+     "CP-2",
+     "IR-4",
+     "IR-8",
+     "PL-2",
+     "PM-4",
+     "PM-31",
+     "RA-3",
+     "RA-5",
+     "RA-7",
+     "SA-4",
+     "SA-8",
+     "SA-11",
+     "SI-2",
+     "SI-4",
+     "SR-5"
+    ],
+    "onlyInProfile": [],
+    "onlyInCsfMapping": [
+     "SR-5"
+    ]
+   },
+   {
+    "subcategory": "PR.PS-04",
+    "profile": [
+     "AU-2",
+     "AU-3",
+     "AU-6",
+     "AU-7",
+     "AU-11",
+     "AU-12"
+    ],
+    "csfMapping": [
+     "AU-2",
+     "AU-3",
+     "AU-6",
+     "AU-7",
+     "AU-11",
+     "AU-12",
+     "SA-15(13)"
+    ],
+    "onlyInProfile": [],
+    "onlyInCsfMapping": [
+     "SA-15(13)"
+    ]
+   },
+   {
+    "subcategory": "RS.MA-03",
+    "profile": [
+     "IR-4",
+     "IR-5"
+    ],
+    "csfMapping": [
+     "IR-4",
+     "IR-5",
+     "IR-6"
+    ],
+    "onlyInProfile": [],
+    "onlyInCsfMapping": [
+     "IR-6"
+    ]
+   }
+  ]
+ },
+ "pypdfContainment": {
+  "fieldsChecked": 2426,
+  "notFound": [
+   {
+    "subcategory": "ID.RA-02",
+    "field": "general.considerations",
+    "text": "Incorporate new information sharing sources related to AI, such as AI-specific threat intelligence from publications, journals, ISACs/ISAOs, and other forums. Examples of available resources include: "
+   }
+  ],
+  "method": "each extracted field (statement, considerations, opportunities, notes, every reference string) must occur, ignoring white space, in pypdf's text of the entry's page(s); a field crossing a page break may be split once per break. pypdf keeps footnote marker digits inline, so fields that carried a marker cannot match"
+ },
+ "focusAreas": [
+  {
+   "id": "secure",
+   "title": "Securing AI System Components",
+   "page": 18
+  },
+  {
+   "id": "defend",
+   "title": "Conducting AI-Enabled Cyber Defense",
+   "page": 19
+  },
+  {
+   "id": "thwart",
+   "title": "Thwarting AI-Enabled Cyber Attacks",
+   "page": 21
+  }
+ ],
+ "priorityLevels": [
+  {
+   "level": 1,
+   "label": "High",
+   "page": 23
+  },
+  {
+   "level": 2,
+   "label": "Moderate",
+   "page": 23
+  },
+  {
+   "level": 3,
+   "label": "Foundational",
+   "page": 23
+  }
+ ],
+ "functionRows": [
+  {
+   "id": "GV",
+   "title": "GOVERN",
+   "text": "The organization’s cybersecurity risk management strategy, expectations, and policy are established, communicated, and monitored",
+   "page": 25
+  },
+  {
+   "id": "ID",
+   "title": "IDENTIFY",
+   "text": "The organization’s current cybersecurity risks are understood",
+   "page": 45
+  },
+  {
+   "id": "PR",
+   "title": "PROTECT",
+   "text": "Safeguards to manage the organization’s cybersecurity risks are used",
+   "page": 60
+  },
+  {
+   "id": "DE",
+   "title": "DETECT",
+   "text": "Possible cybersecurity attacks and compromises are found and analyzed",
+   "page": 75
+  },
+  {
+   "id": "RS",
+   "title": "RESPOND",
+   "text": "Actions regarding a detected cybersecurity incident are taken",
+   "page": 83
+  },
+  {
+   "id": "RC",
+   "title": "RECOVER",
+   "text": "Assets and operations affected by a cybersecurity incident are restored",
+   "page": 91
+  }
+ ],
+ "categoryRows": [
+  {
+   "id": "GV.OC",
+   "title": "Organizational Context",
+   "text": "The circumstances—mission, stakeholder expectations, dependencies, and legal, regulatory, and contractual requirements—surrounding the organization’s cybersecurity risk management decisions are understood",
+   "page": 25
+  },
+  {
+   "id": "GV.RM",
+   "title": "Risk Management Strategy",
+   "text": "The organization’s priorities, constraints, risk tolerance and appetite statements, and assumptions are established, communicated, and used to support operational risk decisions",
+   "page": 28
+  },
+  {
+   "id": "GV.RR",
+   "title": "Roles, Responsibilities, and Authorities",
+   "text": "Cybersecurity roles, responsibilities, and authorities to foster accountability, performance assessment, and continuous improvement are established and communicated",
+   "page": 32
+  },
+  {
+   "id": "GV.PO",
+   "title": "Policy",
+   "text": "Organizational cybersecurity policy is established, communicated, and enforced",
+   "page": 35
+  },
+  {
+   "id": "GV.OV",
+   "title": "Oversight",
+   "text": "Results of organization-wide cybersecurity risk management activities and performance are used to inform, improve, and adjust the risk management strategy",
+   "page": 36
+  },
+  {
+   "id": "GV.SC",
+   "title": "Cybersecurity Supply Chain Risk Management",
+   "text": "Cyber supply chain risk management processes are identified, established, managed, monitored, and improved by organizational stakeholders",
+   "page": 38
+  },
+  {
+   "id": "ID.AM",
+   "title": "Asset Management",
+   "text": "Assets (e.g., data, hardware, software, systems, facilities, services, people) that enable the organization to achieve business purposes are identified and managed consistent with their relative importance to organizational objectives and the organization’s risk strategy",
+   "page": 45
+  },
+  {
+   "id": "ID.RA",
+   "title": "Risk Assessment",
+   "text": "The cybersecurity risk to the organization, assets, and individuals is understood by the organization",
+   "page": 50
+  },
+  {
+   "id": "ID.IM",
+   "title": "Improvement",
+   "text": "Improvements to organizational cybersecurity risk management processes, procedures and activities are identified across all CSF Functions",
+   "page": 56
+  },
+  {
+   "id": "PR.AA",
+   "title": "Identify Management, Authentication, and Access Control",
+   "text": "Access to physical and logical assets is limited to authorized users, services, and hardware and managed commensurate with the assessed risk of unauthorized access",
+   "page": 60
+  },
+  {
+   "id": "PR.AT",
+   "title": "Awareness and Training",
+   "text": "The organization’s personnel are provided with cybersecurity awareness and training so that they can perform their cybersecurity-related tasks",
+   "page": 64
+  },
+  {
+   "id": "PR.DS",
+   "title": "Data Security",
+   "text": "Data are managed consistent with the organization’s risk strategy to protect the confidentiality, integrity, and availability of information",
+   "page": 65
+  },
+  {
+   "id": "PR.PS",
+   "title": "Platform Security",
+   "text": "The hardware, software (e.g., firmware, operating systems, applications), and services of physical and virtual platforms are managed consistent with the organization’s risk strategy to protect their confidentiality, integrity, and availability",
+   "page": 68
+  },
+  {
+   "id": "PR.IR",
+   "title": "Technology Infrastructure Resilience",
+   "text": "Security architectures are managed with the organization’s risk strategy to protect asset confidentiality, integrity, and availability, and organizational resilience",
+   "page": 71
+  },
+  {
+   "id": "DE.CM",
+   "title": "Continuous Monitoring",
+   "text": "Assets are monitored to find anomalies, indicators of compromise, and other potentially adverse events",
+   "page": 75
+  },
+  {
+   "id": "DE.AE",
+   "title": "Adverse Event Analysis",
+   "text": "Anomalies, indicators of compromise, and other potentially adverse events are analyzed to characterize the events and detect cybersecurity incidents",
+   "page": 79
+  },
+  {
+   "id": "RS.MA",
+   "title": "Incident Management",
+   "text": "Responses to detected cybersecurity incidents are managed",
+   "page": 83
+  },
+  {
+   "id": "RS.AN",
+   "title": "Incident Analysis",
+   "text": "Investigations are conducted to ensure effective response and support forensics and recovery activities",
+   "page": 86
+  },
+  {
+   "id": "RS.CO",
+   "title": "Incident Response Reporting and Communication",
+   "text": "Response activities are coordinated with internal and external stakeholders as required by laws, regulations, or policies",
+   "page": 88
+  },
+  {
+   "id": "RS.MI",
+   "title": "Incident Mitigation",
+   "text": "Activities are performed to prevent expansion of an event and mitigate its effects",
+   "page": 90
+  },
+  {
+   "id": "RC.RP",
+   "title": "Incident Recovery Plan Execution",
+   "text": "Restoration activities are performed to ensure operational availability of systems and services affected by cybersecurity incidents",
+   "page": 91
+  },
+  {
+   "id": "RC.CO",
+   "title": "Incident Recovery Communication",
+   "text": "Restoration activities are coordinated with internal and external parties",
+   "page": 95
+  }
+ ],
+ "footnotes": {
+  "6": {
+   "text": "America’s AI Action Plan, released in July 2025, includes a recommendation for the U.S. Department of Homeland Security lead establishment of an AI-ISAC in collaboration with NIST’s Center for AI Standards and Innovation (CAISI) (under the U.S. Department of Commerce), and the Office of the National Cyber Director.",
+   "page": 51
+  },
+  "7": {
+   "text": "For example, OWASP makes “top 10” lists available for LLM and ML.",
+   "page": 51
+  },
+  "8": {
+   "text": "One example that illustrates technology readiness is: https://cloud.google.com/blog/products/identity-security/rsa-introducing-ai-powered-insights-threat-intelligence",
+   "page": 53
+  }
+ },
+ "labelVariants": [
+  {
+   "context": "PR.DS-10/defend",
+   "printed": "Example Informative References",
+   "canonical": "Example Informative References:"
+  },
+  {
+   "context": "PR.PS-06/secure",
+   "printed": "Focus Area Consideration:",
+   "canonical": "Sample Focus Area Considerations:"
+  }
+ ],
+ "cellsWithoutAnExpectedLabel": [
+  {
+   "context": "GV.RR-03/defend",
+   "label": "Sample Focus Area Considerations:",
+   "cellText": "Proposed Priority: 2 Sample Opportunities: Resources are allocated to support personnel with productivity, efficiency, and other enhancements (e.g., AI helps analysts to solve problems). Example Informative References: AI-specific Example Informative References pending additional inputs."
+  }
+ ],
+ "sourceAnomalies": [
+  {
+   "context": "GV.OC-01/defend",
+   "text": "OWASP AI Exchange: AI Security Overview https://arxiv.org/pdf/2311.05232",
+   "anomaly": "two references without a ';' separator; split in `refs`"
+  },
+  {
+   "context": "GV.SC-07/secure",
+   "text": "55",
+   "anomaly": "bare number after a DASF list, separated by ';' instead of ','; read as a DASF control number"
+  },
+  {
+   "context": "ID.AM-08/thwart",
+   "text": "NIST SP 800-281 (all)",
+   "anomaly": "no NIST SP 800-281 exists; probably SP 800-218 (not corrected)"
+  },
+  {
+   "context": "ID.RA-01/secure",
+   "text": "https://arxiv.org/pdf/2409.08831v1 Governance",
+   "anomaly": "text 'Governance' follows a URL without a separator"
+  },
+  {
+   "context": "PR.AA-01/defend",
+   "text": "WASP AI Exchange: Model Access Control",
+   "anomaly": "printed 'WASP' (missing 'O') in the source"
+  },
+  {
+   "context": "PR.AA-02/defend",
+   "text": "AML.M0014)",
+   "anomaly": "trailing ')' in the source"
+  },
+  {
+   "context": "PR.AA-05/secure",
+   "text": "ENISA Threat Landscape 2025 https://arxiv.org/pdf/2504.11168",
+   "anomaly": "two references without a ';' separator; split in `refs`"
+  },
+  {
+   "context": "PR.AA-05/defend",
+   "text": "ATLAS AML-M0028",
+   "anomaly": "printed 'AML-M' (hyphen); id normalized to 'AML.M'"
+  },
+  {
+   "context": "PR.AT-01/defend",
+   "text": "ENISA Threat Landscape 202",
+   "anomaly": "year printed as '202'"
+  },
+  {
+   "context": "PR.DS-01/defend",
+   "text": "ENISA Threat Landscape 2025 ATLAS AML.M0012",
+   "anomaly": "two references without a ';' separator; split in `refs`"
+  },
+  {
+   "context": "PR.DS-10/defend",
+   "text": "DASF 25,34,40 \"",
+   "anomaly": "stray '\"' in the source"
+  },
+  {
+   "context": "PR.PS-03/general",
+   "text": "NIST SP 800-53, Rev 5: CM-07 (09)",
+   "anomaly": "space before the enhancement number in the source"
+  },
+  {
+   "context": "PR.IR-04/secure",
+   "text": "DASF 5, 21, 23-24, v30, 34, 45",
+   "anomaly": "list item 'v30' not read as DASF control number(s)"
+  },
+  {
+   "context": "DE.CM-03/defend",
+   "text": "ENISA Threat Landscape 202",
+   "anomaly": "year printed as '202'"
+  },
+  {
+   "context": "DE.CM-09/secure",
+   "text": "DASF 5, 7-8, 10-13, 18-20, 23-24, 29-31, 36, 4-42, 44-46, 51-53, 55-56, 60",
+   "anomaly": "list item '4-42' not read as DASF control number(s)"
+  },
+  {
+   "context": "DE.AE-02/secure",
+   "text": "DASF 7, 12-14, 16, 19, 23, 29, 31, 35-339, 42, 44, 46, 55-56, 59",
+   "anomaly": "list item '35-339' not read as DASF control number(s)"
+  },
+  {
+   "context": "RS.AN-06/defend",
+   "text": "DASF 25,39,41, ENISA Threat Landscape 2025",
+   "anomaly": "two references without a ';' separator; split in `refs`"
+  },
+  {
+   "context": "RS.CO-02/defend",
+   "text": "ENISA Threat Landscape 2025 ATLAS AML.M0024",
+   "anomaly": "two references without a ';' separator; split in `refs`"
+  },
+  {
+   "context": "RC.RP-05/defend",
+   "text": "ENISA Theat Landscape 2025",
+   "anomaly": "'Theat' (typo) in the source"
+  },
+  {
+   "context": "RC.RP-06/secure",
+   "text": "ENISA Theat Landscape 2025",
+   "anomaly": "'Theat' (typo) in the source"
+  },
+  {
+   "context": "RC.RP-06/defend",
+   "text": "ENISA Theat Landscape 2025",
+   "anomaly": "'Theat' (typo) in the source"
+  }
+ ],
+ "lineJoins": {
+  "counts": {
+   "line-final -": 194,
+   "line-final —": 1,
+   "no trailing space in the text layer; joined with a space": 2,
+   "url-continuation": 105
+  },
+  "otherThanHyphen": [
+   {
+    "context": "GV.OC-03/csf",
+    "end": "ractual requirements regarding cybersecurity—",
+    "next": "including privacy and civil ",
+    "joined": "without space",
+    "rule": "line-final —"
+   },
+   {
+    "context": "GV.OC-04/secure",
+    "end": "2309.01029 ; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.OC-04/defend",
+    "end": "2309.01029 ; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.OC-04/thwart",
+    "end": "2309.01029 ; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.RM-01/thwart",
+    "end": " References: https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.RM-02/thwart",
+    "end": " References: https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.RM-03/secure",
+    "end": "dscape 2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.RM-03/defend",
+    "end": "S AML.M0023; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.RM-03/thwart",
+    "end": " References: https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.RM-04/defend",
+    "end": "S AML.M0011; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.RM-05/secure",
+    "end": "dscape 2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.RM-06/secure",
+    "end": "dscape 2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.RM-06/defend",
+    "end": " 100-2e2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.RM-06/thwart",
+    "end": " References: https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.RR-02/secure",
+    "end": "dscape 2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.RR-02/defend",
+    "end": "dscape 2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.RR-04/defend",
+    "end": " References: https://arxiv.org/html/2511.2218",
+    "next": "9v1",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.OV-01/defend",
+    "end": " 100-2e2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.OV-01/thwart",
+    "end": " 100-2e2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.SC-02/secure",
+    "end": "dscape 2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "GV.SC-02/thwart",
+    "end": "-161 Rev. 1; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-01/secure",
+    "end": "ASP General; https://arxiv.org/pdf/2409.08831",
+    "next": "v1 Governance; OWASP GenAI ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-01/secure",
+    "end": "t Landscape 2025; https://arxiv.org/pdf/2504.",
+    "next": "11168; ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-01/secure",
+    "end": "g/pdf/2504.11168; https://arxiv.org/pdf/2309.",
+    "next": "01029; AI 100-2e2025 ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-01/defend",
+    "end": "t Landscape 2025; https://arxiv.org/pdf/2309.",
+    "next": "01029; ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-01/defend",
+    "end": "2309.01029; https://arxiv.org/pdf/2409.08831v",
+    "next": "1; AI 100-2e2025",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-01/thwart",
+    "end": "16; ATT&CK M1051; https://arxiv.org/pdf/2504.",
+    "next": "11168; https://arxiv.org/pdf/2309. ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-01/thwart",
+    "end": "g/pdf/2504.11168; https://arxiv.org/pdf/2309.",
+    "next": "01029; AI 100-2e2025;  ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-01/thwart",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-02/thwart",
+    "end": "References: https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-03/secure",
+    "end": "t Landscape 2025; https://arxiv.org/pdf/2309.",
+    "next": "01029; AI 100-2e2025;  ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-03/secure",
+    "end": " 100-2e2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-03/defend",
+    "end": "pe 2025; DASF 39; https://arxiv.org/pdf/2309.",
+    "next": "01029; AI 100-2e2025;  ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-03/defend",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-03/thwart",
+    "end": "s: ATLAS; ATT&CK; https://arxiv.org/pdf/2309.",
+    "next": "01029; AI 100-2e2025;  ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-03/thwart",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-04/secure",
+    "end": "Threat Landscape 2025; https://arxiv.org/pdf/",
+    "next": "2504.11168; ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-04/secure",
+    "end": "iv.org/pdf/2504.11168; https://arxiv.org/pdf/",
+    "next": "2309.01029; AI 100-2e2025;  ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-04/secure",
+    "end": " 100-2e2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-04/defend",
+    "end": "th the use of AI-enabled cyber defense (e.g.,",
+    "next": "data leakage, overreliance, and",
+    "joined": "with space",
+    "rule": "no trailing space in the text layer; joined with a space"
+   },
+   {
+    "context": "ID.RA-04/defend",
+    "end": "efense (e.g., data leakage, overreliance, and",
+    "next": "excessive agency) in risk modeling. ",
+    "joined": "with space",
+    "rule": "no trailing space in the text layer; joined with a space"
+   },
+   {
+    "context": "ID.RA-04/defend",
+    "end": " ATLAS AML.M0005; https://arxiv.org/pdf/2309.",
+    "next": "01029; AI 100-2e2025",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-04/thwart",
+    "end": "16; ATT&CK M1051; https://arxiv.org/pdf/2309.",
+    "next": "01029; AI 100-2e2025 ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-05/secure",
+    "end": "t Landscape 2025; https://arxiv.org/pdf/2309.",
+    "next": "01029 ; ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-05/secure",
+    "end": "2309.01029 ; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-05/defend",
+    "end": "t Landscape 2025; https://arxiv.org/pdf/2309.",
+    "next": "01029; AI 100-2e2025;  ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-05/defend",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-05/thwart",
+    "end": "309.01029 ; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-06/secure",
+    "end": "dscape 2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-06/defend",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-06/thwart",
+    "end": "References: https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.RA-08/thwart",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.IM-01/secure",
+    "end": " 100-2e2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.IM-01/defend",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.IM-01/thwart",
+    "end": "References: https://ieeexplore.ieee.org/docum",
+    "next": "ent/10747338; AI 100-2e2025;  ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.IM-01/thwart",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.IM-02/secure",
+    "end": "dscape 2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.IM-02/defend",
+    "end": "scape 2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.IM-02/thwart",
+    "end": " (3.12.1e); https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.IM-03/secure",
+    "end": "dscape 2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.IM-03/defend",
+    "end": "scape 2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.IM-03/thwart",
+    "end": "References: https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.IM-04/secure",
+    "end": " 100-2e2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.IM-04/defend",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "ID.IM-04/thwart",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "PR.AA-05/secure",
+    "end": "at Landscape 2025 https://arxiv.org/pdf/2504.",
+    "next": "11168; AI 100-2e2025; ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "PR.AA-05/secure",
+    "end": " 100-2e2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "PR.AA-05/defend",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "PR.AA-05/thwart",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "PR.AT-01/secure",
+    "end": " 100-2e2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "PR.AT-01/defend",
+    "end": "DASF 25,31,32,29,41,6; https://arxiv.org/pdf/",
+    "next": "2311.05232; ENISA Threat ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "PR.AT-01/defend",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "PR.AT-01/thwart",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "PR.DS-10/secure",
+    "end": "t Landscape 2025; https://arxiv.org/pdf/2303.",
+    "next": "00654; AI 100-2e2025 ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "PR.DS-10/defend",
+    "end": "t Landscape 2025; https://arxiv.org/pdf/2303.",
+    "next": "00654; AI 100-2e2025 ",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "PR.PS-02/secure",
+    "end": "dscape 2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "PR.PS-02/thwart",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "PR.PS-06/secure",
+    "end": " 100-2e2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "PR.IR-01/secure",
+    "end": " 100-2e2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "PR.IR-01/defend",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "PR.IR-01/thwart",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "DE.CM-01/secure",
+    "end": " 100-2e2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "DE.CM-01/defend",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "DE.CM-01/thwart",
+    "end": "References: https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "DE.CM-06/secure",
+    "end": " 100-2e2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "DE.CM-06/defend",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "DE.CM-06/thwart",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "DE.CM-09/secure",
+    "end": " 100-2e2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "DE.CM-09/defend",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "DE.CM-09/thwart",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "DE.AE-02/defend",
+    "end": "F 25,32,39; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "DE.AE-02/thwart",
+    "end": "References: https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "DE.AE-03/secure",
+    "end": "dscape 2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "DE.AE-03/defend",
+    "end": "F 32,39,41; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "DE.AE-03/thwart",
+    "end": "References: https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "DE.AE-07/secure",
+    "end": "upply Chain; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "DE.AE-07/defend",
+    "end": "5; DASF 25; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "DE.AE-07/thwart",
+    "end": "References: https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "RS.MA-01/secure",
+    "end": " 100-2e2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "RS.MA-01/defend",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "RS.MA-01/thwart",
+    "end": "100-2e2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "RS.MA-03/secure",
+    "end": "dscape 2025; https://arxiv.org/html/2503.1191",
+    "next": "7v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "RS.MA-03/defend",
+    "end": "scape 2025; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "RS.MA-03/thwart",
+    "end": " AML.M0015; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "RS.MA-05/defend",
+    "end": " AML.M0014; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "RC.RP-05/defend",
+    "end": "scape 2025; https://arxiv.org/pdf/2505.14534v",
+    "next": "1",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "RC.CO-03/defend",
+    "end": "5; DASF 39; https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   },
+   {
+    "context": "RC.CO-03/thwart",
+    "end": "References: https://arxiv.org/html/2503.11917",
+    "next": "v3",
+    "joined": "without space",
+    "rule": "url-continuation"
+   }
+  ],
+  "hyphen": [
+   {
+    "context": "GV.OC-02/general",
+    "end": "Rev 5: PM-09; PM-18; PM-30; SR-03; SR-05; SR-",
+    "next": "06; SR-08; Reflections from the ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.OC-03/general",
+    "end": "References: NIST SP 800-53, Rev 5: AC-01; AT-",
+    "next": "01; AU-01; CA-01; CM-01; CP-01; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.OC-03/general",
+    "end": "CM-01; CP-01; IA-01; IR-01; MA-01; MP-01; PE-",
+    "next": "01; PL-01; PM-01; PS-01; PT-01; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.OC-04/general",
+    "end": "ev 5: PM-08; PM-11; CP-02(08); PM-30(01); RA-",
+    "next": "09 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.RM-01/general",
+    "end": "References: NIST SP 800-53, Rev 5: PM-09; RA-",
+    "next": "07; SR-02 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.RM-02/secure",
+    "end": "mple Focus Area Considerations: Integrate AI-",
+    "next": "specific risks into the ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.RM-02/defend",
+    "end": "mple Focus Area Considerations: Integrate AI-",
+    "next": "specific risks into the ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.RM-02/thwart",
+    "end": "commendations may be needed with emerging AI-",
+    "next": "enabled threats and attacks. ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.RM-03/general",
+    "end": "Rev 5: PM-03; PM-09; PM-30; RA-07; SA-24; SR-",
+    "next": "02; Reflections from the First ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.RM-04/defend",
+    "end": "tigations, avoidance) tailored for unique AI-",
+    "next": "related risks, such as prompt ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.RM-05/defend",
+    "end": "annels for rapidly sharing and escalating AI-",
+    "next": "driven tools and human analysts ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.RM-05/thwart",
+    "end": "nication channels to address and escalate AI-",
+    "next": "enabled attacks. ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.RR-04/general",
+    "end": "References: NIST SP 800-53, Rev 5: PM-13; PS-",
+    "next": "01; PS-07; PS-09 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.RR-04/thwart",
+    "end": "at landscape may evolve is increased with AI-",
+    "next": "enabled attacks and is likely to ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.PO-01/general",
+    "end": "References: NIST SP 800-53, Rev 5: AC-01; AT-",
+    "next": "01; AU-01; CA-01; CM-01; CP-01; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.PO-01/general",
+    "end": "CM-01; CP-01; IA-01; IR-01; MA-01; MP-01; PE-",
+    "next": "01; PL-01; PM-01; PS-01; PT-01; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.PO-02/general",
+    "end": "References: NIST SP 800-53, Rev 5: AC-01; AT-",
+    "next": "01; AU-01; CA-01; CM-01; CP-01; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.PO-02/general",
+    "end": "CM-01; CP-01; IA-01; IR-01; MA-01; MP-01; PE-",
+    "next": "01; PL-01; PM-01; PS-01; PT-01; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.OV-01/general",
+    "end": "References: NIST SP 800-53, Rev 5: AC-01; AT-",
+    "next": "01; AU-01; CA-01; CM-01; CP-01; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.OV-01/general",
+    "end": "CM-01; CP-01; IA-01; IR-01; MA-01; MP-01; PE-",
+    "next": "01; PL-01; PM-01; PS-01; PT-01; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.OV-02/general",
+    "end": "Rev 5: PM-09; PM-19; PM-30; PM-31; RA-07; SR-",
+    "next": "06 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.OV-03/defend",
+    "end": "mentation to recuse workload of analysts. AI-",
+    "next": "generated reports should undergo ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.OV-03/defend",
+    "end": "AI Exchange: Obscure Confidence; NIST AI 100-",
+    "next": "2e2025 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.SC-01/general",
+    "end": "References: NIST SP 800-53, Rev 5: PM-30; SR-",
+    "next": "02; SR-03; Reflections from the ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.SC-01/defend",
+    "end": "learning is constantly improving from day-to-",
+    "next": "day activity. A malicious actor ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.SC-01/thwart",
+    "end": "e References: NIST SP 800-161 Rev. 1; AI 100-",
+    "next": "2e2025 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.SC-02/general",
+    "end": "References: NIST SP 800-53, Rev 5: SR-02; SR-",
+    "next": "03; SR-05; Reflections from the ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.SC-03/general",
+    "end": "References: NIST SP 800-53, Rev 5: AC-01; AT-",
+    "next": "01; AU-01; CA-01; CM-01; CP-01; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.SC-03/general",
+    "end": "CM-01; CP-01; IA-01; IR-01; MA-01; MP-01; PE-",
+    "next": "01; PL-01; PM-01; PS-01; PT-01; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.SC-03/general",
+    "end": "SI-01; SR-01; PM-09; PM-18; PM-30; PM-31; SR-",
+    "next": "02; SR-03; RA-03; RA-07 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.SC-03/defend",
+    "end": "mple Focus Area Considerations: Integrate AI-",
+    "next": "related risk considerations in ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.SC-04/general",
+    "end": "References: NIST SP 800-53, Rev 5: RA-09; SA-",
+    "next": "09; SR-06 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.SC-05/general",
+    "end": "References: NIST SP 800-53, Rev 5: SA-04; SA-",
+    "next": "09; SR-03; SR-05; SR-06; SR-10 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.SC-06/general",
+    "end": "References: NIST SP 800-53, Rev 5: SA-04; SA-",
+    "next": "09; SR-05; SR-06 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.SC-07/general",
+    "end": "References: NIST SP 800-53, Rev 5: RA-09; SA-",
+    "next": "04; SA-09; SR-03; SR-06 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.SC-07/defend",
+    "end": "itoring and threat detection across supplier-",
+    "next": "provided AI models, datasets, and ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.SC-08/general",
+    "end": "References: NIST SP 800-53, Rev 5: SA-04; SA-",
+    "next": "09; SR-02; SR-03; SR-08; CP-01; IR-",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.SC-08/general",
+    "end": "SA-04; SA-09; SR-02; SR-03; SR-08; CP-01; IR-",
+    "next": "01 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.SC-08/thwart",
+    "end": "rated into defensive practices through third-",
+    "next": "party suppliers to bolster cyber ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.SC-09/general",
+    "end": "PM-30; PM-31; RA-03; RA-07; SA-04; SA-09; SR-",
+    "next": "02; SR-03; SR-05; SR-06 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "GV.SC-10/general",
+    "end": "References: NIST SP 800-53, Rev 5: PM-31; RA-",
+    "next": "03; RA-05; RA-07; SA-04; SA-09; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.AM-01/general",
+    "end": "References: NIST SP 800-53, Rev 5: CM-08; PM-",
+    "next": "05 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.AM-02/general",
+    "end": "References: NIST SP 800-53, Rev 5: AC-20; CM-",
+    "next": "08; PM-05; SA-05; SA-09 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.AM-02/defend",
+    "end": "ls, APIs, keys, agents, data (see also ID.AM-",
+    "next": "07), and their integrations and ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.AM-03/general",
+    "end": "References: NIST SP 800-53, Rev 5: AC-04; CA-",
+    "next": "03; CA-09; PL-02; PL-08; PM-07 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.AM-04/general",
+    "end": "References: NIST SP 800-53, Rev 5: AC-20; SA-",
+    "next": "09; SR-02 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.AM-04/thwart",
+    "end": ": Standard cybersecurity practices apply. Up-",
+    "next": "to-date inventories enable ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.AM-05/general",
+    "end": "References: NIST SP 800-53, Rev 5: RA-03; RA-",
+    "next": "09; RA-02 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.AM-07/general",
+    "end": "References: NIST SP 800-53, Rev 5: CM-12; CM-",
+    "next": "13; SI-12 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.AM-07/secure",
+    "end": "-59, 62; ENISA Threat Landscape 2025; AI 100-",
+    "next": "2e2025 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.AM-08/general",
+    "end": "References: NIST SP 800-53, Rev 5: CM-09; CM-",
+    "next": "13; MA-02; MA-06; PL-02; PM-22; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.AM-08/general",
+    "end": "PL-02; PM-22; PM-23; SA-03; SA-04; SA-08; SA-",
+    "next": "22; SI-12; SI-18; SR-05; SR-12 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.AM-08/secure",
+    "end": "e References: DASF 6-7, 10-12, 14, 16-20, 22-",
+    "next": "23, 29-30, 32, 34, 38, 41-42, 48, ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-01/general",
+    "end": "References: NIST SP 800-53, Rev 5: CA-02; CA-",
+    "next": "07; CA-08; RA-03; RA-05; SA-",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-01/general",
+    "end": "Rev 5: CA-02; CA-07; CA-08; RA-03; RA-05; SA-",
+    "next": "11(02); SA-15(07); SA-15(08); SI-",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-01/general",
+    "end": "; RA-05; SA-11(02); SA-15(07); SA-15(08); SI-",
+    "next": "04; SI-05 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-01/thwart",
+    "end": " software can potentially be exploited by AI-",
+    "next": "enabled attacks, necessitating a ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-02/general",
+    "end": "References: NIST SP 800-53, Rev 5: SI-05; PM-",
+    "next": "15; PM-16 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-02/defend",
+    "end": "ample Focus Area Considerations: Retrieve AI-",
+    "next": "focused CTI, such as jailbreaks and ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-02/thwart",
+    "end": "ices apply. (Rationale) Information from red-",
+    "next": "team and penetration testing  ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-02/thwart",
+    "end": " inform future capabilities for thwarting AI-",
+    "next": "enabled attacks. ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-03/general",
+    "end": "References: NIST SP 800-53, Rev 5: PM-12; PM-",
+    "next": "16; RA-03; SI-05 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-03/thwart",
+    "end": " emphasize awareness and training that is up-",
+    "next": "to-date and encompasses new and ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-04/general",
+    "end": "References: NIST SP 800-53, Rev 5: PM-09; PM-",
+    "next": "11; RA-02; RA-03; RA-08; RA-09 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-04/secure",
+    "end": "l input, data leakage, data poisoning, error-",
+    "next": "amplifying feedback loops, and ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-05/general",
+    "end": "References: NIST SP 800-53, Rev 5: PM-16; RA-",
+    "next": "02; RA-03; RA-07 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-06/general",
+    "end": "References: NIST SP 800-53, Rev 5: PM-09; PM-",
+    "next": "18; PM-30; RA-07 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-07/general",
+    "end": "References: NIST SP 800-53, Rev 5: CA-07; CM-",
+    "next": "03; CM-04 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-09/general",
+    "end": "References: NIST SP 800-53, Rev 5: SA-04; SA-",
+    "next": "05; SA-10; SA-11; SA-15; SA-17; SI-",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-09/general",
+    "end": "SA-04; SA-05; SA-10; SA-11; SA-15; SA-17; SI-",
+    "next": "07; SR-05; SR-06; SR-10; SR-11 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-09/secure",
+    "end": "ange, they take on elevated importance in AI-",
+    "next": "contexts due to the lack of ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.RA-10/secure",
+    "end": "References: DASF 7, 12-14, 19, 29, 35-39, 41-",
+    "next": "42, 46, 51-53, 55; OWASP AI ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.IM-01/general",
+    "end": "ces: NIST SP 800-53, Rev 5: AC-01; AT-01; AU-",
+    "next": "01; CA-01; CM-01; CP-01; IA-01; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.IM-01/general",
+    "end": "CP-01; IA-01; IR-01; MA-01; MP-01; PE-01; PL-",
+    "next": "01; PM-01; PS-01; PT-01; RA-01; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.IM-01/general",
+    "end": "5; RA-07; SA-08; SA-11; SA-17(06); SI-02; SI-",
+    "next": "04; SR-05 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.IM-01/thwart",
+    "end": "ed defenses to maintain pace and scale of AI-",
+    "next": "enabled cyber attacks. See the ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.IM-02/general",
+    "end": "References: NIST SP 800-53, Rev 5: AC-01; AT-",
+    "next": "01; AU-01; CA-01; CM-01; CP-01; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.IM-02/general",
+    "end": "CM-01; CP-01; IA-01; IR-01; MA-01; MP-01; PE-",
+    "next": "01; PL-01; PM-01; PS-01; PT-01; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.IM-02/general",
+    "end": "SI-01; SR-01; CA-02; CA-05; CA-07; CA-08; CP-",
+    "next": "02; CP-04; IR-03; IR-04; IR-08; PL-",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.IM-02/general",
+    "end": "CA-08; CP-02; CP-04; IR-03; IR-04; IR-08; PL-",
+    "next": "02; PM-04; PM-31; RA-03; RA-05; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.IM-02/thwart",
+    "end": "ting AI-assisted penetration-testing and red-",
+    "next": "teaming tools to maintain pace ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.IM-02/thwart",
+    "end": " maintain pace and scale of AI-enabled cyber-",
+    "next": "attacks when performing security ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.IM-03/general",
+    "end": "References: NIST SP 800-53, Rev 5: AC-01; AT-",
+    "next": "01; AU-01; CA-01; CM-01; CP-01; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.IM-03/general",
+    "end": "CM-01; CP-01; IA-01; IR-01; MA-01; MP-01; PE-",
+    "next": "01; PL-01; PM-01; PS-01; PT-01; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.IM-03/general",
+    "end": "SI-01; SR-01; CA-02; CA-05; CA-07; CA-08; CP-",
+    "next": "02; IR-04; IR-08; PL-02; PM-04; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.IM-03/general",
+    "end": "PL-02; PM-04; PM-31; RA-03; RA-05; RA-07; SA-",
+    "next": "04; SA-08; SA-11; SI-02; SI-04 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.IM-03/defend",
+    "end": "drive continuous security improvements in AI-",
+    "next": "enabled defense systems. ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.IM-04/general",
+    "end": "References: NIST SP 800-53, Rev 5: CP-02; IR-",
+    "next": "08; PL-02; SR-02 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.IM-04/defend",
+    "end": "reat Landscape 2025; ATLAS AML.M0014; AI 100-",
+    "next": "2e2025;  ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "ID.IM-04/thwart",
+    "end": " – Incident Response (3.6.1e-3.6.2e); AI 100-",
+    "next": "2e2025;  ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-01/general",
+    "end": "References: NIST SP 800-53, Rev 5: AC-01; AC-",
+    "next": "02; AC-14; IA-01; IA-02; IA-03; IA-",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-01/general",
+    "end": "AC-01; AC-02; AC-14; IA-01; IA-02; IA-03; IA-",
+    "next": "04; IA-05; IA-06; IA-07; IA-08; IA-",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-01/general",
+    "end": "IA-03; IA-04; IA-05; IA-06; IA-07; IA-08; IA-",
+    "next": "09; IA-10; IA-11 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-01/thwart",
+    "end": " Configuration Management (3.4); NIST SP 800-",
+    "next": "172 Identification and ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-01/thwart",
+    "end": "cation and Authentication (3.5); NIST SP 800-",
+    "next": "207 – Zero Trust Architecture; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-02/defend",
+    "end": "y. Prevent spoofing by requiring certificate-",
+    "next": "based validation and continuous ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-02/defend",
+    "end": "pe 2025; ATLAS AML.M0013; AML.M0014); AI 100-",
+    "next": "2e2025 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-03/general",
+    "end": "References: NIST SP 800-53, Rev 5: AC-07; AC-",
+    "next": "12; IA-02; IA-03; IA-05; IA-07; IA-",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-03/general",
+    "end": "AC-07; AC-12; IA-02; IA-03; IA-05; IA-07; IA-",
+    "next": "08; IA-09; IA-10; IA-11 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-03/thwart",
+    "end": "ractices apply. (Rationale) AI-enabled cyber-",
+    "next": "attacks will lower the barrier of ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-04/thwart",
+    "end": "ractices apply. (Rationale) AI-enabled cyber-",
+    "next": "attacks will lower the barrier of ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-05/general",
+    "end": "References: NIST SP 800-53, Rev 5: AC-01; AC-",
+    "next": "02; AC-03; AC-05; AC-06; AC-10; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-05/general",
+    "end": "AC-06; AC-10; AC-16; AC-17; AC-18; AC-19; AC-",
+    "next": "24; IA-13 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-05/secure",
+    "end": "21, 22, 24, 29, 31-33, 40, 42-43, 46, 51, 56-",
+    "next": "58, 60, 64; ATLAS AML.M0005; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-05/thwart",
+    "end": "ss controls and authorizations to prevent AI-",
+    "next": "enabled cyber-attacks that seek to ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-06/general",
+    "end": "References: NIST SP 800-53, Rev 5: PE-02; PE-",
+    "next": "03; PE-04; PE-05; PE-06; PE-08; PE-",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-06/general",
+    "end": "PE-02; PE-03; PE-04; PE-05; PE-06; PE-08; PE-",
+    "next": "18; PE-19; PE-20 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-06/defend",
+    "end": "ample Focus Area Considerations: Leverage AI-",
+    "next": "enabled systems to strengthen ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AA-06/defend",
+    "end": "; ATLAS AML.M0005 ; ATLAS AML.M0009 ; AI 100-",
+    "next": "2e2025 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AT-01/general",
+    "end": "References: NIST SP 800-53, Rev 5: AT-02; AT-",
+    "next": "03 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AT-02/defend",
+    "end": "n building skills and knowledge to use of AI-",
+    "next": "enabled defense actions that align ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.AT-02/defend",
+    "end": "39,41,61; ATLAS AML.M0018; AML.M0003; AI 100-",
+    "next": "2e2025 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.DS-01/csf",
+    "end": "tiality, integrity, and availability of data-",
+    "next": "at-rest are protected  ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.DS-01/general",
+    "end": "tionality of many AI systems. Examples of AI-",
+    "next": "specific confidentiality, integrity, ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.DS-01/general",
+    "end": "References: NIST SP 800-53, Rev 5: CA-03; CP-",
+    "next": "09; MP-08; SC-04; SC-07; SC-12; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.DS-02/csf",
+    "end": "lity, integrity, and availability of data-in-",
+    "next": "transit are protected  ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.DS-02/general",
+    "end": "References: NIST SP 800-53, Rev 5: AU-16; CA-",
+    "next": "03; SC-04; SC-07; SC-08; SC-11; SC-",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.DS-02/general",
+    "end": "AU-16; CA-03; SC-04; SC-07; SC-08; SC-11; SC-",
+    "next": "12; SC-13; SC-16; SC-40; SC-43; SI-",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.DS-02/general",
+    "end": "SC-11; SC-12; SC-13; SC-16; SC-40; SC-43; SI-",
+    "next": "03; SI-04; SI-07 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.DS-10/csf",
+    "end": "lity, integrity, and availability of data-in-",
+    "next": "use are protected  ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.DS-10/general",
+    "end": "References: NIST SP 800-53, Rev 5: AC-02; AC-",
+    "next": "03; AC-04; AU-09; AU-13; CA-03; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.DS-10/general",
+    "end": "SC-40; SC-43; SI-03; SI-04; SI-07; SI-10; SI-",
+    "next": "16 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.DS-11/general",
+    "end": "References: NIST SP 800-53, Rev 5: CP-06; CP-",
+    "next": "09 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.DS-11/secure",
+    "end": "References: DASF 8, 15, 17, 20-22, 27-30, 41-",
+    "next": "42; ATLAS AML.M0012; ATLAS ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.DS-11/thwart",
+    "end": "References: NIST SP 800-53, Rev 5: CP-06, CP-",
+    "next": "09;  ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.PS-01/general",
+    "end": "References: NIST SP 800-53, Rev 5: CM-01; CM-",
+    "next": "02; CM-03; CM-04; CM-05; CM-06; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.PS-02/thwart",
+    "end": "ple Focus Area Considerations: Un-secure, un-",
+    "next": "tested, and/or un-maintained ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.PS-02/thwart",
+    "end": "r un-maintained code could be targeted by AI-",
+    "next": "enabled cyber-attacks. Additional ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.PS-03/thwart",
+    "end": "ple Focus Area Considerations: Un-secure, un-",
+    "next": "tested, and/or un-maintained ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.PS-03/thwart",
+    "end": "hardware and systems could be targeted by AI-",
+    "next": "enabled attacks, additional ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.PS-04/general",
+    "end": "References: NIST SP 800-53, Rev 5: AU-02; AU-",
+    "next": "03; AU-06; AU-07; AU-11; AU-12 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.PS-04/secure",
+    "end": "eferences: DASF 11-12, 14, 20-21, 23, 29, 32-",
+    "next": "33, 35-37, 39-40, 42, 44-46, 55, ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.PS-04/thwart",
+    "end": "ons: The scale and speed are one such way AI-",
+    "next": "enabled attacks may challenge ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.PS-06/general",
+    "end": "References: NIST SP 800-53, Rev 5: SA-03; SA-",
+    "next": "08; SA-10; SA-11; SA-15; SA-",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.PS-06/general",
+    "end": "Rev 5: SA-03; SA-08; SA-10; SA-11; SA-15; SA-",
+    "next": "15(13); SA-17; SA-24 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.PS-06/secure",
+    "end": "ve References: NIST SP 800-218A; DASF 11, 19-",
+    "next": "20, 23, 41, 45, 52, 59; OWASP ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.IR-01/general",
+    "end": "References: NIST SP 800-53, Rev 5: AC-03; AC-",
+    "next": "04; SC-04; SC-05; SC-07 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.IR-02/general",
+    "end": "References: NIST SP 800-53, Rev 5: CP-02; PE-",
+    "next": "09; PE-10; PE-11; PE-12; PE-13; PE-",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.IR-02/general",
+    "end": "CP-02; PE-09; PE-10; PE-11; PE-12; PE-13; PE-",
+    "next": "14; PE-15; PE-18; PE-23 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.IR-03/general",
+    "end": "eferences: NIST SP 800-53, Rev 5: CP; IR; SA-",
+    "next": "08; SA-24; SC-06; SC-24; SC-36; SC-",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.IR-03/general",
+    "end": "P; IR; SA-08; SA-24; SC-06; SC-24; SC-36; SC-",
+    "next": "39; SI-13;  ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.IR-03/secure",
+    "end": "susceptible to adverse input), it may be non-",
+    "next": "trivial to create and deploy a new ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.IR-03/secure",
+    "end": "y Chain; ENISA Threat Landscape 2025; AI 100-",
+    "next": "2e2025 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.IR-03/defend",
+    "end": "mple Focus Area Considerations: Implement AI-",
+    "next": "specific resilience mechanisms, ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.IR-04/general",
+    "end": "References: NIST SP 800-53, Rev 5: CP-06; CP-",
+    "next": "07; CP-08; PM-03; PM-09 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "PR.IR-04/secure",
+    "end": "be several orders of magnitude more resource-",
+    "next": "intensive than other non-AI ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.CM-01/general",
+    "end": "References: NIST SP 800-53, Rev 5: AC-02; AU-",
+    "next": "12; CA-07; CM-03; SC-05; SC-07; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.CM-01/secure",
+    "end": "References: DASF 3-5, 7, 9-11, 13, 18-19, 23-",
+    "next": "24, 29-31, 36, 41, 44-46, 52, 55-",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.CM-01/secure",
+    "end": ", 18-19, 23-24, 29-31, 36, 41, 44-46, 52, 55-",
+    "next": "56, 60, 62; ATLAS AML.M0012; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.CM-01/defend",
+    "end": ", user and machine behavioral analysis, real-",
+    "next": "time monitoring and response) ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.CM-02/general",
+    "end": "References: NIST SP 800-53, Rev 5: CA-07; PE-",
+    "next": "03; PE-06; PE-20 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.CM-03/general",
+    "end": "References: NIST SP 800-53, Rev 5: AC-02; AU-",
+    "next": "12; AU-13; CA-07;  ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.CM-03/secure",
+    "end": " References: DASF 5, 7, 10-11, 13, 18-19, 23-",
+    "next": "24, 29, 33, 36, 41-42, 44-46, 52-",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.CM-03/secure",
+    "end": ", 18-19, 23-24, 29, 33, 36, 41-42, 44-46, 52-",
+    "next": "53, 55, 64; ATLAS AML.M0024; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.CM-06/general",
+    "end": "References: NIST SP 800-53, Rev 5: CA-07; PS-",
+    "next": "07; SA-04; SA-09; SI-04 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.CM-06/thwart",
+    "end": "d/or patches to software and systems that AI-",
+    "next": "enabled cyber attacks could ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.CM-09/general",
+    "end": "References: NIST SP 800-53, Rev 5: AC-04; AC-",
+    "next": "09; AU-12; CA-07; CM-03; CM-06; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.CM-09/general",
+    "end": "CM-03; CM-06; CM-10; CM-11; SC-34; SC-35; SI-",
+    "next": "04; SI-07 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.CM-09/secure",
+    "end": "20, 23-24, 29-31, 36, 4-42, 44-46, 51-53, 55-",
+    "next": "56, 60; ATLAS AML.M0012; ATLAS ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.AE-02/general",
+    "end": "References: NIST SP 800-53, Rev 5: AU-06; CA-",
+    "next": "07; IR-04; SI-04 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.AE-03/general",
+    "end": "References: NIST SP 800-53, Rev 5: AU-06; CA-",
+    "next": "07; PM-16; IR-04; IR-05; IR-08; SI-",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.AE-03/general",
+    "end": "AU-06; CA-07; PM-16; IR-04; IR-05; IR-08; SI-",
+    "next": "04 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.AE-03/secure",
+    "end": "23, 29, 31, 35-37, 39, 42, 44, 46, 55-56, 59-",
+    "next": "60; ATLAS AML.M0024; OWASP ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.AE-04/general",
+    "end": "References: NIST SP 800-53, Rev 5: PM-09; PM-",
+    "next": "11; PM-18; PM-28; PM-30 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.AE-06/general",
+    "end": "References: NIST SP 800-53, Rev 5: IR-04; PM-",
+    "next": "15; PM-16; RA-04; RA-10 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.AE-06/secure",
+    "end": "eferences: DASF 7, 12-14, 16, 19, 23, 29, 35-",
+    "next": "39, 42, 44, 46, 55-56, 59; ATLAS ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.AE-07/general",
+    "end": "References: NIST SP 800-53, Rev 5: PM-16; RA-",
+    "next": "03; RA-10 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "DE.AE-07/secure",
+    "end": "23, 29, 31, 35-37, 39, 42, 44, 46, 55-56, 60-",
+    "next": "61; OWASP AI Exchange: General ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RS.MA-01/general",
+    "end": "References: NIST SP 800-53, Rev 5: IR-06; IR-",
+    "next": "07; IR-08; SR-03; SR-08 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RS.MA-02/general",
+    "end": "General Considerations: AI-",
+    "next": "related reports and AI-related ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RS.MA-02/general",
+    "end": "References: NIST SP 800-53, Rev 5: IR-04; IR-",
+    "next": "05; IR-06 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RS.MA-03/defend",
+    "end": "mple Focus Area Considerations: Integrate AI-",
+    "next": "driven analytics into incident ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RS.MA-04/general",
+    "end": "References: NIST SP 800-53, Rev 5: IR-04; IR-",
+    "next": "05; IR-06; IR-07 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RS.MA-04/thwart",
+    "end": "g and/or isolating systems in addition to AI-",
+    "next": "enabled defenses to flag adverse ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RS.AN-03/general",
+    "end": "References: NIST SP 800-53, Rev 5: AU-07; IR-",
+    "next": "04; SI-02(07) ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RS.AN-03/defend",
+    "end": "Sample Focus Area Considerations: Analyze AI-",
+    "next": "specific artifacts (e.g., model logs, ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RS.AN-06/general",
+    "end": "References: NIST SP 800-53, Rev 5: AU-07; IR-",
+    "next": "04; IR-06 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RS.AN-07/general",
+    "end": "References: NIST SP 800-53, Rev 5: AU-07; IR-",
+    "next": "04; IR-06 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RS.AN-08/general",
+    "end": "References: NIST SP 800-53, Rev 5: IR-04; IR-",
+    "next": "08; RA-03; RA-07 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RS.AN-08/defend",
+    "end": "Estimate and validate the magnitude of an AI-",
+    "next": "influenced incident by assessing ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RS.CO-02/general",
+    "end": "References: NIST SP 800-53, Rev 5: IR-04; IR-",
+    "next": "06; IR-07; SR-03; SR-08 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RS.CO-02/defend",
+    "end": "otification processes are established for AI-",
+    "next": "related incidents (e.g., adversarial ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RS.CO-03/general",
+    "end": "References: NIST SP 800-53, Rev 5: IR-04; IR-",
+    "next": "06; IR-07; SR-03; SR-08 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RS.MI-01/secure",
+    "end": "se AI-initiated incidents can move at faster-",
+    "next": "than-human speeds, the ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RS.MI-01/thwart",
+    "end": " Focus Area Considerations: AI-enabled cyber-",
+    "next": "attacks could adapt to avoid ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RS.MI-02/defend",
+    "end": ": Eradication addresses the root cause of AI-",
+    "next": "enabled compromise, including ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RC.RP-01/general",
+    "end": "References: NIST SP 800-53, Rev 5: CP-10; IR-",
+    "next": "04; IR-08 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RC.RP-02/general",
+    "end": "References: NIST SP 800-53, Rev 5: CP-10; IR-",
+    "next": "04; IR-08 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RC.RP-03/general",
+    "end": "References: NIST SP 800-53, Rev 5: CP-02; CP-",
+    "next": "04; CP-09 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RC.RP-04/general",
+    "end": "ces: NIST SP 800-53, Rev 5: PM-08; PM-09; PM-",
+    "next": "11; IR-01; IR-08 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RC.RP-04/defend",
+    "end": "determine how AI can assist in refining post-",
+    "next": "incident operational norms ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RC.RP-06/csf",
+    "end": " is declared based on criteria, and incident-",
+    "next": "related documentation is ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RC.CO-03/general",
+    "end": "References: NIST SP 800-53, Rev 5: IR-04; IR-",
+    "next": "06; SR-08 ",
+    "joined": "without space",
+    "rule": "line-final -"
+   },
+   {
+    "context": "RC.CO-04/general",
+    "end": "References: NIST SP 800-53, Rev 5: CP-02; IR-",
+    "next": "04; ",
+    "joined": "without space",
+    "rule": "line-final -"
+   }
+  ]
+ },
+ "columnBoundaries": [
+  {
+   "x": [
+    36.2,
+    153.0,
+    305.3,
+    456.1,
+    606.9,
+    758.0
+   ],
+   "pages": [
+    25,
+    44
+   ],
+   "pageCount": 20
+  },
+  {
+   "x": [
+    36.2,
+    153.0,
+    306.0,
+    454.5,
+    607.5,
+    760.5
+   ],
+   "pages": [
+    45,
+    96
+   ],
+   "pageCount": 52
+  }
+ ],
+ "geometryIssues": [],
+ "textOutsideTableBands": [
+  {
+   "page": 25,
+   "text": "2.3."
+  },
+  {
+   "page": 25,
+   "text": "Cyber AI Profile: GOVERN"
+  },
+  {
+   "page": 25,
+   "text": "Table 1 Cyber AI Profile – GOVERN."
+  },
+  {
+   "page": 45,
+   "text": "2.4."
+  },
+  {
+   "page": 45,
+   "text": "Cyber AI Profile: IDENTIFY"
+  },
+  {
+   "page": 45,
+   "text": "Table 2 Cyber AI Profile – IDENTIFY."
+  },
+  {
+   "page": 60,
+   "text": "2.5."
+  },
+  {
+   "page": 60,
+   "text": "Cyber AI Profile: PROTECT"
+  },
+  {
+   "page": 60,
+   "text": "Table 3 Cyber AI Profile - PROTECT."
+  },
+  {
+   "page": 75,
+   "text": "2.6."
+  },
+  {
+   "page": 75,
+   "text": "Cyber AI Profile: DETECT"
+  },
+  {
+   "page": 75,
+   "text": "Table 4 Cyber AI Profile – DETECT."
+  },
+  {
+   "page": 83,
+   "text": "2.7."
+  },
+  {
+   "page": 83,
+   "text": "Cyber AI Profile: RESPOND"
+  },
+  {
+   "page": 83,
+   "text": "Table 5 Cyber AI Profile - RESPOND."
+  },
+  {
+   "page": 91,
+   "text": "2.8."
+  },
+  {
+   "page": 91,
+   "text": "Cyber AI Profile: RECOVER"
+  },
+  {
+   "page": 91,
+   "text": "Table 6 Cyber AI Profile - RECOVER."
+  }
+ ],
+ "problems": []
+}

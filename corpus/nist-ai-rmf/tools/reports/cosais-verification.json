@@ -1,0 +1,1137 @@
+{
+ "sources": [
+  {
+   "documentId": "nist-cosais-concept-paper",
+   "title": "SP 800-53 Control Overlays for Securing AI Systems Concept Paper",
+   "status": "concept paper (pre-draft)",
+   "published": "2025-08-14",
+   "path": "nist-ai-rmf/drafts/NIST-Overlays-SecuringAI-concept-paper.pdf",
+   "sha256": "37f0beea5afaad6441c29a94323c1133c970234fdd1b64747e29a5c7f18082c0",
+   "url": "https://csrc.nist.gov/csrc/media/Projects/cosais/documents/NIST-Overlays-SecuringAI-concept-paper.pdf"
+  },
+  {
+   "documentId": "nist-cosais-predictive-ai-annotated-outline",
+   "title": "NIST SP 800-53 Control Overlays for Securing AI Systems: Using and Fine-Tuning Predictive AI — Draft Annotated Outline (January 2026)",
+   "status": "annotated outline / discussion draft",
+   "published": "2026-01-08",
+   "path": "nist-ai-rmf/drafts/COSAiS-Predictive-AI-annotated-outline-Jan2026.pdf",
+   "sha256": "517ef2c1cb8762c9f9932297d56ed2e506b36122208366781835b016e6f5d0d9",
+   "url": "https://csrc.nist.gov/csrc/media/Projects/cosais/documents/COSAiS-Predictive-AI-annotated-outline-Jan2026.pdf"
+  }
+ ],
+ "plannedOverlays": [
+  {
+   "id": "genai-assistant-llm",
+   "title": "Adapting and Using Generative AI – Assistant/Large Language Model (LLM)",
+   "scenarios": 2,
+   "page": 4
+  },
+  {
+   "id": "predictive-ai-use-finetune",
+   "title": "Using and Fine-Tuning Predictive AI",
+   "scenarios": 4,
+   "page": 4
+  },
+  {
+   "id": "ai-agents-single-agent",
+   "title": "Using AI Agent Systems (AI Agents) – Single Agent",
+   "scenarios": 2,
+   "page": 5
+  },
+  {
+   "id": "ai-agents-multi-agent",
+   "title": "Using AI Agent Systems (AI Agents) – Multi-Agent",
+   "scenarios": 0,
+   "page": 6
+  },
+  {
+   "id": "ai-developers",
+   "title": "Security Controls for AI Developers",
+   "scenarios": 0,
+   "page": 6
+  }
+ ],
+ "counts": {
+  "controls": 59,
+  "inSummaryTable": 11,
+  "annotated": 11,
+  "proposedAdditional": 48,
+  "summaryTableAndAnnotated": 11,
+  "inSummaryTableButNotAnnotated": [],
+  "annotatedButNotInSummaryTable": [],
+  "bothInSummaryTableAndAdditionalList": [],
+  "enhancements": 26,
+  "families": {
+   "AC": 3,
+   "AU": 2,
+   "CA": 3,
+   "CM": 6,
+   "PE": 2,
+   "PT": 4,
+   "RA": 2,
+   "SA": 11,
+   "SC": 8,
+   "SI": 16,
+   "SR": 2
+  }
+ },
+ "summaryTableRows": [
+  {
+   "printed": "AC-06, Least Privilege",
+   "page": 5,
+   "band": [
+    317.9,
+    372.1
+   ],
+   "phases": [
+    {
+     "label": "Model Training",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Model Deployment",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Model Maintenance",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Continuous",
+     "checkbox": true,
+     "marked": true
+    }
+   ],
+   "tailoring": {
+    "controlRequirement": false,
+    "organizationDefinedParameter": false,
+    "discussion": true
+   },
+   "xMarks": 1
+  },
+  {
+   "printed": "CM-02, Baseline Configuration",
+   "page": 5,
+   "band": [
+    372.1,
+    426.4
+   ],
+   "phases": [
+    {
+     "label": "Model Training",
+     "checkbox": true,
+     "marked": true
+    },
+    {
+     "label": "Model Deployment",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Model Maintenance",
+     "checkbox": true,
+     "marked": true
+    },
+    {
+     "label": "Continuous",
+     "checkbox": true,
+     "marked": false
+    }
+   ],
+   "tailoring": {
+    "controlRequirement": false,
+    "organizationDefinedParameter": false,
+    "discussion": true
+   },
+   "xMarks": 1
+  },
+  {
+   "printed": "CM-04, Impact Analyses",
+   "page": 5,
+   "band": [
+    426.4,
+    480.4
+   ],
+   "phases": [
+    {
+     "label": "Model Training",
+     "checkbox": true,
+     "marked": true
+    },
+    {
+     "label": "Model Deployment",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Model Maintenance",
+     "checkbox": true,
+     "marked": true
+    },
+    {
+     "label": "Continuous",
+     "checkbox": true,
+     "marked": true
+    }
+   ],
+   "tailoring": {
+    "controlRequirement": false,
+    "organizationDefinedParameter": false,
+    "discussion": true
+   },
+   "xMarks": 1
+  },
+  {
+   "printed": "RA-05, Vulnerability Monitoring and Scanning",
+   "page": 5,
+   "band": [
+    480.4,
+    534.7
+   ],
+   "phases": [
+    {
+     "label": "Model Training",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Model Deployment",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Model Maintenance",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Continuous",
+     "checkbox": true,
+     "marked": true
+    }
+   ],
+   "tailoring": {
+    "controlRequirement": false,
+    "organizationDefinedParameter": true,
+    "discussion": true
+   },
+   "xMarks": 2
+  },
+  {
+   "printed": "SA-11(02), Developer Testing and Evaluation | Threat Modeling and Vulnerability Analyses",
+   "page": 5,
+   "band": [
+    534.7,
+    588.9
+   ],
+   "phases": [
+    {
+     "label": "Model Training",
+     "checkbox": true,
+     "marked": true
+    },
+    {
+     "label": "Model Deployment",
+     "checkbox": true,
+     "marked": true
+    },
+    {
+     "label": "Model Maintenance",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Continuous",
+     "checkbox": true,
+     "marked": false
+    }
+   ],
+   "tailoring": {
+    "controlRequirement": false,
+    "organizationDefinedParameter": false,
+    "discussion": true
+   },
+   "xMarks": 1
+  },
+  {
+   "printed": "SA-15(01), System and Services Acquisition | Quality Metrics",
+   "page": 5,
+   "band": [
+    588.9,
+    643.2
+   ],
+   "phases": [
+    {
+     "label": "Model Training",
+     "checkbox": true,
+     "marked": true
+    },
+    {
+     "label": "Model Deployment",
+     "checkbox": true,
+     "marked": true
+    },
+    {
+     "label": "Model Maintenance",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Continuous",
+     "checkbox": true,
+     "marked": false
+    }
+   ],
+   "tailoring": {
+    "controlRequirement": false,
+    "organizationDefinedParameter": false,
+    "discussion": true
+   },
+   "xMarks": 1
+  },
+  {
+   "printed": "SA-15(08), System and Services Acquisition | Reuse of Threat and Vulnerability Information",
+   "page": 5,
+   "band": [
+    643.2,
+    697.5
+   ],
+   "phases": [
+    {
+     "label": "Model Training",
+     "checkbox": true,
+     "marked": true
+    },
+    {
+     "label": "Model Deployment",
+     "checkbox": true,
+     "marked": true
+    },
+    {
+     "label": "Model Maintenance",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Continuous",
+     "checkbox": true,
+     "marked": false
+    }
+   ],
+   "tailoring": {
+    "controlRequirement": false,
+    "organizationDefinedParameter": false,
+    "discussion": true
+   },
+   "xMarks": 1
+  },
+  {
+   "printed": "SC-05(03), Denial-of-Service Protection | Detection and Monitoring",
+   "page": 6,
+   "band": [
+    182.5,
+    236.8
+   ],
+   "phases": [
+    {
+     "label": "Model Training",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Model Deployment",
+     "checkbox": true,
+     "marked": true
+    },
+    {
+     "label": "Model Maintenance",
+     "checkbox": true,
+     "marked": true
+    },
+    {
+     "label": "Continuous",
+     "checkbox": true,
+     "marked": false
+    }
+   ],
+   "tailoring": {
+    "controlRequirement": false,
+    "organizationDefinedParameter": false,
+    "discussion": true
+   },
+   "xMarks": 1
+  },
+  {
+   "printed": "SC-07(10), Boundary Protection | Prevent Exfiltration",
+   "page": 6,
+   "band": [
+    236.8,
+    291.1
+   ],
+   "phases": [
+    {
+     "label": "Model Training",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Model Deployment",
+     "checkbox": true,
+     "marked": true
+    },
+    {
+     "label": "Model Maintenance",
+     "checkbox": true,
+     "marked": true
+    },
+    {
+     "label": "Continuous",
+     "checkbox": true,
+     "marked": false
+    }
+   ],
+   "tailoring": {
+    "controlRequirement": false,
+    "organizationDefinedParameter": false,
+    "discussion": true
+   },
+   "xMarks": 1
+  },
+  {
+   "printed": "SI-03(08), Malicious Code Protection | Detect Unauthorized Commands",
+   "page": 6,
+   "band": [
+    291.1,
+    345.4
+   ],
+   "phases": [
+    {
+     "label": "Model Training",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Model Deployment",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Model Maintenance",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Continuous",
+     "checkbox": true,
+     "marked": true
+    }
+   ],
+   "tailoring": {
+    "controlRequirement": false,
+    "organizationDefinedParameter": false,
+    "discussion": true
+   },
+   "xMarks": 1
+  },
+  {
+   "printed": "SI-04(02), System Monitoring | Automated Tools and Mechanisms for Real-Time Analysis",
+   "page": 6,
+   "band": [
+    345.4,
+    399.4
+   ],
+   "phases": [
+    {
+     "label": "Model Training",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Model Deployment",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Model Maintenance",
+     "checkbox": true,
+     "marked": false
+    },
+    {
+     "label": "Continuous",
+     "checkbox": true,
+     "marked": true
+    }
+   ],
+   "tailoring": {
+    "controlRequirement": false,
+    "organizationDefinedParameter": false,
+    "discussion": true
+   },
+   "xMarks": 1
+  }
+ ],
+ "pypdfContainment": {
+  "piecesChecked": 203,
+  "notFound": [
+   {
+    "where": "overlay.useCasesIntro",
+    "text": "This overlay addresses the use of predictive AI to automate 2 different business workflows (use cases):"
+   }
+  ],
+  "method": "each extracted string (split at its '\\n' paragraph breaks) must occur in pypdf's text of the source PDF (running headers and footers removed), white space ignored; pypdf keeps superscript footnote markers inline, so a string that carried one cannot match"
+ },
+ "verification": {
+  "notInSp80053Data": [],
+  "withdrawn": [],
+  "titleDifferencesFromSp80053": [
+   {
+    "id": "SA-15(1)",
+    "where": "summaryTable",
+    "printed": "System and Services Acquisition | Quality Metrics",
+    "sp80053": "Development Process, Standards, and Tools | Quality Metrics"
+   },
+   {
+    "id": "SA-15(8)",
+    "where": "summaryTable",
+    "printed": "System and Services Acquisition | Reuse of Threat and Vulnerability Information",
+    "sp80053": "Development Process, Standards, and Tools | Reuse of Threat and Vulnerability Information"
+   },
+   {
+    "id": "SI-12(2)",
+    "where": "all",
+    "printed": "Information Management and Retention | Minimize Personally Identifiable Information in Testing, Training and Research",
+    "sp80053": "Information Management and Retention | Minimize Personally Identifiable Information in Testing, Training, and Research"
+   },
+   {
+    "id": "SI-19(7)",
+    "where": "all",
+    "printed": "De-Identification | Algorithms and Software",
+    "sp80053": "De-identification | Validated Algorithms and Software"
+   }
+  ],
+  "titleComparison": "printed 'Base Control | Enhancement' split on '|' and compared case-insensitively with the node titles in nist-sp-800-53-r5.json",
+  "moderateBaseline": [
+   {
+    "id": "AC-6",
+    "printed": "Yes",
+    "sp80053b": "Yes",
+    "agrees": true
+   },
+   {
+    "id": "CM-2",
+    "printed": "Yes",
+    "sp80053b": "Yes",
+    "agrees": true
+   },
+   {
+    "id": "CM-4",
+    "printed": "Yes",
+    "sp80053b": "Yes",
+    "agrees": true
+   },
+   {
+    "id": "RA-5",
+    "printed": "Yes",
+    "sp80053b": "Yes",
+    "agrees": true
+   },
+   {
+    "id": "SA-11(2)",
+    "printed": "No",
+    "sp80053b": "No",
+    "agrees": true
+   },
+   {
+    "id": "SA-15(1)",
+    "printed": "No",
+    "sp80053b": "No",
+    "agrees": true
+   },
+   {
+    "id": "SA-15(8)",
+    "printed": "No",
+    "sp80053b": "No",
+    "agrees": true
+   },
+   {
+    "id": "SC-5(3)",
+    "printed": "No",
+    "sp80053b": "No",
+    "agrees": true
+   },
+   {
+    "id": "SC-7(10)",
+    "printed": "No",
+    "sp80053b": "No",
+    "agrees": true
+   },
+   {
+    "id": "SI-3(8)",
+    "printed": "No",
+    "sp80053b": "No",
+    "agrees": true
+   },
+   {
+    "id": "SI-4(2)",
+    "printed": "Yes",
+    "sp80053b": "Yes",
+    "agrees": true
+   }
+  ],
+  "additionalControlsAlreadyInModerateBaseline": [
+   "AC-3",
+   "AC-22",
+   "AU-2",
+   "AU-6",
+   "CA-3",
+   "CA-7",
+   "CM-3",
+   "CM-5",
+   "CM-6",
+   "SC-5",
+   "SC-23",
+   "SC-28",
+   "SC-39",
+   "SI-3",
+   "SI-4",
+   "SI-7",
+   "SI-10",
+   "SR-11"
+  ],
+  "attackIds": [
+   {
+    "control": "AC-6",
+    "printed": [
+     "NIST AML.011",
+     "NIST AML.013"
+    ],
+    "normalized": [
+     "NISTAML.011",
+     "NISTAML.013"
+    ],
+    "titles": [
+     "Model Poisoning",
+     "Data Poisoning"
+    ],
+    "notInTaxonomy": []
+   },
+   {
+    "control": "CM-2",
+    "printed": [
+     "NISTAML.024",
+     "NISTAML.026"
+    ],
+    "normalized": [
+     "NISTAML.024",
+     "NISTAML.026"
+    ],
+    "titles": [
+     "Targeted Poisoning",
+     "Model Poisoning"
+    ],
+    "notInTaxonomy": []
+   },
+   {
+    "control": "CM-4",
+    "printed": [
+     "NISTAML.022"
+    ],
+    "normalized": [
+     "NISTAML.022"
+    ],
+    "titles": [
+     "Evasion"
+    ],
+    "notInTaxonomy": []
+   },
+   {
+    "control": "RA-5",
+    "printed": [
+     "NISTAML.024",
+     "NISTAML.026"
+    ],
+    "normalized": [
+     "NISTAML.024",
+     "NISTAML.026"
+    ],
+    "titles": [
+     "Targeted Poisoning",
+     "Model Poisoning"
+    ],
+    "notInTaxonomy": []
+   },
+   {
+    "control": "SA-11(2)",
+    "printed": [
+     "NISTAML.013",
+     "NISTAML.022",
+     "NISTAML.05",
+     "NISTAML.051"
+    ],
+    "normalized": [
+     "NISTAML.013",
+     "NISTAML.022",
+     "NISTAML.05",
+     "NISTAML.051"
+    ],
+    "titles": [
+     "Data Poisoning",
+     "Evasion",
+     "Supply Chain Attacks",
+     "Model Poisoning"
+    ],
+    "notInTaxonomy": []
+   },
+   {
+    "control": "SA-15(1)",
+    "printed": [
+     "NISTAML.022"
+    ],
+    "normalized": [
+     "NISTAML.022"
+    ],
+    "titles": [
+     "Evasion"
+    ],
+    "notInTaxonomy": []
+   },
+   {
+    "control": "SA-15(8)",
+    "printed": [
+     "NISTAML.022"
+    ],
+    "normalized": [
+     "NISTAML.022"
+    ],
+    "titles": [
+     "Evasion"
+    ],
+    "notInTaxonomy": []
+   },
+   {
+    "control": "SC-5(3)",
+    "printed": [
+     "NISTAML.031"
+    ],
+    "normalized": [
+     "NISTAML.031"
+    ],
+    "titles": [
+     "Model Extraction"
+    ],
+    "notInTaxonomy": []
+   },
+   {
+    "control": "SC-7(10)",
+    "printed": [
+     "NISTAML.03",
+     "NISTAML.031",
+     "NISTAML.032",
+     "NISTAML.033",
+     "NISTAML.034"
+    ],
+    "normalized": [
+     "NISTAML.03",
+     "NISTAML.031",
+     "NISTAML.032",
+     "NISTAML.033",
+     "NISTAML.034"
+    ],
+    "titles": [
+     "Privacy Compromises",
+     "Model Extraction",
+     "Reconstruction",
+     "Membership Inference",
+     "Property Inference"
+    ],
+    "notInTaxonomy": []
+   },
+   {
+    "control": "SI-3(8)",
+    "printed": [
+     "NISTAML.026"
+    ],
+    "normalized": [
+     "NISTAML.026"
+    ],
+    "titles": [
+     "Model Poisoning"
+    ],
+    "notInTaxonomy": []
+   },
+   {
+    "control": "SI-4(2)",
+    "printed": [
+     "NISTAML.031"
+    ],
+    "normalized": [
+     "NISTAML.031"
+    ],
+    "titles": [
+     "Model Extraction"
+    ],
+    "notInTaxonomy": []
+   }
+  ],
+  "distinctAttackIds": [
+   "NISTAML.03",
+   "NISTAML.05",
+   "NISTAML.011",
+   "NISTAML.013",
+   "NISTAML.022",
+   "NISTAML.024",
+   "NISTAML.026",
+   "NISTAML.031",
+   "NISTAML.032",
+   "NISTAML.033",
+   "NISTAML.034",
+   "NISTAML.051"
+  ],
+  "phaseAgreement": [
+   {
+    "id": "AC-6",
+    "summaryTable": [
+     "Continuous"
+    ],
+    "annotation": [
+     "Continuous"
+    ],
+    "agrees": true
+   },
+   {
+    "id": "CM-2",
+    "summaryTable": [
+     "Model Training",
+     "Model Maintenance"
+    ],
+    "annotation": [
+     "Model Training",
+     "Model Maintenance"
+    ],
+    "agrees": true
+   },
+   {
+    "id": "CM-4",
+    "summaryTable": [
+     "Model Training",
+     "Model Maintenance",
+     "Continuous"
+    ],
+    "annotation": [
+     "Continuous"
+    ],
+    "agrees": false
+   },
+   {
+    "id": "RA-5",
+    "summaryTable": [
+     "Continuous"
+    ],
+    "annotation": [
+     "Continuous"
+    ],
+    "agrees": true
+   },
+   {
+    "id": "SA-11(2)",
+    "summaryTable": [
+     "Model Training",
+     "Model Deployment"
+    ],
+    "annotation": [
+     "Model Training",
+     "Model Deployment"
+    ],
+    "agrees": true
+   },
+   {
+    "id": "SA-15(1)",
+    "summaryTable": [
+     "Model Training",
+     "Model Deployment"
+    ],
+    "annotation": [
+     "Model Training",
+     "Model Deployment"
+    ],
+    "agrees": true
+   },
+   {
+    "id": "SA-15(8)",
+    "summaryTable": [
+     "Model Training",
+     "Model Deployment"
+    ],
+    "annotation": [
+     "Model Training",
+     "Model Deployment",
+     "Model Maintenance"
+    ],
+    "agrees": false
+   },
+   {
+    "id": "SC-5(3)",
+    "summaryTable": [
+     "Model Deployment",
+     "Model Maintenance"
+    ],
+    "annotation": [
+     "Model Deployment",
+     "Model Maintenance"
+    ],
+    "agrees": true
+   },
+   {
+    "id": "SC-7(10)",
+    "summaryTable": [
+     "Model Deployment",
+     "Model Maintenance"
+    ],
+    "annotation": [
+     "Model Deployment",
+     "Model Maintenance"
+    ],
+    "agrees": true
+   },
+   {
+    "id": "SI-3(8)",
+    "summaryTable": [
+     "Continuous"
+    ],
+    "annotation": [
+     "Continuous"
+    ],
+    "agrees": true
+   },
+   {
+    "id": "SI-4(2)",
+    "summaryTable": [
+     "Continuous"
+    ],
+    "annotation": [
+     "Continuous"
+    ],
+    "agrees": true
+   }
+  ],
+  "tailoringAgreement": [
+   {
+    "id": "AC-6",
+    "summaryTable": {
+     "controlRequirement": false,
+     "organizationDefinedParameter": false,
+     "discussion": true
+    },
+    "annotationSections": [
+     "Discussion"
+    ],
+    "agrees": true
+   },
+   {
+    "id": "CM-2",
+    "summaryTable": {
+     "controlRequirement": false,
+     "organizationDefinedParameter": false,
+     "discussion": true
+    },
+    "annotationSections": [
+     "Discussion"
+    ],
+    "agrees": true
+   },
+   {
+    "id": "CM-4",
+    "summaryTable": {
+     "controlRequirement": false,
+     "organizationDefinedParameter": false,
+     "discussion": true
+    },
+    "annotationSections": [
+     "Discussion"
+    ],
+    "agrees": true
+   },
+   {
+    "id": "RA-5",
+    "summaryTable": {
+     "controlRequirement": false,
+     "organizationDefinedParameter": true,
+     "discussion": true
+    },
+    "annotationSections": [
+     "Discussion",
+     "Organization-Defined Parameters"
+    ],
+    "agrees": true
+   },
+   {
+    "id": "SA-11(2)",
+    "summaryTable": {
+     "controlRequirement": false,
+     "organizationDefinedParameter": false,
+     "discussion": true
+    },
+    "annotationSections": [
+     "Discussion"
+    ],
+    "agrees": true
+   },
+   {
+    "id": "SA-15(1)",
+    "summaryTable": {
+     "controlRequirement": false,
+     "organizationDefinedParameter": false,
+     "discussion": true
+    },
+    "annotationSections": [
+     "Discussion"
+    ],
+    "agrees": true
+   },
+   {
+    "id": "SA-15(8)",
+    "summaryTable": {
+     "controlRequirement": false,
+     "organizationDefinedParameter": false,
+     "discussion": true
+    },
+    "annotationSections": [
+     "Discussion"
+    ],
+    "agrees": true
+   },
+   {
+    "id": "SC-5(3)",
+    "summaryTable": {
+     "controlRequirement": false,
+     "organizationDefinedParameter": false,
+     "discussion": true
+    },
+    "annotationSections": [
+     "Discussion"
+    ],
+    "agrees": true
+   },
+   {
+    "id": "SC-7(10)",
+    "summaryTable": {
+     "controlRequirement": false,
+     "organizationDefinedParameter": false,
+     "discussion": true
+    },
+    "annotationSections": [
+     "Discussion"
+    ],
+    "agrees": true
+   },
+   {
+    "id": "SI-3(8)",
+    "summaryTable": {
+     "controlRequirement": false,
+     "organizationDefinedParameter": false,
+     "discussion": true
+    },
+    "annotationSections": [
+     "Discussion"
+    ],
+    "agrees": true
+   },
+   {
+    "id": "SI-4(2)",
+    "summaryTable": {
+     "controlRequirement": false,
+     "organizationDefinedParameter": false,
+     "discussion": true
+    },
+    "annotationSections": [
+     "Discussion"
+    ],
+    "agrees": true
+   }
+  ],
+  "unmarkedCheckboxRows": []
+ },
+ "anomalies": [
+  {
+   "control": "SC-7(10)",
+   "problem": "attack id printed as 'NISTAML.034)'; trailing punctuation dropped"
+  }
+ ],
+ "lineJoins": [
+  {
+   "context": "use case 1 scenario A",
+   "end": "th supporting infrastructure: Retrieval-",
+   "next": "augmented generation (RAG) with propriet"
+  },
+  {
+   "context": "use case 2 description",
+   "end": "ity risks of using AI systems (e.g., on-",
+   "next": "premises or third-party hosted AI model,"
+  },
+  {
+   "context": "use case 2 scenario D",
+   "end": "to interview/hire based on organization-",
+   "next": "defined criteria) and updated with refin"
+  },
+  {
+   "context": "use case 4 description",
+   "end": " protocols such as MCP or A2A for agent-",
+   "next": "to agent communication. For example, bas"
+  },
+  {
+   "context": "title",
+   "end": "for Securing AI Systems: Using and Fine-",
+   "next": "Tuning Predictive AI"
+  },
+  {
+   "context": "approach",
+   "end": " application of an on-premises or third-",
+   "next": "party hosted AI model, using propriety d"
+  },
+  {
+   "context": "annotation",
+   "end": "rage and build on existing organization-",
+   "next": "wide or system processes."
+  },
+  {
+   "context": "annotation",
+   "end": "the more they can extract” (NIST AI 100-",
+   "next": "2e2025, 3.3.2)"
+  }
+ ],
+ "outlineFootnotes": {
+  "1": {
+   "text": "NIST intends to revisit this assumption and revise as needed based on workshop and written feedback.",
+   "page": 3
+  },
+  "2": {
+   "text": "The selected controls are tailored for each use case; organizations consider the need to further refine based on their own implementation.",
+   "page": 3
+  },
+  "3": {
+   "text": "The use cases has been updated from the Concept Paper to use a two use cases for both on-premises and third-party models and proprietary and public-facing input data instead of four.",
+   "page": 3
+  },
+  "4": {
+   "text": "Note that this is the narrative structure proposed for the NISTIR document series to facilitate ease of review and providing feedback. When the NISTIR series is finalized, the overlays will be released in different data formats to facilitate ease of use.",
+   "page": 4
+  }
+ },
+ "conceptPaperFootnotes": {
+  "1": {
+   "text": "As the Cybersecurity Framework Profile for AI effort progresses, NIST will engage with that community of interest to identify how the control overlays may impact the profile’s cybersecurity outcomes and vice versa to ensure that both the Profile and overlay provide complementary guidelines for organizations.",
+   "page": 1
+  },
+  "2": {
+   "text": "Per [OMB Circular A-130], “The safeguards or countermeasures prescribed for an information system or an organization to protect the confidentiality, integrity, and availability of the system and its information or compliance with applicable privacy requirements and manage privacy risks.”",
+   "page": 1
+  },
+  "4": {
+   "text": "The AI RMF addresses additional risk and trustworthiness considerations (e.g., validity, reliability, safety, accountability, transparency, explainability, interpretability, privacy-enhanced, fair) that are beyond the scope of SP 800-53 security and privacy controls. The series of control overlays can be used in conjunction with the AI RMF for a holistic approach to AI risk management.",
+   "page": 3
+  }
+ }
+}

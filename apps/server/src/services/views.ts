@@ -6,6 +6,7 @@ import { codeOf, frameworkOf, groupStatus, type FrameworkGraph, type Requirement
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { CORPUS_DIR, FRAMEWORK_ORDER } from "@visua/frameworks";
+import { overlayLevelFor, overlayLevels } from "./overlays.ts";
 import type { VisuaService } from "./visua.ts";
 
 export interface LeanNode {
@@ -103,6 +104,23 @@ export async function nodeDetail(svc: VisuaService, ws: Workspace, node: Require
       ? { id: doc.id, title: doc.title, identifier: doc.identifier, path: doc.path, url: doc.url, page: node.citation.page, locator: node.citation.locator, present: existsSync(resolve(CORPUS_DIR, doc.path)) }
       : null,
     contentNotice: svc.registry.framework(node.frameworkId)?.graph.framework.contentNotice,
+    overlays: svc.registry.overlaysOf(node.id).map(({ overlay, entry }) => ({
+      id: overlay.id,
+      kind: overlay.kind,
+      shortName: overlay.shortName,
+      identifier: overlay.identifier,
+      status: overlay.status,
+      documentId: overlay.documentId,
+      notice: overlay.notice,
+      lenses: overlay.lenses?.map((l) => ({ id: l.id, short: l.short, title: l.title })),
+      priorityLevels: overlay.priorityLevels?.map((p) => ({ level: p.level, label: p.label })),
+      adoption: svc.frameworkSettings(ws, overlay.frameworkId)?.overlays?.find((a) => a.overlayId === overlay.id) ?? null,
+      source: (() => {
+        const d = svc.registry.documents.get(overlay.documentId);
+        return d ? { path: d.path, title: d.title, present: existsSync(resolve(CORPUS_DIR, d.path)) } : null;
+      })(),
+      entry,
+    })),
   };
 }
 
@@ -116,6 +134,10 @@ export async function frameworkState(svc: VisuaService, ws: Workspace, framework
   ]);
   const openTasks = new Map<string, number>();
   for (const t of tasks) if (t.status !== "done") for (const id of t.requirementIds) openTasks.set(id, (openTasks.get(id) ?? 0) + 1);
+  // The framework's overlay, if any, drives the Observatory's overlay lens.
+  const overlay = svc.registry.overlays.find((o) => o.frameworkId === frameworkId);
+  const adoption = overlay ? svc.frameworkSettings(ws, frameworkId)?.overlays?.find((a) => a.overlayId === overlay.id) : undefined;
+  const overlayLenses = overlay ? (adoption?.lenses ?? overlay.lenses?.map((l) => l.id) ?? []) : [];
   const evidenceCount = new Map<string, number>();
   for (const e of evidence) if (e.status === "accepted") for (const id of e.requirementIds) evidenceCount.set(id, (evidenceCount.get(id) ?? 0) + 1);
   return {
@@ -136,9 +158,20 @@ export async function frameworkState(svc: VisuaService, ws: Workspace, framework
           openTasks: openTasks.get(s.nodeId) ?? 0,
           evidence: evidenceCount.get(s.nodeId) ?? 0,
           mapped: svc.registry.crosswalk.related(s.nodeId).length,
+          overlay: overlay ? overlayLevelFor(overlay, s.nodeId, overlayLenses) : undefined,
         },
       ]),
     ),
+    overlay: overlay
+      ? {
+          id: overlay.id,
+          shortName: overlay.shortName,
+          status: overlay.status,
+          adopted: !!adoption,
+          lenses: overlayLenses.map((id) => overlay.lenses?.find((l) => l.id === id)?.short ?? id),
+          levels: overlayLevels(overlay),
+        }
+      : null,
   };
 }
 

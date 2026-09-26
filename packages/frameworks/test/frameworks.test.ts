@@ -133,3 +133,43 @@ describe("identifier normalization", () => {
     expect(normalizeAicpa80053("SA-08(21)")).toBe("SA-8(21)");
   });
 });
+
+// Runs when the AI overlays are ingested (packages/frameworks/data/overlays/).
+describe.skipIf(!registry.overlay("nist-ir-8596-iprd"))("AI security overlays (NIST drafts)", () => {
+  it("Cyber AI Profile (IR 8596 iprd): all 106 CSF subcategories with a priority for each focus area", () => {
+    const o = registry.overlay("nist-ir-8596-iprd")!;
+    expect(o.frameworkId).toBe("nist-csf-2.0");
+    expect(o.status).toBe("initial preliminary draft");
+    expect(o.entries).toHaveLength(106);
+    expect(o.lenses?.map((l) => l.id)).toEqual(["secure", "defend", "thwart"]);
+    const count = (lens: string, p: number) => o.entries.filter((e) => e.lenses?.[lens]?.priority === p).length;
+    // Proposed priorities as printed in Tables 1–6: 1 High, 2 Moderate, 3 Foundational.
+    expect([1, 2, 3].map((p) => count("secure", p))).toEqual([23, 33, 50]);
+    expect([1, 2, 3].map((p) => count("defend", p))).toEqual([28, 43, 35]);
+    expect([1, 2, 3].map((p) => count("thwart", p))).toEqual([24, 44, 38]);
+    const csf = registry.framework("nist-csf-2.0")!;
+    expect(new Set(o.entries.map((e) => e.nodeId))).toEqual(new Set(csf.assessable.map((n) => n.id)));
+    expect(o.entries.every((e) => e.citation.documentId === "nist-ir-8596-iprd" && (e.citation.page ?? 0) >= 25)).toBe(true);
+    // Its example informative references include MITRE ATLAS mitigations and the OWASP LLM Top 10.
+    const refs = o.entries.flatMap((e) => e.refs);
+    expect(refs.some((r) => r.scheme === "atlas" && /^AML\.M\d{4}$/.test(r.id ?? ""))).toBe(true);
+    expect(refs.some((r) => r.scheme === "owasp-llm" && r.id === "LLM03")).toBe(true);
+  });
+
+  it("COSAiS predictive-AI overlay (annotated outline): 59 SP 800-53 controls, 11 annotated", () => {
+    const o = registry.overlay("nist-cosais-predictive-ai")!;
+    expect(o.frameworkId).toBe("nist-sp-800-53-r5");
+    expect(o.entries).toHaveLength(59);
+    const annotated = o.entries.filter((e) => e.control?.annotated);
+    expect(annotated.map((e) => e.nodeId.split(":")[1])).toEqual(["AC-6", "CM-2", "CM-4", "RA-5", "SA-11(2)", "SA-15(1)", "SA-15(8)", "SC-5(3)", "SC-7(10)", "SI-3(8)", "SI-4(2)"]);
+    for (const e of o.entries) expect(registry.node(e.nodeId)?.frameworkId, e.nodeId).toBe("nist-sp-800-53-r5");
+    expect(o.scope?.lifecyclePhases).toEqual(["Model Training", "Model Deployment", "Model Maintenance", "Continuous"]);
+    expect(annotated.every((e) => e.control?.attackIds?.every((id) => /^NISTAML\.\d{2,3}$/.test(id)) ?? true)).toBe(true);
+  });
+
+  it("indexes overlay entries by node", () => {
+    const at = registry.overlaysOf("nist-sp-800-53-r5:AC-6").map((x) => x.overlay.id);
+    expect(at).toContain("nist-cosais-predictive-ai");
+    expect(registry.overlaysOf("nist-csf-2.0:GV.OC-01").map((x) => x.overlay.id)).toContain("nist-ir-8596-iprd");
+  });
+});

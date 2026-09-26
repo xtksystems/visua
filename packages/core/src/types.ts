@@ -5,6 +5,7 @@
  * normalized into the same *framework graph* shape so that scoring, planning,
  * crosswalks, agents and the 3D Observatory work identically across them.
  */
+import type { OverlayAdoption } from "./overlays.ts";
 
 import type { TierAssessment } from "./tiers.ts";
 
@@ -218,7 +219,7 @@ export interface RmfSettings {
   baseline?: "low" | "moderate" | "high";
   privacyBaseline?: boolean;
   /** Controls added (+) or removed (−) by tailoring, with rationale. */
-  tailoring: { nodeId: string; action: "add" | "remove"; rationale: string }[];
+  tailoring: { nodeId: string; action: "add" | "remove"; rationale: string; /** Set when an adopted overlay made the decision. */ source?: string }[];
   authorization?: {
     decision: "ato" | "iatt" | "dato" | "pending";
     authorizingOfficial?: string;
@@ -266,6 +267,8 @@ export interface WorkspaceFramework {
   soc2?: Soc2Settings;
   rmf?: RmfSettings;
   ai?: AiRmfSettings;
+  /** Overlays (community profiles, control overlays) adopted on this framework. */
+  overlays?: OverlayAdoption[];
 }
 
 export interface Workspace {

@@ -202,6 +202,47 @@ describe.skipIf(!registry.framework("nist-ai-rmf"))("AI governance (NIST AI RMF)
   });
 });
 
+// Runs when the AI overlays are ingested (packages/frameworks/data/overlays/).
+describe.skipIf(!registry.overlay("nist-ir-8596-iprd"))("AI security overlays: Cyber AI Profile and COSAiS (drafts)", () => {
+  type LensSummary = { id: string; selected: boolean; byPriority: { level: number; count: number }[] };
+  it("adopts the Cyber AI Profile for chosen focus areas and raises CSF priorities to its High priorities", async () => {
+    const adopted = await api<{ adoption: { lenses: string[] }; lenses: LensSummary[]; high: { count: number }; raisable: number }>("PUT", `/api/workspaces/${wsId}/overlays/nist-ir-8596-iprd`, { lenses: ["secure"] });
+    expect(adopted.status).toBe(200);
+    expect(adopted.json.adoption.lenses).toEqual(["secure"]);
+    expect(adopted.json.lenses.find((l) => l.id === "secure")?.byPriority.map((p) => p.count)).toEqual([23, 33, 50]);
+    expect(adopted.json.high.count).toBe(23);
+    const applied = await api<{ raised: number }>("POST", `/api/workspaces/${wsId}/overlays/nist-ir-8596-iprd/apply-priorities`);
+    expect(applied.json.raised).toBeGreaterThan(0);
+    expect(applied.json.raised).toBe(adopted.json.raisable);
+    // The Observatory's overlay lens and the inspector read the same entries.
+    const state = await api<{ overlay: { adopted: boolean; lenses: string[] }; units: Record<string, { overlay?: number; priority: string }> }>("GET", `/api/workspaces/${wsId}/frameworks/nist-csf-2.0/state`);
+    expect(state.json.overlay).toMatchObject({ adopted: true, lenses: ["Secure"] });
+    const high = Object.values(state.json.units).filter((u) => u.overlay === 1);
+    expect(high).toHaveLength(23);
+    expect(high.every((u) => u.priority === "high" || u.priority === "critical")).toBe(true);
+    const detail = await api<{ overlays: { id: string; status: string; entry: { lenses: Record<string, { priority: number }> } }[] }>("GET", `/api/workspaces/${wsId}/requirements/nist-csf-2.0:GV.OC-01`);
+    expect(detail.json.overlays[0]).toMatchObject({ id: "nist-ir-8596-iprd", status: "initial preliminary draft" });
+    expect(detail.json.overlays[0]!.entry.lenses["secure"]!.priority).toBe(3);
+    const activity = await api<{ summary: string }[]>("GET", `/api/workspaces/${wsId}/activity?limit=5`);
+    expect(activity.json.some((a) => a.summary.startsWith("Cyber AI Profile: raised the priority"))).toBe(true);
+  });
+
+  it("brings COSAiS controls into SP 800-53 scope on adoption, and out again when dropped", async () => {
+    const before = (await api<{ frameworks: { id: string; total: number }[] }>("GET", `/api/workspaces/${wsId}`)).json.frameworks.find((f) => f.id === "nist-sp-800-53-r5")!.total;
+    const adopted = await api<{ controls: { nodeId: string; applicable: boolean; addedByOverlay: boolean }[] }>("PUT", `/api/workspaces/${wsId}/overlays/nist-cosais-predictive-ai`, {});
+    expect(adopted.status).toBe(200);
+    const added = adopted.json.controls.filter((c) => c.addedByOverlay);
+    expect(added.length).toBeGreaterThan(0);
+    expect(adopted.json.controls.every((c) => c.applicable || c.nodeId === "nist-sp-800-53-r5:PE-3")).toBe(true);
+    const during = (await api<{ frameworks: { id: string; total: number }[] }>("GET", `/api/workspaces/${wsId}`)).json.frameworks.find((f) => f.id === "nist-sp-800-53-r5")!.total;
+    expect(during).toBe(before + added.length);
+    const dropped = await api("DELETE", `/api/workspaces/${wsId}/overlays/nist-cosais-predictive-ai`);
+    expect(dropped.status).toBe(200);
+    const after = (await api<{ frameworks: { id: string; total: number }[] }>("GET", `/api/workspaces/${wsId}`)).json.frameworks.find((f) => f.id === "nist-sp-800-53-r5")!.total;
+    expect(after).toBe(before);
+  });
+});
+
 describe("agents (offline playbooks) with human-in-the-loop proposals", () => {
   const run = async (agent: string, goal: string, input: Record<string, unknown> = {}) =>
     (await api<{ status: string; mode: string; summary: string; steps: { type: string }[]; proposals: { id: string; type: string; status: string }[] }>("POST", `/api/workspaces/${wsId}/runs?wait=1`, { agent, goal, input })).json;

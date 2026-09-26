@@ -12,6 +12,7 @@ import { api, exportUrl } from "../lib/api.ts";
 import { useCan } from "../lib/auth.ts";
 import { shortDate } from "../lib/format.ts";
 import { useFrameworkState, useGraph, useMeta, useWorkspace, useWsMutation } from "../lib/queries.ts";
+import { CosaisPanel } from "../components/overlays/OverlayPanels.tsx";
 
 const LEVELS: ImpactLevel[] = ["low", "moderate", "high"];
 const IMPACT_COLOR: Record<ImpactLevel, string> = { low: "var(--color-status-implemented)", moderate: "var(--color-status-in-progress)", high: "var(--color-status-at-risk)" };
@@ -174,7 +175,12 @@ function Tailoring({ ws, rmf }: { ws: string; rmf: RmfSettings }) {
         <h2>Select & tailor · SP 800-53B</h2>
       </div>
       <div className="stack" style={{ gap: 8 }}>
-        {rmf.tailoring.map((t) => (
+        {rmf.tailoring.some((t) => t.source) && (
+          <div className="muted" style={{ fontSize: 13 }}>
+            + {rmf.tailoring.filter((t) => t.source).length} control(s) added by an adopted AI overlay (see COSAiS below)
+          </div>
+        )}
+        {rmf.tailoring.filter((t) => !t.source).map((t) => (
           <div key={t.nodeId} className="row" style={{ gap: 8, fontSize: 13 }}>
             <CodeTag id={t.nodeId} />
             <span className="mono" style={{ fontSize: 11, color: t.action === "add" ? "var(--color-status-implemented)" : "var(--color-status-in-progress)" }}>
@@ -188,7 +194,7 @@ function Tailoring({ ws, rmf }: { ws: string; rmf: RmfSettings }) {
             </button>
           </div>
         ))}
-        {!rmf.tailoring.length && <div className="muted" style={{ fontSize: 13 }}>No tailoring decisions yet — the {rmf.baseline?.toUpperCase()} baseline applies as published.</div>}
+        {!rmf.tailoring.some((t) => !t.source) && <div className="muted" style={{ fontSize: 13 }}>No tailoring decisions yet — the {rmf.baseline?.toUpperCase()} baseline applies as published.</div>}
       </div>
       <form
         className="row row--wrap"
@@ -323,6 +329,7 @@ export function RmfPage() {
             <Authorize ws={ws} rmf={settings} />
           </div>
         </div>
+        <CosaisPanel ws={ws} />
         <div className="panel">
           <div className="panel__head">
             <h2>Implement & assess · control families</h2>

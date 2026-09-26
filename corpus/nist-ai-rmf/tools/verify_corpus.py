@@ -69,7 +69,8 @@ def main():
     for p in ROOT.rglob("*"):
         rel = p.relative_to(ROOT).as_posix()
         if p.is_file() and not rel.startswith("tools/") and rel not in listed and rel not in (
-                "manifest.json", "STRUCTURE.md", "ai-rmf-core.json", "ai-rmf-playbook.json", "genai-profile.json"):
+                "manifest.json", "STRUCTURE.md", "ai-rmf-core.json", "ai-rmf-playbook.json", "genai-profile.json",
+                "cyber-ai-profile.json", "cosais.json"):
             errors.append(f"UNLISTED {rel}")
     # structured extractions
     core = json.loads((ROOT / "ai-rmf-core.json").read_text(encoding="utf-8"))
@@ -89,6 +90,22 @@ def main():
         errors.append(f"genai-profile.json: {len(gen['risks'])} risks / {len(gen['actions'])} actions (expected 12 / 212)")
     print(f"functions/categories/subcategories {counts}; playbook entries {len(pb['entries'])}; "
           f"GenAI risks {len(gen['risks'])}, actions {len(gen['actions'])}")
+    # draft extractions (Cyber AI Profile iprd, COSAiS pre-drafts): source hashes and extracted counts
+    cai = json.loads((ROOT / "cyber-ai-profile.json").read_text(encoding="utf-8"))
+    if cai["source"]["sha256"] != by_id[cai["source"]["documentId"]]["sha256"]:
+        errors.append("cyber-ai-profile.json: source.sha256 does not match manifest")
+    pri = [e["focus"][fa]["priority"] for e in cai["entries"] for fa in ("secure", "defend", "thwart")]
+    if len(cai["entries"]) != 106 or len({e["subcategory"] for e in cai["entries"]}) != 106 or None in pri:
+        errors.append(f"cyber-ai-profile.json: {len(cai['entries'])} entries (expected 106, one per CSF 2.0 subcategory, all priorities parsed)")
+    cos = json.loads((ROOT / "cosais.json").read_text(encoding="utf-8"))
+    for s in cos["sources"]:
+        if s["sha256"] != by_id[s["documentId"]]["sha256"]:
+            errors.append(f"cosais.json: source {s['documentId']} sha256 does not match manifest")
+    ctl = cos["overlays"][0]["controls"]
+    if len(cos["plannedOverlays"]) != 5 or len(ctl) != 59 or sum(c["annotated"] for c in ctl) != 11:
+        errors.append(f"cosais.json: {len(cos['plannedOverlays'])} planned overlays / {len(ctl)} controls (expected 5 / 59 with 11 annotated)")
+    print(f"Cyber AI Profile entries {len(cai['entries'])}, priorities {len(pri)}; COSAiS planned overlays "
+          f"{len(cos['plannedOverlays'])}, predictive-AI overlay controls {len(ctl)}")
     for e in errors:
         print("ERROR", e)
     print("OK" if not errors else f"{len(errors)} error(s)")

@@ -14,6 +14,7 @@ import { api, exportUrl } from "../lib/api.ts";
 import { truncate } from "../lib/format.ts";
 import { useMeta, useWorkspace, useWsMutation } from "../lib/queries.ts";
 import { DATA_TYPES } from "./SettingsPage.tsx";
+import { CyberAiProfilePanel } from "../components/overlays/OverlayPanels.tsx";
 
 const AI_RMF = "nist-ai-rmf";
 
@@ -363,6 +364,7 @@ export function AiPage() {
             </table>
           </div>
         )}
+        <CyberAiProfilePanel ws={ws} />
         {data.framework.contentNotice && <p className="muted" style={{ fontSize: 12 }}>{data.framework.contentNotice}</p>}
       </div>
     </div>

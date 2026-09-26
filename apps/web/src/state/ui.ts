@@ -1,7 +1,7 @@
 /** Client UI state: selection, lens, view mode, panels. */
 import { create } from "zustand";
 
-export type Lens = "status" | "gap" | "evidence" | "priority" | "crosswalk";
+export type Lens = "status" | "gap" | "evidence" | "priority" | "crosswalk" | "overlay";
 export type ViewMode = "constellation" | "terrain";
 
 interface UiState {
@@ -28,7 +28,7 @@ interface UiState {
   closePalette: () => void;
 }
 
-export const LENSES: Lens[] = ["status", "gap", "evidence", "priority", "crosswalk"];
+export const LENSES: Lens[] = ["status", "gap", "evidence", "priority", "crosswalk", "overlay"];
 
 export const useUi = create<UiState>((set, get) => ({
   selectedId: null,

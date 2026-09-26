@@ -12,6 +12,7 @@ import {
   codeOf,
   frameworkOf,
   newId,
+  overlayPriority,
   planTasks,
   recommend,
   scoreFramework,
@@ -26,6 +27,7 @@ import {
   type CheckResult,
   type Connector,
   type Evidence,
+  type FrameworkOverlay,
   type FrameworkScore,
   type OrganizationProfile,
   type Policy,
@@ -502,6 +504,105 @@ export class VisuaService {
       const tailoring = settings.rmf.tailoring.filter((t) => t.nodeId !== node.id);
       if (action !== "reset") tailoring.push({ nodeId: node.id, action, rationale });
       return this.enableFramework(ws.id, "nist-sp-800-53-r5", { rmf: { ...settings.rmf, tailoring } }, actor);
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // Overlays: community profiles and control overlays on enabled frameworks
+  // -------------------------------------------------------------------------
+
+  private overlayOrThrow(overlayId: string): FrameworkOverlay {
+    const overlay = this.registry.overlay(overlayId);
+    if (!overlay) throw new NotFoundError(`Overlay '${overlayId}' not found`);
+    return overlay;
+  }
+
+  /**
+   * Adopt an overlay. A community profile records the focus areas (lenses) the
+   * workspace follows. A control overlay brings its controls into the SP 800-53
+   * scope through tailoring entries marked with the overlay as their source; a
+   * person's own tailoring decision on the same control always stands.
+   */
+  async adoptOverlay(id: string, overlayId: string, input: { lenses?: string[] }, actor = "user"): Promise<Workspace> {
+    const overlay = this.overlayOrThrow(overlayId);
+    return this.mutate(id, async (ws) => {
+      const settings = this.frameworkSettings(ws, overlay.frameworkId);
+      if (!settings?.enabled) throw new ValidationError(`Enable ${this.registry.framework(overlay.frameworkId)?.graph.framework.shortName ?? overlay.frameworkId} before adopting ${overlay.shortName}`);
+      const known = new Set(overlay.lenses?.map((l) => l.id) ?? []);
+      const lenses = overlay.kind === "community-profile" ? [...new Set(input.lenses?.length ? input.lenses : [...known])] : undefined;
+      if (lenses?.some((l) => !known.has(l))) throw new ValidationError(`Unknown focus area — choose from ${[...known].join(", ")}`);
+      const previous = settings.overlays?.find((a) => a.overlayId === overlayId);
+      const adoption = { overlayId, ...(lenses ? { lenses } : {}), adoptedAt: previous?.adoptedAt ?? now(), adoptedBy: previous?.adoptedBy ?? actor };
+      const overlays = [...(settings.overlays ?? []).filter((a) => a.overlayId !== overlayId), adoption];
+      let added = 0;
+      let next: Workspace;
+      if (overlay.kind === "control-overlay" && settings.rmf) {
+        const tailoring = settings.rmf.tailoring.filter((t) => t.source !== overlayId);
+        const decided = new Set(tailoring.map((t) => t.nodeId));
+        const probe: Workspace = { ...ws, frameworks: ws.frameworks.map((f) => (f.frameworkId === overlay.frameworkId ? { ...f, rmf: { ...settings.rmf!, tailoring } } : f)) };
+        for (const e of overlay.entries) {
+          if (decided.has(e.nodeId) || this.scopeOf(probe, e.nodeId).applicable) continue;
+          tailoring.push({ nodeId: e.nodeId, action: "add", rationale: `Selected by the ${overlay.shortName} overlay (${overlay.status}, ${overlay.identifier})`, source: overlayId });
+          added++;
+        }
+        next = await this.enableFramework(ws.id, overlay.frameworkId, { rmf: { ...settings.rmf, tailoring }, overlays }, actor);
+      } else {
+        next = await this.enableFramework(ws.id, overlay.frameworkId, { overlays }, actor);
+      }
+      const lensNames = lenses?.map((l) => overlay.lenses?.find((x) => x.id === l)?.short ?? l).join(", ");
+      await this.log(
+        ws.id,
+        actor,
+        previous ? "updated" : "adopted",
+        "overlay",
+        overlayId,
+        `${previous ? "Updated" : "Adopted"} ${overlay.shortName} (${overlay.status})${lensNames ? ` — focus areas: ${lensNames}` : ""}${overlay.kind === "control-overlay" ? ` — ${added} control(s) brought into scope` : ""}`,
+      );
+      return next;
+    });
+  }
+
+  async dropOverlay(id: string, overlayId: string, actor = "user"): Promise<Workspace> {
+    const overlay = this.overlayOrThrow(overlayId);
+    return this.mutate(id, async (ws) => {
+      const settings = this.frameworkSettings(ws, overlay.frameworkId);
+      if (!settings?.overlays?.some((a) => a.overlayId === overlayId)) throw new ValidationError(`${overlay.shortName} is not adopted`);
+      const overlays = settings.overlays.filter((a) => a.overlayId !== overlayId);
+      const removed = settings.rmf?.tailoring.filter((t) => t.source === overlayId).length ?? 0;
+      const next = await this.enableFramework(ws.id, overlay.frameworkId, settings.rmf ? { overlays, rmf: { ...settings.rmf, tailoring: settings.rmf.tailoring.filter((t) => t.source !== overlayId) } } : { overlays }, actor);
+      await this.log(ws.id, actor, "dropped", "overlay", overlayId, `Stopped following ${overlay.shortName}${removed ? ` — ${removed} control(s) it had added left the scope` : ""}`);
+      return next;
+    });
+  }
+
+  /**
+   * Raise requirement priorities to the community profile's proposed priorities
+   * for the adopted focus areas (1 → high, 2 → at least medium). Never lowers a
+   * priority; one audited change.
+   */
+  async applyOverlayPriorities(id: string, overlayId: string, actor = "user"): Promise<{ raised: number }> {
+    const overlay = this.overlayOrThrow(overlayId);
+    if (overlay.kind !== "community-profile") throw new ValidationError(`${overlay.shortName} has no priorities`);
+    return this.mutate(id, async (ws) => {
+      const adoption = this.frameworkSettings(ws, overlay.frameworkId)?.overlays?.find((a) => a.overlayId === overlayId);
+      if (!adoption) throw new ValidationError(`Adopt ${overlay.shortName} first`);
+      const states = await this.store.states.map(ws.id, overlay.frameworkId);
+      const ts = now();
+      const changed: RequirementState[] = [];
+      for (const e of overlay.entries) {
+        const s = states.get(e.nodeId);
+        const p = overlayPriority(e, adoption.lenses ?? []);
+        if (!s || !s.applicable || p === undefined) continue;
+        const wanted: Priority | undefined = p === 1 ? "high" : p === 2 ? "medium" : undefined;
+        if (!wanted || maxPriority(s.priority, wanted) === s.priority) continue;
+        changed.push({ ...s, priority: wanted, updatedAt: ts, updatedBy: actor });
+      }
+      await this.store.states.putMany(ws.id, changed);
+      if (changed.length) this.emit(ws.id, "state.updated", { bulk: true, count: changed.length });
+      await this.log(ws.id, actor, "prioritized", "overlay", overlayId, `${overlay.shortName}: raised the priority of ${changed.length} requirement(s) to the profile's proposed priorities`, {
+        nodeIds: changed.map((c) => c.nodeId),
+      });
+      return { raised: changed.length };
     });
   }
 

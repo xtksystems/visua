@@ -167,6 +167,8 @@ export async function seedDemo(svc: VisuaService, auth?: AuthService): Promise<s
       actor,
     );
     await svc.tailorControl(ws.id, "nist-sp-800-53-r5:PE-3", "remove", "Physical access control is inherited from the cloud provider's data centers (carve-out).", actor);
+    // The no-show predictor is predictive AI: follow NIST's COSAiS overlay for it (pre-draft).
+    if (svc.registry.overlay("nist-cosais-predictive-ai")) await svc.adoptOverlay(ws.id, "nist-cosais-predictive-ai", {}, actor);
   }
 
   // RMF lifecycle: the demo system is prepared, categorized and has its baseline selected; implementation is under way.
@@ -237,6 +239,12 @@ export async function seedDemo(svc: VisuaService, auth?: AuthService): Promise<s
         updatedAt: daysFromNow(-8),
       };
     });
+  }
+
+  // Cyber AI Profile (draft): secure the AI systems Northwind deploys and thwart AI-enabled attacks.
+  if (svc.registry.overlay("nist-ir-8596-iprd")) {
+    await svc.adoptOverlay(ws.id, "nist-ir-8596-iprd", { lenses: ["secure", "thwart"] }, actor);
+    await svc.applyOverlayPriorities(ws.id, "nist-ir-8596-iprd", actor);
   }
 
   // Policies (approved ones become evidence automatically).
