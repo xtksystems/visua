@@ -480,6 +480,51 @@ describe("assessment guardrails: threat catalogs, enabled frameworks and scope",
   });
 });
 
+describe.skipIf(!registry.framework("us-state-ai-laws") || !registry.framework("mitre-atlas"))("Copilot on threats and state AI laws (offline)", () => {
+  let cw = "";
+  type Run = { status: string; summary: string; proposals: unknown[]; steps: { type: string; citations?: { documentId: string; page?: number }[] }[] };
+  const ask = async (goal: string) => (await api<Run>("POST", `/api/workspaces/${cw}/runs?wait=1`, { agent: "copilot", goal, input: {} })).json;
+  const cited = (r: Run) => r.steps.flatMap((s) => s.citations ?? []);
+  beforeAll(async () => {
+    const created = await api<{ workspace: { id: string } }>("POST", "/api/workspaces", {
+      name: "Copilot Co",
+      profile: { industry: "saas", size: "11-50", dataTypes: [], drivers: ["ai-systems"], environments: ["cloud"], maturityTier: 2, guidance: "guided", securityTeamSize: 2 },
+      frameworks: ["nist-csf-2.0", "nist-ai-rmf", "us-state-ai-laws"],
+    });
+    cw = created.json.workspace.id;
+  });
+
+  it("explains an ATLAS technique through the requirements publishers link to it, and proposes nothing", async () => {
+    const r = await ask("What is AML.T0051 and how are we covered?");
+    expect(r.status).toBe("completed");
+    expect(r.summary).toContain("AML.T0051");
+    expect(r.summary).toMatch(/Cyber AI Profile, draft/);
+    expect(r.summary).toMatch(/never assessed/);
+    expect(cited(r).some((c) => c.documentId.startsWith("mitre-atlas"))).toBe(true);
+    expect(r.proposals).toHaveLength(0);
+  });
+
+  it("answers a state-law obligation from the statute, with its section, page, dates and roles", async () => {
+    const r = await ask("What does CA-SB243-02 require?");
+    expect(r.summary).toContain("CA-SB243-02");
+    expect(r.summary).toContain("§ 22602(b)");
+    expect(r.summary).toMatch(/Applies to: operator/);
+    expect(r.summary).not.toContain("Related requirements");
+    expect(cited(r)).toContainEqual(expect.objectContaining({ documentId: "ca-sb243-ch677-2025", page: 3 }));
+  });
+
+  it("recognizes a law named in words, and a jurisdiction, but not a common word", async () => {
+    const colorado = await ask("Does the Colorado AI Act apply to us?");
+    expect(colorado.summary).toContain("CO-SB24-205");
+    expect(colorado.summary).toMatch(/\*developer\*/);
+    expect(cited(colorado).some((c) => c.documentId.startsWith("co-"))).toBe(true);
+    const jurisdiction = await ask("Colorado AI law");
+    for (const code of ["CO-SB24-205", "CO-SB26-189", "CO-HB26-1263"]) expect(jurisdiction.summary).toContain(code);
+    expect((await ask("What does TRAIGA require?")).summary).toContain("TX-TRAIGA-01");
+    expect((await ask("How do we raise our score?")).summary).not.toContain("NY-RAISE");
+  });
+});
+
 describe.skipIf(!registry.framework("us-state-ai-laws"))("state AI laws: dates decide what counts today", () => {
   const today = new Date().toISOString().slice(0, 10);
   const law = registry.framework("us-state-ai-laws")?.graph.nodes.find((n) => n.code === "CA-SB243");
@@ -667,6 +712,47 @@ describe("evidence, monitoring and exports", () => {
     expect(results.json.find((r) => r.checkId === "lockfile")?.outcome).toBe("pass");
     expect(results.json.find((r) => r.checkId === "secrets")?.outcome).toBe("pass");
     expect(results.json.some((r) => r.requirementIds.length > 0)).toBe(true);
+    // A person's run files each passing, linked check as machine-verified evidence.
+    for (const r of results.json.filter((x) => x.outcome === "pass" && x.requirementIds.length)) expect(r).toHaveProperty("evidenceId");
+  });
+
+  it("has an agent propose its passing checks as evidence, filed from the recorded check on approval", async () => {
+    const created = await api<{ workspace: { id: string } }>("POST", "/api/workspaces", {
+      name: "Checks Co",
+      profile: { industry: "saas", size: "11-50", dataTypes: [], drivers: [], environments: ["cloud"], maturityTier: 2, guidance: "guided", securityTeamSize: 2 },
+      frameworks: ["nist-csf-2.0"],
+    });
+    const cw = created.json.workspace.id;
+    await api("POST", `/api/workspaces/${cw}/connectors`, { kind: "repo-scan", config: { path: REPO_ROOT } });
+    type Evidence = { id: string; source: string; kind: string; status: string; reviewedBy?: string; sha256?: string; content?: string; requirementIds: string[] };
+    const evidence = async () => (await api<Evidence[]>("GET", `/api/workspaces/${cw}/evidence`)).json;
+    const before = (await evidence()).length;
+    const run = await api<{ proposals: { id: string; type: string; title: string; status: string; payload: { checkResultId?: string } }[] }>("POST", `/api/workspaces/${cw}/runs?wait=1`, { agent: "evidence-collector", goal: "Collect evidence", input: {} });
+    // The agent filed nothing itself: every passing check waits in the approvals inbox.
+    expect((await evidence()).length).toBe(before);
+    const proposed = run.json.proposals.filter((p) => p.type === "create-evidence" && p.payload.checkResultId);
+    expect(proposed.length).toBeGreaterThan(0);
+    expect(proposed.every((p) => p.status === "pending")).toBe(true);
+    // Edits on approval cannot change what the check observed or what it is linked to.
+    const decided = await api<{ status: string }>("POST", `/api/workspaces/${cw}/proposals/${proposed[0]!.id}/decision`, {
+      decision: "approved",
+      edits: { content: "Everything is perfect.", requirementIds: ["nist-csf-2.0:GV.OC-01"] },
+    });
+    expect(decided.json.status).toBe("applied");
+    const filed = (await evidence()).filter((e) => e.source === "connector");
+    expect(filed).toHaveLength(1);
+    expect(filed[0]).toMatchObject({ kind: "automated-check", status: "accepted" });
+    expect(filed[0]!.sha256).toHaveLength(64);
+    expect(filed[0]!.content).not.toBe("Everything is perfect.");
+    expect(filed[0]!.requirementIds).not.toContain("nist-csf-2.0:GV.OC-01");
+    expect(filed[0]!.reviewedBy).not.toMatch(/^(agent|system)/);
+    // A check is filed once, and a later run does not propose a check whose evidence is still current.
+    const input = { type: "create-evidence" as const, title: "again", rationale: "again", payload: { checkResultId: proposed[0]!.payload.checkResultId }, citations: [], confidence: "high" as const, nodeIds: [] };
+    await expect(svc.createProposal(cw, "run_again", input)).rejects.toThrow(/already filed/);
+    const rerun = await api<{ proposals: { type: string; title: string }[] }>("POST", `/api/workspaces/${cw}/runs?wait=1`, { agent: "evidence-collector", goal: "Collect evidence", input: {} });
+    const titles = rerun.json.proposals.filter((p) => p.type === "create-evidence").map((p) => p.title);
+    expect(titles).not.toContain(proposed[0]!.title);
+    expect(titles.length).toBe(proposed.length - 1);
   });
 
   it("records a failed connector run in the audit trail", async () => {

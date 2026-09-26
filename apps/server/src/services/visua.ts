@@ -1222,7 +1222,12 @@ export class VisuaService {
     return ids;
   }
 
-  async runConnector(workspaceId: string, connectorId: string, actor = "user"): Promise<CheckResult[]> {
+  /**
+   * Run a connector and record its checks. A person's run files each passing check as
+   * accepted, machine-verified evidence; an agent's run (`fileEvidence: false`) only
+   * records the checks, and the agent proposes the evidence (see `evidenceFromCheck`).
+   */
+  async runConnector(workspaceId: string, connectorId: string, actor = "user", opts: { fileEvidence?: boolean } = {}): Promise<CheckResult[]> {
     const ws = await this.workspace(workspaceId);
     const connector = await this.store.connectors.get(connectorId);
     if (!connector || connector.workspaceId !== ws.id) throw new NotFoundError(`Connector '${connectorId}' not found`);
@@ -1256,34 +1261,54 @@ export class VisuaService {
       }));
       for (const r of results) await this.store.checks.put(r, observedAt);
       // Passing checks are machine-verified evidence, valid for 30 days.
-      for (const r of results.filter((x) => x.outcome === "pass" && x.requirementIds.length)) {
-        const ev = await this.createEvidence(
-          ws.id,
-          {
-            title: `${connector.name}: ${r.title}`,
-            kind: "automated-check",
-            source: "connector",
-            connectorId: connector.id,
-            requirementIds: r.requirementIds,
-            status: "accepted",
-            reviewedBy: "system:connector",
-            reviewedAt: observedAt,
-            collectedAt: observedAt,
-            validUntil: new Date(Date.now() + 30 * 86_400_000).toISOString(),
-            content: r.detail,
-            data: { checkId: r.checkId, observed: r.observed, automation: "api-automated" },
-            sha256: createHash("sha256").update(canonical({ checkId: r.checkId, observed: r.observed, observedAt })).digest("hex"),
-          },
-          `connector:${connector.kind}`,
-        );
-        r.evidenceId = ev.id;
-        await this.store.checks.put(r, observedAt);
-      }
+      if (opts.fileEvidence !== false) for (const r of results.filter((x) => x.outcome === "pass" && x.requirementIds.length)) await this.evidenceFromCheck(ws.id, connector, r, "system:connector");
       this.emit(ws.id, "check.completed", { connectorId: connector.id, results });
       const passed = results.filter((r) => r.outcome === "pass").length;
       await this.log(ws.id, actor, "ran", "connector", connector.id, `${connector.name}: ${passed}/${results.length} checks passing`);
       return results;
     });
+  }
+
+  /**
+   * File a passing check as accepted evidence, built from the stored check result only:
+   * its title, detail, requirements and observation, hashed. Nobody (and no agent) can
+   * change what a check observed on its way into the evidence locker.
+   */
+  private async evidenceFromCheck(workspaceId: string, connector: Connector, check: CheckResult, reviewer: string): Promise<Evidence> {
+    const ev = await this.createEvidence(
+      workspaceId,
+      {
+        title: `${connector.name}: ${check.title}`,
+        kind: "automated-check",
+        source: "connector",
+        connectorId: connector.id,
+        requirementIds: check.requirementIds,
+        status: "accepted",
+        reviewedBy: reviewer,
+        reviewedAt: now(),
+        collectedAt: check.observedAt,
+        validUntil: new Date(new Date(check.observedAt).getTime() + 30 * 86_400_000).toISOString(),
+        content: check.detail,
+        data: { checkId: check.checkId, observed: check.observed, automation: "api-automated" },
+        sha256: createHash("sha256").update(canonical({ checkId: check.checkId, observed: check.observed, observedAt: check.observedAt })).digest("hex"),
+      },
+      `connector:${connector.kind}`,
+    );
+    check.evidenceId = ev.id;
+    await this.store.checks.put(check, check.observedAt);
+    return ev;
+  }
+
+  /** A passing check of this workspace, not yet filed as evidence: what an agent may propose as evidence. */
+  private async passingCheck(workspaceId: string, checkResultId: string): Promise<{ check: CheckResult; connector: Connector }> {
+    const check = await this.store.checks.get(checkResultId);
+    if (!check || check.workspaceId !== workspaceId) throw new NotFoundError(`Check result '${checkResultId}' not found`);
+    if (check.outcome !== "pass") throw new ValidationError(`Check “${check.title}” did not pass: only passing checks become evidence`);
+    if (check.evidenceId) throw new ValidationError(`Check “${check.title}” is already filed as evidence`);
+    if (!check.requirementIds.length) throw new ValidationError(`Check “${check.title}” is not linked to any requirement in scope`);
+    const connector = await this.store.connectors.get(check.connectorId);
+    if (!connector || connector.workspaceId !== workspaceId) throw new NotFoundError(`Connector '${check.connectorId}' not found`);
+    return { check, connector };
   }
 
   // -------------------------------------------------------------------------
@@ -1444,8 +1469,9 @@ export class VisuaService {
       evidence: () => snap.evidence,
       policies: () => snap.policies,
       connectors: () => snap.connectors,
+      // Agents observe; evidence from the checks goes through proposals like everything else.
       runConnector: async (connectorId: string) => {
-        const results = await this.runConnector(workspaceId, connectorId, `agent:${runId}`);
+        const results = await this.runConnector(workspaceId, connectorId, `agent:${runId}`, { fileEvidence: false });
         await refresh();
         return results;
       },
@@ -1481,8 +1507,14 @@ export class VisuaService {
         this.checkAssessment(node, state ? state.applicable : scope.applicable, patch, state ? state.applicabilityRationale : scope.rationale);
         return;
       }
-      case "create-task":
       case "create-evidence":
+        if (typeof payload["checkResultId"] === "string") {
+          await this.passingCheck(ws.id, payload["checkResultId"]);
+          return;
+        }
+        this.linkedRequirements(payload["requirementIds"] as string[] | undefined);
+        return;
+      case "create-task":
       case "create-policy":
       case "create-risk":
         this.linkedRequirements(payload["requirementIds"] as string[] | undefined);
@@ -1593,6 +1625,11 @@ export class VisuaService {
         return;
       }
       case "create-evidence":
+        if (typeof payload["checkResultId"] === "string") {
+          const { check, connector } = await this.passingCheck(p.workspaceId, payload["checkResultId"]);
+          await this.evidenceFromCheck(p.workspaceId, connector, check, actor);
+          return;
+        }
         await this.createEvidence(
           p.workspaceId,
           {

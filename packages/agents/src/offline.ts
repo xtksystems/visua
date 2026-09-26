@@ -21,13 +21,17 @@ import {
 import type { AgentHost, AgentResult } from "./host.ts";
 import { composePolicy, frameworkLabel, templateFor } from "./policies.ts";
 import {
+  corpusOf,
   crosswalk,
   focus,
   frameworkEnabled,
   getRequirement,
   hitToCitation,
   isThreat,
+  lawBrief,
   listRequirements,
+  resolveNode,
+  threatBrief,
   proposeAssessment,
   proposePolicy,
   proposeTask,
@@ -44,26 +48,82 @@ const CODE_PATTERNS = [
   /\b(?:CC\d\.\d|A1\.\d|PI1\.\d|C1\.\d|P\d\.\d)\b/g,
   /\b[A-Z]{2}-\d{1,2}(?:\(\d{1,2}\))?\b/g,
   /\b[PCSIAR]-\d{1,2}\b/g,
+  // MITRE ATLAS tactics, techniques, sub-techniques and mitigations.
+  /\bAML\.(?:TA\d{4}|T\d{4}(?:\.\d{3})?|M\d{4})\b/g,
+  // OWASP entries, optionally edition-qualified (LLM04:2026, LLM03:2025, ASI01).
+  /\b(?:LLM|ASI)\d{2}(?::20\d{2})?\b/g,
+  // NIST AI 100-2 objectives and attacks.
+  /\bNISTAML\.\d{2,3}\b/g,
+  // State AI laws and obligations (CA-SB243, CA-SB243-02, CO-SB26-189, NY-RAISE).
+  /\b(?:CA|CO|IL|ME|NY|NYC|TX|UT)-[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*\b/g,
 ];
+/** AI RMF outcomes and categories, written as NIST writes them (GOVERN 1.1, MAP 2). */
+const AI_RMF_CODE = /\b(?:GOVERN|MAP|MEASURE|MANAGE) \d{1,2}(?:\.\d{1,2})?\b/g;
 
 export function extractCodes(text: string): string[] {
   const found = new Set<string>();
   for (const re of CODE_PATTERNS) for (const m of text.toUpperCase().matchAll(re)) found.add(m[0]);
+  for (const m of text.matchAll(AI_RMF_CODE)) found.add(m[0]);
   return [...found];
 }
 
 function citeFor(host: AgentHost, node: RequirementNode, limit = 2): Citation[] {
-  const corpus = corpusForFramework(node.frameworkId);
-  const hits = host.registry.search.search(`${node.code} ${node.text}`, { limit, framework: corpus });
+  const hits = host.registry.search.search(`${node.code} ${node.title} ${node.text}`, { limit, framework: corpusOf(host, node.frameworkId) });
   return hits.map(hitToCitation);
 }
 
-function corpusForFramework(frameworkId: string): string | undefined {
-  if (frameworkId === "nist-csf-2.0") return "nist-csf-2.0";
-  if (frameworkId === "aicpa-tsc-2017") return "aicpa-soc2";
-  if (frameworkId === "nist-sp-800-53-r5" || frameworkId === "nist-rmf") return "nist-rmf";
-  if (frameworkId === "nist-ai-rmf") return "nist-ai-rmf";
-  return undefined;
+const STOPWORDS = new Set("a an and are as at be by do does for from how in is it of on or our the this to us we what which who why with about".split(" "));
+
+/** Words of a question or a law's names, with "AI" spelled out and bill numbers joined (SB 24-205 → sb24 205, H.B. 149 → hb149). */
+function lawWords(text: string): string[] {
+  const t = text
+    .toLowerCase()
+    .replace(/\bai\b/g, "artificial intelligence")
+    .replace(/\b([shal])\.\s?b\.\s*(\d)/g, "$1b$2")
+    .replace(/\b(sb|ab|hb|ld)[\s.-]*(\d)/g, "$1$2")
+    .replace(/\blocal law (\d+)/g, "ll$1");
+  return (t.match(/[a-z0-9]+/g) ?? []).map((w) => (w.length > 4 && w.endsWith("s") ? w.slice(0, -1) : w)).filter((w) => !STOPWORDS.has(w));
+}
+
+/**
+ * A state AI law named in words ("the Colorado AI Act", "TRAIGA", "SB 53", "the Texas law"),
+ * if the question clearly names one. A law is a candidate only when the question names its
+ * jurisdiction, one of its bill numbers or its acronym (in capitals, so "raise" is not the
+ * RAISE Act); candidates are ranked by their distinctive words, and a tie names none.
+ */
+function lawNamed(host: AgentHost, goal: string): RequirementNode | undefined {
+  const asked = new Set(lawWords(goal));
+  const laws: { node: RequirementNode; words: Set<string>; named: boolean }[] = [];
+  for (const f of host.registry.frameworks.filter((x) => x.family === "law")) {
+    const index = host.registry.framework(f.id)!;
+    for (const law of index.graph.nodes.filter((n) => n.kind === "law")) {
+      const jurisdiction = law.parentId ? (index.byId.get(law.parentId)?.title ?? "") : "";
+      const bills = `${law.title} ${law.text}`.match(/\b(?:[SAH]\.\s?B\.|[SAH]B|LD|Local Law)\s*\d[\d-]*/gi) ?? [];
+      const acronyms = law.code.split("-").slice(1).filter((w) => /^[A-Z]{3,}$/.test(w) && w !== "AI");
+      const billWords = lawWords(`${bills.join(" ")} ${law.code.split("-").slice(1).join(" ")}`).filter((w) => /^(sb|ab|hb|ld|ll)\d/.test(w));
+      const named =
+        (jurisdiction !== "" && lawWords(jurisdiction).every((w) => asked.has(w))) ||
+        (jurisdiction === "New York City" && asked.has("nyc")) ||
+        billWords.some((w) => asked.has(w)) ||
+        acronyms.some((a) => new RegExp(`\\b${a}\\b`).test(goal));
+      laws.push({ node: law, words: new Set([...lawWords(`${law.title} ${jurisdiction} ${bills.join(" ")}`), ...billWords, ...acronyms.map((a) => a.toLowerCase())]), named });
+    }
+  }
+  // Inverse document frequency: "artificial intelligence" and "act" say little, "colorado" or "traiga" a lot.
+  const idf = (w: string) => Math.log(laws.length / Math.max(1, laws.filter((l) => l.words.has(w)).length));
+  const ranked = laws
+    .filter((l) => l.named)
+    .map((l) => ({ node: l.node, score: [...asked].filter((w) => l.words.has(w)).reduce((sum, w) => sum + idf(w), 0) }))
+    .sort((a, b) => b.score - a.score);
+  const [best, next] = ranked;
+  if (best && best.score > 0 && (!next || best.score - next.score >= 0.5)) return best.node;
+  // No single law: a question about one jurisdiction ("Colorado AI law") gets the jurisdiction's laws.
+  const jurisdictions = [...new Set(ranked.map((r) => r.node.parentId))]
+    .map((id) => (id ? host.registry.node(id) : undefined))
+    .filter((j): j is RequirementNode => !!j && (lawWords(j.title).every((w) => asked.has(w)) || (j.title === "New York City" && asked.has("nyc"))));
+  // "New York City" names New York too: keep the most specific.
+  const specific = jurisdictions.filter((j) => !jurisdictions.some((o) => o !== j && o.title.startsWith(`${j.title} `)));
+  return specific.length === 1 ? specific[0] : undefined;
 }
 
 function enabledFrameworks(host: AgentHost): string[] {
@@ -132,6 +192,65 @@ function pct(n: number): string {
 // Copilot
 // ---------------------------------------------------------------------------
 
+/** A threat, in words: what it is, and what publishers link to it (never an assessment of it). */
+function threatAnswer(host: AgentHost, node: RequirementNode, focusIds: string[]): string[] {
+  const t = threatBrief(host, node);
+  const lines = [`**${t.code}** — ${t.title} (${t.catalog} ${node.kind})`, shortStatement(node.text.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1"), 420)];
+  const mitigations = t.related.filter((r) => r.label === "mitigates");
+  if (mitigations.length) lines.push(`Mitigations (${mitigations[0]!.authority}, ${mitigations[0]!.status}): ${mitigations.slice(0, 8).map((m) => `${m.code} ${m.title}`).join("; ")}.`);
+  if (!t.linkedRequirements.length) lines.push("No publisher links this threat to a requirement Visua models yet.");
+  else {
+    lines.push("Requirements publishers link to it:");
+    for (const g of t.linkedRequirements) {
+      const examples = g.examples.filter((r) => r.inScope).slice(0, 5);
+      lines.push(`- *${g.publication}*${g.publication.toLowerCase().includes(g.status) ? "" : ` (${g.status})`}: ${g.requirements} requirement(s), ${g.inYourFrameworks} in your frameworks, ${g.atTarget} at target${examples.length ? ` — e.g. ${examples.map((r) => `**${r.code}**${r.via ? ` via ${r.via}` : ""}`).join(", ")}` : ""}.`);
+      focusIds.push(...examples.map((r) => r.id));
+    }
+  }
+  lines.push("Threats are never assessed: coverage comes from these linked requirements, at the status of their weakest link.");
+  return lines;
+}
+
+/** A state AI law or obligation, in words, with the organization's own scoping decision. */
+function lawAnswer(host: AgentHost, node: RequirementNode): string[] {
+  if (node.kind === "jurisdiction") {
+    const index = host.registry.framework(node.frameworkId)!;
+    const laws = index.childrenOf(node.id).filter((n) => n.kind === "law");
+    const decisions = host.workspace().frameworks.find((f) => f.frameworkId === node.frameworkId)?.law?.applicability ?? {};
+    return [
+      `**${node.title}** — ${laws.length} AI law(s) or regulation(s) tracked:`,
+      ...laws.map((law) => {
+        const a = law.attributes ?? {};
+        const roles = decisions[String(a["lawId"] ?? "")]?.roles ?? [];
+        return `- **${law.code}** ${law.title}: ${String(a["status"] ?? "")}${a["effective"] ? `, effective ${String(a["effective"])}` : ""}; ${roles.length ? `your recorded role: ${roles.join(", ")}` : "your role is not recorded"}.`;
+      }),
+      "Ask about one of them by name or code for its obligations and who it applies to.",
+    ];
+  }
+  const l = lawBrief(host, node);
+  const roles = (l.roles as string[] | undefined) ?? [];
+  if (node.kind === "law") {
+    const lines = [`**${l.code}** — ${l.title}: ${String(l.law?.status ?? "")}${l.law?.effective ? `, effective ${String(l.law.effective)}` : ""}.`, shortStatement(node.text, 360)];
+    if (l.law?.statusNote) lines.push(`Status: ${shortStatement(String(l.law.statusNote), 420)}`);
+    if (l.obligations?.length) {
+      lines.push(`${l.obligations.length} obligation(s), on ${roles.join(", ")}:`);
+      for (const o of l.obligations.slice(0, 8)) lines.push(`- **${o.code}** ${o.title} (${((o.roles as string[] | undefined) ?? []).join(", ")}; from ${String(o.effective)})`);
+    } else lines.push("No obligations are tracked for this law.");
+    if (l.yourRoles?.length) lines.push(`Your role under this law (recorded): ${l.yourRoles.join(", ")}.`);
+    else {
+      lines.push("You have not recorded how this law applies to you. The law's own definitions decide it; an approver records the roles you hold on the State AI laws page:");
+      for (const d of l.definitions.slice(0, 4)) lines.push(`- *${d.role}*: “${shortStatement(d.definition, 240)}”`);
+    }
+    return lines;
+  }
+  const lines = [`**${l.code}** — ${l.title}: ${shortStatement(node.text, 480)}`];
+  if (l.law) lines.push(`Law: ${l.law.code}, ${l.law.title} (${String(l.law.status)})${l.section ? `, ${String(l.section)}` : ""}.`);
+  lines.push(`Applies to: ${roles.join(", ")}; ${l.timing === "upcoming" ? `takes effect on ${String(l.effective)}` : l.timing === "ended" ? `no longer in effect after ${String(l.until)}` : `in force since ${String(l.effective)}`}.`);
+  lines.push(l.yourRoles?.length ? `Your role under this law (recorded): ${l.yourRoles.join(", ")}.` : "You have not recorded how this law applies to you.");
+  if (l.assessment?.applicable) lines.push(`Your implementation: level ${l.assessment.current} of target ${l.assessment.target}.`);
+  return lines;
+}
+
 const copilot: Playbook = async (host, goal, input) => {
   const q = goal.toLowerCase();
   const codes = extractCodes(goal);
@@ -141,8 +260,13 @@ const copilot: Playbook = async (host, goal, input) => {
   const lines: string[] = [];
   const focusIds: string[] = [];
 
-  const nodes = codes.map((c) => host.registry.node(c)).filter((n): n is RequirementNode => !!n);
+  const nodes: RequirementNode[] = [];
+  for (const n of codes.map((c) => resolveNode(host, c))) if (n && !nodes.some((x) => x.id === n.id)) nodes.push(n);
   if (!nodes.length && contextNode && /\b(this|it|here|selected)\b/.test(q)) nodes.push(contextNode);
+  if (!nodes.length) {
+    const law = lawNamed(host, goal);
+    if (law) nodes.push(law);
+  }
 
   const wantsMap = /\b(map|mapping|crosswalk|soc ?2|800-53|also satisf|reuse)\b/.test(q);
   const wantsGaps = /\b(gap|gaps|priorit|next|focus|biggest|weakest|worst|start)\b/.test(q);
@@ -151,6 +275,16 @@ const copilot: Playbook = async (host, goal, input) => {
   const wantsTasks = /\b(task|overdue|todo|plan|deadline)\b/.test(q);
 
   for (const node of nodes.slice(0, 4)) {
+    const family = host.registry.framework(node.frameworkId)?.graph.framework.family;
+    if (family === "threat") {
+      lines.push(...threatAnswer(host, node, focusIds), "");
+      continue;
+    }
+    if (family === "law") {
+      lines.push(...lawAnswer(host, node), "");
+      focusIds.push(node.id);
+      continue;
+    }
     const detail = (await getRequirement.run(host, { id: node.id })) as Record<string, unknown>;
     const a = detail["assessment"] as Record<string, unknown> | null;
     lines.push(`**${node.code}** — ${node.title && node.title !== node.code ? `${node.title}: ` : ""}${node.text}`);
@@ -219,23 +353,30 @@ const copilot: Playbook = async (host, goal, input) => {
     for (const t of (overdue.length ? overdue : open).slice(0, 8)) lines.push(`- ${t.title} — ${t.status}${t.dueDate ? `, due ${t.dueDate}` : ""}`);
   }
 
-  // Ground the answer in the official corpus.
-  const searchQuery = nodes.length ? `${nodes[0]!.code} ${nodes[0]!.text}` : goal;
-  const hits = host.registry.search.search(searchQuery, { limit: 3, framework: nodes[0] ? corpusForFramework(nodes[0].frameworkId) : undefined });
+  // Ground the answer in the official corpus: the corpus of the requirement, law or threat asked about.
+  const first = nodes[0];
+  const searchQuery = !first
+    ? goal
+    : first.kind === "jurisdiction"
+      ? (host.registry.framework(first.frameworkId)?.childrenOf(first.id).map((l) => l.title).join(" ") ?? first.title)
+      : `${first.code} ${first.title} ${first.text}`;
+  const hits = host.registry.search.search(searchQuery, { limit: 3, framework: first ? corpusOf(host, first.frameworkId) : undefined });
   if (hits.length) {
     const citations = hits.map(hitToCitation);
     host.step({ type: "citation", title: "Grounding in the official corpus", citations });
     if (!lines.length) {
       lines.push("From the official documentation:");
       for (const c of citations) lines.push(`> ${c.quote}\n> — *${c.documentTitle}${c.page ? `, p. ${c.page}` : ""}*`);
-      const related = host.registry.framework(primaryFramework(host, input))?.search(goal, 5) ?? [];
+      // Related requirements from the framework the best passage belongs to (never a threat catalog).
+      const fw = host.registry.frameworks.find((f) => f.family !== "threat" && corpusOf(host, f.id) === hits[0]!.chunk.framework && frameworkEnabled(host, f.id))?.id;
+      const related = fw ? host.registry.framework(fw)!.search(goal, 5).filter((n) => n.assessable) : [];
       if (related.length) {
         lines.push("");
         lines.push(`Related requirements: ${related.map((n) => `**${n.code}**`).join(", ")}.`);
-        focusIds.push(...related.filter((n) => n.assessable).map((n) => n.id));
+        focusIds.push(...related.map((n) => n.id));
       }
     } else {
-      lines.push(`Source: *${citations[0]!.documentTitle}${citations[0]!.page ? `, p. ${citations[0]!.page}` : ""}*.`);
+      lines.push(`Sources: ${[...new Set(citations.map((c) => `*${c.documentTitle}${c.page ? `, p. ${c.page}` : ""}*`))].join("; ")}.`);
     }
   }
   if (!lines.length) lines.push("I couldn't find anything specific. Try naming a requirement code (e.g. PR.AA-01) or ask about readiness, gaps, evidence or tasks.");
@@ -397,10 +538,10 @@ const evidenceCollector: Playbook = async (host, _goal, input) => {
   const connectors = host.connectors().filter((c) => c.status === "active");
   host.step({ type: "plan", title: "Collect evidence", detail: `${connectors.length} active connector(s); then look for missing and expiring evidence.` });
   if (connectors.length) {
-    const res = (await runChecks.run(host, {})) as { connectors?: { connector: string; results: { check: string; outcome: string; detail: string; requirements: string[] }[] }[] };
+    const res = (await runChecks.run(host, {})) as { connectors?: { connector: string; results: { check: string; outcome: string; detail: string; requirements: string[] }[]; evidenceProposals: number }[] };
     for (const c of res.connectors ?? []) {
       const pass = c.results.filter((r) => r.outcome === "pass").length;
-      lines.push(`**${c.connector}** — ${pass}/${c.results.length} checks passing.`);
+      lines.push(`**${c.connector}** — ${pass}/${c.results.length} checks passing${c.evidenceProposals ? `; ${c.evidenceProposals} proposed as evidence` : ""}.`);
       for (const r of c.results.filter((x) => x.outcome !== "pass")) lines.push(`- ${r.outcome.toUpperCase()}: ${r.check} — ${r.detail}`);
     }
   } else lines.push("No active connectors — add a Web Posture or Repository connector to automate evidence.");

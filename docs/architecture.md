@@ -216,11 +216,16 @@ Analyst, Audit Prep and Task Executor. They share 16 tools:
 - Read tools: `workspace_overview`, `search_corpus`, `get_requirement`,
   `list_requirements`, `crosswalk`, `list_tasks`, `list_evidence`, `focus`
 - Proposal tools: `propose_assessment`, `propose_target`, `propose_applicability`,
-  `propose_task`, `propose_policy`, `propose_evidence`
-- Action tools: `update_task`, `run_checks`
+  `propose_task`, `propose_policy`, `propose_evidence`, `update_task` (a task update)
+- `run_checks` runs the workspace's connectors, records their checks and proposes each
+  passing check as evidence
 
-The system prompt sets two principles: *propose, don't mutate*, and *no citation, no
-claim*.
+Every write is a proposal. The system prompt's operating principles are *propose, don't
+mutate*; *no citation, no claim*; each framework's vocabulary (state-law obligations
+apply only to the roles an organization recorded); and *threat catalogs are views*:
+`get_requirement` on a threat returns the requirements publishers link to it, grouped
+by publication with each link's status, and proposal tools refuse threats, frameworks
+the workspace has not enabled, and levels on requirements out of scope.
 
 **Claude runtime.** A streamed, manual tool loop on `client.beta.messages.stream`:
 
@@ -329,8 +334,10 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 - **Connectors.** *Web posture* (HTTPS redirect, HSTS, TLS protocol and certificate
   expiry, security headers, `security.txt`) and *repository hygiene* (SECURITY.md,
   CODEOWNERS, CI, dependency automation, lockfile, secret patterns). Results become
-  checks mapped to CSF, SOC 2 and 800-53 requirements. Passing results become hashed
-  evidence.
+  checks mapped to CSF, SOC 2 and 800-53 requirements. When a person runs a connector,
+  passing results become hashed evidence at once; when an agent runs one (`run_checks`),
+  it proposes each passing result as evidence, and approval files it from the recorded
+  check (edits cannot change what the check observed).
 - **Exports.**
   - CSF Organizational Profile (NIST template columns)
   - action plan, evidence index and SOC 2 PBC list (CSV)

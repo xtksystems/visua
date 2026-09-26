@@ -8,13 +8,15 @@ import {
   STATUSES,
   codeOf,
   frameworkOf,
+  isEvidenceValid,
   levelLabel,
+  obligationTiming,
   type Citation,
   type FrameworkFamily,
   type RequirementNode,
   type Task,
 } from "@visua/core";
-import type { SearchHit } from "@visua/frameworks";
+import { STATUS_RANK, coverageGroup, threatPaths, type SearchHit } from "@visua/frameworks";
 import type { AgentHost } from "./host.ts";
 import { licensedTextToModel, WITHHELD_NOTICE } from "./mode.ts";
 
@@ -63,8 +65,29 @@ function familyOf(host: AgentHost, nodeId: string): FrameworkFamily {
   return host.registry.framework(frameworkOf(nodeId))?.graph.framework.family ?? "csf";
 }
 
+/**
+ * A node by id or code. OWASP entries are also found by their edition-qualified keys:
+ * "LLM04:2026" is the current entry LLM04, "LLM03:2025" the superseded LLM03-2025.
+ */
 export function resolveNode(host: AgentHost, idOrCode: string): RequirementNode | undefined {
-  return host.registry.node(idOrCode.trim());
+  const code = idOrCode.trim();
+  const found = host.registry.node(code);
+  if (found) return found;
+  const edition = /^((?:LLM|ASI)\d{2}):(20\d{2})$/i.exec(code);
+  if (!edition) return undefined;
+  const current = host.registry.node(edition[1]!.toUpperCase());
+  const key = `${edition[1]!.toUpperCase()}:${edition[2]}`;
+  return current?.attributes?.["key"] === key ? current : host.registry.node(`${edition[1]!.toUpperCase()}-${edition[2]}`);
+}
+
+/** The corpus that holds a framework's official text (from the documents it was ingested from). */
+export function corpusOf(host: AgentHost, frameworkId: string): string | undefined {
+  const sources = host.registry.framework(frameworkId)?.graph.framework.sources ?? [];
+  for (const s of sources) {
+    const corpus = host.registry.documents.get(s.documentId)?.framework;
+    if (corpus) return corpus;
+  }
+  return undefined;
 }
 
 /** Threat catalogs (ATLAS, OWASP, NIST AI 100-2) are views: never assessed, planned or linked as requirements. */
@@ -74,6 +97,105 @@ export function isThreat(host: AgentHost, nodeId: string): boolean {
 
 export function frameworkEnabled(host: AgentHost, frameworkId: string): boolean {
   return host.workspace().frameworks.some((f) => f.frameworkId === frameworkId && f.enabled);
+}
+
+/**
+ * What an agent may say about a threat: its description, related threats, and the
+ * requirements publishers link to it, grouped by publication with each group's status,
+ * and the workspace's levels on them. Threats themselves are never assessed.
+ */
+/** A threat's code as its catalog writes it (OWASP entries carry their edition: LLM03:2025). */
+const threatCode = (host: AgentHost, id: string): string => {
+  const n = host.registry.node(id);
+  return n ? String(n.attributes?.["key"] ?? n.code) : codeOf(id);
+};
+
+export function threatBrief(host: AgentHost, node: RequirementNode) {
+  const g = threatPaths(host.registry);
+  const enabled = new Set(host.workspace().frameworks.filter((f) => f.enabled).map((f) => f.frameworkId));
+  const groups = new Map<string, { publication: string; status: string; requirements: Map<string, { via?: string; group?: string }> }>();
+  for (const [reqId, paths] of g.forward.get(node.id) ?? []) {
+    for (const p of paths) {
+      const { publication } = coverageGroup(p, reqId);
+      const group = groups.get(publication) ?? { publication, status: p.status, requirements: new Map() };
+      if (STATUS_RANK[p.status] < STATUS_RANK[group.status as keyof typeof STATUS_RANK]) group.status = p.status;
+      if (!group.requirements.has(reqId)) group.requirements.set(reqId, { ...(p.via ? { via: threatCode(host, p.via) } : {}), ...(p.group ? { group: p.group } : {}) });
+      groups.set(publication, group);
+    }
+  }
+  const linked = [...groups.values()]
+    .sort((a, b) => STATUS_RANK[b.status as keyof typeof STATUS_RANK] - STATUS_RANK[a.status as keyof typeof STATUS_RANK] || b.requirements.size - a.requirements.size)
+    .map((group) => {
+      const reqs = [...group.requirements].map(([id, how]) => {
+        const req = host.registry.node(id);
+        const s = host.state(id);
+        const inScope = enabled.has(frameworkOf(id)) && !!s?.applicable;
+        return { id, code: codeOf(id), framework: frameworkOf(id), text: req ? short(modelText(req), 110) : "", ...how, inScope, current: s?.current, target: s?.target };
+      });
+      const inScope = reqs.filter((r) => r.inScope);
+      return {
+        publication: group.publication,
+        status: group.status,
+        requirements: reqs.length,
+        inYourFrameworks: inScope.length,
+        atTarget: inScope.filter((r) => (r.target ?? 0) > 0 && (r.current ?? 0) >= (r.target ?? 0)).length,
+        examples: [...inScope, ...reqs.filter((r) => !r.inScope)].slice(0, 12),
+      };
+    });
+  const related = host.registry.threatLinks
+    .of(node.id)
+    .filter((l) => g.isThreat(l.nodeId))
+    .slice(0, 20)
+    .map((l) => ({ code: threatCode(host, l.nodeId), title: host.registry.node(l.nodeId)?.title ?? "", label: l.label, status: l.status, authority: l.authority }));
+  const a = node.attributes ?? {};
+  return {
+    id: node.id,
+    code: String(a["key"] ?? node.code),
+    kind: node.kind,
+    catalog: host.registry.framework(node.frameworkId)?.graph.framework.shortName,
+    title: node.title,
+    text: short(node.text, 1400),
+    tactics: a["tactics"],
+    maturity: a["maturity"],
+    related,
+    linkedRequirements: linked,
+    note: "Threats are never assessed. Coverage comes from the requirements publishers link to the threat; every link keeps its publisher and status (final, draft, unreviewed, superseded). Work on the linked requirements, not on the threat.",
+    citation: node.citation,
+  };
+}
+
+/** What an agent may say about a state AI law or one of its obligations, with the workspace's scoping decision. */
+export function lawBrief(host: AgentHost, node: RequirementNode) {
+  const index = host.registry.framework(node.frameworkId)!;
+  const law = node.kind === "law" ? node : node.parentId ? index.byId.get(node.parentId) : undefined;
+  const la = law?.attributes ?? {};
+  const lawId = String(la["lawId"] ?? "");
+  const decision = host.workspace().frameworks.find((f) => f.frameworkId === node.frameworkId)?.law?.applicability[lawId];
+  const today = new Date().toISOString().slice(0, 10);
+  const obligations = law ? index.childrenOf(law.id) : [];
+  const s = node.assessable ? host.state(node.id) : undefined;
+  return {
+    id: node.id,
+    code: node.code,
+    kind: node.kind,
+    title: node.title,
+    text: short(node.text, 1400),
+    law: law ? { code: law.code, title: law.title, status: la["status"], statusNote: la["statusNote"] ? short(String(la["statusNote"]), 600) : undefined, effective: la["effective"], sunset: la["sunset"] } : undefined,
+    roles: node.kind === "law" ? [...new Set(obligations.flatMap((o) => (o.attributes?.["roles"] as string[] | undefined) ?? []))] : node.attributes?.["roles"],
+    // The law's own definitions of those roles, so the organization can decide which it holds.
+    definitions: ((la["appliesTo"] as { role: string; condition?: string }[] | undefined) ?? [])
+      .filter((a) => node.kind === "law" || ((node.attributes?.["roles"] as string[] | undefined) ?? []).includes(a.role))
+      .map((a) => ({ role: a.role, definition: short(a.condition ?? "", 500) })),
+    obligations: node.kind === "law" ? obligations.map((o) => ({ code: o.code, title: o.title, roles: o.attributes?.["roles"], effective: o.attributes?.["effective"] })).slice(0, 30) : undefined,
+    effective: node.attributes?.["effective"],
+    until: node.attributes?.["until"],
+    timing: node.assessable ? obligationTiming(node, today) : undefined,
+    section: node.attributes?.["section"],
+    yourRoles: decision?.roles ?? null,
+    assessment: s ? { applicable: s.applicable, current: s.current, target: s.target, applicabilityRationale: s.applicabilityRationale } : null,
+    note: "Obligations are quoted from the enacted statute or adopted regulation. They are in scope only for the roles the organization records under each law's own definitions. This is tracking, not legal advice.",
+    citation: node.citation,
+  };
 }
 
 /** Why this node cannot take an assessment proposal in this workspace, if it cannot. */
@@ -144,13 +266,13 @@ export function statusOf(host: AgentHost, nodeId: string) {
 export const searchCorpus = defineTool({
   name: "search_corpus",
   description:
-    "Search the local official documentation corpus (NIST CSF 2.0, NIST RMF / SP 800-53 family, AICPA SOC 2, NIST AI RMF with the Generative AI Profile) and return citable passages with document id, title and page. Use it before making any claim about what a framework requires.",
+    "Search the local official documentation corpus (NIST CSF 2.0, NIST RMF / SP 800-53 family, AICPA SOC 2, NIST AI RMF with the Generative AI Profile, NIST AI 100-2 and NIST's AI overlays, U.S. state AI laws, and the AI threat catalogs: MITRE ATLAS and the OWASP Top 10s) and return citable passages with document id, title and page. Use it before making any claim about what a framework, law or threat catalog says.",
   schema: z.object({
-    query: z.string().min(2).describe("Keywords or a question, e.g. 'backups tested restore' or 'GV.SC-07 supplier risk'"),
+    query: z.string().min(2).describe("Keywords or a question, e.g. 'backups tested restore', 'GV.SC-07 supplier risk', 'CA-SB243 suicide protocol' or 'AML.T0051 prompt injection'"),
     framework: z
-      .enum(["nist-csf-2.0", "nist-rmf", "aicpa-soc2", "nist-ai-rmf"])
+      .enum(["nist-csf-2.0", "nist-rmf", "aicpa-soc2", "nist-ai-rmf", "us-state-ai-laws", "ai-threats"])
       .optional()
-      .describe("Restrict to one corpus"),
+      .describe("Restrict to one corpus: nist-ai-rmf also holds NIST AI 100-2 and the AI overlays; ai-threats holds MITRE ATLAS and OWASP"),
     limit: z.number().int().min(1).max(8).optional(),
   }),
   async run(host, input) {
@@ -166,11 +288,20 @@ export const searchCorpus = defineTool({
 export const getRequirement = defineTool({
   name: "get_requirement",
   description:
-    "Get one requirement (CSF outcome, SOC 2 criterion, SP 800-53 control or RMF task) by id or code, with its official text, implementation examples / points of focus, the workspace's current and target level, status, tasks, evidence and crosswalk mappings.",
-  schema: z.object({ id: z.string().describe("Node id ('nist-csf-2.0:PR.AA-01') or code ('PR.AA-01', 'CC6.1', 'AC-2')") }),
+    "Get one requirement (CSF outcome, SOC 2 criterion, SP 800-53 control, RMF task, AI RMF outcome, state-law obligation) by id or code, with its official text, implementation examples / points of focus, the workspace's current and target level, status, tasks, evidence and crosswalk mappings. Also describes a state AI law (its obligations, roles and dates) or a threat (ATLAS technique or mitigation, OWASP entry, NIST AI 100-2 attack) with the requirements publishers link to it.",
+  schema: z.object({ id: z.string().describe("Node id ('nist-csf-2.0:PR.AA-01') or code ('PR.AA-01', 'CC6.1', 'AC-2', 'GOVERN 1.1', 'CA-SB243-02', 'AML.T0051', 'LLM04:2026')") }),
   async run(host, input) {
     const node = resolveNode(host, input.id);
     if (!node) return { error: `Unknown requirement '${input.id}'. Use list_requirements or search_corpus to find valid codes.` };
+    const fam = familyOf(host, node.id);
+    if (fam === "threat") {
+      host.step({ type: "thought", title: `Reviewed ${node.code} and the requirements linked to it`, nodeIds: [node.id] });
+      return threatBrief(host, node);
+    }
+    if (fam === "law" && !node.assessable) {
+      host.step({ type: "thought", title: `Reviewed ${node.code}`, nodeIds: [node.id] });
+      return lawBrief(host, node);
+    }
     const index = host.registry.framework(node.frameworkId)!;
     const state = host.state(node.id);
     const status = statusOf(host, node.id);
@@ -190,6 +321,7 @@ export const getRequirement = defineTool({
       framework: node.frameworkId,
       title: node.title,
       text: modelText(node),
+      ...(family === "law" ? { law: lawBrief(host, node) } : {}),
       guidance: node.guidance ? short(node.guidance, 900) : undefined,
       ancestors: index.ancestors(node.id).map((a) => ({ code: a.code, title: a.title })),
       examples: node.examples?.map((e) => e.text),
@@ -231,6 +363,7 @@ export const listRequirements = defineTool({
   async run(host, input) {
     const index = host.registry.framework(input.framework);
     if (!index) return { error: `Unknown framework '${input.framework}'. Known: ${[...host.registry.indexes.keys()].join(", ")}` };
+    if (index.graph.framework.family === "threat") return { error: `${index.graph.framework.shortName} is a threat catalog: its threats are never assessed. Call get_requirement on a threat to see the requirements linked to it.` };
     const score = host.score(input.framework);
     let nodes = index.assessable;
     if (input.parent) {
@@ -545,18 +678,37 @@ export const listEvidence = defineTool({
 export const runChecks = defineTool({
   name: "run_checks",
   description:
-    "Run the workspace's monitoring connectors (e.g. web security posture, repository hygiene) and return check outcomes. Passing checks become evidence proposals automatically.",
+    "Run the workspace's monitoring connectors (e.g. web security posture, repository hygiene) and return check outcomes. Each passing check linked to requirements is proposed as automated-check evidence, built from the recorded check itself; it is filed once approved (or at once, if the workspace's autonomy settings allow evidence proposals).",
   writes: true,
   schema: z.object({ connectorId: z.string().optional() }),
   async run(host, input) {
     const connectors = host.connectors().filter((c) => c.status === "active" && (!input.connectorId || c.id === input.connectorId));
     if (!connectors.length) return { error: "No active connectors. Ask the user to add one in Evidence → Connectors." };
     const out = [];
+    // Evidence from the same check that stays valid for another week needs no new proposal.
+    const onFile = (connectorId: string, checkId: string) =>
+      host
+        .evidence()
+        .some((e) => e.connectorId === connectorId && (e.data as { checkId?: string } | undefined)?.checkId === checkId && isEvidenceValid(e, new Date(Date.now() + 7 * 86_400_000)));
     for (const c of connectors) {
       const results = await host.runConnector(c.id);
+      const proposed: string[] = [];
+      for (const r of results.filter((x) => x.outcome === "pass" && x.requirementIds.length && !x.evidenceId && !onFile(c.id, x.checkId))) {
+        const proposal = await host.propose({
+          type: "create-evidence",
+          title: `${c.name}: ${r.title}`,
+          rationale: `Passing automated check from the ${c.name} connector, observed ${r.observedAt.slice(0, 16).replace("T", " ")} UTC: ${short(r.detail, 200)}`,
+          payload: { checkResultId: r.id, title: `${c.name}: ${r.title}`, kind: "automated-check", requirementIds: r.requirementIds, content: r.detail },
+          citations: [],
+          confidence: "high",
+          nodeIds: r.requirementIds,
+        });
+        proposed.push(proposal.id);
+      }
       out.push({
         connector: c.name,
         results: results.map((r) => ({ check: r.title, outcome: r.outcome, detail: r.detail, requirements: r.requirementIds.map(codeOf) })),
+        evidenceProposals: proposed.length,
       });
     }
     return { connectors: out };
