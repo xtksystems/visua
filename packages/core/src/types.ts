@@ -192,34 +192,43 @@ export interface ExternalReference {
 // Workspaces & organization profile (any niche, any maturity)
 // ---------------------------------------------------------------------------
 
-export type Industry =
-  | "saas"
-  | "fintech"
-  | "healthcare"
-  | "manufacturing"
-  | "public-sector"
-  | "defense-contractor"
-  | "education"
-  | "retail"
-  | "energy-utilities"
-  | "nonprofit"
-  | "professional-services"
-  | "other";
+/** Profile vocabularies: the API validates against these, so they cannot drift from the types. */
+export const PROFILE_INDUSTRIES = [
+  "saas",
+  "fintech",
+  "healthcare",
+  "manufacturing",
+  "public-sector",
+  "defense-contractor",
+  "education",
+  "retail",
+  "energy-utilities",
+  "nonprofit",
+  "professional-services",
+  "other",
+] as const;
+export type Industry = (typeof PROFILE_INDUSTRIES)[number];
 
-export type OrgSize = "1-10" | "11-50" | "51-200" | "201-1000" | "1000+";
+export const PROFILE_SIZES = ["1-10", "11-50", "51-200", "201-1000", "1000+"] as const;
+export type OrgSize = (typeof PROFILE_SIZES)[number];
 
-export type DataType = "pii" | "phi" | "cardholder" | "cui" | "financial" | "intellectual-property" | "children" | "biometric";
+export const PROFILE_DATA_TYPES = ["pii", "phi", "cardholder", "cui", "financial", "intellectual-property", "children", "biometric"] as const;
+export type DataType = (typeof PROFILE_DATA_TYPES)[number];
 
-export type Driver =
-  | "enterprise-customers"
-  | "federal-customers"
-  | "regulator"
-  | "board-mandate"
-  | "cyber-insurance"
-  | "investor-due-diligence"
-  | "incident-recovery"
-  | "build-program"
-  | "ai-systems";
+export const PROFILE_DRIVERS = [
+  "enterprise-customers",
+  "federal-customers",
+  "regulator",
+  "board-mandate",
+  "cyber-insurance",
+  "investor-due-diligence",
+  "incident-recovery",
+  "build-program",
+  "ai-systems",
+] as const;
+export type Driver = (typeof PROFILE_DRIVERS)[number];
+
+export const PROFILE_ENVIRONMENTS = ["cloud", "on-prem", "hybrid", "ot"] as const;
 
 export type GuidanceMode = "guided" | "expert";
 
@@ -228,7 +237,7 @@ export interface OrganizationProfile {
   size: OrgSize;
   dataTypes: DataType[];
   drivers: Driver[];
-  environments: ("cloud" | "on-prem" | "hybrid" | "ot")[];
+  environments: (typeof PROFILE_ENVIRONMENTS)[number][];
   /** Self-assessed or measured CSF tier (1–4). */
   maturityTier: 1 | 2 | 3 | 4;
   guidance: GuidanceMode;

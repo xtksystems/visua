@@ -58,6 +58,15 @@ describe("onboarding and assessment", () => {
     expect(res.status).toBe(400);
   });
 
+  it("accepts every profile driver the onboarding and settings screens offer, including AI systems", async () => {
+    const res = await api<{ workspace: { profile: { drivers: string[] } } }>("PATCH", `/api/workspaces/${wsId}`, { profile: { drivers: ["enterprise-customers", "ai-systems"] } });
+    expect(res.status).toBe(200);
+    expect(res.json.workspace.profile.drivers).toEqual(["enterprise-customers", "ai-systems"]);
+    const rec = await api<{ frameworks: { frameworkId: string }[] }>("POST", "/api/recommend", { industry: "saas", size: "11-50", drivers: ["ai-systems"] });
+    expect(rec.status).toBe(200);
+    expect(rec.json.frameworks.map((f) => f.frameworkId)).toContain("nist-ai-rmf");
+  });
+
   it("updates a requirement and derives status", async () => {
     const res = await api<{ current: number }>("PATCH", `/api/workspaces/${wsId}/requirements/nist-csf-2.0:PR.AA-01`, { current: 3, target: 3, owner: "IT" });
     expect(res.status).toBe(200);

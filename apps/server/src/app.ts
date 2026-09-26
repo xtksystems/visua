@@ -13,6 +13,11 @@ import { z } from "zod";
 import {
   EXAMPLE_INFORMATION_TYPES,
   LEVEL_SCALES,
+  PROFILE_DATA_TYPES,
+  PROFILE_DRIVERS,
+  PROFILE_ENVIRONMENTS,
+  PROFILE_INDUSTRIES,
+  PROFILE_SIZES,
   TIER_DIMENSIONS,
   TIER_NAMES,
   TIER_SOURCE,
@@ -45,11 +50,11 @@ const TaskStatus = z.enum(["backlog", "todo", "in-progress", "in-review", "done"
 const TaskKind = z.enum(["governance", "policy", "procedure", "technical", "evidence", "training", "assessment", "vendor", "monitoring"]);
 
 const ProfileSchema = z.object({
-  industry: z.enum(["saas", "fintech", "healthcare", "manufacturing", "public-sector", "defense-contractor", "education", "retail", "energy-utilities", "nonprofit", "professional-services", "other"]),
-  size: z.enum(["1-10", "11-50", "51-200", "201-1000", "1000+"]),
-  dataTypes: z.array(z.enum(["pii", "phi", "cardholder", "cui", "financial", "intellectual-property", "children", "biometric"])).default([]),
-  drivers: z.array(z.enum(["enterprise-customers", "federal-customers", "regulator", "board-mandate", "cyber-insurance", "investor-due-diligence", "incident-recovery", "build-program"])).default([]),
-  environments: z.array(z.enum(["cloud", "on-prem", "hybrid", "ot"])).default(["cloud"]),
+  industry: z.enum(PROFILE_INDUSTRIES),
+  size: z.enum(PROFILE_SIZES),
+  dataTypes: z.array(z.enum(PROFILE_DATA_TYPES)).default([]),
+  drivers: z.array(z.enum(PROFILE_DRIVERS)).default([]),
+  environments: z.array(z.enum(PROFILE_ENVIRONMENTS)).default(["cloud"]),
   maturityTier: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]).default(1),
   guidance: z.enum(["guided", "expert"]).default("guided"),
   securityTeamSize: z.number().int().min(0).max(10_000).default(1),
@@ -64,7 +69,7 @@ const AiSystemSchema = z.object({
   provider: z.string().max(200).optional(),
   riskTier: z.enum(["low", "moderate", "high"]).optional(),
   owner: z.string().max(120).optional(),
-  dataTypes: z.array(z.enum(["pii", "phi", "cardholder", "cui", "financial", "intellectual-property", "children", "biometric"])).optional(),
+  dataTypes: z.array(z.enum(PROFILE_DATA_TYPES)).optional(),
   humanOversight: z.string().max(2000).optional(),
 });
 
