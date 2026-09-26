@@ -12,6 +12,7 @@ import {
   type Citation,
   type FrameworkFamily,
   type RequirementNode,
+  type Task,
 } from "@visua/core";
 import type { SearchHit } from "@visua/frameworks";
 import type { AgentHost } from "./host.ts";
@@ -103,6 +104,29 @@ function short(text: string, n = 180): string {
 export function modelText(node: RequirementNode): string {
   if (node.attributes?.["licensed"] === true && !licensedTextToModel()) return `${node.title}. ${String(node.attributes["summary"] ?? "")} ${WITHHELD_NOTICE}`;
   return node.text;
+}
+
+/**
+ * A task as it may be sent to the model. Tasks planned from licensed AICPA criteria carry
+ * the criterion text (description) and point-of-focus titles (checklist): they are
+ * withheld like the criteria themselves, unless the operator declared permission.
+ */
+export function modelTask<T extends Pick<Task, "title" | "description" | "checklist" | "requirementIds">>(host: AgentHost, task: T): T {
+  if (licensedTextToModel()) return task;
+  const withheld: [string, string][] = [];
+  for (const id of task.requirementIds) {
+    const node = host.registry.node(id);
+    if (node?.attributes?.["licensed"] !== true) continue;
+    withheld.push([node.text.trim(), `[${node.code}: ${String(node.attributes["summary"] ?? node.title)} (AICPA text withheld)]`]);
+    for (const p of (node.attributes["pointsOfFocus"] as { title?: string; text?: string }[] | undefined) ?? []) {
+      for (const t of [p.text, p.title]) if (t?.trim()) withheld.push([t.trim(), "[AICPA point of focus withheld]"]);
+    }
+  }
+  if (!withheld.length) return task;
+  // Longest first, so a criterion's text is replaced whole before any fragment of it.
+  withheld.sort((a, b) => b[0].length - a[0].length);
+  const clean = (s: string) => withheld.reduce((acc, [text, notice]) => (text.length >= 12 ? acc.split(text).join(notice) : acc), s);
+  return { ...task, title: clean(task.title), description: clean(task.description), checklist: task.checklist.map((c) => ({ ...c, text: clean(c.text) })) };
 }
 
 /** Whether a corpus document's passages may be sent to the model. */
@@ -482,16 +506,19 @@ export const listTasks = defineTool({
       .filter((t) => (!input.status || input.status.includes(t.status)) && (!req || t.requirementIds.includes(req)))
       .slice(0, input.limit ?? 40);
     return {
-      tasks: tasks.map((t) => ({
-        id: t.id,
-        title: t.title,
-        status: t.status,
-        kind: t.kind,
-        priority: t.priority,
-        dueDate: t.dueDate,
-        requirements: t.requirementIds.map(codeOf),
-        checklist: t.checklist.map((c) => ({ id: c.id, text: short(c.text, 100), done: c.done })),
-      })),
+      tasks: tasks.map((task) => {
+        const t = modelTask(host, task);
+        return {
+          id: t.id,
+          title: t.title,
+          status: t.status,
+          kind: t.kind,
+          priority: t.priority,
+          dueDate: t.dueDate,
+          requirements: t.requirementIds.map(codeOf),
+          checklist: t.checklist.map((c) => ({ id: c.id, text: short(c.text, 100), done: c.done })),
+        };
+      }),
     };
   },
 });

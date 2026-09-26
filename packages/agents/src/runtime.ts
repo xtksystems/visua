@@ -7,6 +7,7 @@ import { AGENTS } from "./agents.ts";
 import { claudeEnabled, runWithClaude } from "./claude.ts";
 import type { AgentHost, AgentRequest, AgentResult } from "./host.ts";
 import { runOffline } from "./offline.ts";
+import { modelTask } from "./tools.ts";
 
 /** Compact, deterministic workspace context for the first user turn. */
 export function workspaceContext(host: AgentHost, request: AgentRequest): string {
@@ -31,7 +32,9 @@ export function workspaceContext(host: AgentHost, request: AgentRequest): string
   const input = Object.entries(request.input).filter(([, v]) => v !== undefined && v !== null && v !== "");
   if (input.length) lines.push(`<run_input>${JSON.stringify(Object.fromEntries(input))}</run_input>`);
   if (typeof request.input["taskId"] === "string") {
-    const task = host.tasks().find((t) => t.id === request.input["taskId"]);
+    const found = host.tasks().find((t) => t.id === request.input["taskId"]);
+    // Licensed criterion text in a task never reaches the model (see modelTask).
+    const task = found ? modelTask(host, found) : undefined;
     if (task) {
       lines.push(
         `<task id="${task.id}" status="${task.status}" kind="${task.kind}">${task.title}\n${task.description}\nChecklist:\n` +
