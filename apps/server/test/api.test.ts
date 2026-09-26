@@ -1,3 +1,8 @@
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { FrameworkRegistry, REPO_ROOT } from "@visua/frameworks";
 import { createApp } from "../src/app.ts";
@@ -486,6 +491,33 @@ describe("agents (offline playbooks) with human-in-the-loop proposals", () => {
     expect(r.proposals.some((p) => p.type === "update-task" || p.type === "create-policy")).toBe(true);
   });
 
+  it("records a proposal in the flight recorder only once it is committed", async () => {
+    const created = await api<{ workspace: { id: string } }>("POST", "/api/workspaces", {
+      name: "Recorder Co",
+      profile: { industry: "saas", size: "1-10", dataTypes: [], drivers: [], environments: ["cloud"], maturityTier: 1, guidance: "guided", securityTeamSize: 1 },
+    });
+    const rw = created.json.workspace.id;
+    await api("PATCH", `/api/workspaces/${rw}`, { autonomy: { "create-task": true } });
+    const steps: { data?: { proposalId?: string } }[] = [];
+    const recorder = { step: (s: (typeof steps)[number]) => steps.push(s) };
+    const input = { type: "create-task" as const, title: "Review access", rationale: "Quarterly review", payload: { title: "Review access", requirementIds: ["nist-csf-2.0:PR.AA-05"] }, citations: [], confidence: "low" as const, nodeIds: ["nist-csf-2.0:PR.AA-05"] };
+    // Applying it under autonomy fails at the audit entry: the whole proposal rolls back, and nothing was recorded.
+    const append = svc.store.activity.append.bind(svc.store.activity);
+    svc.store.activity.append = async () => {
+      throw new Error("audit trail unavailable");
+    };
+    try {
+      await expect(svc.createProposal(rw, "run_rec", input, recorder as never)).rejects.toThrow(/audit trail unavailable/);
+    } finally {
+      svc.store.activity.append = append;
+    }
+    expect(steps).toHaveLength(0);
+    expect(await svc.store.proposals.list(rw)).toHaveLength(0);
+    const applied = await svc.createProposal(rw, "run_rec", input, recorder as never);
+    expect(applied.status).toBe("applied");
+    expect(steps.map((s) => s.data?.proposalId)).toEqual([applied.id]);
+  });
+
   it("autonomy lets an agent apply a proposal type without approval", async () => {
     await api("PATCH", `/api/workspaces/${wsId}`, { autonomy: { "create-task": true } });
     const r = await run("planner", "Plan more", { framework: "nist-csf-2.0", maxTasks: 1 });
@@ -602,6 +634,53 @@ describe("demo seed", () => {
     expect(res.json.approvals).toBeGreaterThan(0);
     const trust = await new TestClient(app).get<{ name: string; frameworks: unknown[] }>("/api/trust/northwind-health");
     expect(trust.json.frameworks.length).toBeGreaterThan(0);
+  });
+
+  it("re-creates the demo from the command line inside its organization", () => {
+    // The seed CLI once created the workspace without an organization, so nobody could open it.
+    const dir = mkdtempSync(join(tmpdir(), "visua-seed-"));
+    try {
+      const file = join(dir, "seed.db");
+      const cli = resolve(REPO_ROOT, "apps/server/src/seed/cli.ts");
+      const env = { ...process.env, VISUA_DATABASE_URL: file, VISUA_DB: "" };
+      execFileSync(process.execPath, ["--disable-warning=ExperimentalWarning", cli], { env, stdio: "pipe" });
+      execFileSync(process.execPath, ["--disable-warning=ExperimentalWarning", cli, "--reset"], { env, stdio: "pipe" });
+      const check = new DatabaseSync(file);
+      const ws = check.prepare(`SELECT tenant_id FROM workspaces WHERE slug = 'northwind-health'`).get() as { tenant_id: string | null };
+      const org = check.prepare(`SELECT id FROM tenants WHERE slug = 'northwind-health'`).get() as { id: string };
+      const trail = check.prepare(`SELECT data FROM activity WHERE workspace_id = ?`).all(org.id).map((r) => JSON.parse(String((r as { data: string }).data)) as { summary: string });
+      check.close();
+      expect(ws.tenant_id).toBe(org.id);
+      // The reset's deletion is on the organization's own audit trail.
+      expect(trail.some((e) => e.summary === "Workspace “Northwind Health” and its data deleted")).toBe(true);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 120_000);
+
+  it("deletes a workspace and records it on the organization trail in one transaction", async () => {
+    const created = await morgan.post<{ workspace: { id: string; tenantId: string } }>("/api/workspaces", {
+      name: "Short-lived",
+      profile: { industry: "saas", size: "1-10", dataTypes: [], drivers: [], environments: ["cloud"], maturityTier: 1, guidance: "guided", securityTeamSize: 1 },
+    });
+    const { id, tenantId } = created.json.workspace;
+    // If the organization's audit entry cannot be written, nothing is deleted.
+    const append = svc.store.activity.append.bind(svc.store.activity);
+    svc.store.activity.append = async (e) => {
+      if (e.workspaceId === tenantId) throw new Error("audit trail unavailable");
+      return append(e);
+    };
+    try {
+      expect((await morgan.del(`/api/workspaces/${id}`)).status).toBe(500);
+    } finally {
+      svc.store.activity.append = append;
+    }
+    expect((await morgan.get(`/api/workspaces/${id}`)).status).toBe(200);
+    expect((await morgan.del(`/api/workspaces/${id}`)).status).toBe(200);
+    expect((await morgan.get(`/api/workspaces/${id}`)).status).toBe(404);
+    const trail = await morgan.get<{ summary: string }[]>(`/api/tenants/${tenantId}/activity?limit=5`);
+    expect(trail.json.some((e) => e.summary === "Workspace “Short-lived” and its data deleted")).toBe(true);
+    expect((await morgan.get<{ valid: boolean }>(`/api/tenants/${tenantId}/activity/verify`)).json.valid).toBe(true);
   });
 
   it("publishes on the trust center only the frameworks the workspace chooses, state AI laws off by default", async () => {

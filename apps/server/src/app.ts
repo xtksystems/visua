@@ -376,8 +376,7 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
   });
 
   app.delete("/api/workspaces/:ws", need("workspace.configure"), async (c) => {
-    const ws = await svc.deleteWorkspace(wsId(c));
-    await svc.log(ws.tenantId!, actorOf(c), "deleted", "workspace", ws.id, `Workspace “${ws.name}” and its data deleted`);
+    await svc.deleteWorkspace(wsId(c), actorOf(c));
     return c.json({ ok: true });
   });
 

@@ -95,7 +95,7 @@ const baseline: Migration = {
         await db.execute(`INSERT INTO tenants (id, slug, data, created_at, updated_at) VALUES (?, ?, ${db.dialect === "postgres" ? "?::jsonb" : "?"}, ?, ?)`, [
           DEFAULT_TENANT_ID,
           "default",
-          JSON.stringify({ id: DEFAULT_TENANT_ID, slug: "default", name: "Default organization", createdAt: ts, updatedAt: ts }),
+          JSON.stringify({ id: DEFAULT_TENANT_ID, slug: "default", name: "Default organization", settings: {}, createdAt: ts, updatedAt: ts }),
           ts,
           ts,
         ]);
@@ -105,7 +105,23 @@ const baseline: Migration = {
   },
 };
 
-export const MIGRATIONS: Migration[] = [baseline];
+/**
+ * Version 1 created the default organization of an upgraded installation without its
+ * settings, and access checks read them: give every organization settings.
+ */
+const tenantSettings: Migration = {
+  version: 2,
+  name: "every organization has settings",
+  async up(db) {
+    await db.execute(
+      db.dialect === "postgres"
+        ? `UPDATE tenants SET data = jsonb_set(data, '{settings}', '{}'::jsonb) WHERE data->'settings' IS NULL OR jsonb_typeof(data->'settings') <> 'object'`
+        : `UPDATE tenants SET data = json_set(data, '$.settings', json('{}')) WHERE json_type(data, '$.settings') IS NULL OR json_type(data, '$.settings') <> 'object'`,
+    );
+  },
+};
+
+export const MIGRATIONS: Migration[] = [baseline, tenantSettings];
 
 export async function migrate(driver: SqlDriver): Promise<number[]> {
   await driver.execute(`CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL)`);

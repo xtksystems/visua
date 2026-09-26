@@ -335,14 +335,18 @@ export class VisuaService {
     });
   }
 
-  async deleteWorkspace(idOrSlug: string): Promise<Workspace> {
+  /** Delete a workspace and its data; the organization's own trail records it in the same transaction. */
+  async deleteWorkspace(idOrSlug: string, actor = "user"): Promise<Workspace> {
     return this.mutate(idOrSlug, async (ws) => {
+      const running: AbortController[] = [];
       for (const [runId, controller] of this.running) {
         const run = await this.store.runs.get(runId);
-        if (run?.workspaceId === ws.id) controller.abort();
+        if (run?.workspaceId === ws.id) running.push(controller);
       }
       await this.store.deleteWorkspace(ws.id);
+      if (ws.tenantId) await this.log(ws.tenantId, actor, "deleted", "workspace", ws.id, `Workspace “${ws.name}” and its data deleted`);
       this.store.afterCommit(() => {
+        for (const controller of running) controller.abort();
         for (const key of [...this.scoreCache.keys()]) if (key.startsWith(`${ws.id}|`)) this.scoreCache.delete(key);
       });
       return ws;
@@ -1474,7 +1478,10 @@ export class VisuaService {
         createdAt: now(),
       };
       await this.store.proposals.put(proposal, proposal.createdAt);
-      recorder?.step({ type: "proposal", title: proposal.title, detail: proposal.rationale, data: { proposalId: proposal.id, type: proposal.type }, nodeIds: proposal.nodeIds, citations: proposal.citations });
+      // The flight recorder streams and stores steps at once: record the proposal only once it exists.
+      this.store.afterCommit(() =>
+        recorder?.step({ type: "proposal", title: proposal.title, detail: proposal.rationale, data: { proposalId: proposal.id, type: proposal.type }, nodeIds: proposal.nodeIds, citations: proposal.citations }),
+      );
       this.emit(ws.id, "proposal.created", proposal);
       if (ws.autonomy[proposal.type]) return this.decideProposal(ws.id, proposal.id, "approved", "autonomy");
       return proposal;

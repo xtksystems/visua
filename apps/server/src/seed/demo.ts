@@ -82,10 +82,11 @@ export async function seedDemoOrganizations(auth: AuthService): Promise<string> 
 const daysFromNow = (d: number) => new Date(Date.now() + d * 86_400_000).toISOString();
 const dateFromNow = (d: number) => daysFromNow(d).slice(0, 10);
 
-export async function seedDemo(svc: VisuaService, auth?: AuthService): Promise<string> {
+/** The demo workspace, in the Northwind Health organization (created with its personas when missing). */
+export async function seedDemo(svc: VisuaService, auth: AuthService): Promise<string> {
   const existing = await svc.store.workspaces.get("northwind-health");
   if (existing) return existing.id;
-  const tenantId = auth ? await seedDemoOrganizations(auth) : undefined;
+  const tenantId = await seedDemoOrganizations(auth);
   const actor = "seed";
   const frameworks = ["nist-csf-2.0", "aicpa-tsc-2017", "nist-sp-800-53-r5", "nist-ai-rmf", "us-state-ai-laws"].filter((id) => svc.registry.framework(id));
   const ws = await svc.createWorkspace(

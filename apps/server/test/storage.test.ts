@@ -5,10 +5,14 @@ import { DatabaseSync } from "node:sqlite";
 import { afterAll, describe, expect, it } from "vitest";
 import type { ActivityEvent, OrganizationProfile, Workspace } from "@visua/core";
 import { FrameworkRegistry } from "@visua/frameworks";
+import { createApp } from "../src/app.ts";
+import { loadAuthConfig } from "../src/auth/config.ts";
+import { AuthService } from "../src/auth/service.ts";
 import { createService } from "../src/context.ts";
 import { chainHash } from "../src/services/visua.ts";
 import { toPostgresParams } from "../src/storage/driver.ts";
 import { DEFAULT_TENANT_ID } from "../src/storage/index.ts";
+import { TestClient } from "./client.ts";
 import { TEST_PG_URL, testDatabase } from "./db.ts";
 
 const registry = FrameworkRegistry.load();
@@ -157,6 +161,11 @@ describe("upgrading a SQLite database written before migrations", () => {
       const got = await upgraded.workspace("legacy");
       expect(got.tenantId).toBe(DEFAULT_TENANT_ID);
       expect((await upgraded.store.identity.tenants.get(DEFAULT_TENANT_ID))?.name).toBe("Default organization");
+      // Its first person claims it and can open the workspace (access checks read the organization's settings).
+      const auth = new AuthService(upgraded, { ...loadAuthConfig({}), mode: "dev" });
+      const client = new TestClient(createApp(upgraded, auth));
+      expect((await client.devLogin("first@legacy.example")).json.activeTenant?.role).toBe("owner");
+      expect((await client.get("/api/workspaces/legacy")).status).toBe(200);
       expect((await upgraded.store.activity.head(ws.id))?.seq).toBe(3);
       await upgraded.updateWorkspace(ws.id, { description: "Upgraded in place" });
       const trail = await upgraded.verifyAuditTrail(ws.id);
