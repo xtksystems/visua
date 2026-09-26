@@ -81,8 +81,8 @@ workspaces only through a membership, and their **role** decides what they can d
 
 | Role | Can |
 |---|---|
-| Owner | everything, including owners and the "Require SSO" setting |
-| Admin | workspaces, frameworks, scope, agent autonomy, connectors, members, API tokens, SSO |
+| Owner | everything, including owners, the "Require SSO" setting and which identity provider an SSO connection trusts |
+| Admin | workspaces, frameworks, scope, agent autonomy, connectors, members, API tokens, and running SSO connections (enable, disable, provisioning) |
 | Approver | decide agent proposals, approve policies, accept evidence, categorize, tailor and record authorization decisions |
 | Contributor | assess requirements, manage tasks, upload evidence, draft policies, run agents and connectors |
 | Auditor | read everything, export reports and verify the audit trail |
@@ -90,10 +90,14 @@ workspaces only through a membership, and their **role** decides what they can d
 
 - **Single sign-on.** Each organization can connect its own OpenID Connect provider
   (Okta, Microsoft Entra ID, Google Workspace, Keycloak…): authorization code flow with
-  PKCE, state and nonce. People are routed to it by email domain, can be provisioned on
-  first sign-in with a default role, and their sessions reach that organization only. An
-  owner can require the organization's SSO for every session. A platform-wide provider
-  (`VISUA_OIDC_*`) can be configured too.
+  PKCE, state and nonce, bound to the browser that started it. People are routed to it
+  by email domain, can be provisioned on first sign-in with a default role, and their
+  sessions reach that organization only. Whoever controls a connection's provider can
+  sign in as any member on its domains, so only owners choose the provider, client and
+  domains; a new provider never inherits the old one's client secret. An owner can
+  require the organization's SSO for every session. A platform-wide provider
+  (`VISUA_OIDC_*`) can be configured too; it links an existing account by email only
+  when the email is verified.
 - **API tokens** act in one organization with a chosen role (never owner), are shown
   once and stored as SHA-256 hashes, and can expire or be revoked.
 - **Sessions** are random tokens in an HttpOnly, SameSite=Lax cookie (`__Host-` and
@@ -110,6 +114,7 @@ workspaces only through a membership, and their **role** decides what they can d
 | `VISUA_PUBLIC_URL` | `http://localhost:8787` | External URL: OIDC redirect URI (`/api/auth/oidc/callback`), secure cookies over HTTPS, allowed origin |
 | `VISUA_SECRET` | — | At least 32 characters. Encrypts SSO client secrets at rest (AES-256-GCM). Required in production before storing a client secret. |
 | `VISUA_OIDC_ISSUER`, `VISUA_OIDC_CLIENT_ID`, `VISUA_OIDC_CLIENT_SECRET`, `VISUA_OIDC_NAME` | — | Optional platform identity provider |
+| `VISUA_OIDC_TRUST_EMAIL` | — | Set to `1` only if the platform provider verifies every email it asserts but sends no `email_verified` claim. Otherwise an unverified email never links to an existing account. |
 | `VISUA_BOOTSTRAP_OWNER_EMAIL`, `VISUA_BOOTSTRAP_ORG_NAME` | — | First owner of a new installation (or of an unowned upgraded one) |
 | `VISUA_SESSION_HOURS`, `VISUA_SESSION_IDLE_MINUTES` | `12`, `120` | Session lifetime and idle timeout |
 | `VISUA_ALLOWED_ORIGINS` | — | Extra origins allowed to send state-changing requests (comma-separated) |

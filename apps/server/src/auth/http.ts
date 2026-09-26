@@ -8,7 +8,7 @@ import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { z } from "zod";
 import { ROLES, ROLE_LABELS, can, type Capability, type Role, type Workspace } from "@visua/core";
 import { NotFoundError, ValidationError, principalContext } from "../services/visua.ts";
-import { safeEqual } from "./crypto.ts";
+import { randomToken, safeEqual } from "./crypto.ts";
 import { AuthService, ForbiddenError, UnauthorizedError, publicConnection, safeReturnTo, type Principal } from "./service.ts";
 
 export type AppEnv = {
@@ -27,6 +27,14 @@ const SAFE = new Set(["GET", "HEAD", "OPTIONS"]);
 const PUBLIC_ROUTES = [/^\/api\/health$/, /^\/api\/auth\/(config|me|dev\/login|oidc\/start|oidc\/callback|sso\/discover|logout)$/, /^\/api\/trust\//];
 
 export const cookieName = (auth: AuthService) => (auth.config.secureCookies ? "__Host-visua_session" : "visua_session");
+/** Pre-auth cookie that binds an OpenID Connect flow to the browser that started it. */
+const flowCookieName = (auth: AuthService) => (auth.config.secureCookies ? "__Host-visua_oidc" : "visua_oidc");
+
+/** `?limit=` as a bounded positive integer (anything else: the default). */
+export function limitParam(value: string | undefined, fallback: number, max: number): number {
+  const n = Number(value);
+  return Number.isInteger(n) && n > 0 ? Math.min(n, max) : fallback;
+}
 
 export function principalOf(c: Context<AppEnv>): Principal {
   const p = c.get("principal");
@@ -212,13 +220,20 @@ export function authRoutes(app: Hono<AppEnv>, auth: AuthService): void {
   });
 
   app.get("/api/auth/oidc/start", async (c) => {
-    const url = await auth.startLogin(c.req.query("connection") || "platform", safeReturnTo(c.req.query("returnTo")));
+    // Sign-in starts from Visua's own pages (or a typed URL), never from another site's link.
+    const site = c.req.header("sec-fetch-site");
+    if (site && site !== "same-origin" && site !== "none") return c.redirect(`/login?error=${encodeURIComponent("Start signing in from the Visua sign-in page.")}`, 302);
+    const browser = randomToken(24);
+    const url = await auth.startLogin(c.req.query("connection") || "platform", safeReturnTo(c.req.query("returnTo")), browser);
+    setCookie(c, flowCookieName(auth), browser, { httpOnly: true, secure: auth.config.secureCookies, sameSite: "Lax", path: "/", maxAge: 600 });
     return c.redirect(url.toString(), 302);
   });
 
   app.get("/api/auth/oidc/callback", async (c) => {
+    const browser = getCookie(c, flowCookieName(auth)) ?? "";
+    deleteCookie(c, flowCookieName(auth), { path: "/", secure: auth.config.secureCookies });
     try {
-      const { token, returnTo } = await auth.finishLogin(new URL(c.req.url), c.req.header("user-agent"));
+      const { token, returnTo } = await auth.finishLogin(new URL(c.req.url), c.req.header("user-agent"), browser);
       setSession(c, token);
       return c.redirect(returnTo, 302);
     } catch (err) {
@@ -305,8 +320,8 @@ export function authRoutes(app: Hono<AppEnv>, auth: AuthService): void {
     return c.body(null, 204);
   });
 
-  const SsoSchema = z.object({
-    name: z.string().max(120).default("Single sign-on"),
+  const SsoFields = z.object({
+    name: z.string().max(120),
     issuer: z.string().min(1).max(500),
     clientId: z.string().min(1).max(300),
     clientSecret: z.string().max(2000).optional(),
@@ -315,6 +330,9 @@ export function authRoutes(app: Hono<AppEnv>, auth: AuthService): void {
     defaultRole: RoleSchema.optional(),
     enabled: z.boolean().optional(),
   });
+  const SsoSchema = SsoFields.extend({ name: SsoFields.shape.name.default("Single sign-on") });
+  // An update changes only the fields it sends (no defaults: a missing name keeps the current one).
+  const SsoPatch = SsoFields.partial();
 
   app.get("/api/tenants/:tenant/sso", need("tenant.manage"), async (c) =>
     c.json({ redirectUri: auth.redirectUri, connections: (await auth.svc.store.identity.sso.forTenant(c.get("tenantId"))).map(publicConnection) }),
@@ -326,7 +344,7 @@ export function authRoutes(app: Hono<AppEnv>, auth: AuthService): void {
   });
 
   app.patch("/api/tenants/:tenant/sso/:id", need("tenant.manage"), async (c) => {
-    const input = await json(c, SsoSchema.partial());
+    const input = await json(c, SsoPatch);
     const existing = await auth.svc.store.identity.sso.get(c.req.param("id"));
     if (!existing || existing.tenantId !== c.get("tenantId")) throw new NotFoundError("SSO connection not found");
     const merged = { name: existing.name, issuer: existing.issuer, clientId: existing.clientId, domains: existing.domains, jitProvisioning: existing.jitProvisioning, defaultRole: existing.defaultRole, enabled: existing.enabled, ...input };
@@ -339,7 +357,7 @@ export function authRoutes(app: Hono<AppEnv>, auth: AuthService): void {
   });
 
   app.get("/api/tenants/:tenant/activity", need("workspace.export"), async (c) =>
-    c.json(await auth.svc.store.activity.recent(c.get("tenantId"), Math.min(500, Number(c.req.query("limit") ?? 100)))),
+    c.json(await auth.svc.store.activity.recent(c.get("tenantId"), limitParam(c.req.query("limit"), 100, 500))),
   );
   app.get("/api/tenants/:tenant/activity/verify", need("workspace.export"), async (c) => c.json(await auth.svc.verifyAuditTrail(c.get("tenantId"))));
 }

@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { FrameworkRegistry } from "@visua/frameworks";
 import { createApp } from "../src/app.ts";
 import { loadAuthConfig } from "../src/auth/config.ts";
-import { AuthService } from "../src/auth/service.ts";
+import { AuthService, safeReturnTo } from "../src/auth/service.ts";
 import { createService } from "../src/context.ts";
 import { TestClient } from "./client.ts";
 import { testDatabase } from "./db.ts";
@@ -287,5 +287,123 @@ describe("single sign-on (OpenID Connect)", () => {
     expect((await alice.get(`/api/workspaces/${wsId}`)).status).toBe(404);
     const { client } = await oidcSignIn((await svc.store.identity.sso.forTenant(aliceTenant))[0]!.id, { sub: "okta|ivy", email: "ivy@acme-sso.example" });
     expect((await client.get(`/api/workspaces/${wsId}`)).status).toBe(200);
+  });
+});
+
+describe("single sign-on hardening", () => {
+  let olivia: TestClient;
+  let initech = "";
+  let connectionId = "";
+  beforeAll(async () => {
+    olivia = await signIn("olivia@initech.example", "Olivia Owner");
+    initech = (await olivia.get<Me>("/api/auth/me")).json.activeTenant!.id;
+    const created = await olivia.post<{ id: string }>(`/api/tenants/${initech}/sso`, {
+      name: "Initech SSO",
+      issuer: idp.issuer,
+      clientId: idp.clientId,
+      clientSecret: idp.clientSecret,
+      domains: ["initech-sso.example"],
+      jitProvisioning: true,
+      defaultRole: "viewer",
+    });
+    expect(created.status).toBe(201);
+    connectionId = created.json.id;
+  });
+
+  it("finishes a sign-in only in the browser that started it", async () => {
+    idp.signInAs({ sub: "okta|walter", email: "walter@initech-sso.example", email_verified: true });
+    const attacker = new TestClient(app);
+    const start = await attacker.get(`/api/auth/oidc/start?connection=${connectionId}`);
+    const callback = await idp.authorize(start.headers.get("location")!);
+    // The victim opens the attacker's unused callback link: no session, and the flow is spent.
+    const victim = new TestClient(app);
+    const done = await victim.get(callback);
+    expect(decodeURIComponent(done.headers.get("location") ?? "")).toContain("started in another browser");
+    expect((await victim.get<Me | null>("/api/auth/me")).json).toBeNull();
+    expect(decodeURIComponent((await attacker.get(callback)).headers.get("location") ?? "")).toMatch(/expired or was already used/);
+    // Another site cannot start a sign-in either.
+    const crossSite = await new TestClient(app).request("GET", `/api/auth/oidc/start?connection=${connectionId}`, undefined, { "sec-fetch-site": "cross-site" });
+    expect(crossSite.headers.get("location")).toMatch(/^\/login\?error=/);
+  });
+
+  it("lets only owners choose a connection's identity provider, and never sends its secret to another one", async () => {
+    await olivia.post(`/api/tenants/${initech}/members`, { email: "adam@initech.example", role: "admin" });
+    const adam = await signIn("adam@initech.example");
+    await adam.post("/api/auth/tenant", { tenantId: initech });
+    // Admins run the connection...
+    const renamed = await adam.patch<{ name: string; jitProvisioning: boolean }>(`/api/tenants/${initech}/sso/${connectionId}`, { jitProvisioning: false });
+    expect(renamed.status).toBe(200);
+    // ...an update without a name keeps the name...
+    expect(renamed.json).toMatchObject({ name: "Initech SSO", jitProvisioning: false });
+    await adam.patch(`/api/tenants/${initech}/sso/${connectionId}`, { jitProvisioning: true });
+    // ...but cannot point it at another provider, add one or remove it.
+    expect((await adam.patch(`/api/tenants/${initech}/sso/${connectionId}`, { issuer: "https://idp.attacker.example" })).status).toBe(403);
+    expect((await adam.patch(`/api/tenants/${initech}/sso/${connectionId}`, { domains: ["initech-sso.example", "initech.example"] })).status).toBe(403);
+    expect((await adam.post(`/api/tenants/${initech}/sso`, { issuer: "https://idp.attacker.example", clientId: "x", domains: ["other.example"] })).status).toBe(403);
+    expect((await adam.del(`/api/tenants/${initech}/sso/${connectionId}`)).status).toBe(403);
+    // An owner's new issuer does not inherit the old provider's client secret.
+    const moved = await olivia.patch<{ hasClientSecret: boolean }>(`/api/tenants/${initech}/sso/${connectionId}`, { issuer: "https://idp.elsewhere.example" });
+    expect(moved.json.hasClientSecret).toBe(false);
+    const back = await olivia.patch<{ hasClientSecret: boolean }>(`/api/tenants/${initech}/sso/${connectionId}`, { issuer: idp.issuer, clientSecret: idp.clientSecret });
+    expect(back.json.hasClientSecret).toBe(true);
+  });
+
+  it("never lets an organization's provider rename someone who belongs to other organizations", async () => {
+    const carol = await signIn("carol@initech-sso.example", "Carol Carter");
+    const { me } = await oidcSignIn(connectionId, { sub: "okta|carol", email: "carol@initech-sso.example", email_verified: true, name: "Mallory" });
+    expect(me.json.activeTenant?.id).toBe(initech);
+    expect((await carol.get<{ user: { name: string } }>("/api/auth/me")).json.user.name).toBe("Carol Carter");
+    // Someone new to Visua takes the name their provider gives.
+    const fresh = await oidcSignIn(connectionId, { sub: "okta|nina", email: "nina@initech-sso.example", email_verified: true, name: "Nina Nakamura" });
+    expect(fresh.me.json.user).toMatchObject({ email: "nina@initech-sso.example" });
+    expect((await fresh.client.get<{ user: { name: string } }>("/api/auth/me")).json.user.name).toBe("Nina Nakamura");
+  });
+
+  it("links an existing account through the platform provider only for a verified email", async () => {
+    // henry@corp.example exists (linked to idp|henry above); a new subject claiming his address without verification is refused.
+    const unverified = await oidcSignIn("platform", { sub: "idp|imposter", email: "henry@corp.example" });
+    expect(decodeURIComponent(unverified.redirect)).toContain("verified email");
+    expect(unverified.me.json).toBeNull();
+  });
+
+  it("keeps Require SSO in force: the last connection cannot be disabled while it is on", async () => {
+    const token = await olivia.post<{ token: string }>(`/api/tenants/${initech}/tokens`, { name: "Automation", role: "admin" });
+    expect((await olivia.patch(`/api/tenants/${initech}`, { settings: { requireSso: true } })).status).toBe(200);
+    const bot = new TestClient(app);
+    bot.bearer = token.json.token;
+    const disabled = await bot.patch<{ error: string }>(`/api/tenants/${initech}/sso/${connectionId}`, { enabled: false });
+    expect(disabled.status).toBe(400);
+    expect(disabled.json.error).toMatch(/Require SSO/);
+    expect((await svc.store.identity.sso.get(connectionId))?.enabled).toBe(true);
+  });
+
+  it("allows only same-site relative return paths", () => {
+    for (const bad of ["//evil.example", "/\\evil.example", "/\t/evil.example", "/\n/evil.example", "https://evil.example", "evil", "/ok\\..\\..\\x"]) expect(safeReturnTo(bad), JSON.stringify(bad)).toBe("/");
+    for (const good of ["/", "/w/acme/agents?tab=inbox", "/w/acme/observatory/nist-csf-2.0?select=nist-csf-2.0%3AGV.OC-01"]) expect(safeReturnTo(good)).toBe(good);
+  });
+});
+
+describe("corpus files and list limits", () => {
+  it("serves official HTML pages sandboxed, and never a .local folder in any letter case", async () => {
+    const c = await signIn("reader@files.example");
+    const html = await c.get("/api/corpus/file/us-state-ai-laws/illinois/ilcs-225-155-wopr-act.html");
+    expect(html.status).toBe(200);
+    expect(html.headers.get("content-security-policy")).toBe("sandbox");
+    expect((await c.get("/api/corpus/file/nist-rmf/controls/.LOCAL/anything.pdf")).status).toBe(400);
+    expect((await c.get("/api/corpus/file/nist-rmf/controls/%2Elocal/anything.pdf")).status).toBe(400);
+    const pdf = await c.get("/api/corpus/file/nist-csf-2.0/core/NIST.CSWP.29.pdf");
+    expect(pdf.headers.get("content-security-policy")).toBeNull();
+  });
+
+  it("treats a malformed ?limit= as the default instead of failing", async () => {
+    const c = await signIn("lister@files.example");
+    const tenant = (await c.get<Me>("/api/auth/me")).json.activeTenant!.id;
+    const ws = (await c.post<{ workspace: { id: string } }>("/api/workspaces", { name: "Lists", profile, frameworks: ["nist-csf-2.0"] })).json.workspace.id;
+    for (const path of [`/api/tenants/${tenant}/activity?limit=abc`, `/api/workspaces/${ws}/activity?limit=abc`, `/api/workspaces/${ws}/runs?limit=-5`, `/api/workspaces/${ws}/activity?limit=1.5`]) {
+      const res = await c.get<unknown[]>(path);
+      expect(res.status, path).toBe(200);
+      expect(Array.isArray(res.json), path).toBe(true);
+    }
+    expect((await c.get<unknown[]>(`/api/workspaces/${ws}/activity?limit=1`)).json).toHaveLength(1);
   });
 });

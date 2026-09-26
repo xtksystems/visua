@@ -18,9 +18,9 @@ export type Capability =
   | "work.approve"
   /** Create and delete workspaces; enable frameworks; set scope, autonomy and the trust center. */
   | "workspace.configure"
-  /** Manage members (except owners), API tokens and single sign-on. */
+  /** Manage members (except owners), API tokens, and run SSO connections (enable, disable, provisioning). */
   | "tenant.manage"
-  /** Manage owners and organization-wide security settings. */
+  /** Manage owners and organization-wide security settings, including which identity provider SSO trusts. */
   | "tenant.own";
 
 const READ: Capability[] = ["workspace.read"];
@@ -39,8 +39,8 @@ export const ROLE_CAPABILITIES: Record<Role, readonly Capability[]> = {
 };
 
 export const ROLE_LABELS: Record<Role, { name: string; description: string }> = {
-  owner: { name: "Owner", description: "Full control, including owners and organization security settings." },
-  admin: { name: "Admin", description: "Workspaces, frameworks, members, API tokens and single sign-on." },
+  owner: { name: "Owner", description: "Full control, including owners, organization security settings and SSO identity providers." },
+  admin: { name: "Admin", description: "Workspaces, frameworks, members, API tokens and running single sign-on." },
   approver: { name: "Approver", description: "Decides agent proposals, approves policies and evidence, records authorization decisions." },
   contributor: { name: "Contributor", description: "Assesses requirements, runs agents and connectors, manages tasks, evidence and drafts." },
   auditor: { name: "Auditor", description: "Read-only access with exports and audit-trail verification." },

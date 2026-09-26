@@ -10,7 +10,8 @@ export interface Res<T> {
 }
 
 export class TestClient {
-  cookie = "";
+  /** Cookies the server set (a minimal cookie jar: session and sign-in flow cookies). */
+  readonly jar = new Map<string, string>();
   csrf = "";
   bearer = "";
   readonly app: Hono<AppEnv>;
@@ -21,14 +22,16 @@ export class TestClient {
 
   async request<T = unknown>(method: string, path: string, body?: unknown, extra: Record<string, string> = {}): Promise<Res<T>> {
     const headers: Record<string, string> = { ...(body !== undefined ? { "content-type": "application/json" } : {}) };
-    if (this.cookie) headers["cookie"] = this.cookie;
+    if (this.jar.size) headers["cookie"] = [...this.jar].map(([k, v]) => `${k}=${v}`).join("; ");
     if (this.csrf && method !== "GET" && method !== "HEAD") headers["x-visua-csrf"] = this.csrf;
     if (this.bearer) headers["authorization"] = `Bearer ${this.bearer}`;
     const res = await this.app.request(path, { method, headers: { ...headers, ...extra }, body: body !== undefined ? JSON.stringify(body) : undefined });
-    const set = res.headers.get("set-cookie");
-    if (set) {
-      const m = /((?:__Host-)?visua_session)=([^;]*)/.exec(set);
-      if (m) this.cookie = m[2] ? `${m[1]}=${m[2]}` : "";
+    for (const set of res.headers.getSetCookie()) {
+      const pair = set.split(";")[0]!;
+      const name = pair.slice(0, pair.indexOf("="));
+      const value = pair.slice(pair.indexOf("=") + 1);
+      if (!value || /max-age=0/i.test(set)) this.jar.delete(name);
+      else this.jar.set(name, value);
     }
     const text = await res.text();
     let json: T;

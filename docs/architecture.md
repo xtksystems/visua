@@ -260,9 +260,21 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     routes that need more (`work.approve`, `workspace.configure`, `workspace.export`)
     declare it. Roles map to capabilities in `packages/core/src/access.ts`.
   - OpenID Connect uses `openid-client` (authorization code + PKCE, state, nonce; the
-    flow state is single-use and stored hashed). A session created through an
-    organization's own SSO connection is scoped to that organization, so one tenant's
-    identity provider can never grant access to another tenant.
+    flow state is single-use and stored hashed). A flow is bound to the browser that
+    started it by a short-lived pre-auth cookie, and it can only be started from Visua's
+    own pages (`Sec-Fetch-Site`), so a captured callback URL cannot sign someone else in.
+    A session created through an organization's own SSO connection is scoped to that
+    organization, so one tenant's identity provider can never grant access to another
+    tenant.
+  - A connection's provider can sign in as any member on its domains, owners included,
+    so choosing it (issuer, client, secret, domains; adding or removing a connection) needs
+    `tenant.own`. Admins enable, disable and set provisioning. A secret never follows a
+    connection to a new issuer or client, and the last enabled connection cannot be
+    disabled while "Require SSO" is on.
+  - A new identity links to an existing account by email only when the email is verified:
+    the platform provider must say so (`email_verified`, or `VISUA_OIDC_TRUST_EMAIL=1`); an
+    organization's own provider must not deny it. An organization's provider never
+    renames someone who also belongs to other organizations.
   - The request principal travels in `AsyncLocalStorage`, so the service records it as
     `actorId` on every audit event without changing method signatures.
 - **Audit trail.** Every change is an `ActivityEvent` with `seq`, `prevHash` and
@@ -394,9 +406,13 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 7. Known limitations
 
-- Email domains of SSO connections are asserted by organization admins, not verified by
+- Email domains of SSO connections are asserted by organization owners, not verified by
   DNS. Sessions from a connection are scoped to its organization, so a false claim cannot
-  reach other tenants, but first come holds a domain until an operator intervenes.
+  reach other tenants' data. But a false claim still routes that domain's people to the
+  claiming organization's provider when they sign in (where a hostile provider could
+  phish them), and first come holds a domain until an operator intervenes. DNS
+  verification is on the roadmap; until then, run a shared installation only for
+  organizations you trust with their domain claims.
 - SAML and SCIM provisioning are not implemented; OpenID Connect covers the major
   identity providers.
 - Connectors cover web posture and repository hygiene only. Cloud, IdP, HRIS and MDM

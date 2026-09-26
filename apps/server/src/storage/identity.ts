@@ -63,6 +63,8 @@ export interface LoginFlow {
   codeVerifier: string;
   nonce: string;
   returnTo: string;
+  /** SHA-256 of the pre-auth cookie of the browser that started the flow: only that browser can finish it. */
+  binding?: string;
   createdAt: string;
 }
 

@@ -17,7 +17,7 @@ import type { ApiTokenRecord, SessionRecord, SsoConnection } from "../storage/in
 import { DEFAULT_TENANT_ID } from "../storage/index.ts";
 import { NotFoundError, ValidationError, type Principal as AuditPrincipal, type VisuaService } from "../services/visua.ts";
 import type { AuthConfig } from "./config.ts";
-import { randomToken, seal, sha256, unseal } from "./crypto.ts";
+import { randomToken, safeEqual, seal, sha256, unseal } from "./crypto.ts";
 
 export class UnauthorizedError extends Error {}
 export class ForbiddenError extends Error {}
@@ -228,15 +228,15 @@ export class AuthService {
   }
 
   /** The organization new workspaces go to and workspace lists come from. */
-  async activeTenant(principal: Principal): Promise<{ tenant: Tenant; role: Role } | undefined> {
-    const orgs = await this.organizations(principal);
+  async activeTenant(principal: Principal, orgs?: { tenant: Tenant; role: Role }[]): Promise<{ tenant: Tenant; role: Role } | undefined> {
+    const list = orgs ?? (await this.organizations(principal));
     const wanted = principal.kind === "user" ? principal.session.activeTenantId : principal.token.tenantId;
-    return orgs.find((o) => o.tenant.id === wanted) ?? orgs[0];
+    return list.find((o) => o.tenant.id === wanted) ?? list[0];
   }
 
   async me(principal: Principal) {
     const orgs = await this.organizations(principal);
-    const active = await this.activeTenant(principal);
+    const active = await this.activeTenant(principal, orgs);
     return {
       authMode: this.config.mode,
       principal: principal.kind,
@@ -356,6 +356,11 @@ export class AuthService {
   // SSO connections
   // -------------------------------------------------------------------------
 
+  /**
+   * Create or change an SSO connection. Whoever controls a connection's identity provider
+   * can sign in as any member on its domains, owners included: choosing the provider
+   * (issuer, client, secret, domains) is an owner decision. Admins manage the rest.
+   */
   async upsertSsoConnection(tenantId: string, input: SsoConnectionInput & { id?: string }, by: Principal): Promise<SsoConnection> {
     if (!(await this.can(by, tenantId, "tenant.manage"))) throw new ForbiddenError("Configuring SSO requires the admin or owner role");
     if (this.config.mode === "oidc" && this.config.secretIsDefault && input.clientSecret) throw new ValidationError("Set VISUA_SECRET on the server before storing SSO client secrets");
@@ -375,22 +380,36 @@ export class AuthService {
       await this.svc.store.lock("sso-domains");
       const existing = input.id ? await this.ids.sso.get(input.id) : undefined;
       if (input.id && (!existing || existing.tenantId !== tenantId)) throw new NotFoundError("SSO connection not found");
+      const issuerUrl = issuer.toString().replace(/\/$/, "");
+      const providerChanged =
+        !existing || existing.issuer !== issuerUrl || existing.clientId !== input.clientId.trim() || !!input.clientSecret || existing.domains.join(",") !== domains.join(",");
+      if (providerChanged && !(await this.can(by, tenantId, "tenant.own"))) {
+        throw new ForbiddenError("Only owners choose an SSO connection's identity provider, client and domains: whoever controls it can sign in as any member");
+      }
+      const enabled = input.enabled ?? existing?.enabled ?? true;
+      if (existing?.enabled && !enabled) {
+        const tenant = await this.tenant(tenantId);
+        const others = (await this.ids.sso.forTenant(tenantId)).filter((c) => c.enabled && c.id !== existing.id);
+        if (tenant.settings.requireSso && !others.length) throw new ValidationError("Turn off “Require SSO” before disabling the last connection");
+      }
       for (const d of domains) {
         const owner = await this.ids.sso.domainOwner(d);
         if (owner && owner !== existing?.id) throw new ValidationError(`The domain ${d} is already used by another SSO connection`);
       }
       const ts = now();
+      // A stored secret belongs to its provider: a new issuer or client needs its own.
+      const samePartner = !!existing && existing.issuer === issuerUrl && existing.clientId === input.clientId.trim();
       const connection: SsoConnection = {
         id: existing?.id ?? newId("sso"),
         tenantId,
         name: input.name.trim() || "Single sign-on",
-        issuer: issuer.toString().replace(/\/$/, ""),
+        issuer: issuerUrl,
         clientId: input.clientId.trim(),
-        clientSecretSealed: input.clientSecret ? seal(input.clientSecret, this.config.secret) : existing?.clientSecretSealed,
+        clientSecretSealed: input.clientSecret ? seal(input.clientSecret, this.config.secret) : samePartner ? existing.clientSecretSealed : undefined,
         domains,
         jitProvisioning: input.jitProvisioning ?? existing?.jitProvisioning ?? false,
         defaultRole: role,
-        enabled: input.enabled ?? existing?.enabled ?? true,
+        enabled,
         createdAt: existing?.createdAt ?? ts,
         updatedAt: ts,
       };
@@ -403,7 +422,7 @@ export class AuthService {
   }
 
   async deleteSsoConnection(tenantId: string, id: string, by: Principal): Promise<void> {
-    if (!(await this.can(by, tenantId, "tenant.manage"))) throw new ForbiddenError("Configuring SSO requires the admin or owner role");
+    if (!(await this.can(by, tenantId, "tenant.own"))) throw new ForbiddenError("Only owners remove an SSO connection");
     await this.svc.store.atomic(async () => {
       const tenant = await this.tenant(tenantId);
       const remaining = (await this.ids.sso.forTenant(tenantId)).filter((c) => c.enabled && c.id !== id);
@@ -447,14 +466,19 @@ export class AuthService {
     return { config, connection };
   }
 
-  /** Build the authorization request and remember its state, nonce and PKCE verifier (single use, 10 minutes). */
-  async startLogin(connectionId: string, returnTo = "/"): Promise<URL> {
+  /**
+   * Build the authorization request and remember its state, nonce and PKCE verifier
+   * (single use, 10 minutes), bound to the browser that started it: `browser` is the
+   * value of a pre-auth cookie only that browser holds.
+   */
+  async startLogin(connectionId: string, returnTo = "/", browser = ""): Promise<URL> {
+    if (!browser) throw new UnauthorizedError("Sign-in could not be started in this browser");
     const { config } = await this.oidcFor(connectionId);
     const state = oidc.randomState();
     const nonce = oidc.randomNonce();
     const codeVerifier = oidc.randomPKCECodeVerifier();
     await this.ids.loginFlows.purgeExpired();
-    await this.ids.loginFlows.put(sha256(state), { connection: connectionId, codeVerifier, nonce, returnTo: safeReturnTo(returnTo), createdAt: now() }, addMinutes(10));
+    await this.ids.loginFlows.put(sha256(state), { connection: connectionId, codeVerifier, nonce, returnTo: safeReturnTo(returnTo), binding: sha256(browser), createdAt: now() }, addMinutes(10));
     return oidc.buildAuthorizationUrl(config, {
       redirect_uri: this.redirectUri,
       scope: "openid email profile",
@@ -466,11 +490,13 @@ export class AuthService {
   }
 
   /** Complete the flow: verify the response, map the identity to a member, and open a session. */
-  async finishLogin(callback: URL, userAgent?: string): Promise<{ token: string; returnTo: string }> {
+  async finishLogin(callback: URL, userAgent?: string, browser = ""): Promise<{ token: string; returnTo: string }> {
     const state = callback.searchParams.get("state");
     if (!state) throw new UnauthorizedError("The sign-in response has no state");
     const flow = await this.ids.loginFlows.take(sha256(state));
     if (!flow) throw new UnauthorizedError("This sign-in link expired or was already used. Start again.");
+    // A sign-in finishes only in the browser that started it (no login CSRF with a captured callback URL).
+    if (!flow.binding || !browser || !safeEqual(flow.binding, sha256(browser))) throw new UnauthorizedError("This sign-in was started in another browser. Start again.");
     const idpError = callback.searchParams.get("error");
     if (idpError) throw new UnauthorizedError(`The identity provider refused the sign-in (${idpError})`);
     const { config, connection } = await this.oidcFor(flow.connection);
@@ -482,7 +508,10 @@ export class AuthService {
     const claims = tokens.claims();
     if (!claims) throw new UnauthorizedError("The identity provider returned no ID token");
     const email = typeof claims["email"] === "string" ? claims["email"].trim().toLowerCase() : undefined;
-    const emailVerified = claims["email_verified"] !== false;
+    // The platform provider's sessions reach every organization: its email must be verified
+    // explicitly (VISUA_OIDC_TRUST_EMAIL=1 for providers that verify without saying so). An
+    // organization's own provider only reaches that organization; it must not deny it.
+    const emailVerified = claims["email_verified"] === true || (claims["email_verified"] === undefined && (!!connection || this.config.trustPlatformEmail));
     const displayName =
       (typeof claims["name"] === "string" && claims["name"]) ||
       [claims["given_name"], claims["family_name"]].filter((x) => typeof x === "string").join(" ") ||
@@ -522,7 +551,12 @@ export class AuthService {
     } else if (!(await this.ids.memberships.forUser(user.id)).length) {
       throw new ForbiddenError("You have no access to Visua yet. Ask an administrator of your organization to add you.");
     }
-    if (id.name && id.name !== user.name && !linked) user = await this.ids.users.put({ ...user, name: id.name, updatedAt: now() });
+    // A provider names the people it signs in for the first time, but an organization's own
+    // provider never renames someone who also belongs to other organizations.
+    if (id.name && id.name !== user.name && !linked) {
+      const elsewhere = connection && (await this.ids.memberships.forUser(user.id)).some((m) => m.tenant.id !== connection.tenantId);
+      if (!elsewhere) user = await this.ids.users.put({ ...user, name: id.name, updatedAt: now() });
+    }
     return user;
   }
 
@@ -594,8 +628,12 @@ export class AuthService {
   }
 }
 
-/** Only same-site relative paths: never an open redirect. */
+/**
+ * Only same-site relative paths: never an open redirect. Browsers drop tabs and line
+ * breaks from URLs and read backslashes as slashes, so "/\t/evil.example" or
+ * "/\\evil.example" would leave the site: such paths fall back to "/".
+ */
 export function safeReturnTo(value: string | undefined): string {
-  if (!value || !value.startsWith("/") || value.startsWith("//") || value.startsWith("/\\")) return "/";
+  if (!value || !/^\/(?![\/\\])[^\s\\\x00-\x1f\x7f]*$/.test(value)) return "/";
   return value.slice(0, 500);
 }

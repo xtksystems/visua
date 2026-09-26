@@ -4,7 +4,7 @@
  * corpus so every citation opens the source PDF at the right page.
  */
 import { createHash } from "node:crypto";
-import { createReadStream, existsSync, statSync } from "node:fs";
+import { createReadStream, existsSync, realpathSync, statSync } from "node:fs";
 import { extname, isAbsolute, relative, resolve, sep } from "node:path";
 import { Readable } from "node:stream";
 import { Hono, type Context } from "hono";
@@ -29,7 +29,7 @@ import {
 import { AGENTS, claudeEnabled, configuredModel } from "@visua/agents";
 import { CORPUS_DIR } from "@visua/frameworks";
 import { loadAuthConfig } from "./auth/config.ts";
-import { actorOf, authenticate, authRoutes, csrfProtection, need, principalOf, requireCapability, requireSignIn, securityHeaders, workspaceAccess, type AppEnv } from "./auth/http.ts";
+import { actorOf, authenticate, authRoutes, csrfProtection, limitParam, need, principalOf, requireCapability, requireSignIn, securityHeaders, workspaceAccess, type AppEnv } from "./auth/http.ts";
 import { AuthService, ForbiddenError, UnauthorizedError } from "./auth/service.ts";
 import { CONNECTOR_KINDS } from "./connectors/index.ts";
 import { actionPlanCsv, aiRmfProfileCsv, csfProfileCsv, evidenceIndexCsv, oscalPoam, oscalSsp, readinessMarkdown, soc2PbcCsv } from "./services/exports.ts";
@@ -227,7 +227,11 @@ const MIME: Record<string, string> = {
   ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   ".md": "text/markdown; charset=utf-8",
   ".html": "text/html; charset=utf-8",
+  ".htm": "text/html; charset=utf-8",
 };
+
+/** Inside the corpus and outside every non-redistributable `.local/` folder (in any letter case). */
+const servable = (path: string) => !!path && !path.startsWith("..") && !isAbsolute(path) && !path.split(sep).some((p) => p.toLowerCase() === ".local");
 
 export function createApp(svc: VisuaService, auth: AuthService = new AuthService(svc, loadAuthConfig())): Hono<AppEnv> {
   const app = new Hono<AppEnv>();
@@ -324,16 +328,20 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
   app.get("/api/corpus/file/*", (c) => {
     const rel = decodeURIComponent(c.req.path.replace(/^\/api\/corpus\/file\//, ""));
     const full = resolve(CORPUS_DIR, rel);
-    const inside = relative(CORPUS_DIR, full);
-    // Only files inside the corpus, never the non-redistributable `.local/` folders.
-    if (!inside || inside.startsWith("..") || isAbsolute(inside) || inside.split(sep).includes(".local")) throw new ValidationError("Invalid corpus path");
+    // Only files inside the corpus, never the non-redistributable `.local/` folders, and no symlink out of it.
+    if (!servable(relative(CORPUS_DIR, full))) throw new ValidationError("Invalid corpus path");
     if (!existsSync(full) || !statSync(full).isFile()) throw new NotFoundError("Corpus file not found");
+    if (!servable(relative(realpathSync(CORPUS_DIR), realpathSync(full)))) throw new ValidationError("Invalid corpus path");
+    const type = MIME[extname(full).toLowerCase()] ?? "application/octet-stream";
     const stream = Readable.toWeb(createReadStream(full)) as ReadableStream;
     return new Response(stream, {
       headers: {
-        "content-type": MIME[extname(full).toLowerCase()] ?? "application/octet-stream",
+        "content-type": type,
         "content-length": String(statSync(full).size),
         "cache-control": "private, max-age=86400",
+        // Official web pages (statutes published as HTML) load their publisher's scripts: render them
+        // sandboxed, so nothing they contain runs with Visua's origin.
+        ...(type.startsWith("text/html") ? { "content-security-policy": "sandbox" } : {}),
       },
     });
   });
@@ -535,7 +543,7 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
 
   // ---------------------------------------------------------------- agents
   app.get("/api/workspaces/:ws/runs", async (c) =>
-    c.json((await svc.store.runs.recent(wsId(c), Number(c.req.query("limit") ?? 50))).map((r) => ({ ...r, steps: undefined, stepCount: r.steps.length }))),
+    c.json((await svc.store.runs.recent(wsId(c), limitParam(c.req.query("limit"), 50, 500))).map((r) => ({ ...r, steps: undefined, stepCount: r.steps.length }))),
   );
   app.post("/api/workspaces/:ws/runs", async (c) => {
     const input = await body(c, Schemas.run);
@@ -578,13 +586,13 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
         setId: c.req.query("set") || undefined,
         groupId: c.req.query("group") || undefined,
         nodeId: c.req.query("node") || undefined,
-        limit: c.req.query("limit") ? Math.min(5000, Number(c.req.query("limit"))) : undefined,
+        limit: c.req.query("limit") ? limitParam(c.req.query("limit"), 500, 5000) : undefined,
       }),
     ),
   );
   app.get("/api/workspaces/:ws/soc2/description", async (c) => c.json(await soc2Description(svc, wsOf(c))));
 
-  app.get("/api/workspaces/:ws/activity", async (c) => c.json(await svc.store.activity.recent(wsId(c), Math.min(1000, Number(c.req.query("limit") ?? 100)))));
+  app.get("/api/workspaces/:ws/activity", async (c) => c.json(await svc.store.activity.recent(wsId(c), limitParam(c.req.query("limit"), 100, 1000))));
   app.get("/api/workspaces/:ws/activity/verify", async (c) => c.json(await svc.verifyAuditTrail(wsId(c))));
 
   app.get("/api/workspaces/:ws/events", async (c) => {
@@ -608,9 +616,13 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
           const data = queue.shift()!;
           await stream.writeSSE({ event: "visua", data });
         }
+        // Wake on the next event, or after 15 s for a keep-alive ping (one timer at a time).
         await new Promise<void>((r) => {
-          wake = r;
-          setTimeout(r, 15_000);
+          const timer = setTimeout(r, 15_000);
+          wake = () => {
+            clearTimeout(timer);
+            r();
+          };
         });
         wake = undefined;
         if (open && !queue.length) await stream.writeSSE({ event: "ping", data: String(Date.now()) });

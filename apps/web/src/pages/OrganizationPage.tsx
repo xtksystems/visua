@@ -463,9 +463,11 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
                     </button>
                   </td>
                   <td style={{ textAlign: "right" }}>
-                    <button className="btn btn--quiet btn--sm btn--icon" aria-label={`Remove ${c.name}`} onClick={() => confirm(`Remove the SSO connection “${c.name}”?`) && remove.mutate(c.id)}>
-                      <Trash2 size={14} />
-                    </button>
+                    {owner && (
+                      <button className="btn btn--quiet btn--sm btn--icon" aria-label={`Remove ${c.name}`} onClick={() => confirm(`Remove the SSO connection “${c.name}”?`) && remove.mutate(c.id)}>
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -475,6 +477,13 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
           <Empty title="No SSO connection">Add your identity provider below.</Empty>
         )}
       </div>
+      {!owner && (
+        <div className="panel muted" role="note">
+          Only owners add, remove or re-point identity providers: whoever controls a provider can sign in as any member on its domains, owners included. Admins can
+          enable or disable connections.
+        </div>
+      )}
+      {owner && (
       <form
         className="panel stack"
         style={{ gap: 12 }}
@@ -524,6 +533,7 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
           </button>
         </div>
       </form>
+      )}
       <div className="panel row" style={{ gap: 12, justifyContent: "space-between" }}>
         <div className="stack" style={{ gap: 4 }}>
           <strong>
