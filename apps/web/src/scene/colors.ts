@@ -152,7 +152,6 @@ export const THREAT_LENS: Record<"status" | "gap", { title: string; description:
       { label: "Covered", color: c["status-implemented"] },
       { label: "Partly covered", color: c["status-in-progress"] },
       { label: "Open", color: c["status-not-started"] },
-      { label: "Linked requirement at risk", color: c["status-at-risk"] },
       { label: "No link in your frameworks", color: c["status-not-applicable"] },
     ],
   },
