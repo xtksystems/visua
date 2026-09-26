@@ -238,6 +238,7 @@ export class Store implements StoreContext {
   readonly activity: ActivityLog;
   readonly identity: IdentityStore;
   private savepoints = 0;
+  private readonly closers: (() => Promise<void>)[] = [];
 
   constructor(driver: SqlDriver) {
     this.driver = driver;
@@ -340,7 +341,13 @@ export class Store implements StoreContext {
     });
   }
 
+  /** Resources to release with the store (listeners, relays). */
+  onClose(fn: () => Promise<void>): void {
+    this.closers.push(fn);
+  }
+
   async close(): Promise<void> {
+    for (const fn of this.closers.splice(0)) await fn().catch(() => undefined);
     await this.driver.close();
   }
 }

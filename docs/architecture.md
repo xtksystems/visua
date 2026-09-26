@@ -206,6 +206,10 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   event is written in the same transaction as the change it records, under the
   workspace lock, and a unique `(workspace_id, seq)` index means the chain can never
   fork. `GET /activity/verify` recomputes the chain and reports the first broken link.
+- **Live events across instances.** On Postgres, every instance LISTENs on one channel
+  per schema and NOTIFYs it with each event it publishes, so a browser connected to any
+  instance sees changes made through any other. Events over NOTIFY's 8,000-byte limit
+  travel with their identifying fields only (`partial: true`).
 - **Derived caches.** Each audited change bumps the workspace's revision counter;
   readiness scores are cached per revision, so every instance sees fresh scores.
 - **Agent host.** Agents read from a snapshot of the workspace taken when the run starts

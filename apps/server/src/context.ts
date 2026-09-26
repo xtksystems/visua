@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 import { FrameworkRegistry, REPO_ROOT } from "@visua/frameworks";
 import { EventBus } from "./bus.ts";
+import { PgEventRelay } from "./storage/events.ts";
 import { openStore } from "./storage/index.ts";
 import { VisuaService } from "./services/visua.ts";
 
@@ -16,7 +17,11 @@ export function databaseUrl(): string {
 }
 
 export async function createService(options: ServiceOptions = {}): Promise<VisuaService> {
-  const store = await openStore(options.database ?? databaseUrl());
+  const url = options.database ?? databaseUrl();
+  const store = await openStore(url);
   const registry = options.registry ?? FrameworkRegistry.load();
-  return new VisuaService(store, registry, new EventBus());
+  const bus = new EventBus();
+  // Several instances on one Postgres database share live events through LISTEN/NOTIFY.
+  if (store.dialect === "postgres") await PgEventRelay.start(url, bus, store);
+  return new VisuaService(store, registry, bus);
 }

@@ -93,6 +93,28 @@ describe(`storage (${db.dialect})`, () => {
     }
   });
 
+  it.skipIf(!TEST_PG_URL)("relays live events between instances through Postgres", async () => {
+    const ws = await svc.createWorkspace({ name: "Relay", profile, frameworks: ["nist-csf-2.0"] });
+    const other = await createService({ database: db.url, registry });
+    try {
+      const received = new Promise<string[]>((resolve) => {
+        const types: string[] = [];
+        const off = other.bus.subscribe(ws.id, (e) => {
+          types.push(e.type);
+          if (e.type === "task.created") {
+            off();
+            resolve(types);
+          }
+        });
+      });
+      await svc.createTask(ws.id, { title: "Seen elsewhere", description: "x".repeat(9_000) });
+      const types = await Promise.race([received, new Promise<string[]>((_, reject) => setTimeout(() => reject(new Error("no relayed event")), 5_000))]);
+      expect(types).toContain("task.created");
+    } finally {
+      await other.store.close();
+    }
+  });
+
   it("invalidates cached scores when another instance changes the workspace", async () => {
     const ws = await svc.createWorkspace({ name: "Cache", profile, frameworks: ["nist-csf-2.0"] });
     const before = await svc.score(ws.id, "nist-csf-2.0");
