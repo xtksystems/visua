@@ -236,3 +236,66 @@ test("threat views: ATLAS matrix, coverage from linked requirements, and the Nex
   await expect(page.getByRole("button", { name: /Threat ring/ })).toHaveAttribute("aria-pressed", "true");
   expect(errors).toEqual([]);
 });
+
+test("state AI laws: roles decide scope, upcoming obligations count apart, obligations open in 3D", async ({ page }) => {
+  const csrf = await signIn(page);
+  const meta = (await (await page.request.get("/api/meta")).json()) as { frameworks: { id: string }[] };
+  test.skip(!meta.frameworks.some((f) => f.id === "us-state-ai-laws"), "State AI laws corpus not ingested");
+  const errors = watchErrors(page);
+  await page.goto(`${WS}/laws`);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("State AI laws");
+  await expect(page.getByText(/26 laws and regulations, 187 obligations/)).toBeVisible();
+  await expect(page.getByRole("img", { name: "Effective-date timeline of the tracked laws" })).toBeVisible();
+  // The demo records Northwind as a developer and deployer under TRAIGA.
+  const traiga = page.getByRole("article", { name: /Texas Responsible Artificial Intelligence Governance Act/ });
+  await expect(traiga.getByRole("checkbox", { name: /^developer/ })).toBeChecked();
+  // Colorado's ADMT Act applies from 2027: its obligations in scope are upcoming and not counted today.
+  await expect(page.getByRole("article", { name: /Colorado Automated Decision-Making Technology Act/ })).toContainText(/take effect from 2027-01-01.*not counted in today's readiness/);
+  // A law nobody decided on stays one line until opened; recording a role brings its obligations into scope.
+  await page.getByLabel("Filter laws").fill("SB 243");
+  await page.getByRole("button", { name: /CA-SB243/ }).click();
+  const sb243 = page.getByRole("article", { name: /Companion Chatbots \(SB 243\)/ });
+  await expect(sb243).toContainText(/0 in force · 0 of \d+ in scope/);
+  await sb243.getByRole("checkbox", { name: /^operator/ }).check();
+  await sb243.getByLabel("Basis for CA-SB243 applicability").fill("Our patient companion app is offered to California residents.");
+  await sb243.getByRole("button", { name: "Record applicability" }).click();
+  await expect(sb243.getByText(/^Decided \d{4}-\d{2}-\d{2} by /)).toBeVisible();
+  await expect(sb243).toContainText(/[1-9]\d* in force · [1-9]\d* of \d+ in scope/);
+  // Each obligation is quoted from the statute, with its section and page.
+  await sb243.getByRole("button", { name: /\d+ obligations/ }).click();
+  await sb243.getByRole("link", { name: "CA-SB243-02", exact: true }).click();
+  await expect(page).toHaveURL(/\/observatory\/us-state-ai-laws/);
+  const inspector = page.getByRole("complementary", { name: "CA-SB243-02 details" });
+  await expect(inspector).toContainText("§ 22602");
+  await expect(inspector).toContainText(/p\. \d+/);
+  expect(errors).toEqual([]);
+  // Leave the demo as it was.
+  const overview = (await (await page.request.get("/api/workspaces/northwind-health/laws")).json()) as { jurisdictions: { laws: { code: string; lawId: string }[] }[] };
+  const lawId = overview.jurisdictions.flatMap((j) => j.laws).find((l) => l.code === "CA-SB243")!.lawId;
+  expect((await page.request.put(`/api/workspaces/northwind-health/laws/${lawId}/applicability`, { data: { roles: [] }, headers: { "x-visua-csrf": csrf } })).ok()).toBe(true);
+});
+
+test("Observatory: a threat catalog shows coverage from linked requirements, never an assessment", async ({ page }) => {
+  await signIn(page);
+  const meta = (await (await page.request.get("/api/meta")).json()) as { frameworks: { id: string }[] };
+  test.skip(!meta.frameworks.some((f) => f.id === "mitre-atlas"), "Threat catalogs not ingested");
+  const errors = watchErrors(page);
+  await page.goto(`${WS}/observatory/mitre-atlas`);
+  await expect(page.locator(".observatory__canvas canvas")).toBeVisible();
+  // Coverage takes the place of status: two lenses, and a legend that says where coverage comes from.
+  await expect(page.getByRole("group", { name: "Lens" }).getByRole("button")).toHaveCount(2);
+  await expect(page.getByText(/derived from linked requirements, never assessed/)).toBeVisible();
+  await expect(page.getByRole("tree", { name: "Framework outline" }).getByText("Reconnaissance", { exact: true })).toBeVisible();
+  // A technique: coverage from its linked requirements and their link status, and no level to set.
+  await page.goto(`${WS}/observatory/mitre-atlas?select=${encodeURIComponent("mitre-atlas:AML.T0051")}`);
+  const inspector = page.getByRole("complementary", { name: "AML.T0051 details" });
+  await expect(inspector).toContainText("LLM Prompt Injection");
+  await expect(inspector).toContainText("not an assessment of it");
+  await expect(inspector.getByRole("radiogroup")).toHaveCount(0);
+  await expect(inspector.getByRole("group", { name: "Assessment" })).toHaveCount(0);
+  // The other catalogs are one chip away.
+  await page.getByRole("button", { name: "OWASP LLM", exact: true }).click();
+  await expect(page).toHaveURL(/\/observatory\/owasp-llm-top10/);
+  await expect(page.locator(".observatory__canvas canvas")).toBeVisible();
+  expect(errors).toEqual([]);
+});
