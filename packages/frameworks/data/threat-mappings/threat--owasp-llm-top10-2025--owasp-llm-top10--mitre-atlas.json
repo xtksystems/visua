@@ -1,0 +1,205 @@
+{
+ "id": "threat--owasp-llm-top10-2025--owasp-llm-top10--mitre-atlas",
+ "title": "OWASP LLM Top 10 2025",
+ "sourceFramework": "owasp-llm-top10",
+ "targetFramework": "mitre-atlas",
+ "authority": "OWASP LLM Top 10 2025",
+ "status": "superseded",
+ "mappings": [
+  {
+   "source": "owasp-llm-top10:LLM01-2025",
+   "target": "mitre-atlas:AML.T0051.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2025-pdf",
+    "locator": "LLM01:2025 Prompt Injection — Related Frameworks and Taxonomies",
+    "page": 10,
+    "authority": "OWASP LLM Top 10 2025"
+   },
+   "label": "related framework",
+   "status": "superseded"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01-2025",
+   "target": "mitre-atlas:AML.T0051.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2025-pdf",
+    "locator": "LLM01:2025 Prompt Injection — Related Frameworks and Taxonomies",
+    "page": 10,
+    "authority": "OWASP LLM Top 10 2025"
+   },
+   "label": "related framework",
+   "status": "superseded"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01-2025",
+   "target": "mitre-atlas:AML.T0054",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2025-pdf",
+    "locator": "LLM01:2025 Prompt Injection — Related Frameworks and Taxonomies",
+    "page": 10,
+    "authority": "OWASP LLM Top 10 2025"
+   },
+   "label": "related framework",
+   "status": "superseded"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02-2025",
+   "target": "mitre-atlas:AML.T0024.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2025-pdf",
+    "locator": "LLM02:2025 Sensitive Information Disclosure — Related Frameworks and Taxonomies",
+    "page": 13,
+    "authority": "OWASP LLM Top 10 2025"
+   },
+   "label": "related framework",
+   "status": "superseded"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02-2025",
+   "target": "mitre-atlas:AML.T0024.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2025-pdf",
+    "locator": "LLM02:2025 Sensitive Information Disclosure — Related Frameworks and Taxonomies",
+    "page": 14,
+    "authority": "OWASP LLM Top 10 2025"
+   },
+   "label": "related framework",
+   "status": "superseded"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02-2025",
+   "target": "mitre-atlas:AML.T0024.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2025-pdf",
+    "locator": "LLM02:2025 Sensitive Information Disclosure — Related Frameworks and Taxonomies",
+    "page": 14,
+    "authority": "OWASP LLM Top 10 2025"
+   },
+   "label": "related framework",
+   "status": "superseded"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03-2025",
+   "target": "mitre-atlas:AML.T0010",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2025-pdf",
+    "locator": "LLM03:2025 Supply Chain — Related Frameworks and Taxonomies",
+    "page": 19,
+    "authority": "OWASP LLM Top 10 2025"
+   },
+   "label": "related framework",
+   "status": "superseded"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04-2025",
+   "target": "mitre-atlas:AML.T0018",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2025-pdf",
+    "locator": "LLM04:2025 Data and Model Poisoning — Related Frameworks and Taxonomies",
+    "page": 22,
+    "authority": "OWASP LLM Top 10 2025"
+   },
+   "label": "related framework",
+   "status": "superseded"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07-2025",
+   "target": "mitre-atlas:AML.T0051.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2025-pdf",
+    "locator": "LLM07:2025 System Prompt Leakage — Related Frameworks and Taxonomies",
+    "page": 32,
+    "authority": "OWASP LLM Top 10 2025"
+   },
+   "label": "related framework",
+   "status": "superseded"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09-2025",
+   "target": "mitre-atlas:AML.T0048.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2025-pdf",
+    "locator": "LLM09:2025 Misinformation — Related Frameworks and Taxonomies",
+    "page": 38,
+    "authority": "OWASP LLM Top 10 2025"
+   },
+   "label": "related framework",
+   "status": "superseded"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10-2025",
+   "target": "mitre-atlas:AML.TA0000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2025-pdf",
+    "locator": "LLM10:2025 Unbounded Consumption — Related Frameworks and Taxonomies",
+    "page": 42,
+    "authority": "OWASP LLM Top 10 2025"
+   },
+   "label": "related framework",
+   "status": "superseded"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10-2025",
+   "target": "mitre-atlas:AML.T0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2025-pdf",
+    "locator": "LLM10:2025 Unbounded Consumption — Related Frameworks and Taxonomies",
+    "page": 42,
+    "authority": "OWASP LLM Top 10 2025"
+   },
+   "label": "related framework",
+   "status": "superseded"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10-2025",
+   "target": "mitre-atlas:AML.T0029",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2025-pdf",
+    "locator": "LLM10:2025 Unbounded Consumption — Related Frameworks and Taxonomies",
+    "page": 42,
+    "authority": "OWASP LLM Top 10 2025"
+   },
+   "label": "related framework",
+   "status": "superseded"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10-2025",
+   "target": "mitre-atlas:AML.T0034",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2025-pdf",
+    "locator": "LLM10:2025 Unbounded Consumption — Related Frameworks and Taxonomies",
+    "page": 42,
+    "authority": "OWASP LLM Top 10 2025"
+   },
+   "label": "related framework",
+   "status": "superseded"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10-2025",
+   "target": "mitre-atlas:AML.T0025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2025-pdf",
+    "locator": "LLM10:2025 Unbounded Consumption — Related Frameworks and Taxonomies",
+    "page": 42,
+    "authority": "OWASP LLM Top 10 2025"
+   },
+   "label": "related framework",
+   "status": "superseded"
+  }
+ ]
+}

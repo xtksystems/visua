@@ -1,0 +1,490 @@
+{
+ "id": "threat--owasp-genai-crosswalk--owasp-agentic-top10--nist-csf-2.0",
+ "title": "OWASP GenAI Security Crosswalk (unreviewed)",
+ "sourceFramework": "owasp-agentic-top10",
+ "targetFramework": "nist-csf-2.0",
+ "authority": "OWASP GenAI Security Crosswalk (unreviewed)",
+ "status": "unreviewed",
+ "mappings": [
+  {
+   "source": "owasp-agentic-top10:ASI01",
+   "target": "nist-csf-2.0:GV.OC-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI01 — Agent Goal Hijack; table 'CSF 2.0 mapping'), line 96",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI01",
+   "target": "nist-csf-2.0:PR.PS-04",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI01 — Agent Goal Hijack; table 'CSF 2.0 mapping'), line 97",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI01",
+   "target": "nist-csf-2.0:DE.CM-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI01 — Agent Goal Hijack; table 'CSF 2.0 mapping'), line 98",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI01",
+   "target": "nist-csf-2.0:RS.MI-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI01 — Agent Goal Hijack; table 'CSF 2.0 mapping'), line 99",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI02",
+   "target": "nist-csf-2.0:PR.AA-05",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI02 — Tool Misuse & Exploitation; table 'CSF 2.0 mapping'), line 156",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI02",
+   "target": "nist-csf-2.0:GV.OC-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI02 — Tool Misuse & Exploitation; table 'CSF 2.0 mapping'), line 157",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI02",
+   "target": "nist-csf-2.0:DE.CM-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI02 — Tool Misuse & Exploitation; table 'CSF 2.0 mapping'), line 158",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI02",
+   "target": "nist-csf-2.0:RS.AN-03",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI02 — Tool Misuse & Exploitation; table 'CSF 2.0 mapping'), line 159",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI03",
+   "target": "nist-csf-2.0:PR.AA-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI03 — Identity & Privilege Abuse; table 'CSF 2.0 mapping'), line 209",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI03",
+   "target": "nist-csf-2.0:PR.AA-05",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI03 — Identity & Privilege Abuse; table 'CSF 2.0 mapping'), line 210",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI03",
+   "target": "nist-csf-2.0:PR.DS-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI03 — Identity & Privilege Abuse; table 'CSF 2.0 mapping'), line 211",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI03",
+   "target": "nist-csf-2.0:DE.CM-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI03 — Identity & Privilege Abuse; table 'CSF 2.0 mapping'), line 212",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI04",
+   "target": "nist-csf-2.0:GV.SC-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI04 — Agentic Supply Chain Vulnerabilities; table 'CSF 2.0 mapping'), line 270",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI04",
+   "target": "nist-csf-2.0:GV.SC-06",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI04 — Agentic Supply Chain Vulnerabilities; table 'CSF 2.0 mapping'), line 271",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI04",
+   "target": "nist-csf-2.0:ID.AM-08",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI04 — Agentic Supply Chain Vulnerabilities; table 'CSF 2.0 mapping'), line 272",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI04",
+   "target": "nist-csf-2.0:PR.PS-02",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI04 — Agentic Supply Chain Vulnerabilities; table 'CSF 2.0 mapping'), line 273",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI05",
+   "target": "nist-csf-2.0:PR.PS-04",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI05 — Unexpected Code Execution; table 'CSF 2.0 mapping'), line 325",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI05",
+   "target": "nist-csf-2.0:PR.IR-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI05 — Unexpected Code Execution; table 'CSF 2.0 mapping'), line 326",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI05",
+   "target": "nist-csf-2.0:DE.CM-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI05 — Unexpected Code Execution; table 'CSF 2.0 mapping'), line 327",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI05",
+   "target": "nist-csf-2.0:RS.MI-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI05 — Unexpected Code Execution; table 'CSF 2.0 mapping'), line 328",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI06",
+   "target": "nist-csf-2.0:PR.DS-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI06 — Memory & Context Poisoning; table 'CSF 2.0 mapping'), line 378",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI06",
+   "target": "nist-csf-2.0:DE.CM-09",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI06 — Memory & Context Poisoning; table 'CSF 2.0 mapping'), line 379",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI06",
+   "target": "nist-csf-2.0:ID.AM-08",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI06 — Memory & Context Poisoning; table 'CSF 2.0 mapping'), line 380",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI06",
+   "target": "nist-csf-2.0:RS.AN-03",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI06 — Memory & Context Poisoning; table 'CSF 2.0 mapping'), line 381",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI07",
+   "target": "nist-csf-2.0:PR.AA-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI07 — Insecure Inter-Agent Communication; table 'CSF 2.0 mapping'), line 435",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI07",
+   "target": "nist-csf-2.0:PR.DS-02",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI07 — Insecure Inter-Agent Communication; table 'CSF 2.0 mapping'), line 436",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI07",
+   "target": "nist-csf-2.0:DE.CM-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI07 — Insecure Inter-Agent Communication; table 'CSF 2.0 mapping'), line 437",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI07",
+   "target": "nist-csf-2.0:GV.SC-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI07 — Insecure Inter-Agent Communication; table 'CSF 2.0 mapping'), line 438",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI08",
+   "target": "nist-csf-2.0:PR.IR-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI08 — Cascading Agent Failures; table 'CSF 2.0 mapping'), line 481",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI08",
+   "target": "nist-csf-2.0:DE.CM-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI08 — Cascading Agent Failures; table 'CSF 2.0 mapping'), line 482",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI08",
+   "target": "nist-csf-2.0:RS.MI-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI08 — Cascading Agent Failures; table 'CSF 2.0 mapping'), line 483",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI08",
+   "target": "nist-csf-2.0:RC.RP-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI08 — Cascading Agent Failures; table 'CSF 2.0 mapping'), line 484",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI09",
+   "target": "nist-csf-2.0:GV.OC-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI09 — Human-Agent Trust Exploitation; table 'CSF 2.0 mapping'), line 536",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI09",
+   "target": "nist-csf-2.0:PR.AT-01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI09 — Human-Agent Trust Exploitation; table 'CSF 2.0 mapping'), line 537",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI09",
+   "target": "nist-csf-2.0:DE.CM-09",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI09 — Human-Agent Trust Exploitation; table 'CSF 2.0 mapping'), line 538",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI09",
+   "target": "nist-csf-2.0:RS.CO-03",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI09 — Human-Agent Trust Exploitation; table 'CSF 2.0 mapping'), line 539",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI10",
+   "target": "nist-csf-2.0:DE.CM-09",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI10 — Rogue Agents; table 'CSF 2.0 mapping'), line 588",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI10",
+   "target": "nist-csf-2.0:DE.AE-02",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI10 — Rogue Agents; table 'CSF 2.0 mapping'), line 589",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI10",
+   "target": "nist-csf-2.0:RS.AN-03",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI10 — Rogue Agents; table 'CSF 2.0 mapping'), line 590",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI10",
+   "target": "nist-csf-2.0:PR.AA-05",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistcsf2",
+    "locator": "agentic-top10/Agentic_NISTCSF2.md (ASI10 — Rogue Agents; table 'CSF 2.0 mapping'), line 591",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  }
+ ]
+}

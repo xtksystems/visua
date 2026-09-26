@@ -87,7 +87,7 @@ export async function seedDemo(svc: VisuaService, auth?: AuthService): Promise<s
   if (existing) return existing.id;
   const tenantId = auth ? await seedDemoOrganizations(auth) : undefined;
   const actor = "seed";
-  const frameworks = ["nist-csf-2.0", "aicpa-tsc-2017", "nist-sp-800-53-r5", "nist-ai-rmf"].filter((id) => svc.registry.framework(id));
+  const frameworks = ["nist-csf-2.0", "aicpa-tsc-2017", "nist-sp-800-53-r5", "nist-ai-rmf", "us-state-ai-laws"].filter((id) => svc.registry.framework(id));
   const ws = await svc.createWorkspace(
     {
       tenantId,
@@ -245,6 +245,30 @@ export async function seedDemo(svc: VisuaService, auth?: AuthService): Promise<s
   if (svc.registry.overlay("nist-ir-8596-iprd")) {
     await svc.adoptOverlay(ws.id, "nist-ir-8596-iprd", { lenses: ["secure", "thwart"] }, actor);
     await svc.applyOverlayPriorities(ws.id, "nist-ir-8596-iprd", actor);
+  }
+
+  // U.S. state AI laws: the roles Northwind holds under the laws of the states it serves.
+  // Roles a law does not define are skipped, so the seed follows the corpus as it evolves.
+  const laws = svc.registry.framework("us-state-ai-laws");
+  if (laws) {
+    const decisions: [string, string[], string][] = [
+      ["co-admt-act", ["deployer"], "Our patient-facing assistant helps route requests for health-care services in Colorado clinics."],
+      ["tx-traiga", ["developer", "deployer"], "We build and operate AI features used by Texas clinics and their patients."],
+      ["ca-ccpa-admt-regs", ["business"], "We process personal information of California residents above the CCPA thresholds."],
+      ["ut-genai-disclosures", ["supplier"], "Patients in Utah interact with our generative AI assistant."],
+    ];
+    for (const [lawId, roles, note] of decisions) {
+      const law = laws.graph.nodes.find((n) => n.kind === "law" && n.attributes?.["lawId"] === lawId);
+      if (!law) continue;
+      const defined = new Set(laws.childrenOf(law.id).flatMap((o) => (o.attributes?.["roles"] as string[] | undefined) ?? []));
+      const held = roles.filter((r) => defined.has(r));
+      if (held.length) await svc.setLawApplicability(ws.id, lawId, { roles: held, note }, "Dana Whitfield (CEO)");
+    }
+    await seedStates("us-state-ai-laws", (node, prev) => {
+      if (!prev.applicable) return undefined;
+      const j = rand(`law:${node.code}`);
+      return { current: j > 0.75 ? 3 : j > 0.4 ? 2 : j > 0.15 ? 1 : 0, owner: "Privacy Counsel", updatedAt: daysFromNow(-12) };
+    });
   }
 
   // Policies (approved ones become evidence automatically).

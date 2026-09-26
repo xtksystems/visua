@@ -1,0 +1,283 @@
+{
+ "id": "threat--nist-cosais-outline--nist-sp-800-53-r5--nist-ai-100-2",
+ "title": "NIST COSAiS outline (draft)",
+ "sourceFramework": "nist-sp-800-53-r5",
+ "targetFramework": "nist-ai-100-2",
+ "authority": "NIST COSAiS outline (draft)",
+ "status": "draft",
+ "mappings": [
+  {
+   "source": "nist-sp-800-53-r5:AC-6",
+   "target": "nist-ai-100-2:NISTAML.011",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: AC-06 — 'Relevant NIST AI 100-2e2025 Attack ID: NIST AML.011, NIST AML.013'",
+    "page": 8,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:AC-6",
+   "target": "nist-ai-100-2:NISTAML.013",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: AC-06 — 'Relevant NIST AI 100-2e2025 Attack ID: NIST AML.011, NIST AML.013'",
+    "page": 8,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:CM-2",
+   "target": "nist-ai-100-2:NISTAML.024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: CM-02 — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.024, NISTAML.026'",
+    "page": 8,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:CM-2",
+   "target": "nist-ai-100-2:NISTAML.026",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: CM-02 — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.024, NISTAML.026'",
+    "page": 8,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:CM-4",
+   "target": "nist-ai-100-2:NISTAML.022",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: CM-04 — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.022'",
+    "page": 8,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:RA-5",
+   "target": "nist-ai-100-2:NISTAML.024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: RA-05 — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.024, NISTAML.026'",
+    "page": 9,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:RA-5",
+   "target": "nist-ai-100-2:NISTAML.026",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: RA-05 — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.024, NISTAML.026'",
+    "page": 9,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:SA-11(2)",
+   "target": "nist-ai-100-2:NISTAML.013",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: SA-11(02) — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.013, NISTAML.022, NISTAML.05, NISTAML.051'",
+    "page": 9,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:SA-11(2)",
+   "target": "nist-ai-100-2:NISTAML.022",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: SA-11(02) — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.013, NISTAML.022, NISTAML.05, NISTAML.051'",
+    "page": 9,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:SA-11(2)",
+   "target": "nist-ai-100-2:NISTAML.05",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: SA-11(02) — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.013, NISTAML.022, NISTAML.05, NISTAML.051'",
+    "page": 9,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:SA-11(2)",
+   "target": "nist-ai-100-2:NISTAML.051",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: SA-11(02) — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.013, NISTAML.022, NISTAML.05, NISTAML.051'",
+    "page": 9,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:SA-15(1)",
+   "target": "nist-ai-100-2:NISTAML.022",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: SA-15(01) — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.022'",
+    "page": 10,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:SA-15(8)",
+   "target": "nist-ai-100-2:NISTAML.022",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: SA-15(08) — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.022'",
+    "page": 10,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:SC-5(3)",
+   "target": "nist-ai-100-2:NISTAML.031",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: SC-05(03) — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.031'",
+    "page": 11,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:SC-7(10)",
+   "target": "nist-ai-100-2:NISTAML.03",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: SC-07(10) — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.03, NISTAML.031, NISTAML.032, NISTAML.033, NISTAML.034)'",
+    "page": 11,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:SC-7(10)",
+   "target": "nist-ai-100-2:NISTAML.031",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: SC-07(10) — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.03, NISTAML.031, NISTAML.032, NISTAML.033, NISTAML.034)'",
+    "page": 11,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:SC-7(10)",
+   "target": "nist-ai-100-2:NISTAML.032",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: SC-07(10) — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.03, NISTAML.031, NISTAML.032, NISTAML.033, NISTAML.034)'",
+    "page": 11,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:SC-7(10)",
+   "target": "nist-ai-100-2:NISTAML.033",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: SC-07(10) — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.03, NISTAML.031, NISTAML.032, NISTAML.033, NISTAML.034)'",
+    "page": 11,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:SC-7(10)",
+   "target": "nist-ai-100-2:NISTAML.034",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: SC-07(10) — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.03, NISTAML.031, NISTAML.032, NISTAML.033, NISTAML.034)'",
+    "page": 11,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:SI-3(8)",
+   "target": "nist-ai-100-2:NISTAML.026",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: SI-03(08) — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.026'",
+    "page": 12,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  },
+  {
+   "source": "nist-sp-800-53-r5:SI-4(2)",
+   "target": "nist-ai-100-2:NISTAML.031",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-cosais-predictive-ai-annotated-outline",
+    "locator": "Control ID: SI-04(02) — 'Relevant NIST AI 100-2e2025 Attack ID: NISTAML.031'",
+    "page": 12,
+    "authority": "NIST COSAiS outline (draft)"
+   },
+   "label": "relevant attack",
+   "status": "draft"
+  }
+ ]
+}

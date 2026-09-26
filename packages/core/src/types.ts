@@ -13,7 +13,13 @@ import type { TierAssessment } from "./tiers.ts";
 // Frameworks
 // ---------------------------------------------------------------------------
 
-export type FrameworkFamily = "csf" | "soc2" | "rmf" | "ai";
+/**
+ * csf, soc2, rmf and ai are frameworks a workspace implements; law holds
+ * statutory obligations (U.S. state AI laws); threat holds threat catalogs
+ * (MITRE ATLAS, OWASP Top 10s, NIST AI 100-2), which are viewed through the
+ * requirements that address them and never assessed or enabled themselves.
+ */
+export type FrameworkFamily = "csf" | "soc2" | "rmf" | "ai" | "law" | "threat";
 
 export interface CorpusCitation {
   /** `id` of a document in corpus/<framework>/manifest.json */
@@ -138,11 +144,24 @@ export type MappingRelationship =
   | "related-to"
   | "supports";
 
+/**
+ * Publication status of a mapping: final (a published catalog or standard), draft (a
+ * NIST draft), unreviewed (a community crosswalk) or superseded (an older edition).
+ */
+export type MappingStatus = "final" | "draft" | "unreviewed" | "superseded";
+
 export interface Mapping {
   source: string;
   target: string;
   relationship: MappingRelationship;
   origin: CorpusCitation & { authority: string };
+  /** The publisher's own term for the link, e.g. "mitigates" (MITRE ATLAS). */
+  label?: string;
+  status?: MappingStatus;
+  /** "primary" or "supporting" where the publisher grades its links (OWASP Appendix A). */
+  strength?: string;
+  /** Publisher text for the link, e.g. how an ATLAS mitigation applies to a technique. */
+  note?: string;
 }
 
 export interface MappingSet {
@@ -151,7 +170,22 @@ export interface MappingSet {
   sourceFramework: string;
   targetFramework: string;
   authority: string;
+  status?: MappingStatus;
   mappings: Mapping[];
+}
+
+/** A published link from a threat to a catalog Visua does not model (CWE, ATT&CK, CSA AICM, …). */
+export interface ExternalReference {
+  scheme: string;
+  schemeName: string;
+  id: string | null;
+  label?: string;
+  url?: string;
+  relationship: string;
+  strength?: string;
+  authority: string;
+  status: MappingStatus;
+  citation: CorpusCitation;
 }
 
 // ---------------------------------------------------------------------------
@@ -269,6 +303,16 @@ export interface WorkspaceFramework {
   ai?: AiRmfSettings;
   /** Overlays (community profiles, control overlays) adopted on this framework. */
   overlays?: OverlayAdoption[];
+  law?: LawSettings;
+}
+
+/**
+ * How statutory obligations apply: per law, the roles the organization holds
+ * under that law's own definitions (e.g. "deployer", "employer"). A law with
+ * no role selected is out of scope.
+ */
+export interface LawSettings {
+  applicability: Record<string, { roles: string[]; note?: string; decidedAt: string; decidedBy: string }>;
 }
 
 export interface Workspace {

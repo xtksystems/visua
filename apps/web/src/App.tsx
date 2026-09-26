@@ -18,6 +18,8 @@ const CrosswalkPage = lazy(() => import("./pages/CrosswalkPage.tsx").then((m) =>
 const Soc2Page = lazy(() => import("./pages/Soc2Page.tsx").then((m) => ({ default: m.Soc2Page })));
 const RmfPage = lazy(() => import("./pages/RmfPage.tsx").then((m) => ({ default: m.RmfPage })));
 const AiPage = lazy(() => import("./pages/AiPage.tsx").then((m) => ({ default: m.AiPage })));
+const LawsPage = lazy(() => import("./pages/LawsPage.tsx").then((m) => ({ default: m.LawsPage })));
+const ThreatsPage = lazy(() => import("./pages/ThreatsPage.tsx").then((m) => ({ default: m.ThreatsPage })));
 const ReportsPage = lazy(() => import("./pages/ReportsPage.tsx").then((m) => ({ default: m.ReportsPage })));
 const SettingsPage = lazy(() => import("./pages/SettingsPage.tsx").then((m) => ({ default: m.SettingsPage })));
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage.tsx").then((m) => ({ default: m.OnboardingPage })));
@@ -83,6 +85,9 @@ export function App() {
             <Route path="soc2" element={<Soc2Page />} />
             <Route path="rmf" element={<RmfPage />} />
             <Route path="ai" element={<AiPage />} />
+            <Route path="laws" element={<LawsPage />} />
+            <Route path="threats" element={<ThreatsPage />} />
+            <Route path="threats/:catalog" element={<ThreatsPage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="organization" element={<OrganizationPage />} />

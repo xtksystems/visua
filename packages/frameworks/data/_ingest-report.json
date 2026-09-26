@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-26T16:05:03.148Z",
+  "generatedAt": "2026-09-26T18:18:21.826Z",
   "frameworks": [
     {
       "id": "nist-csf-2.0",
@@ -41,6 +41,55 @@
       }
     },
     {
+      "id": "us-state-ai-laws",
+      "nodes": 221,
+      "assessable": 187,
+      "byKind": {
+        "jurisdiction": 8,
+        "law": 26,
+        "obligation": 187
+      }
+    },
+    {
+      "id": "mitre-atlas",
+      "nodes": 265,
+      "assessable": 208,
+      "byKind": {
+        "tactic": 16,
+        "technique": 120,
+        "sub-technique": 88,
+        "mitigation-group": 1,
+        "mitigation": 40
+      }
+    },
+    {
+      "id": "owasp-llm-top10",
+      "nodes": 22,
+      "assessable": 10,
+      "byKind": {
+        "edition": 2,
+        "risk": 20
+      }
+    },
+    {
+      "id": "owasp-agentic-top10",
+      "nodes": 11,
+      "assessable": 10,
+      "byKind": {
+        "edition": 1,
+        "risk": 10
+      }
+    },
+    {
+      "id": "nist-ai-100-2",
+      "nodes": 30,
+      "assessable": 25,
+      "byKind": {
+        "objective": 5,
+        "attack": 25
+      }
+    },
+    {
       "id": "aicpa-tsc-2017",
       "nodes": 86,
       "assessable": 61,
@@ -78,10 +127,132 @@
       "authority": "AICPA + NIST OLIR (composed)"
     }
   ],
+  "threatMappings": [
+    {
+      "id": "threat--mitre-atlas-2026.09--mitre-atlas--mitre-atlas",
+      "count": 361,
+      "authority": "MITRE ATLAS 2026.09",
+      "status": "final"
+    },
+    {
+      "id": "threat--nist-ai-100-2e2025--nist-ai-100-2--mitre-atlas",
+      "count": 4,
+      "authority": "NIST AI 100-2 E2025",
+      "status": "final"
+    },
+    {
+      "id": "threat--nist-cosais-outline--nist-sp-800-53-r5--nist-ai-100-2",
+      "count": 21,
+      "authority": "NIST COSAiS outline (draft)",
+      "status": "draft"
+    },
+    {
+      "id": "threat--nist-ir-8596-iprd--nist-csf-2.0--mitre-atlas",
+      "count": 116,
+      "authority": "NIST IR 8596 (Cyber AI Profile, draft)",
+      "status": "draft"
+    },
+    {
+      "id": "threat--nist-ir-8596-iprd--nist-csf-2.0--owasp-llm-top10",
+      "count": 67,
+      "authority": "NIST IR 8596 (Cyber AI Profile, draft)",
+      "status": "draft"
+    },
+    {
+      "id": "threat--owasp-agentic-top10-2026--owasp-agentic-top10--owasp-llm-top10",
+      "count": 23,
+      "authority": "OWASP Agentic Top 10 2026, Appendix A",
+      "status": "final"
+    },
+    {
+      "id": "threat--owasp-genai-crosswalk--owasp-agentic-top10--mitre-atlas",
+      "count": 21,
+      "authority": "OWASP GenAI Security Crosswalk (unreviewed)",
+      "status": "unreviewed"
+    },
+    {
+      "id": "threat--owasp-genai-crosswalk--owasp-agentic-top10--nist-ai-rmf",
+      "count": 40,
+      "authority": "OWASP GenAI Security Crosswalk (unreviewed)",
+      "status": "unreviewed"
+    },
+    {
+      "id": "threat--owasp-genai-crosswalk--owasp-agentic-top10--nist-csf-2.0",
+      "count": 40,
+      "authority": "OWASP GenAI Security Crosswalk (unreviewed)",
+      "status": "unreviewed"
+    },
+    {
+      "id": "threat--owasp-genai-crosswalk--owasp-llm-top10--mitre-atlas",
+      "count": 15,
+      "authority": "OWASP GenAI Security Crosswalk (unreviewed)",
+      "status": "unreviewed"
+    },
+    {
+      "id": "threat--owasp-genai-crosswalk--owasp-llm-top10--nist-ai-rmf",
+      "count": 40,
+      "authority": "OWASP GenAI Security Crosswalk (unreviewed)",
+      "status": "unreviewed"
+    },
+    {
+      "id": "threat--owasp-genai-crosswalk--owasp-llm-top10--nist-csf-2.0",
+      "count": 40,
+      "authority": "OWASP GenAI Security Crosswalk (unreviewed)",
+      "status": "unreviewed"
+    },
+    {
+      "id": "threat--owasp-genai-crosswalk--owasp-llm-top10--nist-sp-800-53-r5",
+      "count": 41,
+      "authority": "OWASP GenAI Security Crosswalk (unreviewed)",
+      "status": "unreviewed"
+    },
+    {
+      "id": "threat--owasp-llm-top10-2025--owasp-llm-top10--mitre-atlas",
+      "count": 15,
+      "authority": "OWASP LLM Top 10 2025",
+      "status": "superseded"
+    },
+    {
+      "id": "threat--owasp-llm-top10-2026--owasp-llm-top10--mitre-atlas",
+      "count": 46,
+      "authority": "OWASP LLM Top 10 2026, Appendix A",
+      "status": "final"
+    },
+    {
+      "id": "threat--owasp-llm-top10-2026--owasp-llm-top10--nist-ai-rmf",
+      "count": 25,
+      "authority": "OWASP LLM Top 10 2026, Appendix A",
+      "status": "final"
+    },
+    {
+      "id": "threat--owasp-llm-top10-2026--owasp-llm-top10--owasp-agentic-top10",
+      "count": 31,
+      "authority": "OWASP LLM Top 10 2026, Appendix A",
+      "status": "final"
+    }
+  ],
+  "overlays": [
+    {
+      "id": "nist-ir-8596-iprd",
+      "frameworkId": "nist-csf-2.0",
+      "status": "initial preliminary draft",
+      "entries": 106
+    },
+    {
+      "id": "nist-cosais-predictive-ai",
+      "frameworkId": "nist-sp-800-53-r5",
+      "status": "annotated outline (draft)",
+      "entries": 59
+    }
+  ],
   "corpus": {
-    "chunks": 7019,
-    "pdfDocuments": 57,
+    "chunks": 7763,
+    "pdfDocuments": 60,
     "manifests": [
+      {
+        "framework": "ai-threats",
+        "documents": 28
+      },
       {
         "framework": "aicpa-soc2",
         "documents": 33
@@ -97,10 +268,22 @@
       {
         "framework": "nist-rmf",
         "documents": 66
+      },
+      {
+        "framework": "us-state-ai-laws",
+        "documents": 58
       }
     ]
   },
   "sources": [
+    {
+      "id": "mitre-atlas-2026-09-dist-manifest",
+      "sha256": "b4d6d565c05d09acb265396e60a12fefdb53cd7c409d184f3559dcab99acc66f"
+    },
+    {
+      "id": "mitre-atlas-2026-09-stix",
+      "sha256": "827995ff5b753916a411a854f9f1b0d83fe272043bff2090ca45f2e424477e75"
+    },
     {
       "id": "tsc-2017-rev-pof-2022",
       "sha256": "23a099dd1dc273b7a45fda2351f376344c33fcb2911d586036c0e0d631b8ad69"

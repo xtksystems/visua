@@ -14,7 +14,10 @@ Visua is built for any niche and any cyber-maturity level. It starts with NIST C
 the common language, then adds SOC 2 and the NIST Risk Management Framework with
 SP 800-53 Rev. 5. The frameworks are ordered by increasing depth, and one program
 connects them. For organizations that build or deploy AI, the NIST AI RMF with its
-Generative AI Profile adds an AI governance program on the same foundation.
+Generative AI Profile adds an AI governance program on the same foundation, NIST's
+draft Cyber AI Profile and SP 800-53 AI overlays specialize CSF and SP 800-53 for AI
+systems, the U.S. state AI laws become scoped obligations, and MITRE ATLAS and the
+OWASP Top 10s show which AI threats the program addresses.
 
 ![The Observatory: NIST CSF 2.0 as a navigable constellation](docs/images/observatory-csf.jpg)
 
@@ -22,13 +25,16 @@ Generative AI Profile adds an AI governance program on the same foundation.
 
 | Area | What you get |
 |---|---|
-| **Observatory (3D + 2D twin)** | Every framework as a constellation or readiness terrain: 106 CSF outcomes, 61 SOC 2 criteria, all 1,014 SP 800-53 controls and enhancements, 47 RMF tasks and 72 AI RMF outcomes. Lenses (status, gap, evidence, priority, crosswalk) recolor the same space. A keyboard-first outline mirrors every object, and the scene respects reduced motion. |
-| **Crosswalk Nexus (3D)** | All frameworks on one ring, with 2,188 authoritative mappings bundled into arcs (998 in a fresh clone; the AICPA sets need the local AICPA copy): NIST OLIR (CSF 2.0 ↔ SP 800-53 5.2.0, ↔ SP 800-37r2), AICPA (TSC ↔ SP 800-53 r5), and composed and editorial sets that are labeled as such. Select a group to see every unit-level mapping with live status on both sides. *A mapping is never evidence.* |
+| **Observatory (3D + 2D twin)** | Every framework as a constellation or readiness terrain: 106 CSF outcomes, 61 SOC 2 criteria, all 1,014 SP 800-53 controls and enhancements, 47 RMF tasks, 72 AI RMF outcomes and 187 state-law obligations. Lenses (status, gap, evidence, priority, crosswalk, AI overlay) recolor the same space. Threat catalogs open in the same space with height = coverage. A keyboard-first outline mirrors every object, and the scene respects reduced motion. |
+| **Crosswalk Nexus (3D)** | All frameworks on one ring, with 2,188 authoritative mappings bundled into arcs (998 in a fresh clone; the AICPA sets need the local AICPA copy): NIST OLIR (CSF 2.0 ↔ SP 800-53 5.2.0, ↔ SP 800-37r2), AICPA (TSC ↔ SP 800-53 r5), and composed and editorial sets that are labeled as such. An inner **threat ring** bundles the published links from ATLAS tactics, OWASP entries and NIST AI 100-2 objectives onto requirement groups. Select a group to see every unit-level mapping with live status on both sides. *A mapping is never evidence.* |
 | **Agents** | Eight glass-box agents: Copilot, Assessor, Planner, Policy Author, Evidence Collector, Crosswalk Analyst, Audit Prep and Task Executor. They run on Claude (streamed tool loop, adaptive thinking, prompt caching, server-side fallbacks) or as deterministic offline playbooks. Either way they use the same tools, citations and approval flow. |
 | **NIST CSF 2.0** | Organizational Profiles (Current/Target, official CSV template), the CSWP 29 Tier self-assessment, 363 Implementation Examples as checklists, maturity-adaptive targets and priorities. |
 | **SOC 2** | Scope by Trust Services Category, Type 1 or Type 2, and the observation window. Readiness by series, the DC 200 system-description checklist drafted from recorded facts, and a PBC request list. |
 | **NIST RMF / SP 800-53** | The seven-step lifecycle. FIPS 199 categorization (high-water mark) selects the SP 800-53B baseline. Tailoring requires a rationale. The authorization decision is recorded, never made by Visua. OSCAL 1.1.2 SSP and POA&M export. |
 | **AI governance (NIST AI RMF)** | An AI system inventory (purpose, role, lifecycle stage, risk tier, data, human oversight) and readiness across GOVERN, MAP, MEASURE and MANAGE, with 460 Playbook suggested actions as checklists. When any system is generative, the NIST AI 600-1 Generative AI Profile applies: its 12 GAI risks and 212 actions, tracked through the outcomes they attach to. Texas's TRAIGA makes substantial compliance with that profile an affirmative defense. An AI RMF profile export and an AI governance policy template are included. |
+| **AI security overlays (NIST drafts)** | The Cyber AI Profile (NIST IR 8596 iprd) on CSF 2.0: considerations and a proposed priority for each of the 106 subcategories per focus area (Secure, Defend, Thwart), adoptable per workspace, with an overlay lens and an optional priority raise. COSAiS (SP 800-53 Control Overlays for Securing AI Systems) on SP 800-53: the predictive-AI overlay's 59 controls brought into scope on adoption, with their tailoring and NIST AI 100-2 attacks. Drafts are always labeled as drafts. |
+| **U.S. state AI laws** | 26 laws and regulations in California, Colorado, Illinois, Maine, New York, New York City, Texas and Utah, with 187 obligations quoted from the enrolled statutes and adopted regulations. Record the role you hold under each law's own definitions (developer, deployer, employer, operator…) and Visua scopes exactly those obligations, with an effective-date timeline, safe harbors (including those that recognize the NIST AI RMF) and enforcement. A tracking tool, not legal advice. |
+| **AI threat views** | MITRE ATLAS 2026.09 (the tactic × technique matrix), the OWASP Top 10 for LLM Applications 2026 (and 2025, with each entry's counterpart) and for Agentic Applications 2026, and NIST AI 100-2's 25 attacks. Threats are never assessed: coverage is derived from the requirements that MITRE, OWASP and NIST link to each threat, directly, through an ATLAS mitigation or through the other OWASP edition. Every link shows its publisher and status (final, draft, unreviewed, superseded), and one filter decides which count. |
 | **Evidence & monitoring** | Evidence with provenance (source, SHA-256, reviewer, validity window, freshness), plus connectors for web posture (TLS, HSTS, security headers, security.txt) and repository hygiene. |
 | **Integrity guardrails** | A hash-chained, tamper-evident audit trail. "Not applicable" requires a written rationale, and scope changes never overwrite it. Agents never file plans as evidence. The trust center publishes computed facts only. Visua never issues audit opinions. |
 
@@ -119,12 +125,18 @@ VISUA_BOOTSTRAP_OWNER_EMAIL=ciso@example.com pnpm start
 ## Official documentation corpus and licensing
 
 Every requirement and citation traces to local, hash-verified copies of the official
-publications in [`corpus/`](corpus/). There are 191 documents with manifests, SHA-256
+publications in [`corpus/`](corpus/). There are 277 documents with manifests, SHA-256
 hashes and verbatim license notices. `pnpm corpus:verify` checks them all.
 
 - **NIST** material (CSF 2.0, SP 800-37/53/53A/53B/60, FIPS 199/200, OSCAL, OLIR
   crosswalks, the AI RMF with its Playbook and the Generative AI Profile, and related
   AI guidance) is public domain and ships in the repository.
+- **State statutes and regulations** are public legislative and regulatory records.
+  Five files whose publishers claim copyright are kept local, outside git.
+- **MITRE ATLAS** (Apache-2.0) and the **OWASP** Top 10s and GenAI Security Crosswalk
+  (CC BY-SA 4.0) ship with their notices; files derived from OWASP text stay
+  CC BY-SA 4.0 ([`packages/frameworks/data/NOTICE.md`](packages/frameworks/data/NOTICE.md)).
+  MITRE's SAFE-AI report is all rights reserved and stays local.
 - **AICPA** material (Trust Services Criteria, DC 200, AICPA mappings) is © AICPA and is
   **not redistributed**. A fresh clone runs SOC 2 on Visua's own skeleton: criterion IDs
   with titles and summaries written by Visua. An installation that holds its own copy
@@ -138,7 +150,7 @@ hashes and verbatim license notices. `pnpm corpus:verify` checks them all.
 corpus/ (official PDFs, JSON, XLSX, OSCAL)
    │  pnpm ingest
    ▼
-packages/frameworks ── graphs · crosswalk mapping sets · BM25 corpus index (page-level citations)
+packages/frameworks ── graphs · overlays · crosswalk and threat-link sets · BM25 corpus index (page-level citations)
 packages/core ──────── domain model · scoring · status · planner · crosswalk projection · CSF tiers · FIPS 199
 packages/agents ────── 8 agents · 16 tools · Claude runtime · offline playbooks · policy composer
 apps/server ────────── Hono API · SQLite or Postgres storage · SSE events · connectors · exports (CSV, Markdown, OSCAL)
@@ -155,8 +167,8 @@ Details: [`docs/architecture.md`](docs/architecture.md). Design system:
 
 ```sh
 pnpm typecheck       # all packages (TypeScript 7)
-pnpm test            # 78 unit, API, storage and auth tests (Vitest; add VISUA_TEST_DATABASE_URL=postgres://… for Postgres)
-pnpm test:e2e        # 12 Playwright end-to-end tests against the production build (WebGL via SwiftShader)
+pnpm test            # 98 unit, API, storage and auth tests (Vitest; add VISUA_TEST_DATABASE_URL=postgres://… for Postgres)
+pnpm test:e2e        # 13 Playwright end-to-end tests against the production build (WebGL via SwiftShader)
 pnpm design:lint     # DESIGN.md lint
 pnpm design:tokens   # regenerate tokens from DESIGN.md
 pnpm corpus:verify   # SHA-256 check of the local corpus
@@ -165,9 +177,10 @@ pnpm ingest          # rebuild framework data from the corpus
 
 ## Status
 
-Version 0.1: a working foundation across CSF 2.0, SOC 2, NIST RMF / SP 800-53 and the
-NIST AI RMF. It includes the 3D Observatory and Nexus, eight agents, an evidence engine,
-exports and a trust center, with organizations, roles, SSO and PostgreSQL storage for
-multi-tenant hosting. See the
+Version 0.1: a working foundation across CSF 2.0, SOC 2, NIST RMF / SP 800-53, the
+NIST AI RMF with NIST's AI security overlays, the U.S. state AI laws, and AI threat views
+(MITRE ATLAS, OWASP, NIST AI 100-2). It includes the 3D Observatory and Nexus, eight
+agents, an evidence engine, exports and a trust center, with organizations, roles, SSO
+and PostgreSQL storage for multi-tenant hosting. See the
 roadmap, and [`docs/research/ai-governance-landscape.md`](docs/research/ai-governance-landscape.md)
 for the AI governance options that come next.

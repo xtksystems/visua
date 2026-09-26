@@ -1,0 +1,490 @@
+{
+ "id": "threat--owasp-genai-crosswalk--owasp-llm-top10--nist-ai-rmf",
+ "title": "OWASP GenAI Security Crosswalk (unreviewed)",
+ "sourceFramework": "owasp-llm-top10",
+ "targetFramework": "nist-ai-rmf",
+ "authority": "OWASP GenAI Security Crosswalk (unreviewed)",
+ "status": "unreviewed",
+ "mappings": [
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "nist-ai-rmf:GOVERN 1.7",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM01 — Prompt Injection; table 'NIST AI RMF mapping'), line 126",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "nist-ai-rmf:MAP 2.3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM01 — Prompt Injection; table 'NIST AI RMF mapping'), line 127",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "nist-ai-rmf:MEASURE 2.5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM01 — Prompt Injection; table 'NIST AI RMF mapping'), line 128",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "nist-ai-rmf:MANAGE 2.2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM01 — Prompt Injection; table 'NIST AI RMF mapping'), line 129",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02",
+   "target": "nist-ai-rmf:GOVERN 1.6",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM02 — Sensitive Information Disclosure; table 'NIST AI RMF mapping'), line 200",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02",
+   "target": "nist-ai-rmf:MAP 2.3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM02 — Sensitive Information Disclosure; table 'NIST AI RMF mapping'), line 201",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02",
+   "target": "nist-ai-rmf:MEASURE 2.6",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM02 — Sensitive Information Disclosure; table 'NIST AI RMF mapping'), line 202",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02",
+   "target": "nist-ai-rmf:MANAGE 2.4",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM02 — Sensitive Information Disclosure; table 'NIST AI RMF mapping'), line 203",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "nist-ai-rmf:GOVERN 1.7",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM03 — Excessive Agency; table 'NIST AI RMF mapping'), line 266",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "nist-ai-rmf:MAP 2.3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM03 — Excessive Agency; table 'NIST AI RMF mapping'), line 267",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "nist-ai-rmf:MEASURE 2.5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM03 — Excessive Agency; table 'NIST AI RMF mapping'), line 268",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "nist-ai-rmf:MANAGE 2.2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM03 — Excessive Agency; table 'NIST AI RMF mapping'), line 269",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "nist-ai-rmf:GOVERN 1.6",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM04 — Supply Chain; table 'NIST AI RMF mapping'), line 340",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "nist-ai-rmf:MAP 5.1",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM04 — Supply Chain; table 'NIST AI RMF mapping'), line 341",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "nist-ai-rmf:MEASURE 2.5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM04 — Supply Chain; table 'NIST AI RMF mapping'), line 342",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "nist-ai-rmf:MANAGE 3.2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM04 — Supply Chain; table 'NIST AI RMF mapping'), line 343",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "nist-ai-rmf:MAP 2.3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM05 — Data and Model Poisoning; table 'NIST AI RMF mapping'), line 418",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "nist-ai-rmf:MEASURE 2.5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM05 — Data and Model Poisoning; table 'NIST AI RMF mapping'), line 419",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "nist-ai-rmf:MEASURE 3.3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM05 — Data and Model Poisoning; table 'NIST AI RMF mapping'), line 420",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "nist-ai-rmf:MANAGE 2.2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM05 — Data and Model Poisoning; table 'NIST AI RMF mapping'), line 421",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM06",
+   "target": "nist-ai-rmf:MEASURE 2.5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM06 — Unbounded Consumption; table 'NIST AI RMF mapping'), line 485",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM06",
+   "target": "nist-ai-rmf:MANAGE 2.2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM06 — Unbounded Consumption; table 'NIST AI RMF mapping'), line 486",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM06",
+   "target": "nist-ai-rmf:MANAGE 3.2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM06 — Unbounded Consumption; table 'NIST AI RMF mapping'), line 487",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM06",
+   "target": "nist-ai-rmf:GOVERN 1.7",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM06 — Unbounded Consumption; table 'NIST AI RMF mapping'), line 488",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "nist-ai-rmf:GOVERN 1.7",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM07 — Misinformation; table 'NIST AI RMF mapping'), line 552",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "nist-ai-rmf:MEASURE 2.6",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM07 — Misinformation; table 'NIST AI RMF mapping'), line 553",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "nist-ai-rmf:MEASURE 4.1",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM07 — Misinformation; table 'NIST AI RMF mapping'), line 554",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "nist-ai-rmf:MANAGE 2.4",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM07 — Misinformation; table 'NIST AI RMF mapping'), line 555",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM08",
+   "target": "nist-ai-rmf:GOVERN 1.6",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM08 — Hidden Context Exposure; table 'NIST AI RMF mapping'), line 630",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM08",
+   "target": "nist-ai-rmf:MEASURE 2.6",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM08 — Hidden Context Exposure; table 'NIST AI RMF mapping'), line 631",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM08",
+   "target": "nist-ai-rmf:MANAGE 2.4",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM08 — Hidden Context Exposure; table 'NIST AI RMF mapping'), line 632",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM08",
+   "target": "nist-ai-rmf:MAP 2.3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM08 — Hidden Context Exposure; table 'NIST AI RMF mapping'), line 633",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "nist-ai-rmf:MEASURE 2.5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM09 — Vector and Embedding Weaknesses; table 'NIST AI RMF mapping'), line 696",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "nist-ai-rmf:MEASURE 3.3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM09 — Vector and Embedding Weaknesses; table 'NIST AI RMF mapping'), line 697",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "nist-ai-rmf:MANAGE 2.2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM09 — Vector and Embedding Weaknesses; table 'NIST AI RMF mapping'), line 698",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "nist-ai-rmf:MAP 2.3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM09 — Vector and Embedding Weaknesses; table 'NIST AI RMF mapping'), line 699",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10",
+   "target": "nist-ai-rmf:MEASURE 2.5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM10 — Improper Output Handling; table 'NIST AI RMF mapping'), line 767",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10",
+   "target": "nist-ai-rmf:MEASURE 2.6",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM10 — Improper Output Handling; table 'NIST AI RMF mapping'), line 768",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10",
+   "target": "nist-ai-rmf:MANAGE 2.2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM10 — Improper Output Handling; table 'NIST AI RMF mapping'), line 769",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10",
+   "target": "nist-ai-rmf:GOVERN 1.7",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-nistairmf",
+    "locator": "llm-top10/LLM_NISTAIRMF.md (LLM10 — Improper Output Handling; table 'NIST AI RMF mapping'), line 770",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  }
+ ]
+}

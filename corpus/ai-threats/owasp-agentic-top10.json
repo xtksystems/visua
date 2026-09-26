@@ -1,0 +1,1526 @@
+{
+  "source": {
+    "catalog": "OWASP Top 10 for Agentic Applications",
+    "publisher": "OWASP GenAI Security Project — Agentic Security Initiative (OWASP Foundation)",
+    "edition": "2026",
+    "version": "Version 2026 (December 2025; file 'OWASP Top 10 for Agentic Applications 2026 12.6')",
+    "released": "2025-12-09",
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "path": "ai-threats/owasp-agentic-top10/OWASP-Top-10-for-Agentic-Applications-2026-12.6-1.pdf",
+    "sha256": "a2db94cd00b08e0b3a5e5b619afe024bdbcd74503111085705e4f3dd886fcb5c",
+    "url": "https://genai.owasp.org/download/52117/",
+    "landingPage": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+    "pageNumbering": "page = 1-based physical page of the PDF (printed 'Page N' footer = physical - 1)",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/legalcode",
+    "licenseNotice": "This document is licensed under Creative Commons, CC BY-SA 4.0",
+    "attribution": "OWASP Top 10 for Agentic Applications 2026, OWASP GenAI Security Project – Agentic Security Initiative (https://genai.owasp.org), licensed under CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/legalcode).",
+    "changes": "Adapted by Visua on 2026-09-26: Description and Prevention and Mitigation Guidelines texts and the Appendix A mapping matrix were extracted from the PDF and rearranged into JSON (list labels split into 'label'; wrapped lines re-joined). The wording is unchanged. This file is licensed under CC BY-SA 4.0.",
+    "retrieved": "2026-09-26",
+    "mappings": "Appendix A - OWASP Agentic AI Security Mapping Matrix (ASI → OWASP LLM Top 10 2025, Agentic AI Threats & Mitigations T-codes, AIVSS core risks). The document maps to no MITRE ATLAS or NIST element."
+  },
+  "counts": {
+    "risks": 10,
+    "preventionStrategies": 86,
+    "appendixMappings": 62
+  },
+  "risks": [
+    {
+      "id": "ASI01",
+      "edition": "2026",
+      "key": "ASI01",
+      "title": "Agent Goal Hijack",
+      "description": "AI Agents exhibit autonomous ability to execute a series of tasks to achieve a goal. Due to inherent weaknesses in how natural-language instructions and related content are processed, agents and the underlying model cannot reliably distinguish instructions from related content.",
+      "descriptionParagraphs": [
+        "AI Agents exhibit autonomous ability to execute a series of tasks to achieve a goal. Due to inherent weaknesses in how natural-language instructions and related content are processed, agents and the underlying model cannot reliably distinguish instructions from related content.",
+        "As a result, attackers can manipulate an agent’s objectives, task selection, or decision pathways through a variety of techniques - including, but not limited to, prompt-based manipulation, deceptive tool outputs, malicious artefacts, forged agent-to-agent messages, or poisoned external data. Because agents rely on untyped natural-language inputs and loosely governed orchestration logic, they cannot reliably distinguish legitimate instructions from attacker -controlled content. Unlike LLM01:2025, which focuses on altering a single model response, ASI01 captures the broader agentic impact where manipulated inputs redirect goals, panning (when used) and multi-step behavior.",
+        "Agent Goal Hijack differs from ASI06 (Memory & Context Poisoning) and ASI10 (Rogue Agents) because the attacker directly alters the agent’s goals, instructions, or decision pathways - regardless of whether the manipulation occurs interactively or through pre-positioned inputs such as documents, templates, or external data sources.  ASI06 focuses on the persistent corruption of stored context or long-term memory, while ASI10 captures autonomous misalignment that emerges without active attacker control. In the OWASP Agentic AI Threats & Mitigations Guide, ASI01 corresponds to T06 Goal Manipulation (altering the agent’s objectives) and T07 Misaligned & Deceptive Behaviors (bypassing safeguards or deceiving humans). Together, these illustrate how attackers can subvert the agent’s objectives and action-selection logic, redirecting its autonomy toward unintended or harmful outcomes."
+      ],
+      "preventionStrategies": [
+        {
+          "label": "1",
+          "text": "Treat all natural-language inputs (e.g., user-provided text, uploaded documents, retrieved content) as untrusted. Route them through the same input-validation and prompt-injection safeguards defined in LLM01:2025 before they can influence goal selection, planning, or tool calls.",
+          "page": 11
+        },
+        {
+          "label": "2",
+          "text": "Minimize the impact of goal hijacking by enforcing least privilege for agent tools and requiring human approval for high-impact or goal-changing actions.",
+          "page": 11
+        },
+        {
+          "label": "3",
+          "text": "Define and lock agent system prompts so that goal priorities and permitted actions are explicit and auditable. Changes to changes in goals or reward definitions must go through configuration management and human approval.",
+          "page": 11
+        },
+        {
+          "label": "4",
+          "text": "At run time, validate both user intent and agent intent before executing goal-changing or high-impact actions. Require confirmation - via human approval, policy engine, or platform guardrails whenever the agent proposes actions that deviate from the original task or scope. Pause or block execution on any unexpected goal shift, surface the deviation for review, and record it for audit.",
+          "page": 11
+        },
+        {
+          "label": "5",
+          "text": "When building agents, evaluate use of  “intent capsule”, an emerging pattern to bind the declared goal, constraints, and context to each execution cycle in a signed envelope, restricting run-time use.",
+          "page": 11
+        },
+        {
+          "label": "6",
+          "text": "Sanitize and validate any connected data source - including RAG inputs, emails, calendar invites, uploaded files, external APIs, browsing output, and peer-agent messages - using CDR, prompt-carrier detection, and content filtering before the data can influence agent goals or actions.",
+          "page": 11
+        },
+        {
+          "label": "7",
+          "text": "Maintain comprehensive logging and continuous monitoring of agent activity, establishing a behavioral baseline that includes goal state, tool-use patterns, and invariant properties (e.g., schema, access patterns). Track a stable identifier for the active goal where feasible, and alert on any deviations-such as unexpected goal changes, anomalous tool sequences, or shifts from the established baseline-so that unauthorized goal drift is immediately visible in operations.",
+          "page": 11,
+          "pageEnd": 12
+        },
+        {
+          "label": "8",
+          "text": "Conduct periodic red-team tests simulating goal override and verify rollback effectiveness.",
+          "page": 12
+        },
+        {
+          "label": "9",
+          "text": "Incorporate AI Agents into the established Insider Threat Program to monitor any insider prompts intended to get access to sensitive data or to alter the agent behavior and allow for investigation in case of outlier activity.",
+          "page": 12
+        }
+      ],
+      "sections": [
+        {
+          "name": "Description",
+          "page": 10
+        },
+        {
+          "name": "Common Examples of the Vulnerability",
+          "page": 10
+        },
+        {
+          "name": "Example Attack Scenarios",
+          "page": 11
+        },
+        {
+          "name": "Prevention and Mitigation Guidelines",
+          "page": 11
+        },
+        {
+          "name": "References",
+          "page": 12
+        }
+      ],
+      "page": 10,
+      "pageEnd": 12,
+      "relatedFrameworks": [
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM01:2025",
+          "text": "LLM01:2025Prompt Injection",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM06:2025",
+          "text": "LLM06:2025 Excessive Agency",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T6",
+          "text": "T6 Goal Manipulation",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T7",
+          "text": "T7 Misaligned & Deceptive Behaviors",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP AIVSS (AI Vulnerability Scoring System) core risks",
+          "targetScheme": "owasp-aivss",
+          "id": null,
+          "text": "Agent Goal & Instruction Manipulation",
+          "column": "AIVSS Core Risk Alignment",
+          "page": 40,
+          "source": "appendix"
+        }
+      ]
+    },
+    {
+      "id": "ASI02",
+      "edition": "2026",
+      "key": "ASI02",
+      "title": "Tool Misuse and Exploitation",
+      "description": "Agents can misuse legitimate tools due to prompt injection, misalignment, or unsafe delegation or ambiguous instruction - leading to data exfiltration, tool output manipulation or workflow hijacking. Risks arise from how the agent chooses and applies tools; agent memory, dynamic tool selection, and delegation can contribute to misuse via chaining, privilege escalation, and unintended actions. This relates to LLM06:2025 (Excessive Agency), which addresses excessive autonomy but focuses on the misuse of legitimate tools.",
+      "descriptionParagraphs": [
+        "Agents can misuse legitimate tools due to prompt injection, misalignment, or unsafe delegation or ambiguous instruction - leading to data exfiltration, tool output manipulation or workflow hijacking. Risks arise from how the agent chooses and applies tools; agent memory, dynamic tool selection, and delegation can contribute to misuse via chaining, privilege escalation, and unintended actions. This relates to LLM06:2025 (Excessive Agency), which addresses excessive autonomy but focuses on the misuse of legitimate tools.",
+        "This entry covers cases where the agent operates within its authorized privileges but applies a legitimate tool in an unsafe or unintended way - for example deleting valuable data, over-invoking costly APIs, or exfiltrating information. If the misuse involves privilege escalation or credential inheritance, it falls under ASI03 (Identity & Privilege Abuse); if the misuse results in arbitrary or injected code execution, it is classified under ASI05 (Unexpected Code Execution). Finally, tool definitions increasingly come via MCP servers, creating a natural overlap with ASI04 (Agentic Supply Chain Vulnerabilities).",
+        "The entry maps to T2 Tool Misuse in the Agentic AI Threats and Mitigations Guide whilst T4 Resource Overload and T16 Insecure Inter-Agent Protocol Abuse represent contributing factors that can amplify or enable tool exploitation. The entry aligns with AIVSS Core Risk: Agentic AI Tool Misuse."
+      ],
+      "preventionIntro": [
+        "Note: ASI02 builds on the mitigations of LLM06:2025 (Excessive Agency) by extending them to multi-step agentic workflows and tool orchestration. While LLM06 focuses on model-level autonomy, ASI02 addresses misuse of legitimate tools within agentic plans and delegation chains."
+      ],
+      "preventionStrategies": [
+        {
+          "label": "1",
+          "text": "Least Agency and Least Privilege for Tools. Define per-tool least-privilege profiles (scopes, maximum rate, and egress allowlists) and restrict agentic tool functionality and each tool’s permissions and data scope to those profiles – e.g., read-only queries for databases, no send/delete rights for email summarizers, and minimal CRUD operations when exposing APIs. Where possible, express these profiles as IAM or authorization policy stanzas attached to each tool, rather than relying on ad-hoc conventions.",
+          "page": 14
+        },
+        {
+          "label": "2",
+          "text": "Action-Level Authentication and Approval. Require explicit authentication for each tool invocation and human confirmation for high-impact or destructive actions (delete, transfer, publish). Display a pre-execution plan or dry-run diff before final approval; where possible, present a dry-run or diff preview to the user before high-impact actions are approved.",
+          "page": 15
+        },
+        {
+          "label": "3",
+          "text": "Execution Sandboxes and Egress Controls. Run tool or code execution in isolated sandboxes. Enforce outbound allowlists and deny all non-approved network destinations.",
+          "page": 15
+        },
+        {
+          "label": "4",
+          "text": "Policy Enforcement Middleware (“Intent Gate”). Treat LLM or planner outputs as untrusted. A pre-execution Policy Enforcement Point (PEP/PDP) validates intent and arguments, enforces schemas and rate limits, issues short-lived credentials, and revokes or audits on drift.",
+          "page": 15
+        },
+        {
+          "label": "5",
+          "text": "Adaptive Tool Budgeting. Apply usage ceilings (cost, rate, or token budgets) with automatic revocation or throttling when exceeded.",
+          "page": 15
+        },
+        {
+          "label": "6",
+          "text": "Just-in-Time and Ephemeral Access. Grant temporary credentials or API tokens that expire immediately after use. Bind keys to specific user sessions to prevent lateral abuse.",
+          "page": 15
+        },
+        {
+          "label": "7",
+          "text": "Semantic and Identity Validation (‘Semantic Firewalls)”.  Enforce fully qualified tool names and version pins to avoid tool alias collisions or typo squatted tools; validate the intended semantics of tool calls (e.g., query type or category) rather than relying on syntax alone. Fail closed on ambiguous resolution and prompt for user disambiguation.",
+          "page": 15
+        },
+        {
+          "label": "8",
+          "text": "Logging, Monitoring, and Drift Detection. Maintain immutable logs of all tool invocations and parameter changes. Continuously monitor for anomalous execution rates, unusual tool-chaining patterns (e.g., DB read followed by external transfer), and policy violations.",
+          "page": 15
+        }
+      ],
+      "sections": [
+        {
+          "name": "Description",
+          "page": 13
+        },
+        {
+          "name": "Common Examples of the Vulnerability",
+          "page": 13
+        },
+        {
+          "name": "Example Attack Scenarios",
+          "page": 14
+        },
+        {
+          "name": "Prevention and Mitigation Guidelines",
+          "page": 14
+        },
+        {
+          "name": "References",
+          "page": 15
+        }
+      ],
+      "page": 13,
+      "pageEnd": 15,
+      "relatedFrameworks": [
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM06:2025",
+          "text": "LLM06:2025 Excessive Agency",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T2",
+          "text": "T2 Tool Misuse",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T4",
+          "text": "T4 Resource Overload",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T16",
+          "text": "T16 Insecure Inter-Agent Protocol Abuse",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP AIVSS (AI Vulnerability Scoring System) core risks",
+          "targetScheme": "owasp-aivss",
+          "id": null,
+          "text": "Agentic AI Tool Misuse",
+          "column": "AIVSS Core Risk Alignment",
+          "page": 40,
+          "source": "appendix"
+        }
+      ]
+    },
+    {
+      "id": "ASI03",
+      "edition": "2026",
+      "key": "ASI03",
+      "title": "Identity and Privilege Abuse",
+      "description": "Identity & Privilege Abuse exploits dynamic trust and delegation in agents to escalate access and bypass controls by manipulating delegation chains, role inheritance, control flows, and agent context; context includes cached credentials or conversation history across interconnected systems.  In this context, identity refers both to the agent’s defined persona and to any authentication material that represents it. Agent-to-agent trust or inherited credentials can be exploited to escalate access, hijack privileges, or execute unauthorized actions.",
+      "descriptionParagraphs": [
+        "Identity & Privilege Abuse exploits dynamic trust and delegation in agents to escalate access and bypass controls by manipulating delegation chains, role inheritance, control flows, and agent context; context includes cached credentials or conversation history across interconnected systems.  In this context, identity refers both to the agent’s defined persona and to any authentication material that represents it. Agent-to-agent trust or inherited credentials can be exploited to escalate access, hijack privileges, or execute unauthorized actions.",
+        "This risk arises from the architectural mismatch between user-centric identity systems and agentic design. Without a distinct, governed identity of its own, an agent operates in an attribution gap that makes enforcing true least privilege impossible. Identity in this context includes both the agent’s assigned persona and any authentication material (API keys, OAuth tokens, delegated user sessions) that represent it.",
+        "This differs scenario in ASI02 (Tools Misuse) which is an unintended or unsafe use of already granted privilege by a principal misusing its own tools.",
+        "Identity & Privilege Abuse is the agentic evolution of Excessive Agency (LLM06:2025). It often leverages Prompt Injection (LLM01:2025), and because of agent permissions, tool integrations, and multi-agent systems, the impact can amplify and exceed Sensitive Information Disclosure (LLM02:2025) to directly compromise the confidentiality, integrity, and availability of systems and data the agent can reach.",
+        "In the OWASP ASI Threats and Mitigations, it maps one-to-one to T3: Privilege Compromise, and in OWASP AIVSS it corresponds to Core Risk 2: Agent Access Control Violation."
+      ],
+      "preventionStrategies": [
+        {
+          "label": "1",
+          "text": "Enforce Task-Scoped, Time-Bound Permissions: Issue short-lived, narrowly scoped tokens per task and cap rights with permission boundaries - using per-agent identities and short-lived credentials (e.g., mTLS certificates or scoped tokens) - to limit blast radius, block delegated-abuse and maintenance-window attacks, and mitigate un-scoped inheritance, orphaned privileges, and reflection-loop elevation.",
+          "page": 18
+        },
+        {
+          "label": "2",
+          "text": "Isolate Agent Identities and Contexts: Run per-session sandboxes with separated permissions and memory, wiping state between tasks to prevent Memory-Based Escalation and reduce Cross-Repository Data Exfiltration.",
+          "page": 18
+        },
+        {
+          "label": "3",
+          "text": "Mandate Per-Action Authorization: Re-verify each privileged step with a centralized policy engine that checks external data, stopping Cross-Agent Trust Exploitation and Reflection Loop Elevation.",
+          "page": 18
+        },
+        {
+          "label": "4",
+          "text": "Apply Human-in-the-Loop for Privilege Escalation: Require human approval for high-privilege or irreversible actions to provide a safety net that would stop Memory-Based Escalation, Cross-Agent Trust Exploitation, and Maintenance Window attacks.",
+          "page": 18
+        },
+        {
+          "label": "5",
+          "text": "Define Intent: Bind OAuth tokens to a signed intent that includes subject, audience, purpose, and session. Reject any token use where the bound intent doesn’t match the current request.",
+          "page": 18
+        },
+        {
+          "label": "6",
+          "text": "Evaluate Agentic Identity Management Platforms. Major platforms integrate agents into their identity and access management systems, treating them as managed non-human identities with scoped credentials, audit trails, and lifecycle controls. Examples include Microsoft Entra, AWS Bedrock Agents, Salesforce Agentforce, Workday’s Agentic System of Record (ASOR) model, and similar emerging patterns in Google Vertex AI.",
+          "page": 18
+        },
+        {
+          "label": "7",
+          "text": "Bind permissions to subject, resource, purpose, and duration. Require re-authentication on context switch. Prevent privilege inheritance across agents unless the original intent is re-validated. Include automated revocation on idle or anomaly.",
+          "page": 18
+        },
+        {
+          "label": "8",
+          "text": "Detect Delegated and Transitive Permissions: Monitor when an agent gains new permissions indirectly through delegation chains. Flag cases where a low-privilege agent inherits or is handed higher-privilege scopes during multi-agent workflows.",
+          "page": 18
+        },
+        {
+          "label": "9",
+          "text": "Detect abnormal cross-agent privilege elevation and device-code style phishing flows by monitoring when agents request new scopes or reuse tokens outside their original, signed intent.",
+          "page": 18
+        }
+      ],
+      "sections": [
+        {
+          "name": "Description",
+          "page": 16
+        },
+        {
+          "name": "Common Examples of the Vulnerability",
+          "page": 16
+        },
+        {
+          "name": "Example Attack Scenarios",
+          "page": 17
+        },
+        {
+          "name": "Prevention and Mitigation Guidelines",
+          "page": 18
+        },
+        {
+          "name": "References",
+          "page": 18
+        }
+      ],
+      "page": 16,
+      "pageEnd": 18,
+      "relatedFrameworks": [
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM01:2025",
+          "text": "LLM01:2025 Prompt Injection",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM06:2025",
+          "text": "LLM06:2025 Excessive Agency",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM02:2025",
+          "text": "LLM02:2025 Sensitive Info Disclosure",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T3",
+          "text": "T3 Privilege Compromise",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP AIVSS (AI Vulnerability Scoring System) core risks",
+          "targetScheme": "owasp-aivss",
+          "id": null,
+          "text": "Agent Access Control Violation",
+          "column": "AIVSS Core Risk Alignment",
+          "page": 40,
+          "source": "appendix"
+        }
+      ]
+    },
+    {
+      "id": "ASI04",
+      "edition": "2026",
+      "key": "ASI04",
+      "title": "Agentic Supply Chain Vulnerabilities",
+      "description": "Agentic Supply Chain Vulnerabilities arise when agents, tools, and related artefacts they work with are provided by third parties and may be malicious, compromised, or tampered with in transit. These can be both static and dynamical sourced components, including models and model weights, tools, plug-ins, datasets, other agents, agentic interfaces - MCP (Model Context Protocol), A2A  (Agent2Agent) - agentic registries and related artifacts, or update channels. These dependencies may introduce unsafe code, hidden instructions, or deceptive behaviors into the agent’s execution chain.",
+      "descriptionParagraphs": [
+        "Agentic Supply Chain Vulnerabilities arise when agents, tools, and related artefacts they work with are provided by third parties and may be malicious, compromised, or tampered with in transit. These can be both static and dynamical sourced components, including models and model weights, tools, plug-ins, datasets, other agents, agentic interfaces - MCP (Model Context Protocol), A2A  (Agent2Agent) - agentic registries and related artifacts, or update channels. These dependencies may introduce unsafe code, hidden instructions, or deceptive behaviors into the agent’s execution chain.",
+        "Supply chain is covered in depth in LLM03:2025 Supply Chain Vulnerabilities. However, its focus is on static dependencies. Unlike traditional AI or software supply chains, agentic ecosystems often compose capabilities at runtime - loading external tools- agent personas dynamically – thereby increasing the attack surface. This distributed run-time coordination - combined with agentic autonomy - creates a live supply chain that can cascade vulnerabilities across agents. These shifts focus from manifest to run-time security of a diverse and often opaque component. Tackling this problem requires careful development-time tooling and runtime orchestration, where components are dynamically loaded, shared, and trusted.",
+        "The entry maps to T17 Supply Chain Compromise in Agentic Threats and Mitigations and across T2 Tool Misuse, T11 Unexpected RCE and Code Attacks, T12 Agent Communication Poisoning, T13 Rogue Agent and T16 Insecure Inter-Agent Protocol Abuse."
+      ],
+      "preventionStrategies": [
+        {
+          "label": "1",
+          "text": "Provenance and SBOMs, AIBOMs: Sign and attest manifests, prompts, and tool definitions; require and operationalize SBOMs, AIBOMs with periodic attestations; maintain inventory of AI components; use curated registries and block untrusted sources.",
+          "page": 21
+        },
+        {
+          "label": "2",
+          "text": "Dependency gatekeeping: Allowlist and pin; scan for typosquats (PyPI, npm, LangChain, LlamaIndex); verify provenance before install or activation; auto-reject unsigned or unverified.",
+          "page": 21
+        },
+        {
+          "label": "3",
+          "text": "Containment and builds: Run sensitive agents in sandboxed containers with strict network or syscall limits; require reproducible builds.",
+          "page": 21
+        },
+        {
+          "label": "4",
+          "text": "Secure prompts and memory: Put prompts, orchestration scripts, and memory schemas under version control with peer review; scan for anomalies.",
+          "page": 21
+        },
+        {
+          "label": "5",
+          "text": "Inter-agent security: Enforce mutual auth and attestation via PKI and mTLS; no open registration; sign and verify all inter-agent messages.",
+          "page": 21
+        },
+        {
+          "label": "6",
+          "text": "Continuous validation and monitoring: Re-check signatures, hashes, and SBOMs (incl. AIBOMs) at runtime; monitor behavior, privilege use, lineage, and inter-module telemetry for anomalies.",
+          "page": 21
+        },
+        {
+          "label": "7",
+          "text": "Pinning: Pin prompts, tools, and configs by content hash and commit ID. Require staged rollout with differential tests and auto-rollback on hash drift or behavioral change.",
+          "page": 21
+        },
+        {
+          "label": "8",
+          "text": "Supply chain kill switch: Implement emergency revocation mechanisms that can instantly disable specific tools, prompts, or agent connections across all deployments when a compromise is detected, preventing further cascading damage.",
+          "page": 21
+        },
+        {
+          "label": "9",
+          "text": "Zero-trust security model in application design: design system with security fault tolerance that assumes failure or exploitation of LLM or agentic function components.",
+          "page": 21
+        }
+      ],
+      "sections": [
+        {
+          "name": "Description",
+          "page": 19
+        },
+        {
+          "name": "Common Examples of the Vulnerability",
+          "page": 19
+        },
+        {
+          "name": "Example Attack Scenarios",
+          "page": 20
+        },
+        {
+          "name": "Prevention and Mitigation Guidelines",
+          "page": 21
+        },
+        {
+          "name": "References",
+          "page": 21
+        }
+      ],
+      "page": 19,
+      "pageEnd": 21,
+      "relatedFrameworks": [
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM03:2025",
+          "text": "LLM03:2025 Supply Chain Vulnerabilities",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T17",
+          "text": "T17 Supply Chain Compromise",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T2",
+          "text": "T2 Tool Misuse",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T11",
+          "text": "T11 Unexpected RCE",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T12",
+          "text": "T12 Agent Comm Poisoning",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T13",
+          "text": "T13 Rogue Agent",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T16",
+          "text": "T16 Insecure Inter-Agent Protocol Abuse",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP AIVSS (AI Vulnerability Scoring System) core risks",
+          "targetScheme": "owasp-aivss",
+          "id": null,
+          "text": "Agent Supply Chain & Dependency Attacks",
+          "column": "AIVSS Core Risk Alignment",
+          "page": 40,
+          "source": "appendix"
+        }
+      ]
+    },
+    {
+      "id": "ASI05",
+      "edition": "2026",
+      "key": "ASI05",
+      "title": "Unexpected Code Execution (RCE)",
+      "description": "Agentic systems - including popular vibe coding tools - often generate and execute code.  Attackers exploit code-generation features or embedded tool access to escalate actions into remote code execution (RCE), local misuse, or exploitation of internal systems.  Because this code is often generated in real-time by the agent it can bypass traditional security controls.",
+      "descriptionParagraphs": [
+        "Agentic systems - including popular vibe coding tools - often generate and execute code.  Attackers exploit code-generation features or embedded tool access to escalate actions into remote code execution (RCE), local misuse, or exploitation of internal systems.  Because this code is often generated in real-time by the agent it can bypass traditional security controls.",
+        "Prompt injection, tool misuse, or unsafe serialization can convert text into unintended executable behavior. While code execution can be triggered via the same tool interfaces discussed under ASI02, ASI05 focuses on unexpected or adversarial execution of code (scripts, binaries, JIT/WASM modules, deserialized objects, template engines, in memory evaluations) that leads to host or container compromise, persistence, or sandbox escape - outcomes that require host and runtime-specific mitigations beyond ordinary tool-use controls.",
+        "This entry builds on LLM01:2025 Prompt Injection and LLM05:2025 Improper Output Handling, reflecting their evolution in agentic systems from a single manipulated output interpreted or executed to orchestrated multi-tool chains that achieve execution through a sequence of otherwise legitimate tool calls. This risk aligns with T11 Unexpected RCE and Code Attacks in Agentic AI – Threats and Mitigations v1.1."
+      ],
+      "preventionStrategies": [
+        {
+          "label": "1",
+          "text": "Follow the mitigations of LLM05:2025 Improper Output Handling with input validation and output encoding to sanitize agent-generated code",
+          "page": 23
+        },
+        {
+          "label": "2",
+          "text": "Prevent direct agent-to-production systems and operationalize use of vibe coding systems with pre-production checks: including the guidelines of this entry with security evaluations, adversarial unit tests and detection of unsafe memory evaluators.",
+          "page": 23
+        },
+        {
+          "label": "3",
+          "text": "Ban eval in production agents: Require safe interpreters, taint-tracking on generated code.",
+          "page": 23
+        },
+        {
+          "label": "4",
+          "text": "Execution environment security: Never run as root. Run code in sandboxed containers with strict limits including network access; lint and block known-vulnerable packages and use framework sandboxes like mcp-run-python. Where possible, restrict filesystem access to a dedicated working directory and log file diffs for critical paths.",
+          "page": 23,
+          "pageEnd": 24
+        },
+        {
+          "label": "5",
+          "text": "Architecture and design: Isolate per-session environments with permission boundaries; apply least privilege; fail secure by default; separate code generation from execution with validation gates.",
+          "page": 24
+        },
+        {
+          "label": "6",
+          "text": "Access control and approvals: Require human approval for elevated runs; keep an allowlist for auto-execution under version control; enforce role and action-based controls.",
+          "page": 24
+        },
+        {
+          "label": "7",
+          "text": "Code analysis and monitoring: Do static scans before execution; enable runtime monitoring; watch for prompt-injection patterns; log and audit all generation and runs.",
+          "page": 24
+        }
+      ],
+      "sections": [
+        {
+          "name": "Description",
+          "page": 22
+        },
+        {
+          "name": "Common Examples of the Vulnerability",
+          "page": 22
+        },
+        {
+          "name": "Example Attack Scenarios",
+          "page": 23
+        },
+        {
+          "name": "Prevention and Mitigation Guidelines",
+          "page": 23
+        },
+        {
+          "name": "References",
+          "page": 24
+        }
+      ],
+      "page": 22,
+      "pageEnd": 24,
+      "relatedFrameworks": [
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM01:2025",
+          "text": "LLM01:2025 Prompt Injection",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM05:2025",
+          "idAsPrinted": "LLM05",
+          "text": "LLM05 Improper Output Handling",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T11",
+          "text": "T11 Unexpected RCE & Code Attacks",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 40,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP AIVSS (AI Vulnerability Scoring System) core risks",
+          "targetScheme": "owasp-aivss",
+          "id": null,
+          "text": "Insecure Agent Critical Systems Interaction",
+          "column": "AIVSS Core Risk Alignment",
+          "page": 40,
+          "source": "appendix"
+        }
+      ]
+    },
+    {
+      "id": "ASI06",
+      "edition": "2026",
+      "key": "ASI06",
+      "title": "Memory & Context Poisoning",
+      "description": "Agentic systems rely on stored and retrievable information which can be a snapshot of its conversation history, a memory tool or expanded context, which supports continuity across tasks and reasoning cycles. Context includes any information an agent retains, retrieves, or reuses, such as summaries, embeddings, and RAG stores but excludes one-time input prompts covered under LLM01 :2025 Prompt Injection.",
+      "descriptionParagraphs": [
+        "Agentic systems rely on stored and retrievable information which can be a snapshot of its conversation history, a memory tool or expanded context, which supports continuity across tasks and reasoning cycles. Context includes any information an agent retains, retrieves, or reuses, such as summaries, embeddings, and RAG stores but excludes one-time input prompts covered under LLM01 :2025 Prompt Injection.",
+        "In Memory and Context Poisoning, adversaries corrupt or seed this context with malicious or misleading data, causing future reasoning, planning, or tool use to become biased, unsafe, or aid exfiltration. Ingestion sources such as uploads, API feeds, user input, or peer-agent exchanges may be untrusted or only partially validated.",
+        "This risk is distinct from ASI01 (Goal Hijack), which captures direct goal manipulation, and ASI08 (Cascading Failures), which describes degradation after poisoning occurs.  However, memory poisoning frequently leads to goal hijacking (ASI01), as corrupted context or long-term memory can alter the agent’s goal interpretation, reasoning path, or tool-selection logic.",
+        "It builds on LLM01:2025 Prompt Injection, LLM04:2025 Data and Model Poisoning, and LLM08:2025 Vector and Embedding Weaknesses, but focuses on persistent corruption of agent memory and retrievable context that propagates across sessions and alters autonomous reasoning.",
+        "It maps to T1 Memory Poisoning in Agentic Threats and Mitigations, with related impacts in T4 Memory Overload, T6 Broken Goals, and T12 Shared Memory Poisoning. In AIVSS, the AARS fields Memory Use and Contextual Awareness raise the agentic vulnerability score."
+      ],
+      "preventionStrategies": [
+        {
+          "label": "1",
+          "text": "Baseline data protection: Encryption in transit and at rest combined with least-privilege access",
+          "page": 26
+        },
+        {
+          "label": "2",
+          "text": "Content validation: Scan all new memory writes and model outputs (rules + AI) for malicious or sensitive content before commit.",
+          "page": 26
+        },
+        {
+          "label": "3",
+          "text": "Memory segmentation: Isolate user sessions and domain contexts to prevent knowledge and sensitive data leakage.",
+          "page": 26
+        },
+        {
+          "label": "4",
+          "text": "Access and retention: Allow only authenticated, curated sources; enforce context-aware access per task; minimize retention by data sensitivity.",
+          "page": 26
+        },
+        {
+          "label": "5",
+          "text": "Provenance and anomalies: Require source attribution and detect suspicious updates or frequencies.",
+          "page": 26
+        },
+        {
+          "label": "6",
+          "text": "Prevent automatic re-ingestion of an agent’s own generated outputs into trusted memory to avoid self-reinforcing contamination or “bootstrap poisoning.”",
+          "page": 27
+        },
+        {
+          "label": "7",
+          "text": "Resilience and verification: Perform adversarial test, use snapshots/rollback and version control, and require human review for high-risk actions. Where you operate shared vector or memory stores, use per-tenant namespaces and trust scores for entries, decaying or expiring unverified memory over time and supporting rollback/quarantine for suspected poisoning.",
+          "page": 27
+        },
+        {
+          "label": "8",
+          "text": "Expire unverified memory to limit poison persistence.",
+          "page": 27
+        },
+        {
+          "label": "9",
+          "text": "Weight retrieval by trust and tenancy: Require two factors to surface high-impact memory (e.g., provenance score plus human-verified tag) and decay low-trust entries over time.",
+          "page": 27
+        }
+      ],
+      "sections": [
+        {
+          "name": "Description",
+          "page": 25
+        },
+        {
+          "name": "Common Examples of the Vulnerability",
+          "page": 25
+        },
+        {
+          "name": "Example Attack Scenarios",
+          "page": 26
+        },
+        {
+          "name": "Prevention and Mitigation Guidelines",
+          "page": 26
+        },
+        {
+          "name": "References",
+          "page": 27
+        }
+      ],
+      "page": 25,
+      "pageEnd": 27,
+      "relatedFrameworks": [
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM01:2025",
+          "text": "LLM01:2025 Prompt Injection",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 40,
+          "pageEnd": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM04:2025",
+          "text": "LLM04:2025 Data & Model Poisoning",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 40,
+          "pageEnd": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM08:2025",
+          "text": "LLM08:2025 Vector & Embedding Weaknesses",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 40,
+          "pageEnd": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T1",
+          "text": "T1 Memory Poisoning",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 40,
+          "pageEnd": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T4",
+          "text": "T4 Memory Overload",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 40,
+          "pageEnd": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T6",
+          "text": "T6 Broken Goals",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 40,
+          "pageEnd": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T12",
+          "text": "T12 Shared Memory Poisoning",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 40,
+          "pageEnd": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP AIVSS (AI Vulnerability Scoring System) core risks",
+          "targetScheme": "owasp-aivss",
+          "id": null,
+          "text": "Memory Use & Contextual Awareness",
+          "column": "AIVSS Core Risk Alignment",
+          "page": 40,
+          "pageEnd": 41,
+          "source": "appendix"
+        }
+      ]
+    },
+    {
+      "id": "ASI07",
+      "edition": "2026",
+      "key": "ASI07",
+      "title": "Insecure Inter-Agent Communication",
+      "description": "Multi agent systems depend on continuous communication between autonomous agents that coordinate via APIs, message buses, and shared memory, significantly expanding the attack surface. Decentralized architecture, varying autonomy, and uneven trust make perimeter-based security models ineffective. Weak inter-agent controls for authentication, integrity, confidentiality, or authorization let attackers intercept, manipulate, spoof, or block messages.",
+      "descriptionParagraphs": [
+        "Multi agent systems depend on continuous communication between autonomous agents that coordinate via APIs, message buses, and shared memory, significantly expanding the attack surface. Decentralized architecture, varying autonomy, and uneven trust make perimeter-based security models ineffective. Weak inter-agent controls for authentication, integrity, confidentiality, or authorization let attackers intercept, manipulate, spoof, or block messages.",
+        "Insecure Inter-Agent Communication occurs when these exchanges lack proper authentication, integrity, or semantic validation-allowing interception, spoofing, or manipulation of agent messages and intents. The threat spans transport, routing, discovery, and semantic layers, including covert or side-channels where agents leak or infer data through timing or behavioral cues.",
+        "This differs from ASI03 (Identity & Privilege Abuse), which focuses on credential and permissions misuse, and ASI06 (Memory & Context Poisoning), which targets stored knowledge corruption. ASI07 focuses on compromising real-time messages between agents, leading to misinformation, privilege confusion, or coordinated manipulation across distributed agentic systems.",
+        "The entry is covered by T12 – Agent Communication Poisoning & T16 – Insecure Inter-Agent Protocol Abuse in Agentic Threats and Mitigations"
+      ],
+      "preventionStrategies": [
+        {
+          "label": "1",
+          "text": "Secure agent channels: Use end-to-end encryption with per-agent credentials and mutual authentication. Enforce PKI certificate pinning, forward secrecy, and regular protocol reviews to prevent interception or spoofing.",
+          "page": 29
+        },
+        {
+          "label": "2",
+          "text": "Message integrity and semantic protection: Digitally sign messages, hash both payload and context, and validate for hidden or modified natural-language instructions. Apply natural-language– aware sanitization and intent-diffing to detect goal, parameter tampering, hidden or modified natural-language instructions",
+          "page": 29
+        },
+        {
+          "label": "3",
+          "text": "Agent-aware anti-replay: Protect all exchanges with nonces, session identifiers, and timestamps tied to task windows. Maintain short-term message fingerprints or state hashes to detect cross-context replays.",
+          "page": 29
+        },
+        {
+          "label": "4",
+          "text": "Protocol and capability security: Disable weak or legacy communication modes. Require agent-specific trust negotiation and bind protocol authentication to agent identity. Enforce version and capability policies at gateways or middleware.",
+          "page": 30
+        },
+        {
+          "label": "5",
+          "text": "Limit metadata-based inference: Reduce the attack surface for traffic analysis by using fixed-size or padded messages where feasible, smoothing communication rates, and avoiding deterministic communication schedules. These lightweight measures make it harder for attackers to infer agent roles or decision cycles from metadata alone, without requiring heavy protocol redesign.",
+          "page": 30
+        },
+        {
+          "label": "6",
+          "text": "Protocol pinning and version enforcement: Define and enforce allowed protocol versions (e.g., MCP, A2A, gRPC). Reject downgrade attempts or unrecognized schemas and validate that both peers advertise matching capability and version fingerprints.",
+          "page": 30
+        },
+        {
+          "label": "7",
+          "text": "Discovery and routing protection. Authenticate all discovery and coordination messages using cryptographic identity. Secure directories with access controls and verified reputations, validate identity and intent end-to-end, and monitor for anomalous routing flows.",
+          "page": 30
+        },
+        {
+          "label": "8",
+          "text": "Attested registry and agent verification: Use registries or marketplaces that provide digital attestation of agent identity, provenance, and descriptor integrity. Require signed agent cards and continuous verification before accepting discovery or coordination messages. Leverage the PKI trusted root certificate registries to enable robust agent verification and attestation of critical attributes.",
+          "page": 30
+        },
+        {
+          "label": "9",
+          "text": "Typed contracts and schema validation: Use versioned, typed message schemas with explicit per-message audiences. Reject messages that fail validation or attempt schema down-conversion without declared compatibility. Typed contracts help with structure, but semantic divergence across agents remains an inherent challenge; mitigations therefore focus on integrity, provenance, and controlled communication patterns rather than attempting full semantic alignment.",
+          "page": 30
+        }
+      ],
+      "sections": [
+        {
+          "name": "Description",
+          "page": 28
+        },
+        {
+          "name": "Common Examples of the Vulnerability",
+          "page": 28
+        },
+        {
+          "name": "Example Attack Scenarios",
+          "page": 29
+        },
+        {
+          "name": "Prevention and Mitigation Guidelines",
+          "page": 29
+        },
+        {
+          "name": "References",
+          "page": 30
+        }
+      ],
+      "page": 28,
+      "pageEnd": 30,
+      "relatedFrameworks": [
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM02:2025",
+          "text": "LLM02:2025 Sensitive Information Disclosure",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM06:2025",
+          "text": "LLM06:2025 Excessive Agency",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T12",
+          "text": "T12 Agent Communication Poisoning",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T16",
+          "text": "T16 Insecure Inter-Agent Protocol Abuse",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP AIVSS (AI Vulnerability Scoring System) core risks",
+          "targetScheme": "owasp-aivss",
+          "id": null,
+          "text": "Agent Memory & Context Manipulation",
+          "column": "AIVSS Core Risk Alignment",
+          "page": 41,
+          "source": "appendix"
+        }
+      ]
+    },
+    {
+      "id": "ASI08",
+      "edition": "2026",
+      "key": "ASI08",
+      "title": "Cascading Failures",
+      "description": "Agentic cascading failures occur when a single fault (hallucination, malicious input, corrupted tool, or poisoned memory) propagates across autonomous agents, compounding into system-wide harm. Because agents plan, persist, and delegate autonomously, a single error can bypass stepwise human checks and persist in a saved state. As agents form emergent links to new tools or peers, these latent faults chain into privileged operations that compromise confidentiality, integrity, availability, leading to widespread service failures across agent networks, systems, and workflows.",
+      "descriptionParagraphs": [
+        "Agentic cascading failures occur when a single fault (hallucination, malicious input, corrupted tool, or poisoned memory) propagates across autonomous agents, compounding into system-wide harm. Because agents plan, persist, and delegate autonomously, a single error can bypass stepwise human checks and persist in a saved state. As agents form emergent links to new tools or peers, these latent faults chain into privileged operations that compromise confidentiality, integrity, availability, leading to widespread service failures across agent networks, systems, and workflows.",
+        "Cascading Failures describes the propagation and amplification of an initial fault-not the initial vulnerability itself-across agents, tools, and workflows, turning a single error into system-wide impact.",
+        "ASI08 focuses on the propagation and amplification of faults rather than their origin. Use the initial defect under ASI04, ASI06, or ASI07 when it represents a direct compromise - such as a tainted dependency, poisoned memory, or spoofed message - and apply ASI08 only when that defect spreads across agents, sessions, or workflows, causing measurable fan-out or systemic impact beyond the original breach.",
+        "Observable symptoms include rapid fan-out where one faulty decision triggers many downstream agents or tasks in a short time, cross-domain or tenant spread beyond the original context, oscillating retries or feedback loops between agents, and downstream queue storms or repeated identical intents-each providing clear detection hooks that make ASI08 operationally actionable.",
+        "Cascading failures amplify across interconnected agents, chaining OWASP LLM Top 10 risks. LLM01:2025 Prompt Injection and LLM06:2025 Excessive Agency can trigger autonomous tool runs that spread errors without human checks, while LLM04:2025 Data and Model Poisoning in persistent memory can skew decisions across sessions and workflows. Agentic AI - Threats and Mitigations 1.1 covers this threat in T5 – Cascading Hallucination Attacks while T8 – Repudiation and Untraceability highlights a fundamental defense: the ability to trace, attribute, and audit cascading behaviors through resilient logging and non-repudiation mechanisms that prevent silent propagation. However, these compounding threats illustrate a potential discrepancy in the speed and scale of fault propagation in a multi-agent system and the ability of humans to keep up with them to ensure secure and effective operation of the system. This leaves some unmitigated risks that the enterprise must evaluate carefully to ensure they are within the overall risk budget for the organization."
+      ],
+      "preventionStrategies": [
+        {
+          "label": "1",
+          "text": "Zero-trust model in application design: design system with fault tolerance that assumes availability failure of LLM:2025, agentic function components and external sources.",
+          "page": 33
+        },
+        {
+          "label": "2",
+          "text": "Isolation and trust boundaries: Sandbox agents, least privilege, network segmentation, scoped APIs, and mutual auth. to contain failure propagation.",
+          "page": 33
+        },
+        {
+          "label": "3",
+          "text": "JIT, one-time tool access with runtime checks: Issue short-lived, task-scoped credentials for each agent run and validate every high-impact tool invocation against a policy-as-code rule before executing it. This ensures a compromised or drifting agent cannot trigger chain reactions across other agents or systems.",
+          "page": 33
+        },
+        {
+          "label": "4",
+          "text": "Independent policy enforcement: Separate planning and execution via an external policy engine to prevent corrupt planning from triggering harmful actions.",
+          "page": 33
+        },
+        {
+          "label": "5",
+          "text": "Output validation and human gates: Checkpoints, governance agents, or human review for high risk before agent outputs are propagated downstream.",
+          "page": 33
+        },
+        {
+          "label": "6",
+          "text": "Rate limiting and monitoring: Detect fast-spreading commands and throttle or pause on anomalies.",
+          "page": 33
+        },
+        {
+          "label": "7",
+          "text": "Implement blast-radius guardrails such as quotas, progress caps, circuit breakers between planner and executor.",
+          "page": 33
+        },
+        {
+          "label": "8",
+          "text": "Behavioral and governance drift detection: Track decisions vs baselines and alignment; flag gradual degradation.",
+          "page": 33
+        },
+        {
+          "label": "9",
+          "text": "Digital twin replay and policy gating: Re-run the last week’s recorded agent actions in an isolated clone of the production environment to test whether the same sequence would trigger cascading failures. Gate any policy expansion on these replay tests passing predefined blast-radius caps before deployment.",
+          "page": 33
+        },
+        {
+          "label": "10",
+          "text": "Logging and non-repudiation. Record all inter-agent messages, policy decisions, and execution outcomes in tamper-evident, time-stamped logs bound to cryptographic agent identities. Maintain lineage metadata for every propagated action to support forensic traceability, rollback validation, and accountability during cascades.",
+          "page": 33
+        }
+      ],
+      "sections": [
+        {
+          "name": "Description",
+          "page": 31
+        },
+        {
+          "name": "Common Examples of the Vulnerability",
+          "page": 32
+        },
+        {
+          "name": "Example Attack Scenarios",
+          "page": 32
+        },
+        {
+          "name": "Prevention and Mitigation Guidelines",
+          "page": 33
+        },
+        {
+          "name": "References",
+          "page": 33
+        }
+      ],
+      "page": 31,
+      "pageEnd": 33,
+      "relatedFrameworks": [
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM01:2025",
+          "text": "LLM01:2025 Prompt Injection",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM04:2025",
+          "idAsPrinted": "LLM04",
+          "text": "LLM04 Data & Model Poisoning",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM06:2025",
+          "text": "LLM06:2025 Excessive Agency",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T5",
+          "text": "T5 Cascading Hallucination Attacks",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T8",
+          "text": "T8 Repudiation & Untraceability",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP AIVSS (AI Vulnerability Scoring System) core risks",
+          "targetScheme": "owasp-aivss",
+          "id": null,
+          "text": "Agent Cascading Failures",
+          "column": "AIVSS Core Risk Alignment",
+          "page": 41,
+          "source": "appendix"
+        }
+      ]
+    },
+    {
+      "id": "ASI09",
+      "edition": "2026",
+      "key": "ASI09",
+      "title": "Human-Agent Trust Exploitation",
+      "description": "Intelligent agents can establish strong trust with human users through their natural language fluency, emotional intelligence, and perceived expertise, known as anthropomorphism. Adversaries or misaligned designs may exploit this trust to influence user decisions, extract sensitive information, or steer outcomes for malicious purposes. In agentic systems, this risk is amplified when humans over-rely on autonomous recommendations or unverifiable rationales, approving actions without independent validation. By leveraging authority bias and persuasive explainability, attackers can bypass oversight, leading to data breaches, financial losses, downstream and reputational harms.",
+      "descriptionParagraphs": [
+        "Intelligent agents can establish strong trust with human users through their natural language fluency, emotional intelligence, and perceived expertise, known as anthropomorphism. Adversaries or misaligned designs may exploit this trust to influence user decisions, extract sensitive information, or steer outcomes for malicious purposes. In agentic systems, this risk is amplified when humans over-rely on autonomous recommendations or unverifiable rationales, approving actions without independent validation. By leveraging authority bias and persuasive explainability, attackers can bypass oversight, leading to data breaches, financial losses, downstream and reputational harms.",
+        "The agent acts as an untraceable \"bad influence,\" manipulating the human into performing the final, audited action, making the agent's role in the compromise invisible to forensics. Automation bias, perceived authority, and anthropomorphic cues make abuse look legitimate and hard to spot. Over-reliance on agent recommendations, especially when they appear confident or authoritative, increases the chance of harmful decision-making.",
+        "This entry is about human misperception or over-reliance whereas ASI10 is agent intent deviation. The entry builds on LLM06:2025 Excessive Agency, and can be caused by LLM01:2025 Prompt Injection, LLM05:2025 Improper Output Handling, or results in LLM09:2025 Misinformation.  Aligns with Agentic AI Threats and Mitigations Guide (T7) Misaligned & Deceptive, (T8) Repudiation & Untraceability, (T10) Overwhelming the Human in the Loop."
+      ],
+      "preventionStrategies": [
+        {
+          "label": "1",
+          "text": "Explicit confirmations: Require multi-step approval or “human in the loop” before accessing extra sensitive data or performing risky actions.",
+          "page": 35
+        },
+        {
+          "label": "2",
+          "text": "Immutable logs: Keep tamper-proof records of user queries and agent actions for audit and forensics.",
+          "page": 35
+        },
+        {
+          "label": "3",
+          "text": "Behavioral detection: Monitor sensitive data being exposed in either conversations or Agentic connections, as well as risky action executions over time.",
+          "page": 36
+        },
+        {
+          "label": "4",
+          "text": "Allow reporting of suspicious interactions: In user-interactive systems, provide plain-language risk summary (not model-generated rationales) and a clear option for users to flag suspicious or manipulative agent behavior, triggering automated review or a temporary lockdown of agent capabilities.",
+          "page": 36
+        },
+        {
+          "label": "5",
+          "text": "Adaptive Trust Calibration:  Continuously adjust the level of agent autonomy and required human oversight based on contextual risk scoring. Implement confidence weighted cues (e.g., “low-certainty” or “unverified source”) that visually prompt users to question high-impact actions, reducing automation bias and blind approval. Develop and continuously maintain appropriate training of human personnel involved in the evolving human oversight of autonomous agentic systems.",
+          "page": 36
+        },
+        {
+          "label": "6",
+          "text": "Content provenance and policy enforcement: Attach verifiable metadata-source identifiers, timestamps, and integrity hashes-to all recommendations and external data. Enforce digital signature validation and runtime policy checks that block actions lacking trusted provenance or exceeding the agent’s declared scope.",
+          "page": 36
+        },
+        {
+          "label": "7",
+          "text": "Separate preview from effect: Block any network or state-changing calls during preview context and display a risk badge with source provenance and expected side effects.",
+          "page": 36
+        },
+        {
+          "label": "8",
+          "text": "Human-factors and UI safeguards: Visually differentiate high-risk recommendations using cues such as red borders, banners, or confirmation prompts, and periodically remind users of manipulation patterns and agent limitations. Where appropriate, avoid persuasive or emotionally manipulative language in safety-critical flows. Maintain appropriate training and assessment of personnel to ensure familiarity and consistency of perception of human-factors and UI.",
+          "page": 36
+        },
+        {
+          "label": "9",
+          "text": "Plan-divergence detection: Compare agent action sequences against approved workflow baselines and alert when unusual detours, skipped validation steps, or novel tool combinations indicate possible deception or drift.",
+          "page": 36
+        }
+      ],
+      "sections": [
+        {
+          "name": "Description",
+          "page": 34
+        },
+        {
+          "name": "Common Examples of the Vulnerability",
+          "page": 34
+        },
+        {
+          "name": "Example Attack Scenarios",
+          "page": 35
+        },
+        {
+          "name": "Prevention and Mitigation Guidelines",
+          "page": 35
+        },
+        {
+          "name": "References",
+          "page": 36
+        }
+      ],
+      "page": 34,
+      "pageEnd": 36,
+      "relatedFrameworks": [
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM01:2025",
+          "text": "LLM01:2025 Prompt Injection",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM05:2025",
+          "text": "LLM05:2025 Improper Output Handling",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM06:2025",
+          "text": "LLM06:2025 Excessive Agency",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM09:2025",
+          "idAsPrinted": "LLM09",
+          "text": "LLM09 Misinformation",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T7",
+          "text": "T7 Misaligned & Deceptive Behaviors",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T8",
+          "text": "T8 Repudiation & Untraceability",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T10",
+          "text": "T10 Overwhelming Human in the Loop",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP AIVSS (AI Vulnerability Scoring System) core risks",
+          "targetScheme": "owasp-aivss",
+          "id": null,
+          "text": "Agent Untraceability / Human Manipulation",
+          "column": "AIVSS Core Risk Alignment",
+          "page": 41,
+          "source": "appendix"
+        }
+      ]
+    },
+    {
+      "id": "ASI10",
+      "edition": "2026",
+      "key": "ASI10",
+      "title": "Rogue Agents",
+      "description": "Rogue Agents are malicious or compromised AI Agents that deviate from their intended function or authorized scope, acting harmfully, deceptively, or parasitically within multi-agent or human-agent ecosystems.",
+      "descriptionParagraphs": [
+        "Rogue Agents are malicious or compromised AI Agents that deviate from their intended function or authorized scope, acting harmfully, deceptively, or parasitically within multi-agent or human-agent ecosystems.",
+        "The agent’s actions may individually appear legitimate, but its emergent behavior becomes harmful, creating a containment gap for traditional rule-based systems. While external compromise, such as Prompt Injection (LLM01:2025), Goal Hijack (AS01) or Supply Chain tampering (AS04) can initiate the divergence, ASI10 focuses on the loss of behavioral integrity and governance once the drift begins, not the initial intrusion itself. Consequences include sensitive information disclosure, misinformation propagation, workflow hijacking, and operational sabotage.",
+        "Rogue Agents represent a distinct risk of behavioral divergence, unlike Excessive Agency (LLM06:2025), which focuses on over-granted permissions, and can be amplified \"insider threats\" due to the speed and scale of Agentic systems. Consequences include Sensitive Information Disclosure (LLM02;2025), Misinformation (LLM09:2025). In the OWASP Agentic AI Threats and Mitigations guide, ASI10 corresponds to T13 – Rogue Agents in Multi-Agent Systems. The OWASP AIVSS framework maps this risk primarily to Behavioral Integrity (BI), Operational Security (OS), and Compliance Violations (CV), with elevated severity for critical or self-propagating deployments."
+      ],
+      "preventionStrategies": [
+        {
+          "label": "1",
+          "text": "Governance & Logging: Maintain comprehensive, immutable and signed audit logs of all agent actions, tool calls, and inter-agent communication to review for stealth infiltration or unapproved delegation.",
+          "page": 38
+        },
+        {
+          "label": "2",
+          "text": "Isolation & Boundaries: Assign Trust Zones with strict inter-zone communication rules and deploy restricted execution environments (e.g., container sandboxes) with API scopes based on least privilege.",
+          "page": 38
+        },
+        {
+          "label": "3",
+          "text": "Monitoring & Detection: Deploy behavioral detection, such as watchdog agents to validate peer behavior and outputs, focusing on detecting collusion patterns and coordinated false signals. Monitor for anomalies such as excessive or abnormal actions executions.",
+          "page": 38
+        },
+        {
+          "label": "4",
+          "text": "Containment & Response: Implement rapid mechanisms like kill-switches and credential revocation to instantly disable rogue agents. Quarantine suspicious agents in sandboxed environments for forensic review.",
+          "page": 38
+        },
+        {
+          "label": "5",
+          "text": "Identity Attestation and Behavioral Integrity Enforcement: Implement per-agent cryptographic identity attestation and enforce behavioral integrity baselines throughout the agent lifecycle. Attach signed behavioral manifests declaring expected capabilities, tools, and goals that are validated by orchestration services before each action. Integrate a behavioral verification layer that continuously monitors tasks for deviations from the declared manifest for e.g. unapproved tool invocations, unexpected data exfiltration attempts etc.",
+          "page": 38
+        },
+        {
+          "label": "6",
+          "text": "Require periodic behavioral attestation: challenge tasks, signed bill of materials for prompts and tools, and per-run ephemeral credentials with one-time audience binding. All signing and attestation mechanisms assume hardened cryptographic key management (e.g., HSM/KMS-backed keys, least-privilege access, rotation and revocation). Keys must never be directly available to agents; instead, orchestrators should mediate signing operations so that a compromised agent cannot simply exfiltrate or misuse long-lived keys",
+          "page": 38,
+          "pageEnd": 39
+        },
+        {
+          "label": "7",
+          "text": "Recovery and Reintegration: Establish trusted baselines for restoring quarantined or remediated agents. Require fresh attestation, dependency verification, and human approval before reintegration into production networks.",
+          "page": 39
+        }
+      ],
+      "sections": [
+        {
+          "name": "Description",
+          "page": 37
+        },
+        {
+          "name": "Common Examples of the Vulnerability",
+          "page": 37
+        },
+        {
+          "name": "Example Attack Scenarios",
+          "page": 38
+        },
+        {
+          "name": "Prevention and Mitigation Guidelines",
+          "page": 38
+        },
+        {
+          "name": "References",
+          "page": 39
+        }
+      ],
+      "page": 37,
+      "pageEnd": 39,
+      "relatedFrameworks": [
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM02:2025",
+          "text": "LLM02:2025 Sensitive Information Disclosure",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Top 10 for LLM Applications",
+          "frameworkVersion": "2025",
+          "targetScheme": "owasp-llm-top10",
+          "id": "LLM09:2025",
+          "text": "LLM09:2025 Misinformation",
+          "column": "OWASP LLM Top 10 (2025)",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T13",
+          "text": "T13 Rogue Agents in Multi-Agent Systems",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T14",
+          "text": "T14 Human Attacks on Multi-Agent Systems",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP Agentic AI – Threats and Mitigations",
+          "targetScheme": "owasp-agentic-threats",
+          "id": "T15",
+          "text": "T15 Human Manipulation",
+          "column": "Agentic AI Threats & Mitigations",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP AIVSS (AI Vulnerability Scoring System) core risks",
+          "targetScheme": "owasp-aivss",
+          "id": null,
+          "text": "Behavioral Integrity (BI)",
+          "column": "AIVSS Core Risk Alignment",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP AIVSS (AI Vulnerability Scoring System) core risks",
+          "targetScheme": "owasp-aivss",
+          "id": null,
+          "text": "Operational Security (OS)",
+          "column": "AIVSS Core Risk Alignment",
+          "page": 41,
+          "source": "appendix"
+        },
+        {
+          "scheme": "other",
+          "framework": "OWASP AIVSS (AI Vulnerability Scoring System) core risks",
+          "targetScheme": "owasp-aivss",
+          "id": null,
+          "text": "Compliance Violations (CV)",
+          "column": "AIVSS Core Risk Alignment",
+          "page": 41,
+          "source": "appendix"
+        }
+      ]
+    }
+  ]
+}

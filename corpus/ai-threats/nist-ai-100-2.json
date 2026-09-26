@@ -1,0 +1,1711 @@
+{
+  "source": {
+    "documentId": "cprt-ai-100-2e2025-export-json",
+    "manifest": "nist-ai-rmf/manifest.json",
+    "path": "nist-ai-rmf/machine-readable/cprt-AI_TAXONOMY_1_0_0-export.json",
+    "sha256": "f77d358947ec3da0429981f022001ab8a829b765a4207d28c3c2dae61839e38f",
+    "dataset": "AI_TAXONOMY_1_0_0",
+    "datasetName": "Adversarial Machine Learning:  A Taxonomy and Terminology of Attacks and Mitigations",
+    "datasetVersion": "1.0.0",
+    "datasetReleased": "2025-03-20",
+    "version": "NIST AI 100-2 E2025 (March 2025, final); CPRT dataset AI_TAXONOMY_1_0_0 v1.0.0",
+    "publication": {
+      "documentId": "nist-ai-100-2e2025",
+      "identifier": "NIST AI 100-2 E2025",
+      "title": "Adversarial Machine Learning: A Taxonomy and Terminology of Attacks and Mitigations",
+      "published": "2025-03-24",
+      "path": "nist-ai-rmf/guides/NIST.AI.100-2e2025.pdf",
+      "sha256": "4811fb6ad73f9c9121843ab77e029b5adc6f2c86d33c2fc5b2099ef133847646",
+      "doi": "10.6028/NIST.AI.100-2e2025",
+      "url": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-2e2025.pdf",
+      "pageNumbering": "page = 1-based physical page of the PDF (the index is printed on pages x-xi = physical 10-11)"
+    },
+    "errata": {
+      "documentId": "nist-ai-100-2e2025-errata",
+      "path": "nist-ai-rmf/guides/nist.ai.100-2e2025_potential_updates.pdf",
+      "published": "2025-06-03"
+    },
+    "license": "Public domain — U.S. Government work (17 U.S.C. §105); not subject to copyright in the United States",
+    "retrieved": "2026-09-26",
+    "extraction": "IDs and names from the CPRT 'taxonomy' elements; hierarchy (taxonomy > objective > attack) from the PDF taxonomy index with the GenAI availability branch corrected per the errata (the as-printed list is kept); definitions are the CPRT section paragraphs that carry each ID marker (for a marker-only section head, the section's first paragraph), copied verbatim with the bracketed ID markers kept; section pages from the PDF bookmarks. Mitigations are the document's 'Mitigations' sections and inline 'Mitigations.' paragraphs; NIST gives them no IDs, so they are keyed by section number."
+  },
+  "counts": {
+    "taxonomies": 2,
+    "objectives": 5,
+    "attacks": 25,
+    "taxonomyElements": 30,
+    "sections": 57,
+    "mitigationSections": 5,
+    "inlineMitigationParagraphs": 4
+  },
+  "taxonomies": [
+    {
+      "id": "PredAI",
+      "name": "Predictive AI Attacks Taxonomy",
+      "domainSection": "2",
+      "objectives": [
+        {
+          "objective": "NISTAML.01",
+          "attacks": [
+            "NISTAML.011",
+            "NISTAML.012",
+            "NISTAML.013",
+            "NISTAML.014"
+          ]
+        },
+        {
+          "objective": "NISTAML.02",
+          "attacks": [
+            "NISTAML.012",
+            "NISTAML.021",
+            "NISTAML.022",
+            "NISTAML.023",
+            "NISTAML.024",
+            "NISTAML.025",
+            "NISTAML.026"
+          ]
+        },
+        {
+          "objective": "NISTAML.03",
+          "attacks": [
+            "NISTAML.031",
+            "NISTAML.032",
+            "NISTAML.033",
+            "NISTAML.034"
+          ]
+        },
+        {
+          "objective": "NISTAML.05",
+          "attacks": [
+            "NISTAML.051"
+          ]
+        }
+      ],
+      "indexPage": 10,
+      "indexPageEnd": 11
+    },
+    {
+      "id": "GenAI",
+      "name": "Generative AI Attacks Taxonomy",
+      "domainSection": "3",
+      "objectives": [
+        {
+          "objective": "NISTAML.01",
+          "attacks": [
+            "NISTAML.016",
+            "NISTAML.017"
+          ],
+          "attacksAsPrinted": [
+            "NISTAML.013",
+            "NISTAML.015",
+            "NISTAML.018"
+          ],
+          "errata": {
+            "taxonomy": "GenAI",
+            "objective": "NISTAML.01",
+            "asPrinted": [
+              "NISTAML.013",
+              "NISTAML.015",
+              "NISTAML.018"
+            ],
+            "corrected": [
+              "NISTAML.016",
+              "NISTAML.017"
+            ],
+            "source": "nist-ai-100-2e2025-errata (Errata (potential updates) for NIST AI 100-2e2025, last updated June 3, 2025), item 1",
+            "status": "NIST: 'these proposed corrections are not official changes to the document'"
+          }
+        },
+        {
+          "objective": "NISTAML.02",
+          "attacks": [
+            "NISTAML.013",
+            "NISTAML.015",
+            "NISTAML.018",
+            "NISTAML.023",
+            "NISTAML.024",
+            "NISTAML.027"
+          ]
+        },
+        {
+          "objective": "NISTAML.03",
+          "attacks": [
+            "NISTAML.015",
+            "NISTAML.018",
+            "NISTAML.023",
+            "NISTAML.033",
+            "NISTAML.035",
+            "NISTAML.036",
+            "NISTAML.037",
+            "NISTAML.038",
+            "NISTAML.039"
+          ]
+        },
+        {
+          "objective": "NISTAML.04",
+          "attacks": [
+            "NISTAML.018"
+          ]
+        },
+        {
+          "objective": "NISTAML.05",
+          "attacks": [
+            "NISTAML.051"
+          ]
+        }
+      ],
+      "indexPage": 10,
+      "indexPageEnd": 11
+    }
+  ],
+  "objectives": [
+    {
+      "id": "NISTAML.01",
+      "name": "Availability Violations",
+      "kind": "objective",
+      "taxonomies": [
+        "PredAI",
+        "GenAI"
+      ],
+      "description": "Availability breakdown [NISTAML.01]. An AVAILABILITY BREAKDOWN attack is a deliberate interference with a PredAI system to disrupt the ability of other users or processes to obtain timely and reliable access to its services. This attack type may be initiated at training or deployment time, although its impacts are typically experienced at deployment time. Availability attacks can be mounted via data poisoning, when the attacker controls a fraction of the training set; via model poisoning, when the attacker controls the model parameters; or as ENERGY-LATENCY ATTACK via query access. Data poisoning availability attacks have been proposed for SUPPORT VECTOR MACHINES [40], linear regression [179], and even neural networks [228, 260], while model poisoning attacks have been designed for neural networks [222] and federated learning [22].",
+      "definitions": [
+        {
+          "section": "2.1.2",
+          "sectionTitle": "Attack Goals and Objectives",
+          "taxonomy": "PredAI",
+          "page": 19,
+          "text": "Availability breakdown [NISTAML.01]. An AVAILABILITY BREAKDOWN attack is a deliberate interference with a PredAI system to disrupt the ability of other users or processes to obtain timely and reliable access to its services. This attack type may be initiated at training or deployment time, although its impacts are typically experienced at deployment time. Availability attacks can be mounted via data poisoning, when the attacker controls a fraction of the training set; via model poisoning, when the attacker controls the model parameters; or as ENERGY-LATENCY ATTACK via query access. Data poisoning availability attacks have been proposed for SUPPORT VECTOR MACHINES [40], linear regression [179], and even neural networks [228, 260], while model poisoning attacks have been designed for neural networks [222] and federated learning [22].",
+          "textSelection": "paragraph carrying the ID marker"
+        },
+        {
+          "section": "3.1.2",
+          "sectionTitle": "Attacker Goals and Objectives",
+          "taxonomy": "GenAI",
+          "page": 52,
+          "text": "In an AVAILABILITY BREAKDOWN attack [NISTAML.01] , an attacker seeks to interfere with a GenAI model or system to disrupt the ability of other users or processes to obtain timely and consistent access to its outputs or functionality.",
+          "textSelection": "paragraph carrying the ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.02",
+      "name": "Integrity Violations",
+      "kind": "objective",
+      "taxonomies": [
+        "PredAI",
+        "GenAI"
+      ],
+      "description": "Integrity violation [NISTAML.02]. An INTEGRITY VIOLATION attack is a deliberate interference with a PredAI system to force it to misperform against its intended objectives and produce predictions that align with the adversary’s objective. An attacker can cause an integrity violation by mounting an evasion attack at deployment time or a poisoning attack at training time. Evasion attacks require the modification of testing samples to create adversarial examples that are misclassified by the model while often remaining stealthy and imperceptible to humans[38, 144, 362]. Integrity attacks via poisoning can be classified as TARGETED POISONING ATTACK [137, 330], BACKDOOR POISONING ATTACK [148], and MODEL POISONING [22, 36, 123]. Targeted poisoning tries to violate the integrity of a few targeted samples and assumes that the attacker has training data control to insert the poisoned samples. Backdoor poisoning attacks require the generation of a BACKDOOR PATTERN, which is added to both the poisoned samples and the testing samples to cause misclassification. Backdoor attacks are the only attacks in the literature that require both training and testing data control. Model poisoning attacks could result in either targeted or backdoor attacks, and the attacker modifies model parameters to cause an integrity violation. They have been designed for centralized learning [222] and federated learning [22, 36].",
+      "definitions": [
+        {
+          "section": "2.1.2",
+          "sectionTitle": "Attack Goals and Objectives",
+          "taxonomy": "PredAI",
+          "page": 19,
+          "text": "Integrity violation [NISTAML.02]. An INTEGRITY VIOLATION attack is a deliberate interference with a PredAI system to force it to misperform against its intended objectives and produce predictions that align with the adversary’s objective. An attacker can cause an integrity violation by mounting an evasion attack at deployment time or a poisoning attack at training time. Evasion attacks require the modification of testing samples to create adversarial examples that are misclassified by the model while often remaining stealthy and imperceptible to humans[38, 144, 362]. Integrity attacks via poisoning can be classified as TARGETED POISONING ATTACK [137, 330], BACKDOOR POISONING ATTACK [148], and MODEL POISONING [22, 36, 123]. Targeted poisoning tries to violate the integrity of a few targeted samples and assumes that the attacker has training data control to insert the poisoned samples. Backdoor poisoning attacks require the generation of a BACKDOOR PATTERN, which is added to both the poisoned samples and the testing samples to cause misclassification. Backdoor attacks are the only attacks in the literature that require both training and testing data control. Model poisoning attacks could result in either targeted or backdoor attacks, and the attacker modifies model parameters to cause an integrity violation. They have been designed for centralized learning [222] and federated learning [22, 36].",
+          "textSelection": "paragraph carrying the ID marker"
+        },
+        {
+          "section": "3.1.2",
+          "sectionTitle": "Attacker Goals and Objectives",
+          "taxonomy": "GenAI",
+          "page": 53,
+          "text": "In an INTEGRITY VIOLATION attack [NISTAML.02], an attacker seeks to interfere with a GenAI system to force it to misperform against its intended objectives and produce output that aligns with the attacker’s objective. As users and businesses rely on GenAI systems to perform tasks like research and productivity assistance, these violations can allow attackers to weaponize the trust that these users place in GenAI systems.",
+          "textSelection": "paragraph carrying the ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.03",
+      "name": "Privacy Compromises",
+      "kind": "objective",
+      "taxonomies": [
+        "PredAI",
+        "GenAI"
+      ],
+      "description": "Privacy compromise [NISTAML.03]. A PRIVACY COMPROMISE attack causes the unintended leakage of restricted or proprietary information from a PredAI system, including details about a model’s training data, weights, or architecture [100, 309]. While the term “confidentiality” is more widely used in taxonomies of traditional cybersecurity attacks, the AML field has tended to use the top-level term “privacy” to encompass both attacks against the confidentiality of a model (e.g., those that extract information about a model’s weights or architecture) and those that cause violations of expected privacy properties of model outputs (e.g. by exposing model training data) [310]. DATA CONFIDENTIALITY during ML training can be achieved through secure computation methods based on cryptographic techniques [2, 253, 288, 385], which ensure that training data and model parameters remain protected during the training phase. However, even models trained using paradigms that enforce data confidentiality may be vulnerable to privacy attacks, in which adversaries interacting with a model can extract information about its training data or parameters. In this report, we focus on privacy compromises that can occur at deployment time, regardless of the training method used, or whether data confidentiality was maintained during training.",
+      "definitions": [
+        {
+          "section": "2.1.2",
+          "sectionTitle": "Attack Goals and Objectives",
+          "taxonomy": "PredAI",
+          "page": 20,
+          "text": "Privacy compromise [NISTAML.03]. A PRIVACY COMPROMISE attack causes the unintended leakage of restricted or proprietary information from a PredAI system, including details about a model’s training data, weights, or architecture [100, 309]. While the term “confidentiality” is more widely used in taxonomies of traditional cybersecurity attacks, the AML field has tended to use the top-level term “privacy” to encompass both attacks against the confidentiality of a model (e.g., those that extract information about a model’s weights or architecture) and those that cause violations of expected privacy properties of model outputs (e.g. by exposing model training data) [310]. DATA CONFIDENTIALITY during ML training can be achieved through secure computation methods based on cryptographic techniques [2, 253, 288, 385], which ensure that training data and model parameters remain protected during the training phase. However, even models trained using paradigms that enforce data confidentiality may be vulnerable to privacy attacks, in which adversaries interacting with a model can extract information about its training data or parameters. In this report, we focus on privacy compromises that can occur at deployment time, regardless of the training method used, or whether data confidentiality was maintained during training.",
+          "textSelection": "paragraph carrying the ID marker"
+        },
+        {
+          "section": "2.4",
+          "sectionTitle": "Privacy Attacks and Mitigations",
+          "taxonomy": "PredAI",
+          "page": 41,
+          "text": "The seminal work of Dinur and Nissim [110] introduced DATA RECONSTRUCTION attacks, which seek to reverse-engineer private information about an individual user record or other sensitive input data from access to a trained model. More recently, data reconstruction attacks have been designed for binary and multi-class neural network classifiers [50, 152]. With MEMBERSHIP-INFERENCE ATTACK, an adversary can determine whether a particular record was included in the dataset used for training an ML model. Membership inference attacks were first introduced by Homer et al. [162] for genomic data. Recent literature focuses on membership attacks against ML models in mostly black-box settings in which adversaries have query access to a trained ML model [54, 342, 422]. Property inference attacks [19, 74, 134, 233, 361, 437] aim to extract global information about a training dataset, such as the fraction of training examples with a certain sensitive attribute. A different privacy violation for MLaaS is MODEL EXTRACTION attacks, which are designed to extract information about an ML model, such as its architecture or model pa rameters3 3A privacy violation in this context describes a loss of confidential information about an ML model. If ML model leakage leads to further privacy violations for individuals (e.g., identity theft, sensitive data extraction), it may also be viewed as a cybersecurity-related privacy event. For further discussion on the relationship between privacy and cybersecurity risks, see NIST Privacy Framework, Version 1.0. [58, 70, 177, 376].",
+          "textSelection": "first paragraph after the section-level ID marker",
+          "cprtVersusPdf": [
+            {
+              "cprt": "pa rameters3",
+              "pdf": "parameters3"
+            }
+          ]
+        },
+        {
+          "section": "3.1.2",
+          "sectionTitle": "Attacker Goals and Objectives",
+          "taxonomy": "GenAI",
+          "page": 53,
+          "text": "In a PRIVACY COMPROMISE attack [NISTAML.03], an attacker seeks to gain unauthorized access to restricted or proprietary information that is part of a GenAI system, including information about a model’s training data, weights or architecture; or sensitive information that the model accesses such as the knowledge base of a RETRIEVAL-AUGMENTED GENERATION (RAG) application. GenAI systems may be exposed to sensitive data (intentionally or otherwise) during training or inference, and attacks may seek to extract such information (e.g., through INDIRECT PROMPT INJECTION attacks, where a third party exfiltrates in-context user information [307], or a MODEL EXTRACTION attack to exfiltrate model information [61]).",
+          "textSelection": "paragraph carrying the ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.04",
+      "name": "Misuse Violations",
+      "kind": "objective",
+      "taxonomies": [
+        "GenAI"
+      ],
+      "description": "Misuse enablement [NISTAML.04]. An additional attacker objective that is especially relevant in the GenAI context is the goal of MISUSE ENABLEMENT. In these attacks, an attacker seeks to deliberately circumvent technical restrictions imposed by the GenAI system’s owner on its use, such as restrictions designed to prevent the system from producing outputs that could cause harm to others, cf. [325].",
+      "definitions": [
+        {
+          "section": "3.1.2",
+          "sectionTitle": "Attacker Goals and Objectives",
+          "taxonomy": "GenAI",
+          "page": 53,
+          "text": "Misuse enablement [NISTAML.04]. An additional attacker objective that is especially relevant in the GenAI context is the goal of MISUSE ENABLEMENT. In these attacks, an attacker seeks to deliberately circumvent technical restrictions imposed by the GenAI system’s owner on its use, such as restrictions designed to prevent the system from producing outputs that could cause harm to others, cf. [325].",
+          "textSelection": "paragraph carrying the ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.05",
+      "name": "Supply Chain Attacks",
+      "kind": "objective",
+      "taxonomies": [
+        "PredAI",
+        "GenAI"
+      ],
+      "description": "Supply chain model poisoning. [NISTAML.05] [NISTAML.051] Model poisoning attacks are also possible in supply-chain scenarios in which models or components of the model provided by suppliers are poisoned with malicious code. Dropout Attack [425] is a recent supply-chain attack that shows how an adversary who manipulates the randomness used in neural network training (particularly in dropout regularization) might poison the model to decrease accuracy, precision, or recall on a set of targeted classes. See Supply Chain Attacks and Mitigations for additional discussion of supply-chain risks to GenAI models that are applicable to PredAI models too.",
+      "definitions": [
+        {
+          "section": "2.3.4",
+          "sectionTitle": "Model Poisoning",
+          "taxonomy": "PredAI",
+          "page": 39,
+          "text": "Supply chain model poisoning. [NISTAML.05] [NISTAML.051] Model poisoning attacks are also possible in supply-chain scenarios in which models or components of the model provided by suppliers are poisoned with malicious code. Dropout Attack [425] is a recent supply-chain attack that shows how an adversary who manipulates the randomness used in neural network training (particularly in dropout regularization) might poison the model to decrease accuracy, precision, or recall on a set of targeted classes. See Supply Chain Attacks and Mitigations for additional discussion of supply-chain risks to GenAI models that are applicable to PredAI models too.",
+          "textSelection": "paragraph carrying the ID marker"
+        },
+        {
+          "section": "3.2",
+          "sectionTitle": "Supply Chain Attacks and Mitigations",
+          "taxonomy": "GenAI",
+          "page": 54,
+          "text": "Since AI is software, it inherits many of the vulnerabilities of the traditional software supply chain, such as reliance on third-party dependencies. AI development also introduces new types of dependencies, including data collection and scoring, the integration or adaptation of third-party-developed AI models, and the integration of third-party-developed plugins into AI systems. Mitigating the security challenges in AI supply chain management is complex and requires a multifaceted approach that combines existing practices for software supply chain risk management with the management of AI-specific supply chain risks, such as through the use of provenance information for the additional artifacts involved [159, 267]. Studies of real-world security vulnerabilities against ML suggest that security is best addressed comprehensively and by considering the full attack surface, including data and model supply chains, software, and network and storage systems [17, 370]. While all of these supply chain risks are critical in the broader context of securing AI systems, there are certain types of attacks that rely on exploiting the specific statistical and data-based properties of ML systems, thus falling within the domain of AML.",
+          "textSelection": "first paragraph after the section-level ID marker"
+        }
+      ]
+    }
+  ],
+  "attacks": [
+    {
+      "id": "NISTAML.011",
+      "name": "Model Poisoning",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "PredAI",
+          "objective": "NISTAML.01"
+        }
+      ],
+      "taxonomies": [
+        "PredAI"
+      ],
+      "description": "Model poisoning attacks attempt to directly modify the trained ML model to inject malicious functionality into it. In centralized learning, TrojNN [222] reverse engineers the trigger from a trained neural network and then retrains the model by embedding the trigger in external data to poison it. Most model poisoning attacks have been designed in the federated learning setting in which clients send local model updates to a server that aggregates them into a global model. Compromised clients can send malicious updates to poison the global model. Model poisoning attacks can cause both availability and integrity violation in federated models:",
+      "definitions": [
+        {
+          "section": "2.3.4",
+          "sectionTitle": "Model Poisoning",
+          "taxonomy": "PredAI",
+          "page": 39,
+          "text": "Model poisoning attacks attempt to directly modify the trained ML model to inject malicious functionality into it. In centralized learning, TrojNN [222] reverse engineers the trigger from a trained neural network and then retrains the model by embedding the trigger in external data to poison it. Most model poisoning attacks have been designed in the federated learning setting in which clients send local model updates to a server that aggregates them into a global model. Compromised clients can send malicious updates to poison the global model. Model poisoning attacks can cause both availability and integrity violation in federated models:",
+          "textSelection": "first paragraph after the section-level ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.012",
+      "name": "Clean-label Poisoning",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "PredAI",
+          "objective": "NISTAML.01"
+        },
+        {
+          "taxonomy": "PredAI",
+          "objective": "NISTAML.02"
+        }
+      ],
+      "taxonomies": [
+        "PredAI"
+      ],
+      "description": "Clean-label poisoning [NISTAML.012]. A realistic threat model for supervised learning is that of clean-label poisoning attacks, in which adversaries can only control the training examples but not their labels. This may arise in scenarios in which the labeling process is external to the training algorithm, as in malware classification where binary files can be submitted by attackers to threat intelligence platforms and labeling is performed using anti-virus signatures or other external methods. Clean-label availability attacks have been introduced for neural network classifiers by training a generative model and adding noise to training samples to maximize the adversarial objective [128]. A different approach for clean-label poisoning is to use gradient alignment and minimally modify the training data [129].",
+      "definitions": [
+        {
+          "section": "2.3.1",
+          "sectionTitle": "Availability Poisoning",
+          "taxonomy": "PredAI",
+          "page": 33,
+          "text": "Clean-label poisoning [NISTAML.012]. A realistic threat model for supervised learning is that of clean-label poisoning attacks, in which adversaries can only control the training examples but not their labels. This may arise in scenarios in which the labeling process is external to the training algorithm, as in malware classification where binary files can be submitted by attackers to threat intelligence platforms and labeling is performed using anti-virus signatures or other external methods. Clean-label availability attacks have been introduced for neural network classifiers by training a generative model and adding noise to training samples to maximize the adversarial objective [128]. A different approach for clean-label poisoning is to use gradient alignment and minimally modify the training data [129].",
+          "textSelection": "paragraph carrying the ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.013",
+      "name": "Data Poisoning",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "PredAI",
+          "objective": "NISTAML.01"
+        },
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.01",
+          "onlyAsPrinted": true
+        },
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.02"
+        }
+      ],
+      "taxonomies": [
+        "PredAI",
+        "GenAI"
+      ],
+      "description": "The first poisoning attacks discovered in cybersecurity applications were availability attacks against worm signature generation and spam classifiers, which indiscriminately degrade the performance of the entire ML model in order to effectively prevent its use. Perdisci et al. [291] generated suspicious flows with fake invariants that mislead the worm signature generation algorithm in Polygraph [270]. Nelson et al. [269] designed poisoning attacks against Bayes-based spam classifiers by generating training samples of  “spam” emails containing long sequences of words that appear in legitimate emails, degrading the performance of the spam classifier by inducing a higher rate of false positives. Both of these attacks were conducted under the white-box setting in which adversaries were aware of the ML training algorithm, feature representations, training datasets, and ML models. Availability poisoning attacks have also been proposed for ML-based systems that detect cybersecurity attacks against industrial control systems: such detectors are often retrained  using data collected during system operation to account for plant operational drift of the monitored signals, creating opportunities for an attacker to mimic the signals of corrupted sensors at training time to poison the detector such that real attacks remain undetected at deployment time [198].",
+      "definitions": [
+        {
+          "section": "2.3.1",
+          "sectionTitle": "Availability Poisoning",
+          "taxonomy": "PredAI",
+          "page": 32,
+          "text": "The first poisoning attacks discovered in cybersecurity applications were availability attacks against worm signature generation and spam classifiers, which indiscriminately degrade the performance of the entire ML model in order to effectively prevent its use. Perdisci et al. [291] generated suspicious flows with fake invariants that mislead the worm signature generation algorithm in Polygraph [270]. Nelson et al. [269] designed poisoning attacks against Bayes-based spam classifiers by generating training samples of  “spam” emails containing long sequences of words that appear in legitimate emails, degrading the performance of the spam classifier by inducing a higher rate of false positives. Both of these attacks were conducted under the white-box setting in which adversaries were aware of the ML training algorithm, feature representations, training datasets, and ML models. Availability poisoning attacks have also been proposed for ML-based systems that detect cybersecurity attacks against industrial control systems: such detectors are often retrained  using data collected during system operation to account for plant operational drift of the monitored signals, creating opportunities for an attacker to mimic the signals of corrupted sensors at training time to poison the detector such that real attacks remain undetected at deployment time [198].",
+          "textSelection": "first paragraph after the section-level ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.014",
+      "name": "Energy-latency",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "PredAI",
+          "objective": "NISTAML.01"
+        }
+      ],
+      "taxonomies": [
+        "PredAI"
+      ],
+      "description": "Energy latency attacks [NISTAML.014]. Recently, ENERGY-LATENCY ATTACK, a type of availability attacks that require only black-box access to the model, have been developed for neural networks across many different tasks in computer vision and natural language processing (NLP) [345].",
+      "definitions": [
+        {
+          "section": "2.1.2",
+          "sectionTitle": "Attack Goals and Objectives",
+          "taxonomy": "PredAI",
+          "page": 19,
+          "text": "Energy latency attacks [NISTAML.014]. Recently, ENERGY-LATENCY ATTACK, a type of availability attacks that require only black-box access to the model, have been developed for neural networks across many different tasks in computer vision and natural language processing (NLP) [345].",
+          "textSelection": "paragraph carrying the ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.015",
+      "name": "Indirect Prompt Injection",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.01",
+          "onlyAsPrinted": true
+        },
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.02"
+        },
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.03"
+        }
+      ],
+      "taxonomies": [
+        "GenAI"
+      ],
+      "description": "Many use cases for GenAI models involve models interacting with additional resources, from an internet-connected AGENT to a RETRIEVAL-AUGMENTED GENERATION (RAG) system depicted in Fig. 6. Because GenAI models combine the data and instruction channels, attackers can leverage the data channel to affect system operations by manipulating resources with which the system interacts. Thus, INDIRECT PROMPT INJECTION attacks are enabled by RESOURCE CONTROL that allows an attacker to indirectly (or remotely) inject system prompts without directly interacting with the application [146, 408]. Indirect prompt injection attacks can result in violations across at least three categories of attacker goals: 1) availability violation, 2) integrity violation, and 3) privacy compromise. However, unlike in direct prompt injection attacks, indirect prompt injection attacks are mounted not by the primary user of a model but instead by a third party. In fact, in many cases, it is the primary user of the model who is harmed by the compromise of the integrity, availability, or privacy of the GenAI system through an indirect prompt injection attack.",
+      "definitions": [
+        {
+          "section": "3.4",
+          "sectionTitle": "Indirect Prompt Injection Attacks and Mitigations",
+          "taxonomy": "GenAI",
+          "page": 63,
+          "text": "Many use cases for GenAI models involve models interacting with additional resources, from an internet-connected AGENT to a RETRIEVAL-AUGMENTED GENERATION (RAG) system depicted in Fig. 6. Because GenAI models combine the data and instruction channels, attackers can leverage the data channel to affect system operations by manipulating resources with which the system interacts. Thus, INDIRECT PROMPT INJECTION attacks are enabled by RESOURCE CONTROL that allows an attacker to indirectly (or remotely) inject system prompts without directly interacting with the application [146, 408]. Indirect prompt injection attacks can result in violations across at least three categories of attacker goals: 1) availability violation, 2) integrity violation, and 3) privacy compromise. However, unlike in direct prompt injection attacks, indirect prompt injection attacks are mounted not by the primary user of a model but instead by a third party. In fact, in many cases, it is the primary user of the model who is harmed by the compromise of the integrity, availability, or privacy of the GenAI system through an indirect prompt injection attack.",
+          "textSelection": "first paragraph after the section-level ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.016",
+      "name": "Manipulate Resources",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.01"
+        }
+      ],
+      "taxonomies": [
+        "GenAI"
+      ],
+      "description": "Attackers can manipulate resources to inject prompts into GenAI models that are designed to disrupt the availability of the model for legitimate users. Availability attacks can indiscriminately render a model unusable (e.g., failure to generate helpful outputs) or specifically block certain capabilities (e.g., specific APIs) [146].",
+      "definitions": [
+        {
+          "section": "3.4.1",
+          "sectionTitle": "Availability Attacks",
+          "taxonomy": "GenAI",
+          "page": 64,
+          "text": "Attackers can manipulate resources to inject prompts into GenAI models that are designed to disrupt the availability of the model for legitimate users. Availability attacks can indiscriminately render a model unusable (e.g., failure to generate helpful outputs) or specifically block certain capabilities (e.g., specific APIs) [146].",
+          "textSelection": "first paragraph after the section-level ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.017",
+      "name": "Time Consuming Tasks",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.01"
+        }
+      ],
+      "taxonomies": [
+        "GenAI"
+      ],
+      "description": "Time-consuming background tasks. [NISTAML.017] An indirectly injected prompt can instruct the model to perform a time-consuming task prior to answering the request. The prompt itself can be brief, such as by requesting looping behavior in the evaluating model [146].",
+      "definitions": [
+        {
+          "section": "3.4.1",
+          "sectionTitle": "Availability Attacks",
+          "taxonomy": "GenAI",
+          "page": 64,
+          "text": "Time-consuming background tasks. [NISTAML.017] An indirectly injected prompt can instruct the model to perform a time-consuming task prior to answering the request. The prompt itself can be brief, such as by requesting looping behavior in the evaluating model [146].",
+          "textSelection": "paragraph carrying the ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.018",
+      "name": "Prompt Injection",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.01",
+          "onlyAsPrinted": true
+        },
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.02"
+        },
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.03"
+        },
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.04"
+        }
+      ],
+      "taxonomies": [
+        "GenAI"
+      ],
+      "description": "DIRECT PROMPTING ATTACK attacks arise when the attacker is the primary user of the system, interacting with the model through query access. A subset of these attacks, in which the main user provides in-context instructions that are appended to higher-trust instructions like those provided by the application designer (such as the model’s SYSTEM PROMPT), are known as DIRECT PROMPT INJECTION attacks.",
+      "definitions": [
+        {
+          "section": "3.3",
+          "sectionTitle": "Direct Prompting Attacks and Mitigations",
+          "taxonomy": "GenAI",
+          "page": 56,
+          "text": "DIRECT PROMPTING ATTACK attacks arise when the attacker is the primary user of the system, interacting with the model through query access. A subset of these attacks, in which the main user provides in-context instructions that are appended to higher-trust instructions like those provided by the application designer (such as the model’s SYSTEM PROMPT), are known as DIRECT PROMPT INJECTION attacks.",
+          "textSelection": "first paragraph after the section-level ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.021",
+      "name": "Clean-label Backdoor",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "PredAI",
+          "objective": "NISTAML.02"
+        }
+      ],
+      "taxonomies": [
+        "PredAI"
+      ],
+      "description": "Backdoor poisoning attacks are poisoning attacks that cause the targeted model to misclassify samples containing a particular BACKDOOR PATTERN or trigger. In 2017, Gu et al. [148] proposed BadNets, the first backdoor poisoning attack. They observed that image classifiers can be poisoned by adding a small patch trigger in a subset of images at training time and changing their label to a target class. The classifier learns to associate the trigger with the target class, and any image that includes the trigger or backdoor pattern will be misclassified to the target class at testing time. Concurrently, Chen et al. [84] introduced backdoor attacks in which the trigger is blended into the training data. Follow-up work introduced the concept of clean-label backdoor attacks [380] in which the adversary cannot change the label of the poisoned examples. Clean-label attacks typically require more poisoning samples to be effective, but the attack model is more realistic.",
+      "definitions": [
+        {
+          "section": "2.3.3",
+          "sectionTitle": "Backdoor Poisoning",
+          "taxonomy": "PredAI",
+          "page": 35,
+          "text": "Backdoor poisoning attacks are poisoning attacks that cause the targeted model to misclassify samples containing a particular BACKDOOR PATTERN or trigger. In 2017, Gu et al. [148] proposed BadNets, the first backdoor poisoning attack. They observed that image classifiers can be poisoned by adding a small patch trigger in a subset of images at training time and changing their label to a target class. The classifier learns to associate the trigger with the target class, and any image that includes the trigger or backdoor pattern will be misclassified to the target class at testing time. Concurrently, Chen et al. [84] introduced backdoor attacks in which the trigger is blended into the training data. Follow-up work introduced the concept of clean-label backdoor attacks [380] in which the adversary cannot change the label of the poisoned examples. Clean-label attacks typically require more poisoning samples to be effective, but the attack model is more realistic.",
+          "textSelection": "first paragraph after the section-level ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.022",
+      "name": "Evasion",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "PredAI",
+          "objective": "NISTAML.02"
+        }
+      ],
+      "taxonomies": [
+        "PredAI"
+      ],
+      "description": "The discovery of evasion attacks against ML models has led to significant growth in AML research over the last decade. In an evasion attack, the adversary’s goal is to generate adversarial examples: samples whose classification can be changed to an arbitrary class of the attacker’s choice – often with only minimal perturbation [362]. For example, in the context of image classification, the perturbation of the original sample might be small so that a human cannot observe the transformation of the input; while the ML model can be tricked to classify the adversarial example in the target class selected by the attacker, humans still recognize it as part of the original class.",
+      "definitions": [
+        {
+          "section": "2.2",
+          "sectionTitle": "Evasion Attacks and Mitigation",
+          "taxonomy": "PredAI",
+          "page": 24,
+          "text": "The discovery of evasion attacks against ML models has led to significant growth in AML research over the last decade. In an evasion attack, the adversary’s goal is to generate adversarial examples: samples whose classification can be changed to an arbitrary class of the attacker’s choice – often with only minimal perturbation [362]. For example, in the context of image classification, the perturbation of the original sample might be small so that a human cannot observe the transformation of the input; while the ML model can be tricked to classify the adversarial example in the target class selected by the attacker, humans still recognize it as part of the original class.",
+          "textSelection": "first paragraph after the section-level ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.023",
+      "name": "Backdoor Poisoning",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "PredAI",
+          "objective": "NISTAML.02"
+        },
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.02"
+        },
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.03"
+        }
+      ],
+      "taxonomies": [
+        "PredAI",
+        "GenAI"
+      ],
+      "description": "Backdoor poisoning attacks are poisoning attacks that cause the targeted model to misclassify samples containing a particular BACKDOOR PATTERN or trigger. In 2017, Gu et al. [148] proposed BadNets, the first backdoor poisoning attack. They observed that image classifiers can be poisoned by adding a small patch trigger in a subset of images at training time and changing their label to a target class. The classifier learns to associate the trigger with the target class, and any image that includes the trigger or backdoor pattern will be misclassified to the target class at testing time. Concurrently, Chen et al. [84] introduced backdoor attacks in which the trigger is blended into the training data. Follow-up work introduced the concept of clean-label backdoor attacks [380] in which the adversary cannot change the label of the poisoned examples. Clean-label attacks typically require more poisoning samples to be effective, but the attack model is more realistic.",
+      "definitions": [
+        {
+          "section": "2.3.3",
+          "sectionTitle": "Backdoor Poisoning",
+          "taxonomy": "PredAI",
+          "page": 35,
+          "text": "Backdoor poisoning attacks are poisoning attacks that cause the targeted model to misclassify samples containing a particular BACKDOOR PATTERN or trigger. In 2017, Gu et al. [148] proposed BadNets, the first backdoor poisoning attack. They observed that image classifiers can be poisoned by adding a small patch trigger in a subset of images at training time and changing their label to a target class. The classifier learns to associate the trigger with the target class, and any image that includes the trigger or backdoor pattern will be misclassified to the target class at testing time. Concurrently, Chen et al. [84] introduced backdoor attacks in which the trigger is blended into the training data. Follow-up work introduced the concept of clean-label backdoor attacks [380] in which the adversary cannot change the label of the poisoned examples. Clean-label attacks typically require more poisoning samples to be effective, but the attack model is more realistic.",
+          "textSelection": "first paragraph after the section-level ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.024",
+      "name": "Targeted Poisoning",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "PredAI",
+          "objective": "NISTAML.02"
+        },
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.02"
+        }
+      ],
+      "taxonomies": [
+        "PredAI",
+        "GenAI"
+      ],
+      "description": "In contrast to availability attacks, targeted poisoning attacks induce a change in the ML model’s prediction on a small number of targeted samples. If the adversary can control the labeling function of the training data, then label-flipping is an effective targeted poisoning attack: the adversary simply inserts several poisoned samples with the target label, and the model will learn the wrong label. Therefore, targeted poisoning attacks are mostly studied in a clean-label setting in which the attacker does not have control over training data labels.",
+      "definitions": [
+        {
+          "section": "2.3.2",
+          "sectionTitle": "Targeted Poisoning",
+          "taxonomy": "PredAI",
+          "page": 34,
+          "text": "In contrast to availability attacks, targeted poisoning attacks induce a change in the ML model’s prediction on a small number of targeted samples. If the adversary can control the labeling function of the training data, then label-flipping is an effective targeted poisoning attack: the adversary simply inserts several poisoned samples with the target label, and the model will learn the wrong label. Therefore, targeted poisoning attacks are mostly studied in a clean-label setting in which the attacker does not have control over training data labels.",
+          "textSelection": "first paragraph after the section-level ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.025",
+      "name": "Black-box Evasion",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "PredAI",
+          "objective": "NISTAML.02"
+        }
+      ],
+      "taxonomies": [
+        "PredAI"
+      ],
+      "description": "Black-box evasion attacks are designed under a realistic adversarial model in which the attacker has no prior knowledge of the model architecture or training data. Instead, the adversary can interact with a trained ML model by querying it on various data samples and obtaining the model’s predictions. Similar APIs are provided by MLaaS offered by public cloud providers, in which users can obtain the model’s predictions on selected queries without information about how the model was trained. There are two main classes of black-box evasion attacks in the literature:",
+      "definitions": [
+        {
+          "section": "2.2.2",
+          "sectionTitle": "Black-Box Evasion Attacks",
+          "taxonomy": "PredAI",
+          "page": 28,
+          "text": "Black-box evasion attacks are designed under a realistic adversarial model in which the attacker has no prior knowledge of the model architecture or training data. Instead, the adversary can interact with a trained ML model by querying it on various data samples and obtaining the model’s predictions. Similar APIs are provided by MLaaS offered by public cloud providers, in which users can obtain the model’s predictions on selected queries without information about how the model was trained. There are two main classes of black-box evasion attacks in the literature:",
+          "textSelection": "first paragraph after the section-level ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.026",
+      "name": "Model Poisoning",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "PredAI",
+          "objective": "NISTAML.02"
+        }
+      ],
+      "taxonomies": [
+        "PredAI"
+      ],
+      "description": "Model poisoning attacks attempt to directly modify the trained ML model to inject malicious functionality into it. In centralized learning, TrojNN [222] reverse engineers the trigger from a trained neural network and then retrains the model by embedding the trigger in external data to poison it. Most model poisoning attacks have been designed in the federated learning setting in which clients send local model updates to a server that aggregates them into a global model. Compromised clients can send malicious updates to poison the global model. Model poisoning attacks can cause both availability and integrity violation in federated models:",
+      "definitions": [
+        {
+          "section": "2.3.4",
+          "sectionTitle": "Model Poisoning",
+          "taxonomy": "PredAI",
+          "page": 39,
+          "text": "Model poisoning attacks attempt to directly modify the trained ML model to inject malicious functionality into it. In centralized learning, TrojNN [222] reverse engineers the trigger from a trained neural network and then retrains the model by embedding the trigger in external data to poison it. Most model poisoning attacks have been designed in the federated learning setting in which clients send local model updates to a server that aggregates them into a global model. Compromised clients can send malicious updates to poison the global model. Model poisoning attacks can cause both availability and integrity violation in federated models:",
+          "textSelection": "first paragraph after the section-level ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.027",
+      "name": "Misaligned Outputs",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.02"
+        }
+      ],
+      "taxonomies": [
+        "GenAI"
+      ],
+      "description": "Through indirect prompt injection, attackers can use malicious resources to prompt GenAI systems to become untrustworthy and generate content that deviates from benign behavior to align with adversarial objectives. These attacks often involve disrupting the model’s behavior in subtle ways that may not be obvious to the end user.",
+      "definitions": [
+        {
+          "section": "3.4.2",
+          "sectionTitle": "Integrity Attacks",
+          "taxonomy": "GenAI",
+          "page": 64,
+          "text": "Through indirect prompt injection, attackers can use malicious resources to prompt GenAI systems to become untrustworthy and generate content that deviates from benign behavior to align with adversarial objectives. These attacks often involve disrupting the model’s behavior in subtle ways that may not be obvious to the end user.",
+          "textSelection": "first paragraph after the section-level ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.031",
+      "name": "Model Extraction",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "PredAI",
+          "objective": "NISTAML.03"
+        }
+      ],
+      "taxonomies": [
+        "PredAI"
+      ],
+      "description": "In MLaaS scenarios, cloud providers typically train large ML models using proprietary data and would like to keep the model architecture and parameters confidential. The goal of an attacker performing a MODEL EXTRACTION attack is to extract information about the model architecture and parameters by submitting queries to the ML model trained by an MLaaS provider. The first model stealing attacks were shown by Tramer at al. [376] on several online ML services for different ML models, including logistic regression, decision trees, and neural networks. However, Jagielski et al. [177] have shown the exact extraction of ML models to be impossible. Instead, a functionally equivalent model can be reconstructed that is different than the original model but achieves similar performance at the prediction task. Jagielski et al. [177] have shown that even the weaker task of extracting functionally equivalent models is computationally prohibitive (NP-hard).",
+      "definitions": [
+        {
+          "section": "2.4.4",
+          "sectionTitle": "Model Extraction",
+          "taxonomy": "PredAI",
+          "page": 44,
+          "text": "In MLaaS scenarios, cloud providers typically train large ML models using proprietary data and would like to keep the model architecture and parameters confidential. The goal of an attacker performing a MODEL EXTRACTION attack is to extract information about the model architecture and parameters by submitting queries to the ML model trained by an MLaaS provider. The first model stealing attacks were shown by Tramer at al. [376] on several online ML services for different ML models, including logistic regression, decision trees, and neural networks. However, Jagielski et al. [177] have shown the exact extraction of ML models to be impossible. Instead, a functionally equivalent model can be reconstructed that is different than the original model but achieves similar performance at the prediction task. Jagielski et al. [177] have shown that even the weaker task of extracting functionally equivalent models is computationally prohibitive (NP-hard).",
+          "textSelection": "first paragraph after the section-level ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.032",
+      "name": "Reconstruction",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "PredAI",
+          "objective": "NISTAML.03"
+        }
+      ],
+      "taxonomies": [
+        "PredAI"
+      ],
+      "description": "Data reconstruction attacks have the ability to recover an individual’s data from released aggregate information. Dinur and Nissim [110] were the first to introduce reconstruction attacks that recover user data from linear statistics. Their original attack required an exponential number of queries for reconstruction, but subsequent work has shown how to perform reconstruction with a polynomial number of queries [116]. A survey of privacy attacks, including reconstruction attacks, is given by Dwork et al. [114]. More recently, the U.S. Census Bureau performed a large-scale study on the risk of data reconstruction attacks on census data [135], which motivated the use of differential privacy in the decennial release of the U.S. Census in 2020.",
+      "definitions": [
+        {
+          "section": "2.4.1",
+          "sectionTitle": "Data Reconstruction",
+          "taxonomy": "PredAI",
+          "page": 41,
+          "text": "Data reconstruction attacks have the ability to recover an individual’s data from released aggregate information. Dinur and Nissim [110] were the first to introduce reconstruction attacks that recover user data from linear statistics. Their original attack required an exponential number of queries for reconstruction, but subsequent work has shown how to perform reconstruction with a polynomial number of queries [116]. A survey of privacy attacks, including reconstruction attacks, is given by Dwork et al. [114]. More recently, the U.S. Census Bureau performed a large-scale study on the risk of data reconstruction attacks on census data [135], which motivated the use of differential privacy in the decennial release of the U.S. Census in 2020.",
+          "textSelection": "first paragraph after the section-level ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.033",
+      "name": "Membership Inference",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "PredAI",
+          "objective": "NISTAML.03"
+        },
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.03"
+        }
+      ],
+      "taxonomies": [
+        "PredAI",
+        "GenAI"
+      ],
+      "description": "Membership inference attacks may expose private information about an individual, like reconstruction or memorization attacks, and are of great concern when releasing aggregate information or ML models trained on user data. In certain situations, determining that an individual is part of the training set already has privacy implications, such as in a medical study of patients with a rare disease. Moreover, membership inference can be used as a building block for mounting data extraction attacks [59, 63].",
+      "definitions": [
+        {
+          "section": "2.4.2",
+          "sectionTitle": "Membership Inference",
+          "taxonomy": "PredAI",
+          "page": 42,
+          "text": "Membership inference attacks may expose private information about an individual, like reconstruction or memorization attacks, and are of great concern when releasing aggregate information or ML models trained on user data. In certain situations, determining that an individual is part of the training set already has privacy implications, such as in a medical study of patients with a rare disease. Moreover, membership inference can be used as a building block for mounting data extraction attacks [59, 63].",
+          "textSelection": "first paragraph after the section-level ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.034",
+      "name": "Property Inference",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "PredAI",
+          "objective": "NISTAML.03"
+        }
+      ],
+      "taxonomies": [
+        "PredAI"
+      ],
+      "description": "In property inference attacks (also called distribution inference), the attacker tries to learn global information about the training data distribution by interacting with an ML model. For example, an attacker can determine the fraction of the training set with a certain sensitive attribute (e.g., demographic information) that might reveal potentially confidential information about the training set that is not intended to be released.",
+      "definitions": [
+        {
+          "section": "2.4.3",
+          "sectionTitle": "Property Inference",
+          "taxonomy": "PredAI",
+          "page": 43,
+          "text": "In property inference attacks (also called distribution inference), the attacker tries to learn global information about the training data distribution by interacting with an ML model. For example, an attacker can determine the fraction of the training set with a certain sensitive attribute (e.g., demographic information) that might reveal potentially confidential information about the training set that is not intended to be released.",
+          "textSelection": "first paragraph after the section-level ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.035",
+      "name": "Prompt Extraction",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.03"
+        }
+      ],
+      "taxonomies": [
+        "GenAI"
+      ],
+      "description": "1. In-context instructions and system prompts: [NISTAML.035] The behavior of LLMs can be shaped through inference-time prompting, whereby the developer or user provides in-context instructions that are often prepended to the model’s other input and context. These instructions comprise a natural language description of the model’s application-specific use case (e.g.,  “You are a helpful financial assistant who responds gracefully and concisely....”) and is known as a SYSTEM PROMPT. A PROMPT INJECTION overrides these instructions, exploiting the concatenation of untrusted user output to the system prompt to induce unintended behavior. For example, an attacker could inject a JAILBREAK that overrides the system prompt to cause the model to generate restricted or unsafe outputs. Since these prompts have been carefully crafted through prompt engineering and may be security-relevant, a PROMPT EXTRACTION attack may attempt to steal these system instructions. These attacks are also relevant to multimodal and text-to-image models.",
+      "definitions": [
+        {
+          "section": "3.1.1",
+          "sectionTitle": "GenAI Stages of Learning",
+          "taxonomy": "GenAI",
+          "page": 51,
+          "text": "1. In-context instructions and system prompts: [NISTAML.035] The behavior of LLMs can be shaped through inference-time prompting, whereby the developer or user provides in-context instructions that are often prepended to the model’s other input and context. These instructions comprise a natural language description of the model’s application-specific use case (e.g.,  “You are a helpful financial assistant who responds gracefully and concisely....”) and is known as a SYSTEM PROMPT. A PROMPT INJECTION overrides these instructions, exploiting the concatenation of untrusted user output to the system prompt to induce unintended behavior. For example, an attacker could inject a JAILBREAK that overrides the system prompt to cause the model to generate restricted or unsafe outputs. Since these prompts have been carefully crafted through prompt engineering and may be security-relevant, a PROMPT EXTRACTION attack may attempt to steal these system instructions. These attacks are also relevant to multimodal and text-to-image models.",
+          "textSelection": "paragraph carrying the ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.036",
+      "name": "Leaking information from user interactions",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.03"
+        }
+      ],
+      "taxonomies": [
+        "GenAI"
+      ],
+      "description": "Leaking information from user interactions. [NISTAML.036] Researchers have demonstrated a proof-of-concept indirect prompt injection attack in which they inject instructions for a model to persuade the end user to reveal a piece of information (in this case, their name) that the model then leaks to the attacker, such as by directly querying an attacker-controlled URL with the information or suggesting such a URL to the user to visit [146]. Attackers may also be able to exploit features like markdown image rendering to exfiltrate data [323].",
+      "definitions": [
+        {
+          "section": "3.4.3",
+          "sectionTitle": "Privacy Compromise",
+          "taxonomy": "GenAI",
+          "page": 66,
+          "text": "Leaking information from user interactions. [NISTAML.036] Researchers have demonstrated a proof-of-concept indirect prompt injection attack in which they inject instructions for a model to persuade the end user to reveal a piece of information (in this case, their name) that the model then leaks to the attacker, such as by directly querying an attacker-controlled URL with the information or suggesting such a URL to the user to visit [146]. Attackers may also be able to exploit features like markdown image rendering to exfiltrate data [323].",
+          "textSelection": "paragraph carrying the ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.037",
+      "name": "Training Data Attacks",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.03"
+        }
+      ],
+      "taxonomies": [
+        "GenAI"
+      ],
+      "description": "Training-time attacks. [NISTAML.037] The TRAINING STAGE for GenAI often consists of foundation model PRE-TRAINING and model FINE-TUNING. This pattern exists for generative image models, text models, audio models, and multimodal models, among others. Since foundation models are most effective when trained on large datasets, it has become common to scrape data from a wide range of public sources, increasing the vulnerability of these models to DATA POISONING attacks. Additionally, GenAI systems trained or fine-tuned by third parties are often used in downstream applications, leading to the risk of MODEL POISONING attacks from maliciously constructed models.\n{{FIG-3.1.1c}}\nInference-time attacks. The DEPLOYMENT STAGE for GenAI models and systems varies both based on how models are hosted or otherwise made available to users, and in how they are integrated into downstream applications. However, GenAI models and applications often share properties that leave them vulnerable to similar types of attacks. For example, underlying many of the security vulnerabilities in LLM applications is the fact that data and instructions are not provided in separate channels to the LLM, which allows attackers to use data channels to inject malicious instructions in inference-time attacks (a similar flaw to that which underlies decades-old SQL injection attacks). Many of the attacks in this stage are due to the following practices that are common in applications of text-based generative models:",
+      "definitions": [
+        {
+          "section": "3.1.1",
+          "sectionTitle": "GenAI Stages of Learning",
+          "taxonomy": "GenAI",
+          "page": 50,
+          "text": "Training-time attacks. [NISTAML.037] The TRAINING STAGE for GenAI often consists of foundation model PRE-TRAINING and model FINE-TUNING. This pattern exists for generative image models, text models, audio models, and multimodal models, among others. Since foundation models are most effective when trained on large datasets, it has become common to scrape data from a wide range of public sources, increasing the vulnerability of these models to DATA POISONING attacks. Additionally, GenAI systems trained or fine-tuned by third parties are often used in downstream applications, leading to the risk of MODEL POISONING attacks from maliciously constructed models.\n{{FIG-3.1.1c}}\nInference-time attacks. The DEPLOYMENT STAGE for GenAI models and systems varies both based on how models are hosted or otherwise made available to users, and in how they are integrated into downstream applications. However, GenAI models and applications often share properties that leave them vulnerable to similar types of attacks. For example, underlying many of the security vulnerabilities in LLM applications is the fact that data and instructions are not provided in separate channels to the LLM, which allows attackers to use data channels to inject malicious instructions in inference-time attacks (a similar flaw to that which underlies decades-old SQL injection attacks). Many of the attacks in this stage are due to the following practices that are common in applications of text-based generative models:",
+          "textSelection": "paragraph carrying the ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.038",
+      "name": "Data Extraction",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.03"
+        }
+      ],
+      "taxonomies": [
+        "GenAI"
+      ],
+      "description": "Both during training and at run-time, GenAI models are exposed to a range of information which may be of interest to attackers, like personally identifying information (PII) in the training data, sensitive information in RETRIEVAL-AUGMENTED GENERATION (RAG) databases provided in-context, or even the SYSTEM PROMPT constructed by the application designer. Additionally, features of the model itself—such as the model weights or architecture—may be targets of attack. Though many of the techniques in Sec. 3.3.1 apply to extracting such data, we note several specific goals and techniques specific to data extraction.",
+      "definitions": [
+        {
+          "section": "3.3.2",
+          "sectionTitle": "Information Extraction",
+          "taxonomy": "GenAI",
+          "page": 59,
+          "text": "Both during training and at run-time, GenAI models are exposed to a range of information which may be of interest to attackers, like personally identifying information (PII) in the training data, sensitive information in RETRIEVAL-AUGMENTED GENERATION (RAG) databases provided in-context, or even the SYSTEM PROMPT constructed by the application designer. Additionally, features of the model itself—such as the model weights or architecture—may be targets of attack. Though many of the techniques in Sec. 3.3.1 apply to extracting such data, we note several specific goals and techniques specific to data extraction.",
+          "textSelection": "first paragraph after the section-level ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.039",
+      "name": "Compromising connected resources",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.03"
+        }
+      ],
+      "taxonomies": [
+        "GenAI"
+      ],
+      "description": "Compromising connected resources. [NISTAML.039] Attackers can use prompt injection attacks to cause a GenAI system to leak private information from the restricted resources it can access. For example, a model integrated as part of an email client could be prompted to forward certain emails to an attacker controlled inbox [146]. Researchers have identified injection attacks that can force a model to exfiltrate user-uploaded data by querying an attacker-controlled URL with the sensitive data [298].",
+      "definitions": [
+        {
+          "section": "3.4.3",
+          "sectionTitle": "Privacy Compromise",
+          "taxonomy": "GenAI",
+          "page": 66,
+          "text": "Compromising connected resources. [NISTAML.039] Attackers can use prompt injection attacks to cause a GenAI system to leak private information from the restricted resources it can access. For example, a model integrated as part of an email client could be prompted to forward certain emails to an attacker controlled inbox [146]. Researchers have identified injection attacks that can force a model to exfiltrate user-uploaded data by querying an attacker-controlled URL with the sensitive data [298].",
+          "textSelection": "paragraph carrying the ID marker"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.051",
+      "name": "Model Poisoning",
+      "kind": "attack",
+      "objectives": [
+        {
+          "taxonomy": "PredAI",
+          "objective": "NISTAML.05"
+        },
+        {
+          "taxonomy": "GenAI",
+          "objective": "NISTAML.05"
+        }
+      ],
+      "taxonomies": [
+        "PredAI",
+        "GenAI"
+      ],
+      "description": "Supply chain model poisoning. [NISTAML.05] [NISTAML.051] Model poisoning attacks are also possible in supply-chain scenarios in which models or components of the model provided by suppliers are poisoned with malicious code. Dropout Attack [425] is a recent supply-chain attack that shows how an adversary who manipulates the randomness used in neural network training (particularly in dropout regularization) might poison the model to decrease accuracy, precision, or recall on a set of targeted classes. See Supply Chain Attacks and Mitigations for additional discussion of supply-chain risks to GenAI models that are applicable to PredAI models too.",
+      "definitions": [
+        {
+          "section": "2.3.4",
+          "sectionTitle": "Model Poisoning",
+          "taxonomy": "PredAI",
+          "page": 39,
+          "text": "Supply chain model poisoning. [NISTAML.05] [NISTAML.051] Model poisoning attacks are also possible in supply-chain scenarios in which models or components of the model provided by suppliers are poisoned with malicious code. Dropout Attack [425] is a recent supply-chain attack that shows how an adversary who manipulates the randomness used in neural network training (particularly in dropout regularization) might poison the model to decrease accuracy, precision, or recall on a set of targeted classes. See Supply Chain Attacks and Mitigations for additional discussion of supply-chain risks to GenAI models that are applicable to PredAI models too.",
+          "textSelection": "paragraph carrying the ID marker"
+        },
+        {
+          "section": "3.2.2",
+          "sectionTitle": "Model Poisoning Attacks",
+          "taxonomy": "GenAI",
+          "page": 55,
+          "text": "In GenAI, itis common for developers to use foundation models developed by third parties. Attackers can take advantage of this fact by offering maliciously designed models, such as pre-trained models that enable a BACKDOOR POISONING ATTACK or TARGETED POISONING ATTACK. While this attack relies on the attacker having control over the initial poisoned model, researchers have identified attacks in which malicious backdoors in pre-trained models can persist even after downstream users fine-tune the model for their own use [201] or apply additional safety training measures [170].",
+          "textSelection": "first paragraph after the section-level ID marker",
+          "cprtVersusPdf": [
+            {
+              "cprt": "itis",
+              "pdf": "it is"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "mitigations": [
+    {
+      "id": "2.2.5",
+      "kind": "section",
+      "title": "Mitigations",
+      "parentSection": "2.2",
+      "parentTitle": "Evasion Attacks and Mitigation",
+      "page": 30,
+      "attackIdsInParentSection": [
+        "NISTAML.022",
+        "NISTAML.025"
+      ],
+      "firstParagraph": "Mitigating evasion attacks is challenging because adversarial examples are widespread in a variety of ML model architectures and application domains. Possible explanations for the existence of adversarial examples are that ML models rely on non-robust features that are not aligned with human perception in the computer vision domain [174]. In the last few years, many of the proposed mitigations against adversarial examples have been ineffective against stronger attacks. Furthermore, several papers have performed extensive evaluations and defeated a large number of proposed mitigations:"
+    },
+    {
+      "id": "2.3.1#mitigations",
+      "kind": "inline-paragraph",
+      "title": "Availability Poisoning",
+      "parentSection": "2.3.1",
+      "parentTitle": "Availability Poisoning",
+      "page": 32,
+      "attackIdsInParentSection": [
+        "NISTAML.012",
+        "NISTAML.013"
+      ],
+      "firstParagraph": "Mitigations. Availability poisoning attacks are usually detectable by monitoring the standard performance metrics of ML models (e.g., precision, recall, accuracy, F1 scores, and area under the curve) as they cause a large degradation in the classifier metrics. However, detecting these attacks during the testing or deployment stages of ML may be less desirable, and many existing mitigations aim to proactively prevent these attacks during the training stage to generate robust ML models. Existing mitigations for availability poisoning attacks include:"
+    },
+    {
+      "id": "2.3.2#mitigations",
+      "kind": "inline-paragraph",
+      "title": "Targeted Poisoning",
+      "parentSection": "2.3.2",
+      "parentTitle": "Targeted Poisoning",
+      "page": 34,
+      "attackIdsInParentSection": [
+        "NISTAML.024"
+      ],
+      "firstParagraph": "Mitigations. Targeted poisoning attacks are notoriously challenging to defend against. Jagielski et al. [180] showed an impossibility result for subpopulation poisoning attacks. To mitigate some of the risks associated with such attacks, model developers may protect training data through traditional cybersecurity measures such as access controls, use methods for data sanitization and validation, and use mechanisms for dataset provenance and integrity attestation [267]. Ma et al. [230] proposed the use of differential privacy (DP) as a defense (which follows directly from the definition of differential privacy), but differentially private ML models may also have lower accuracy than standard models, and the trade-off between robustness and accuracy needs to be considered in each application. See Section 4.1.1 for further discussion on the trade-offs between the attributes of Trustworthy AI systems."
+    },
+    {
+      "id": "2.3.3#mitigations",
+      "kind": "inline-paragraph",
+      "title": "Backdoor Poisoning",
+      "parentSection": "2.3.3",
+      "parentTitle": "Backdoor Poisoning",
+      "page": 36,
+      "attackIdsInParentSection": [
+        "NISTAML.021",
+        "NISTAML.023"
+      ],
+      "firstParagraph": "Mitigations. The literature on backdoor attack mitigation is vast compared to other poisoning attacks. Below we discuss several classes of defenses, including data sanitization, trigger reconstruction, and model inspection and sanitization, and we also mention their limitations."
+    },
+    {
+      "id": "2.3.4#mitigations",
+      "kind": "inline-paragraph",
+      "title": "Model Poisoning",
+      "parentSection": "2.3.4",
+      "parentTitle": "Model Poisoning",
+      "page": 39,
+      "attackIdsInParentSection": [
+        "NISTAML.05",
+        "NISTAML.011",
+        "NISTAML.026",
+        "NISTAML.051"
+      ],
+      "firstParagraph": "Mitigations. A variety of Byzantine-resilient aggregation rules have been designed and evaluated to defend federated learning from model poisoning attacks. Most of them attempt to identify and exclude the malicious updates when performing the aggregation at the server [8, 43, 51, 149, 242–244, 359, 423]. However, motivated adversaries can bypass these defenses by adding constraints to the attack generation optimization problem [23, 123, 335]. Gradient clipping and differential privacy have the potential to mitigate model poisoning attacks to some extent [23, 271, 360], but they usually decrease accuracy and do not provide complete mitigation."
+    },
+    {
+      "id": "2.4.5",
+      "kind": "section",
+      "title": "Mitigations",
+      "parentSection": "2.4",
+      "parentTitle": "Privacy Attacks and Mitigations",
+      "page": 45,
+      "attackIdsInParentSection": [
+        "NISTAML.03",
+        "NISTAML.031",
+        "NISTAML.032",
+        "NISTAML.033",
+        "NISTAML.034"
+      ],
+      "firstParagraph": "The discovery of reconstruction attacks against aggregate information motivated the rigorous definition of differential privacy (DP) [112, 113], an extremely strong definition of privacy that guarantees a bound on how much an attacker with access to the algorithm output can learn about each individual record in the dataset. The original pure definition of DP has a privacy parameter e (i.e., privacy budget), which bounds the probability that the attacker with access to the algorithm’s output can determine whether a particular record was included in the dataset. DP has been extended to the notions of approximate DP, which includes a second parameter d that is interpreted as the probability of information accidentally being leaked in addition to e and Rènyi DP [246]."
+    },
+    {
+      "id": "3.2.3",
+      "kind": "section",
+      "title": "Mitigations",
+      "parentSection": "3.2",
+      "parentTitle": "Supply Chain Attacks and Mitigations",
+      "page": 55,
+      "attackIdsInParentSection": [
+        "NISTAML.05",
+        "NISTAML.051"
+      ],
+      "firstParagraph": "GenAI poisoning mitigations largely overlap with PredAI poisoning mitigations (see Sec. 2.3). For preventing data poisoning with web-scale data dependencies, this includes verifying web downloads as a basic integrity check to ensure that domain hijacking has not injected new sources of data into the training dataset [57]. That is, the provider publishes cryptographic hashes, and the downloader verifies the training data. Data filtering can also attempt to remove poisoned samples, though detecting poisoned data within a large training corpus may be very difficult."
+    },
+    {
+      "id": "3.3.3",
+      "kind": "section",
+      "title": "Mitigations",
+      "parentSection": "3.3",
+      "parentTitle": "Direct Prompting Attacks and Mitigations",
+      "page": 61,
+      "attackIdsInParentSection": [
+        "NISTAML.018",
+        "NISTAML.038"
+      ],
+      "firstParagraph": "The following defense strategies can be employed throughout the deployment life cycle of an AI model or system to reduce the risk that the model or system will be vulnerable to direct prompt injections. The numbers in parentheses refer to the numbering in Fig. 7, which shows a map of the deployment life cycle for broad-scale query access."
+    },
+    {
+      "id": "3.4.4",
+      "kind": "section",
+      "title": "Mitigations",
+      "parentSection": "3.4",
+      "parentTitle": "Indirect Prompt Injection Attacks and Mitigations",
+      "page": 66,
+      "attackIdsInParentSection": [
+        "NISTAML.015",
+        "NISTAML.016",
+        "NISTAML.017",
+        "NISTAML.027",
+        "NISTAML.036",
+        "NISTAML.039"
+      ],
+      "firstParagraph": "Various techniques (see Sec. 3.3.3) can be used throughout the development and deployment life cycle (Fig. 7) to mitigate attacks, including:"
+    }
+  ],
+  "sections": [
+    {
+      "id": "2",
+      "type": "domain",
+      "title": "Predictive AI Taxonomy",
+      "parent": null,
+      "page": 17,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "2.1",
+      "type": "category",
+      "title": "Attack Classification",
+      "parent": "2",
+      "page": 17,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "2.1.1",
+      "type": "subcategory",
+      "title": "Stages of Learning",
+      "parent": "2.1",
+      "page": 18,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "2.1.2",
+      "type": "subcategory",
+      "title": "Attack Goals and Objectives",
+      "titleInPdf": "Attacker Goals and Objectives",
+      "parent": "2.1",
+      "page": 19,
+      "taxonomyIds": [
+        "NISTAML.01",
+        "NISTAML.02",
+        "NISTAML.03",
+        "NISTAML.014"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "2.1.3",
+      "type": "subcategory",
+      "title": "Attacker Capabilities",
+      "parent": "2.1",
+      "page": 20,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "2.1.4",
+      "type": "subcategory",
+      "title": "Attacker Knowledge",
+      "parent": "2.1",
+      "page": 21,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "2.1.5",
+      "type": "subcategory",
+      "title": "Data Modality",
+      "parent": "2.1",
+      "page": 22,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "2.2",
+      "type": "category",
+      "title": "Evasion Attacks and Mitigation",
+      "titleInPdf": "Evasion Attacks and Mitigations",
+      "parent": "2",
+      "page": 24,
+      "taxonomyIds": [
+        "NISTAML.022"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "2.2.1",
+      "type": "subcategory",
+      "title": "White-Box Evasion Attacks",
+      "parent": "2.2",
+      "page": 25,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "2.2.2",
+      "type": "subcategory",
+      "title": "Black-Box Evasion Attacks",
+      "parent": "2.2",
+      "page": 28,
+      "taxonomyIds": [
+        "NISTAML.025"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "2.2.3",
+      "type": "subcategory",
+      "title": "Transferability of Attacks",
+      "parent": "2.2",
+      "page": 28,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "2.2.4",
+      "type": "subcategory",
+      "title": "Evasion Attacks in the Real World",
+      "parent": "2.2",
+      "page": 29,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "2.2.5",
+      "type": "subcategory",
+      "title": "Mitigations",
+      "parent": "2.2",
+      "page": 30,
+      "taxonomyIds": [],
+      "isMitigation": true
+    },
+    {
+      "id": "2.3",
+      "type": "category",
+      "title": "Poisoning Attacks and Mitigations",
+      "parent": "2",
+      "page": 32,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "2.3.1",
+      "type": "subcategory",
+      "title": "Availability Poisoning",
+      "parent": "2.3",
+      "page": 32,
+      "taxonomyIds": [
+        "NISTAML.012",
+        "NISTAML.013"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "2.3.2",
+      "type": "subcategory",
+      "title": "Targeted Poisoning",
+      "parent": "2.3",
+      "page": 34,
+      "taxonomyIds": [
+        "NISTAML.024"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "2.3.3",
+      "type": "subcategory",
+      "title": "Backdoor Poisoning",
+      "parent": "2.3",
+      "page": 35,
+      "taxonomyIds": [
+        "NISTAML.021",
+        "NISTAML.023"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "2.3.4",
+      "type": "subcategory",
+      "title": "Model Poisoning",
+      "parent": "2.3",
+      "page": 39,
+      "taxonomyIds": [
+        "NISTAML.05",
+        "NISTAML.011",
+        "NISTAML.026",
+        "NISTAML.051"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "2.3.5",
+      "type": "subcategory",
+      "title": "Poisoning Attacks in the Real World",
+      "parent": "2.3",
+      "page": 40,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "2.4",
+      "type": "category",
+      "title": "Privacy Attacks and Mitigations",
+      "parent": "2",
+      "page": 41,
+      "taxonomyIds": [
+        "NISTAML.03"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "2.4.1",
+      "type": "subcategory",
+      "title": "Data Reconstruction",
+      "parent": "2.4",
+      "page": 41,
+      "taxonomyIds": [
+        "NISTAML.032"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "2.4.2",
+      "type": "subcategory",
+      "title": "Membership Inference",
+      "parent": "2.4",
+      "page": 42,
+      "taxonomyIds": [
+        "NISTAML.033"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "2.4.3",
+      "type": "subcategory",
+      "title": "Property Inference",
+      "parent": "2.4",
+      "page": 43,
+      "taxonomyIds": [
+        "NISTAML.034"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "2.4.4",
+      "type": "subcategory",
+      "title": "Model Extraction",
+      "parent": "2.4",
+      "page": 44,
+      "taxonomyIds": [
+        "NISTAML.031"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "2.4.5",
+      "type": "subcategory",
+      "title": "Mitigations",
+      "parent": "2.4",
+      "page": 45,
+      "taxonomyIds": [],
+      "isMitigation": true
+    },
+    {
+      "id": "3",
+      "type": "domain",
+      "title": "Generative AI Taxonomy",
+      "parent": null,
+      "page": 47,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "3.1",
+      "type": "category",
+      "title": "Attack Classification",
+      "parent": "3",
+      "page": 47,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "3.1.1",
+      "type": "subcategory",
+      "title": "GenAI Stages of Learning",
+      "parent": "3.1",
+      "page": 49,
+      "taxonomyIds": [
+        "NISTAML.035",
+        "NISTAML.037"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "3.1.2",
+      "type": "subcategory",
+      "title": "Attacker Goals and Objectives",
+      "parent": "3.1",
+      "page": 52,
+      "taxonomyIds": [
+        "NISTAML.01",
+        "NISTAML.02",
+        "NISTAML.03",
+        "NISTAML.04"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "3.1.3",
+      "type": "subcategory",
+      "title": "Attacker Capabilities",
+      "parent": "3.1",
+      "page": 53,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "3.2",
+      "type": "category",
+      "title": "Supply Chain Attacks and Mitigations",
+      "parent": "3",
+      "page": 54,
+      "taxonomyIds": [
+        "NISTAML.05"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "3.2.1",
+      "type": "subcategory",
+      "title": "Data Poisoning Attacks",
+      "parent": "3.2",
+      "page": 55,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "3.2.2",
+      "type": "subcategory",
+      "title": "Model Poisoning Attacks",
+      "parent": "3.2",
+      "page": 55,
+      "taxonomyIds": [
+        "NISTAML.051"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "3.2.3",
+      "type": "subcategory",
+      "title": "Mitigations",
+      "parent": "3.2",
+      "page": 55,
+      "taxonomyIds": [],
+      "isMitigation": true
+    },
+    {
+      "id": "3.3",
+      "type": "category",
+      "title": "Direct Prompting Attacks and Mitigations",
+      "parent": "3",
+      "page": 56,
+      "taxonomyIds": [
+        "NISTAML.018"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "3.3.1",
+      "type": "subcategory",
+      "title": "Attack Techniques",
+      "parent": "3.3",
+      "page": 57,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "3.3.2",
+      "type": "subcategory",
+      "title": "Information Extraction",
+      "parent": "3.3",
+      "page": 59,
+      "taxonomyIds": [
+        "NISTAML.038"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "3.3.3",
+      "type": "subcategory",
+      "title": "Mitigations",
+      "parent": "3.3",
+      "page": 61,
+      "taxonomyIds": [],
+      "isMitigation": true
+    },
+    {
+      "id": "3.4",
+      "type": "category",
+      "title": "Indirect Prompt Injection Attacks and Mitigations",
+      "parent": "3",
+      "page": 63,
+      "taxonomyIds": [
+        "NISTAML.015"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "3.4.1",
+      "type": "subcategory",
+      "title": "Availability Attacks",
+      "parent": "3.4",
+      "page": 64,
+      "taxonomyIds": [
+        "NISTAML.016",
+        "NISTAML.017"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "3.4.2",
+      "type": "subcategory",
+      "title": "Integrity Attacks",
+      "parent": "3.4",
+      "page": 64,
+      "taxonomyIds": [
+        "NISTAML.027"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "3.4.3",
+      "type": "subcategory",
+      "title": "Privacy Compromise",
+      "parent": "3.4",
+      "page": 65,
+      "taxonomyIds": [
+        "NISTAML.036",
+        "NISTAML.039"
+      ],
+      "isMitigation": false
+    },
+    {
+      "id": "3.4.4",
+      "type": "subcategory",
+      "title": "Mitigations",
+      "parent": "3.4",
+      "page": 66,
+      "taxonomyIds": [],
+      "isMitigation": true
+    },
+    {
+      "id": "3.5",
+      "type": "category",
+      "title": "Security of Agents",
+      "parent": "3",
+      "page": 67,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "3.6",
+      "type": "category",
+      "title": "Benchmarks for AML Vulnerabilities",
+      "parent": "3",
+      "page": 67,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "4",
+      "type": "domain",
+      "title": "Key Challenges and Discussion",
+      "parent": null,
+      "page": 68,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "4.1",
+      "type": "category",
+      "title": "Key Challenges in AML",
+      "parent": "4",
+      "page": 68,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "4.1.1",
+      "type": "subcategory",
+      "title": "Trade-Offs Between the Attributes of Trustworthy AI",
+      "parent": "4.1",
+      "page": 68,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "4.1.2",
+      "type": "subcategory",
+      "title": "Theoretical Limitations on Adversarial Robustness",
+      "parent": "4.1",
+      "page": 69,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "4.1.3",
+      "type": "subcategory",
+      "title": "Evaluation",
+      "parent": "4.1",
+      "page": 70,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "4.2",
+      "type": "category",
+      "title": "Discussion",
+      "parent": "4",
+      "page": 70,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "4.2.1",
+      "type": "subcategory",
+      "title": "The Scale Challenge",
+      "parent": "4.2",
+      "page": 70,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "4.2.2",
+      "type": "subcategory",
+      "title": "Supply Chain Challenges",
+      "parent": "4.2",
+      "page": 71,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "4.2.3",
+      "type": "subcategory",
+      "title": "Multimodal Models",
+      "parent": "4.2",
+      "page": 71,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "4.2.4",
+      "type": "subcategory",
+      "title": "Quantized Models",
+      "parent": "4.2",
+      "page": 72,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "4.2.5",
+      "type": "subcategory",
+      "title": "Risk Management in Light of AML",
+      "parent": "4.2",
+      "page": 72,
+      "taxonomyIds": [],
+      "isMitigation": false
+    },
+    {
+      "id": "4.2.6",
+      "type": "subcategory",
+      "title": "AML and Other AI System Characteristics",
+      "parent": "4.2",
+      "page": 73,
+      "taxonomyIds": [],
+      "isMitigation": false
+    }
+  ]
+}

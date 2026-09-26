@@ -1,0 +1,418 @@
+{
+  "documents": [
+    {
+      "id": "tx-hb149-enrolled",
+      "path": "us-state-ai-laws/texas/HB00149F.pdf",
+      "status": "ok",
+      "pages": 30,
+      "textChars": 41235
+    },
+    {
+      "id": "tx-hb149-enrolled-html",
+      "path": "us-state-ai-laws/texas/HB00149F.htm",
+      "status": "ok",
+      "words": 4320
+    },
+    {
+      "id": "tx-bcc-ch551",
+      "path": "us-state-ai-laws/texas/codified/BC.551.htm",
+      "status": "ok",
+      "words": 211
+    },
+    {
+      "id": "tx-bcc-ch552",
+      "path": "us-state-ai-laws/texas/codified/BC.552.htm",
+      "status": "ok",
+      "words": 1719
+    },
+    {
+      "id": "tx-bcc-ch553",
+      "path": "us-state-ai-laws/texas/codified/BC.553.htm",
+      "status": "ok",
+      "words": 762
+    },
+    {
+      "id": "tx-bcc-ch554",
+      "path": "us-state-ai-laws/texas/codified/BC.554.htm",
+      "status": "ok",
+      "words": 628
+    },
+    {
+      "id": "ca-sb53-ch138-2025",
+      "path": "us-state-ai-laws/california/sb53/SB53-ch138-stats2025.pdf",
+      "status": "ok",
+      "pages": 16,
+      "textChars": 46646
+    },
+    {
+      "id": "ca-sb942-ch291-2024",
+      "path": "us-state-ai-laws/california/ai-transparency-act/SB942-ch291-stats2024.pdf",
+      "status": "ok",
+      "pages": 5,
+      "textChars": 11337
+    },
+    {
+      "id": "ca-ab853-ch674-2025",
+      "path": "us-state-ai-laws/california/ai-transparency-act/AB853-ch674-stats2025.pdf",
+      "status": "ok",
+      "pages": 5,
+      "textChars": 11722
+    },
+    {
+      "id": "ca-ab2013-ch817-2024",
+      "path": "us-state-ai-laws/california/ab2013/AB2013-ch817-stats2024.pdf",
+      "status": "ok",
+      "pages": 3,
+      "textChars": 7168
+    },
+    {
+      "id": "ca-sb1001-ch892-2018",
+      "path": "us-state-ai-laws/california/bot-disclosure/SB1001-ch892-stats2018.pdf",
+      "status": "ok",
+      "pages": 2,
+      "textChars": 3531
+    },
+    {
+      "id": "ca-ab489-ch615-2025",
+      "path": "us-state-ai-laws/california/ab489/AB489-ch615-stats2025.pdf",
+      "status": "ok",
+      "pages": 3,
+      "textChars": 6190
+    },
+    {
+      "id": "ca-sb243-ch677-2025",
+      "path": "us-state-ai-laws/california/companion-chatbots/SB243-ch677-stats2025.pdf",
+      "status": "ok",
+      "pages": 4,
+      "textChars": 8514
+    },
+    {
+      "id": "ca-sb1119-ch190-2026",
+      "path": "us-state-ai-laws/california/companion-chatbots/SB1119-ch190-stats2026.pdf",
+      "status": "ok",
+      "pages": 14,
+      "textChars": 38546
+    },
+    {
+      "id": "ca-sb867-ch189-2026",
+      "path": "us-state-ai-laws/california/companion-chatbots/SB867-ch189-stats2026.pdf",
+      "status": "ok",
+      "pages": 2,
+      "textChars": 5095
+    },
+    {
+      "id": "ca-cppa-ccpa-regs-2026",
+      "path": "us-state-ai-laws/california/cppa/ccpa-regulations-eff-2026-01-01.pdf",
+      "status": "ok",
+      "pages": 103,
+      "textChars": 280742
+    },
+    {
+      "id": "ca-cppa-admt-approved-text",
+      "path": "us-state-ai-laws/california/cppa/ccpa-updates-cyber-risk-admt-approved-text.pdf",
+      "status": "ok",
+      "pages": 127,
+      "textChars": 274348
+    },
+    {
+      "id": "ca-cppa-admt-oal-approval",
+      "path": "us-state-ai-laws/california/cppa/ccpa-updates-cyber-risk-admt-oal-notice-of-approval.pdf",
+      "status": "ok",
+      "pages": 3,
+      "textChars": 5342
+    },
+    {
+      "id": "ca-ccpa-statute-2026",
+      "path": "us-state-ai-laws/california/cppa/ccpa-statute-eff-2026-01-01.pdf",
+      "status": "ok",
+      "pages": 66,
+      "textChars": 174641
+    },
+    {
+      "id": "ca-crd-ads-final-text",
+      "path": "us-state-ai-laws/california/crd-ads-regulations/crd-ads-regulations-final-text-oal-approved.pdf",
+      "status": "ok",
+      "pages": 39,
+      "textChars": 0,
+      "note": "image-only PDF (no text layer)"
+    },
+    {
+      "id": "ca-crd-ads-attachment-b",
+      "path": "us-state-ai-laws/california/crd-ads-regulations/crd-ads-regulations-attachment-b-final-unmodified-text-2025-03-17.pdf",
+      "status": "ok",
+      "pages": 39,
+      "textChars": 116654
+    },
+    {
+      "id": "co-sb26-189-sl-ch131",
+      "path": "us-state-ai-laws/colorado/SB26-189-session-laws-2026-ch131.pdf",
+      "status": "ok",
+      "pages": 17,
+      "textChars": 38661
+    },
+    {
+      "id": "co-sb26-189-fiscal-note",
+      "path": "us-state-ai-laws/colorado/SB26-189-final-fiscal-note-2026-09-08.pdf",
+      "status": "ok",
+      "pages": 7,
+      "textChars": 12950
+    },
+    {
+      "id": "co-hb26-1263-sl-ch208",
+      "path": "us-state-ai-laws/colorado/HB26-1263-session-laws-2026-ch208.pdf",
+      "status": "ok",
+      "pages": 7,
+      "textChars": 14300
+    },
+    {
+      "id": "co-hb26-1263-fiscal-note",
+      "path": "us-state-ai-laws/colorado/HB26-1263-final-fiscal-note-2026-07-13.pdf",
+      "status": "ok",
+      "pages": 3,
+      "textChars": 4510
+    },
+    {
+      "id": "co-sb24-205-sl-ch198",
+      "path": "us-state-ai-laws/colorado/SB24-205-session-laws-2024-ch198.pdf",
+      "status": "ok",
+      "pages": 19,
+      "textChars": 42252
+    },
+    {
+      "id": "co-sb25b-004-sl-ch3",
+      "path": "us-state-ai-laws/colorado/SB25B-004-session-laws-2025-1st-extraordinary-ch3.pdf",
+      "status": "ok",
+      "pages": 4,
+      "textChars": 11872
+    },
+    {
+      "id": "co-ag-4ccr904-6-proposed",
+      "path": "us-state-ai-laws/colorado/.local/4-CCR-904-6-proposed-rules-2026-08-11.docx",
+      "status": "ok"
+    },
+    {
+      "id": "co-ag-4ccr904-6-notice",
+      "path": "us-state-ai-laws/colorado/.local/4-CCR-904-6-notice-of-hearing-2026-08-11.docx",
+      "status": "ok"
+    },
+    {
+      "id": "ny-s6953b-ch699-2025",
+      "path": "us-state-ai-laws/new-york/raise-act/S6953B-ch699-laws2025.pdf",
+      "status": "ok",
+      "pages": 5,
+      "textChars": 16927
+    },
+    {
+      "id": "ny-s8828-ch96-2026",
+      "path": "us-state-ai-laws/new-york/raise-act/S8828-ch96-laws2026.pdf",
+      "status": "ok",
+      "pages": 9,
+      "textChars": 33932
+    },
+    {
+      "id": "ny-s3008c-ch58-2025",
+      "path": "us-state-ai-laws/new-york/gbl-art47/S3008C-ch58-laws2025.pdf",
+      "status": "ok",
+      "pages": 122,
+      "textChars": 514611
+    },
+    {
+      "id": "ny-a10008c-ch58-2026",
+      "path": "us-state-ai-laws/new-york/safe-by-design/A10008C-ch58-laws2026.pdf",
+      "status": "ok",
+      "pages": 189,
+      "textChars": 784369
+    },
+    {
+      "id": "nyc-ll144-2021",
+      "path": "us-state-ai-laws/new-york/nyc-ll144/local-law-144-of-2021.pdf",
+      "status": "ok",
+      "pages": 4,
+      "textChars": 6992
+    },
+    {
+      "id": "nyc-city-record-2023-04-06",
+      "path": "us-state-ai-laws/new-york/nyc-ll144/.local/city-record-2023-04-06.pdf",
+      "status": "ok",
+      "pages": 20,
+      "textChars": 148650
+    },
+    {
+      "id": "nyc-dcwp-aedt-faq",
+      "path": "us-state-ai-laws/new-york/nyc-ll144/.local/DCWP-AEDT-FAQ-2023-06-29.pdf",
+      "status": "ok",
+      "pages": 6,
+      "textChars": 14419
+    },
+    {
+      "id": "il-pa-103-0804",
+      "path": "us-state-ai-laws/illinois/PA-103-0804.pdf",
+      "status": "ok",
+      "pages": 21,
+      "textChars": 27234
+    },
+    {
+      "id": "il-ilcs-775-5-art2",
+      "path": "us-state-ai-laws/illinois/ilcs-775-5-article-2.html",
+      "status": "ok",
+      "words": 10944
+    },
+    {
+      "id": "il-pa-101-0260",
+      "path": "us-state-ai-laws/illinois/PA-101-0260.pdf",
+      "status": "ok",
+      "pages": 2,
+      "textChars": 1967
+    },
+    {
+      "id": "il-pa-102-0047",
+      "path": "us-state-ai-laws/illinois/PA-102-0047.pdf",
+      "status": "ok",
+      "pages": 2,
+      "textChars": 1338
+    },
+    {
+      "id": "il-ilcs-820-42",
+      "path": "us-state-ai-laws/illinois/ilcs-820-42-ai-video-interview-act.html",
+      "status": "ok",
+      "words": 871
+    },
+    {
+      "id": "il-pa-104-0054",
+      "path": "us-state-ai-laws/illinois/PA-104-0054.pdf",
+      "status": "ok",
+      "pages": 8,
+      "textChars": 9206
+    },
+    {
+      "id": "il-ilcs-225-155",
+      "path": "us-state-ai-laws/illinois/ilcs-225-155-wopr-act.html",
+      "status": "ok",
+      "words": 1494
+    },
+    {
+      "id": "me-pl-2025-c294",
+      "path": "us-state-ai-laws/maine/PL-2025-c294-LD1727.pdf",
+      "status": "ok",
+      "pages": 3,
+      "textChars": 5216
+    },
+    {
+      "id": "me-mrs-10-1500-dd",
+      "path": "us-state-ai-laws/maine/.local/MRS-title10-sec1500-DD.pdf",
+      "status": "ok",
+      "pages": 1,
+      "textChars": 2947
+    },
+    {
+      "id": "ut-code-13-72",
+      "path": "us-state-ai-laws/utah/code/C13-72_2024050120240501.pdf",
+      "status": "ok",
+      "pages": 5,
+      "textChars": 11529
+    },
+    {
+      "id": "ut-code-13-72a",
+      "path": "us-state-ai-laws/utah/code/C13-72a_2025050720250507.pdf",
+      "status": "ok",
+      "pages": 4,
+      "textChars": 8428
+    },
+    {
+      "id": "ut-code-13-72b",
+      "path": "us-state-ai-laws/utah/code/C13-72b_2026050620270101.pdf",
+      "status": "ok",
+      "pages": 8,
+      "textChars": 21477
+    },
+    {
+      "id": "ut-code-13-72c",
+      "path": "us-state-ai-laws/utah/code/C13-72c_2026050620270101.pdf",
+      "status": "ok",
+      "pages": 4,
+      "textChars": 8934
+    },
+    {
+      "id": "ut-code-13-77",
+      "path": "us-state-ai-laws/utah/code/C13-77_2025050820250508.pdf",
+      "status": "ok",
+      "pages": 4,
+      "textChars": 7264
+    },
+    {
+      "id": "ut-code-58-60-118",
+      "path": "us-state-ai-laws/utah/code/C58-60-S118_2025050720250507.pdf",
+      "status": "ok",
+      "pages": 2,
+      "textChars": 4602
+    },
+    {
+      "id": "ut-code-63i-2-213",
+      "path": "us-state-ai-laws/utah/code/C63I-2-S213_2025050720250507.pdf",
+      "status": "ok",
+      "pages": 1,
+      "textChars": 337
+    },
+    {
+      "id": "ut-sb149-2024",
+      "path": "us-state-ai-laws/utah/bills/SB0149-2024.pdf",
+      "status": "ok",
+      "pages": 18,
+      "textChars": 39897
+    },
+    {
+      "id": "ut-sb226-2025",
+      "path": "us-state-ai-laws/utah/bills/SB0226-2025.pdf",
+      "status": "ok",
+      "pages": 6,
+      "textChars": 11552
+    },
+    {
+      "id": "ut-sb332-2025",
+      "path": "us-state-ai-laws/utah/bills/SB0332-2025.pdf",
+      "status": "ok",
+      "pages": 2,
+      "textChars": 2090
+    },
+    {
+      "id": "ut-hb452-2025",
+      "path": "us-state-ai-laws/utah/bills/HB0452-2025.pdf",
+      "status": "ok",
+      "pages": 10,
+      "textChars": 19056
+    },
+    {
+      "id": "ut-hb276-2026",
+      "path": "us-state-ai-laws/utah/bills/HB0276-2026.pdf",
+      "status": "ok",
+      "pages": 18,
+      "textChars": 40681
+    },
+    {
+      "id": "ut-hb320-2026",
+      "path": "us-state-ai-laws/utah/bills/HB0320-2026.pdf",
+      "status": "ok",
+      "pages": 8,
+      "textChars": 16705
+    }
+  ],
+  "secrets": [],
+  "orphans": [],
+  "quotes": {
+    "checked": 387,
+    "failed": [],
+    "tolerated": [
+      {
+        "id": "tx-traiga-processor-ai-security",
+        "probe": "(2) assisting the controller with regard to complying with requirements relating",
+        "fix": [
+          [
+            " [the requirement]",
+            ""
+          ]
+        ]
+      }
+    ]
+  },
+  "failures": []
+}

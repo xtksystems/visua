@@ -56,6 +56,8 @@ colors:
   framework-rmf-container: "#27310F"
   framework-ai: "#B47825"
   framework-ai-container: "#211608"
+  framework-law: "#BB55C5"
+  framework-law-container: "#1C091E"
 typography:
   display-lg:
     fontFamily: Space Grotesk
@@ -316,6 +318,11 @@ components:
     textColor: "{colors.framework-ai}"
     typography: "{typography.code-sm}"
     rounded: "{rounded.sm}"
+  badge-framework-law:
+    backgroundColor: "{colors.framework-law-container}"
+    textColor: "{colors.framework-law}"
+    typography: "{typography.code-sm}"
+    rounded: "{rounded.sm}"
   requirement-code:
     backgroundColor: "{colors.surface-raised}"
     textColor: "{colors.primary}"
@@ -505,14 +512,19 @@ Violet) and framework identity (used only when frameworks share a view).
   Each status has a `-container` tint for chips; chip text uses the status
   color itself (or `on-surface-muted` for Not applicable).
 - **Framework identity:** NIST CSF (#7AA2FF), SOC 2 (#F28FD0), NIST RMF /
-  SP 800-53 (#C5E86C), AI governance — NIST AI RMF (Circuit Copper, #B47825).
+  SP 800-53 (#C5E86C), AI governance — NIST AI RMF (Circuit Copper, #B47825),
+  laws — U.S. state AI laws (Statute Orchid, #BB55C5).
   Used for framework badges and for the planes of the Crosswalk Nexus — never
   for status. AI governance frameworks are copper, not violet: violet means an
   agent is acting, copper means a framework about AI. Circuit Copper was chosen
   by measurement: it sits at least ΔE 16 (OKLab) from every status, framework and
   agent color and keeps 5:1 contrast on `surface`. Framework hues always travel
   with a text label, so the one close pair under protanopia (CSF and SOC 2) never
-  carries meaning alone.
+  carries meaning alone. Statute Orchid was measured the same way against the
+  crowded palette: ΔE 16.6 from Aurora Violet under normal vision and 13.2 under
+  deuteranopia, clear of every status color, 4.7:1 on `surface`. Threat catalogs
+  (MITRE ATLAS, OWASP) get no identity hue: they sit on their own inner ring of
+  the Nexus and use neutral ink, so position, not color, says "threat".
 
 ## Typography
 
@@ -643,7 +655,7 @@ drift is disabled.
   facet filters in the HUD and outline.
 - **Requirement code:** `requirement-code` renders IDs (`PR.AA-05`) in mono on a
   raised surface; clicking one always flies the camera to that requirement.
-- **Framework badges:** `badge-framework-csf|soc2|rmf|ai` appear wherever items
+- **Framework badges:** `badge-framework-csf|soc2|rmf|ai|law` appear wherever items
   from multiple frameworks are listed together.
 - **Agent components:** `badge-agent` marks agent-authored content until a
   human approves it; `agent-step` renders a reasoning step in the flight

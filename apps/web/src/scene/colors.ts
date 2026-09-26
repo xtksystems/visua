@@ -133,3 +133,32 @@ export function unitColor(lens: Lens, unit: (UnitState & { mapped?: number }) | 
       return out.copy(overlayColor(unit.overlay));
   }
 }
+
+/** Threat catalogs in the Observatory: coverage borrows the status palette (DESIGN.md: threats have no identity hue). */
+export const THREAT_STATUS_LABEL: Record<Status, string> = {
+  implemented: "Covered",
+  verified: "Covered",
+  "in-progress": "Partly covered",
+  "not-started": "Open",
+  "at-risk": "A linked requirement is at risk",
+  "not-applicable": "No link in your frameworks",
+};
+
+export const THREAT_LENS: Record<"status" | "gap", { title: string; description: string; legend: LensLegendItem[] }> = {
+  status: {
+    title: "Coverage",
+    description: "Coverage of each threat, derived from the requirements its publishers link to it. Never an assessment of the threat.",
+    legend: [
+      { label: "Covered", color: c["status-implemented"] },
+      { label: "Partly covered", color: c["status-in-progress"] },
+      { label: "Open", color: c["status-not-started"] },
+      { label: "Linked requirement at risk", color: c["status-at-risk"] },
+      { label: "No link in your frameworks", color: c["status-not-applicable"] },
+    ],
+  },
+  gap: {
+    title: "Gap",
+    description: "Distance to full coverage (level 4 on the coverage scale).",
+    legend: LENS_INFO.gap.legend.map((l) => (l.label === "At target" ? { ...l, label: "Fully covered" } : l.label === "Out of scope" ? { ...l, label: "No link in your frameworks" } : l)),
+  },
+};

@@ -11,10 +11,15 @@ export const STATUS_LABEL: Record<Status, string> = {
 
 export const pct = (v: number | undefined, digits = 0) => `${((v ?? 0) * 100).toFixed(digits)}%`;
 
-export function familyOf(frameworkId: string): "csf" | "soc2" | "rmf" | "ai" {
+export type Family = "csf" | "soc2" | "rmf" | "ai" | "law" | "threat";
+const THREAT_CATALOGS = new Set(["mitre-atlas", "owasp-llm-top10", "owasp-agentic-top10", "nist-ai-100-2"]);
+
+export function familyOf(frameworkId: string): Family {
   if (frameworkId.startsWith("aicpa")) return "soc2";
   if (frameworkId.startsWith("nist-csf")) return "csf";
+  if (frameworkId === "nist-ai-100-2" || THREAT_CATALOGS.has(frameworkId)) return "threat";
   if (frameworkId.startsWith("nist-ai")) return "ai";
+  if (frameworkId.startsWith("us-state")) return "law";
   return "rmf";
 }
 
@@ -24,6 +29,11 @@ export const FRAMEWORK_SHORT: Record<string, string> = {
   "nist-sp-800-53-r5": "SP 800-53",
   "nist-rmf": "RMF",
   "nist-ai-rmf": "AI RMF",
+  "us-state-ai-laws": "State AI laws",
+  "mitre-atlas": "ATLAS",
+  "owasp-llm-top10": "OWASP LLM",
+  "owasp-agentic-top10": "OWASP Agentic",
+  "nist-ai-100-2": "AI 100-2",
 };
 
 export function codeOf(id: string): string {

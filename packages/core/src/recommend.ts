@@ -168,6 +168,17 @@ export function recommend(profile: OrganizationProfile): Recommendation {
       reason: "You build or deploy AI systems: the AI RMF governs, maps, measures and manages their risks, and its GOVERN function builds on your CSF governance.",
     });
   }
+  if (wantsAi || profile.drivers.includes("regulator")) {
+    frameworks.push({
+      frameworkId: "us-state-ai-laws",
+      name: "U.S. state AI laws (Texas, California, Colorado and more)",
+      order: order++,
+      availability: "available",
+      reason: wantsAi
+        ? "State AI laws already bind developers, deployers, employers and chatbot operators: track the obligations that apply to your roles, with the statute text and effective dates."
+        : "Regulators increasingly enforce state AI laws: track which obligations apply to you and when they take effect.",
+    });
+  }
   if (wantsSoc2) {
     frameworks.push({
       frameworkId: "aicpa-tsc-2017",

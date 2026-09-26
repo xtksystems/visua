@@ -1,0 +1,262 @@
+{
+ "id": "threat--owasp-genai-crosswalk--owasp-agentic-top10--mitre-atlas",
+ "title": "OWASP GenAI Security Crosswalk (unreviewed)",
+ "sourceFramework": "owasp-agentic-top10",
+ "targetFramework": "mitre-atlas",
+ "authority": "OWASP GenAI Security Crosswalk (unreviewed)",
+ "status": "unreviewed",
+ "mappings": [
+  {
+   "source": "owasp-agentic-top10:ASI01",
+   "target": "mitre-atlas:AML.T0051.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI01 — Agent Goal Hijack; table 'MITRE ATLAS techniques'), line 109",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI01",
+   "target": "mitre-atlas:AML.T0051.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI01 — Agent Goal Hijack; table 'MITRE ATLAS techniques'), line 110",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI01",
+   "target": "mitre-atlas:AML.T0054",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI01 — Agent Goal Hijack; table 'MITRE ATLAS techniques'), line 111",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI02",
+   "target": "mitre-atlas:AML.T0053",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI02 — Tool Misuse & Exploitation; table 'MITRE ATLAS techniques'), line 180",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI02",
+   "target": "mitre-atlas:AML.T0126",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI02 — Tool Misuse & Exploitation; table 'MITRE ATLAS techniques'), line 181",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI03",
+   "target": "mitre-atlas:AML.T0012",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI03 — Identity & Privilege Abuse; table 'MITRE ATLAS techniques'), line 249",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI03",
+   "target": "mitre-atlas:AML.T0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI03 — Identity & Privilege Abuse; table 'MITRE ATLAS techniques'), line 250",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI04",
+   "target": "mitre-atlas:AML.T0018",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI04 — Agentic Supply Chain Vulnerabilities; table 'MITRE ATLAS techniques'), line 323",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI05",
+   "target": "mitre-atlas:AML.T0054",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI05 — Unexpected Code Execution; table 'MITRE ATLAS techniques'), line 391",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI06",
+   "target": "mitre-atlas:AML.T0070",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI06 — Memory & Context Poisoning; table 'MITRE ATLAS techniques'), line 460",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI06",
+   "target": "mitre-atlas:AML.T0066",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI06 — Memory & Context Poisoning; table 'MITRE ATLAS techniques'), line 461",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI07",
+   "target": "mitre-atlas:AML.T0006.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI07 — Insecure Inter-Agent Communication; table 'MITRE ATLAS techniques'), line 523",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI07",
+   "target": "mitre-atlas:AML.T0012",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI07 — Insecure Inter-Agent Communication; table 'MITRE ATLAS techniques'), line 524",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI07",
+   "target": "mitre-atlas:AML.T0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI07 — Insecure Inter-Agent Communication; table 'MITRE ATLAS techniques'), line 525",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI08",
+   "target": "mitre-atlas:AML.T0029",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI08 — Cascading Agent Failures; table 'MITRE ATLAS techniques'), line 595",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI08",
+   "target": "mitre-atlas:AML.T0034",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI08 — Cascading Agent Failures; table 'MITRE ATLAS techniques'), line 596",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI08",
+   "target": "mitre-atlas:AML.T0049",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI08 — Cascading Agent Failures; table 'MITRE ATLAS techniques'), line 597",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI09",
+   "target": "mitre-atlas:AML.T0052.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI09 — Human-Agent Trust Exploitation; table 'MITRE ATLAS techniques'), line 660",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI10",
+   "target": "mitre-atlas:AML.T0054",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI10 — Rogue Agents; table 'MITRE ATLAS techniques'), line 712",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI10",
+   "target": "mitre-atlas:AML.T0053",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI10 — Rogue Agents; table 'MITRE ATLAS techniques'), line 713",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI10",
+   "target": "mitre-atlas:AML.T0049",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-mitreatlas",
+    "locator": "agentic-top10/Agentic_MITREATLAS.md (ASI10 — Rogue Agents; table 'MITRE ATLAS techniques'), line 714",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  }
+ ]
+}

@@ -7,15 +7,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import type { Status } from "@visua/core";
 import { Inspector } from "../components/inspector/Inspector.tsx";
+import { ThreatLinkFilter } from "../components/threats/Coverage.tsx";
 import { StatusBar, StatusGlyph } from "../components/ui/index.tsx";
-import { FRAMEWORK_SHORT, STATUS_LABEL, truncate } from "../lib/format.ts";
+import { FRAMEWORK_SHORT, STATUS_LABEL, familyOf, truncate } from "../lib/format.ts";
 import { useFrameworkState, useGraph, useWorkspace } from "../lib/queries.ts";
 import type { FrameworkStateBundle, LeanNode } from "../lib/types.ts";
-import { LENS_INFO, overlaySwatch } from "../scene/colors.ts";
+import { LENS_INFO, THREAT_LENS, THREAT_STATUS_LABEL, overlaySwatch } from "../scene/colors.ts";
 import { computeLayout } from "../scene/layout.ts";
 import { Observatory } from "../scene/Observatory.tsx";
 import { useAgentActivity } from "../state/agentActivity.ts";
 import { LENSES, useUi, type Lens } from "../state/ui.ts";
+
+/** Threat catalogs open in the Observatory with coverage in place of status. */
+const THREAT_CATALOGS = ["mitre-atlas", "owasp-llm-top10", "owasp-agentic-top10", "nist-ai-100-2"];
 
 function nodeStatus(state: FrameworkStateBundle | undefined, node: LeanNode): Status {
   if (!state) return "not-started";
@@ -217,9 +221,12 @@ export function ObservatoryPage() {
   const hoveredGroup = hoveredId ? state.data?.groups[hoveredId] : undefined;
   // The overlay lens exists only where the framework has an overlay (CSF: Cyber AI Profile; SP 800-53: COSAiS).
   const overlay = state.data?.overlay ?? null;
-  const activeLens: Lens = lens === "overlay" && !overlay ? "status" : lens;
-  const lensInfo =
-    activeLens === "overlay" && overlay
+  // Threat catalogs: coverage (status lens) and its gap only.
+  const threat = familyOf(fw) === "threat";
+  const activeLens: Lens = threat ? (lens === "gap" ? "gap" : "status") : lens === "overlay" && !overlay ? "status" : lens;
+  const lensInfo = threat
+    ? THREAT_LENS[activeLens === "gap" ? "gap" : "status"]
+    : activeLens === "overlay" && overlay
       ? {
           title: overlay.shortName,
           description: LENS_INFO.overlay.description,
@@ -271,15 +278,33 @@ export function ObservatoryPage() {
             <button className="btn btn--quiet btn--sm btn--icon" onClick={() => ui.toggleOutline()} aria-label="Toggle outline" aria-pressed={outlineOpen} title="Toggle outline (2D twin)">
               <ListTree size={15} />
             </button>
-            {enabled.map((id) => (
-              <button key={id} className="chip" aria-pressed={id === fw} onClick={() => navigate(`/w/${ws}/observatory/${id}`)}>
-                {FRAMEWORK_SHORT[id] ?? id}
-              </button>
-            ))}
-            {!enabled.includes("nist-rmf") && (
-              <button className="chip" aria-pressed={fw === "nist-rmf"} onClick={() => navigate(`/w/${ws}/observatory/nist-rmf`)}>
-                RMF steps
-              </button>
+            {threat ? (
+              <>
+                <button className="chip" onClick={() => navigate(`/w/${ws}/observatory/${enabled[0] ?? "nist-csf-2.0"}`)} title="Back to your frameworks">
+                  ← Frameworks
+                </button>
+                {THREAT_CATALOGS.map((id) => (
+                  <button key={id} className="chip" aria-pressed={id === fw} onClick={() => navigate(`/w/${ws}/observatory/${id}`)} title="Coverage derived from the requirements linked to each threat">
+                    {FRAMEWORK_SHORT[id] ?? id}
+                  </button>
+                ))}
+              </>
+            ) : (
+              <>
+                {enabled.map((id) => (
+                  <button key={id} className="chip" aria-pressed={id === fw} onClick={() => navigate(`/w/${ws}/observatory/${id}`)}>
+                    {FRAMEWORK_SHORT[id] ?? id}
+                  </button>
+                ))}
+                {!enabled.includes("nist-rmf") && (
+                  <button className="chip" aria-pressed={fw === "nist-rmf"} onClick={() => navigate(`/w/${ws}/observatory/nist-rmf`)}>
+                    RMF steps
+                  </button>
+                )}
+                <button className="chip" onClick={() => navigate(`/w/${ws}/observatory/mitre-atlas`)} title="AI threat catalogs (MITRE ATLAS, OWASP, NIST AI 100-2), colored by coverage">
+                  Threats →
+                </button>
+              </>
             )}
           </div>
           <nav aria-label="Breadcrumb" className="row" style={{ gap: 4, marginTop: 8, fontSize: 12, flexWrap: "wrap" }}>
@@ -302,11 +327,14 @@ export function ObservatoryPage() {
             <span className="eyebrow" style={{ marginRight: 4 }}>
               Lens
             </span>
-            {LENSES.filter((l) => l !== "overlay" || overlay).map((l: Lens) => (
-              <button key={l} className="chip" aria-pressed={activeLens === l} onClick={() => ui.setLens(l)} title={LENS_INFO[l].description}>
-                {LENS_INFO[l].title}
-              </button>
-            ))}
+            {(threat ? (["status", "gap"] as Lens[]) : LENSES.filter((l) => l !== "overlay" || overlay)).map((l: Lens) => {
+              const info = threat ? THREAT_LENS[l as "status" | "gap"] : LENS_INFO[l];
+              return (
+                <button key={l} className="chip" aria-pressed={activeLens === l} onClick={() => ui.setLens(l)} title={info.description}>
+                  {info.title}
+                </button>
+              );
+            })}
           </div>
           <div className="row" style={{ gap: 6, justifyContent: "flex-end", marginTop: 8 }}>
             <div className="segmented" role="group" aria-label="View">
@@ -336,7 +364,7 @@ export function ObservatoryPage() {
             ))}
           </div>
           <div className="muted" style={{ fontSize: 11, marginTop: 8, maxWidth: 230 }}>
-            Height = current level · glass = gap to target · ◆ task · ▲ evidence
+            {threat ? "Height = coverage level · glass = gap to full coverage · derived from linked requirements, never assessed" : "Height = current level · glass = gap to target · ◆ task · ▲ evidence"}
           </div>
         </div>
 
@@ -344,25 +372,39 @@ export function ObservatoryPage() {
           <div className="hud hud--br">
             <div className="row" style={{ gap: 16, alignItems: "flex-end" }}>
               <div>
-                <div className="eyebrow">Readiness</div>
+                <div className="eyebrow">{threat ? "Coverage" : "Readiness"}</div>
                 <div className="metric__value" style={{ fontSize: 30 }}>
                   {Math.round(state.data.overall.readiness * 100)}
                   <small>%</small>
                 </div>
               </div>
               <div>
-                <div className="eyebrow">Gaps</div>
+                <div className="eyebrow">{threat ? "Not fully covered" : "Gaps"}</div>
                 <div className="mono" style={{ fontSize: 18 }}>
                   {state.data.overall.gaps}
                 </div>
               </div>
-              <div>
-                <div className="eyebrow">Evidence</div>
-                <div className="mono" style={{ fontSize: 18 }}>
-                  {Math.round(state.data.overall.evidenceCoverage * 100)}%
+              {threat ? (
+                <div>
+                  <div className="eyebrow">In scope</div>
+                  <div className="mono" style={{ fontSize: 18 }}>
+                    {state.data.overall.total}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div>
+                  <div className="eyebrow">Evidence</div>
+                  <div className="mono" style={{ fontSize: 18 }}>
+                    {Math.round(state.data.overall.evidenceCoverage * 100)}%
+                  </div>
+                </div>
+              )}
             </div>
+            {threat && (
+              <div style={{ marginTop: 10 }}>
+                <ThreatLinkFilter />
+              </div>
+            )}
             <div style={{ width: 260, marginTop: 10 }}>
               <StatusBar counts={state.data.overall.counts} />
             </div>
@@ -385,7 +427,7 @@ export function ObservatoryPage() {
               <div className="row" style={{ marginTop: 6, gap: 8, fontSize: 12 }}>
                 <span className={`status status--${hoveredUnit.status}`}>
                   <StatusGlyph status={hoveredUnit.status} />
-                  {STATUS_LABEL[hoveredUnit.status]}
+                  {threat ? THREAT_STATUS_LABEL[hoveredUnit.status] : STATUS_LABEL[hoveredUnit.status]}
                 </span>
                 <span className="mono muted">
                   {hoveredUnit.current}→{hoveredUnit.target}

@@ -323,7 +323,7 @@ function Sectors({ layout, state, selectedId, onSelect }: SceneProps) {
                   anchorX="center"
                   anchorY="top"
                 >
-                  {`${Math.round(g.readiness * 100)}% ready · ${g.gaps} gaps`}
+                  {state?.threat ? `${Math.round(g.readiness * 100)}% covered · ${g.total} with links` : `${Math.round(g.readiness * 100)}% ready · ${g.gaps} gaps`}
                 </Text>
               )}
             </DistanceFade>

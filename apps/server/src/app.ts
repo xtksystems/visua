@@ -29,6 +29,8 @@ import { AuthService, ForbiddenError, UnauthorizedError } from "./auth/service.t
 import { CONNECTOR_KINDS } from "./connectors/index.ts";
 import { actionPlanCsv, aiRmfProfileCsv, csfProfileCsv, evidenceIndexCsv, oscalPoam, oscalSsp, readinessMarkdown, soc2PbcCsv } from "./services/exports.ts";
 import { aiOverview } from "./services/ai.ts";
+import { lawsOverview } from "./services/laws.ts";
+import { parseMinStatus, threatCatalogState, threatRing, threatsOverview } from "./services/threats.ts";
 import { overlayMeta, overlaySummary } from "./services/overlays.ts";
 import { crosswalkOverview, crosswalkRows } from "./services/crosswalk.ts";
 import { soc2Description } from "./services/soc2.ts";
@@ -381,13 +383,13 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
 
   app.get("/api/workspaces/:ws/frameworks/:fw/state", async (c) => {
     if (!svc.registry.framework(c.req.param("fw"))) throw new NotFoundError("Framework not found");
-    return c.json(await frameworkState(svc, wsOf(c), c.req.param("fw")));
+    return c.json(await frameworkState(svc, wsOf(c), c.req.param("fw"), { minStatus: parseMinStatus(c.req.query("min")) }));
   });
 
   app.get("/api/workspaces/:ws/requirements/:nodeId", async (c) => {
     const node = svc.registry.node(decodeURIComponent(c.req.param("nodeId")));
     if (!node) throw new NotFoundError("Requirement not found");
-    return c.json(await nodeDetail(svc, wsOf(c), node));
+    return c.json(await nodeDetail(svc, wsOf(c), node, { minStatus: parseMinStatus(c.req.query("min")) }));
   });
 
   app.patch("/api/workspaces/:ws/requirements/:nodeId", async (c) => {
@@ -428,6 +430,19 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
   app.post("/api/workspaces/:ws/overlays/:id/apply-priorities", need("work.approve"), async (c) => {
     const result = await svc.applyOverlayPriorities(wsId(c), c.req.param("id"), actorOf(c));
     return c.json({ ...result, summary: await overlaySummary(svc, await svc.workspace(wsId(c)), c.req.param("id")) });
+  });
+
+  // ---------------------------------------------------------------- Threat views (MITRE ATLAS, OWASP, NIST AI 100-2)
+  app.get("/api/workspaces/:ws/threats", async (c) => c.json(await threatsOverview(svc, wsOf(c), parseMinStatus(c.req.query("min")))));
+  app.get("/api/workspaces/:ws/threats/:catalog", async (c) => c.json(await threatCatalogState(svc, wsOf(c), c.req.param("catalog"), parseMinStatus(c.req.query("min")))));
+
+  // ---------------------------------------------------------------- U.S. state AI laws
+  app.get("/api/workspaces/:ws/laws", async (c) => c.json(await lawsOverview(svc, wsOf(c))));
+  // Whether a law applies, and in which role, is a compliance decision: approvers and above.
+  app.put("/api/workspaces/:ws/laws/:lawId/applicability", need("work.approve"), async (c) => {
+    const input = await body(c, z.object({ roles: z.array(z.string().max(60)).max(20), note: z.string().max(2000).optional() }));
+    await svc.setLawApplicability(wsId(c), c.req.param("lawId"), input, actorOf(c));
+    return c.json(await lawsOverview(svc, await svc.workspace(wsId(c))));
   });
 
   // ---------------------------------------------------------------- AI governance
@@ -548,6 +563,8 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
 
   // ---------------------------------------------------------------- crosswalk, SOC 2 description, activity & events
   app.get("/api/workspaces/:ws/crosswalk", async (c) => c.json(await crosswalkOverview(svc, wsOf(c))));
+  // The Nexus inner ring: threat catalogs bundled onto the requirement groups linked to them.
+  app.get("/api/workspaces/:ws/crosswalk/threats", async (c) => c.json(await threatRing(svc, wsOf(c), parseMinStatus(c.req.query("min")))));
   app.get("/api/workspaces/:ws/crosswalk/rows", async (c) =>
     c.json(
       await crosswalkRows(svc, wsOf(c), {

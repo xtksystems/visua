@@ -36,7 +36,7 @@ export interface NexusBundle {
   relationships: Partial<Record<MappingRelationship, number>>;
 }
 
-function groupOf(svc: VisuaService, nodeId: string): string | null {
+export function groupOf(svc: VisuaService, nodeId: string): string | null {
   const fw = frameworkOf(nodeId);
   const index = svc.registry.framework(fw);
   if (!index) return null;
@@ -49,7 +49,9 @@ function groupOf(svc: VisuaService, nodeId: string): string | null {
 
 export async function crosswalkOverview(svc: VisuaService, ws: Workspace) {
   const sets = svc.registry.crosswalk.sets;
-  const ids = [...new Set(sets.flatMap((s) => [s.sourceFramework, s.targetFramework]))].filter((id) => svc.registry.framework(id));
+  // Frameworks that only threat catalogs link to (the AI RMF) join the ring for the Nexus threat ring.
+  const threatLinked = svc.registry.threatLinks.sets.flatMap((s) => [s.sourceFramework, s.targetFramework]).filter((id) => svc.registry.framework(id)?.graph.framework.family !== "threat");
+  const ids = [...new Set([...sets.flatMap((s) => [s.sourceFramework, s.targetFramework]), ...threatLinked])].filter((id) => svc.registry.framework(id));
   const enabled = new Set(ws.frameworks.filter((f) => f.enabled).map((f) => f.frameworkId));
   const scores = await Promise.all(ids.map((id) => (enabled.has(id) ? svc.score(ws.id, id) : null)));
   const frameworks: NexusFramework[] = ids.map((id, i) => {

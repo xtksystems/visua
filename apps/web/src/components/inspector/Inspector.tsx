@@ -14,6 +14,7 @@ import type { NodeDetail } from "../../lib/types.ts";
 import { useUi } from "../../state/ui.ts";
 import { AgentBadge, CodeTag, Dialog, Empty, FrameworkBadge, LevelPips, StatusBar, StatusChip, Tabs, toast } from "../ui/index.tsx";
 import { OverlaySections } from "./Overlays.tsx";
+import { ThreatInspector, ThreatsAddressed } from "./Threats.tsx";
 
 type Tab = "overview" | "tasks" | "evidence" | "mappings" | "history";
 
@@ -28,6 +29,8 @@ export function Inspector({ nodeId, onClose }: { nodeId: string; onClose: () => 
       </aside>
     );
   }
+  // Threat catalogs are not assessed: their nodes get the coverage inspector.
+  if (data.threat) return <ThreatInspector data={data} onClose={onClose} />;
   const { node } = data;
   const status = data.status?.status ?? data.groupStatus ?? "not-started";
   return (
@@ -112,6 +115,7 @@ function Overview({ data }: { data: NodeDetail }) {
       )}
       {node.assessable && data.state ? <Assessment data={data} family={family} /> : null}
       <OverlaySections data={data} />
+      <ThreatsAddressed threats={data.threats ?? []} />
       {!node.assessable && data.score ? (
         <div className="panel panel--raised stack">
           <div className="row">

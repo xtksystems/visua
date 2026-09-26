@@ -243,6 +243,116 @@ describe.skipIf(!registry.overlay("nist-ir-8596-iprd"))("AI security overlays: C
   });
 });
 
+// Runs when the U.S. state AI laws corpus is ingested (packages/frameworks/data/us-state-ai-laws.json).
+describe.skipIf(!registry.framework("us-state-ai-laws"))("U.S. state AI laws: applicability decides scope", () => {
+  const laws = registry.framework("us-state-ai-laws");
+  // A law whose obligations fall on at least two different roles, so one role can scope some but not all of them.
+  const law = laws?.graph.nodes.find((n) => {
+    if (n.kind !== "law") return false;
+    const roles = new Set(laws.childrenOf(n.id).flatMap((o) => (o.attributes?.["roles"] as string[]) ?? []));
+    return roles.size >= 2;
+  });
+  const lawId = String(law?.attributes?.["lawId"] ?? "");
+  type Overview = { enabled: boolean; jurisdictions: { laws: { lawId: string; obligations: number; inScope: number; applicability: { roles: string[] } | null; roles: { role: string; obligations: number }[] }[] }[] };
+  const find = (o: Overview) => o.jurisdictions.flatMap((j) => j.laws).find((l) => l.lawId === lawId)!;
+
+  it("tracks laws without scoping any obligation until the organization records its role", async () => {
+    const enabled = await api("PUT", `/api/workspaces/${wsId}/frameworks/us-state-ai-laws`, { enabled: true });
+    expect(enabled.status).toBe(200);
+    const res = await api<Overview>("GET", `/api/workspaces/${wsId}/laws`);
+    expect(res.json.enabled).toBe(true);
+    expect(res.json.jurisdictions.flatMap((j) => j.laws).every((l) => l.inScope === 0 && l.applicability === null)).toBe(true);
+  });
+
+  it("scopes exactly the obligations of the roles held, and records the decision in the audit trail", async () => {
+    const before = find((await api<Overview>("GET", `/api/workspaces/${wsId}/laws`)).json);
+    const role = before.roles.find((r) => r.obligations > 0 && r.obligations < before.obligations)!;
+    const res = await api<Overview>("PUT", `/api/workspaces/${wsId}/laws/${lawId}/applicability`, { roles: [role.role], note: "We deploy this kind of system in the state." });
+    expect(res.status).toBe(200);
+    const after = find(res.json);
+    expect(after.applicability?.roles).toEqual([role.role]);
+    // Obligations that name several roles count toward each, so scope is at least the role's own count and less than the whole law.
+    expect(after.inScope).toBeGreaterThanOrEqual(role.obligations);
+    expect(after.inScope).toBeLessThanOrEqual(before.obligations);
+    const activity = await api<{ summary: string }[]>("GET", `/api/workspaces/${wsId}/activity?limit=5`);
+    expect(activity.json.some((a) => a.summary.includes(`applies to us as ${role.role}`))).toBe(true);
+    expect((await api("PUT", `/api/workspaces/${wsId}/laws/${lawId}/applicability`, { roles: ["astronaut"] })).status).toBe(400);
+  });
+
+  it("takes obligations out of scope again when the law no longer applies", async () => {
+    const res = await api<Overview>("PUT", `/api/workspaces/${wsId}/laws/${lawId}/applicability`, { roles: [] });
+    expect(res.status).toBe(200);
+    expect(find(res.json)).toMatchObject({ inScope: 0, applicability: null });
+  });
+});
+
+// Runs when the AI threat catalogs are ingested (packages/frameworks/data/mitre-atlas.json and friends).
+describe.skipIf(!registry.framework("mitre-atlas"))("threat views: MITRE ATLAS, OWASP Top 10s, NIST AI 100-2", () => {
+  type Coverage = { state: string; level: number | null; linked: number; inScope: number; met: number; progress: number; best: string | null };
+  type Overview = { catalogs: { id: string; units: number; byState: Record<string, number> }[]; sources: { status: string; links: number }[] };
+
+  it("summarizes coverage per catalog from the linked requirements, labeled by link status", async () => {
+    const res = await api<Overview>("GET", `/api/workspaces/${wsId}/threats`);
+    expect(res.status).toBe(200);
+    expect(res.json.catalogs.map((c) => [c.id, c.units])).toEqual([
+      ["mitre-atlas", 208],
+      ["owasp-llm-top10", 10],
+      ["owasp-agentic-top10", 10],
+      ["nist-ai-100-2", 25],
+    ]);
+    for (const c of res.json.catalogs) expect(Object.values(c.byState).reduce((a, b) => a + b, 0)).toBe(c.units);
+    expect(new Set(res.json.sources.map((s) => s.status))).toEqual(new Set(["final", "draft", "unreviewed", "superseded"]));
+    // Only final links: ATLAS reaches requirements through NIST's draft Cyber AI Profile, the Agentic Top 10 only through the unreviewed crosswalk.
+    const final = await api<Overview>("GET", `/api/workspaces/${wsId}/threats?min=final`);
+    const byId = new Map(final.json.catalogs.map((c) => [c.id, c.byState]));
+    expect(byId.get("mitre-atlas")!["unmapped"]).toBe(208);
+    expect(byId.get("owasp-agentic-top10")!["unmapped"]).toBe(10);
+    expect(byId.get("owasp-llm-top10")!["unmapped"]).toBeLessThan(10);
+    expect((await api("GET", `/api/workspaces/${wsId}/threats?min=anything`)).status).toBe(400);
+  });
+
+  it("derives a threat's coverage from requirement progress and never assesses the threat itself", async () => {
+    const before = await api<{ coverage: Record<string, Coverage> }>("GET", `/api/workspaces/${wsId}/threats/owasp-llm-top10?min=final`);
+    expect(before.json.coverage["owasp-llm-top10:LLM01"]!.state).not.toBe("covered");
+    const detail = await api<{ status: unknown; state: unknown; threat: { coverage: Coverage; requirements: { id: string; framework: string; best: string; target: number; applicable: boolean; paths: { kind: string }[] }[] } }>(
+      "GET",
+      `/api/workspaces/${wsId}/requirements/${encodeURIComponent("owasp-llm-top10:LLM01")}?min=final`,
+    );
+    expect(detail.json.status).toBeNull();
+    expect(detail.json.state).toBeUndefined();
+    const reqs = detail.json.threat.requirements;
+    expect(reqs.length).toBe(before.json.coverage["owasp-llm-top10:LLM01"]!.linked);
+    expect(reqs.every((r) => r.framework === "nist-ai-rmf" && r.best === "final" && r.paths.every((p) => p.kind === "direct"))).toBe(true);
+    for (const r of reqs.filter((x) => x.applicable)) expect((await api("PATCH", `/api/workspaces/${wsId}/requirements/${encodeURIComponent(r.id)}`, { current: r.target })).status).toBe(200);
+    const after = await api<{ coverage: Record<string, Coverage> }>("GET", `/api/workspaces/${wsId}/threats/owasp-llm-top10?min=final`);
+    expect(after.json.coverage["owasp-llm-top10:LLM01"]).toMatchObject({ state: "covered", level: 4, progress: 1 });
+    // Enabling a threat catalog as if it were a framework is refused.
+    expect((await api("PUT", `/api/workspaces/${wsId}/frameworks/mitre-atlas`, { enabled: true })).status).toBe(400);
+  });
+
+  it("reaches ATLAS techniques through their mitigations, and shows requirements the threats they address", async () => {
+    const detail = await api<{ threat: { coverage: Coverage; requirements: { framework: string; paths: { kind: string; via?: { code: string } }[] }[]; related: { code: string; label: string; status: string }[] } }>(
+      "GET",
+      `/api/workspaces/${wsId}/requirements/${encodeURIComponent("mitre-atlas:AML.T0051")}`,
+    );
+    expect(detail.json.threat.coverage.best).toBe("draft");
+    expect(detail.json.threat.requirements.some((r) => r.framework === "nist-csf-2.0" && r.paths.some((p) => p.kind === "mitigation" && p.via?.code.startsWith("AML.M")))).toBe(true);
+    expect(detail.json.threat.related.some((r) => r.label === "mitigates" && r.status === "final")).toBe(true);
+    const gvoc = await api<{ threats: { code: string; best: string; paths: { kind: string }[] }[] }>("GET", `/api/workspaces/${wsId}/requirements/${encodeURIComponent("nist-csf-2.0:GV.OC-01")}`);
+    expect(gvoc.json.threats.some((t) => t.code === "AML.M0020" && t.best === "draft")).toBe(true);
+    expect(gvoc.json.threats.some((t) => t.code === "AML.T0051" && t.paths.some((p) => p.kind === "mitigation"))).toBe(true);
+  });
+
+  it("bundles threat links onto requirement groups for the Nexus threat ring", async () => {
+    const ring = await api<{ catalogs: { id: string; groups: { id: string; units: number }[] }[]; bundles: { a: string; b: string; count: number; best: string }[] }>("GET", `/api/workspaces/${wsId}/crosswalk/threats`);
+    expect(ring.status).toBe(200);
+    const atlas = ring.json.catalogs.find((c) => c.id === "mitre-atlas")!;
+    expect(atlas.groups).toHaveLength(16);
+    expect(ring.json.bundles.some((b) => b.a.startsWith("mitre-atlas:AML.TA") && b.b.startsWith("nist-csf-2.0:") && b.best === "draft")).toBe(true);
+    expect(ring.json.bundles.some((b) => b.a.startsWith("owasp-llm-top10:") && b.b.startsWith("nist-ai-rmf:") && b.best === "final")).toBe(true);
+  });
+});
+
 describe("agents (offline playbooks) with human-in-the-loop proposals", () => {
   const run = async (agent: string, goal: string, input: Record<string, unknown> = {}) =>
     (await api<{ status: string; mode: string; summary: string; steps: { type: string }[]; proposals: { id: string; type: string; status: string }[] }>("POST", `/api/workspaces/${wsId}/runs?wait=1`, { agent, goal, input })).json;

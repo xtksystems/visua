@@ -1,0 +1,238 @@
+{
+  "textsChecked": 871,
+  "llm2026": [
+    [
+      "LLM01",
+      "Prompt Injection",
+      11,
+      46
+    ],
+    [
+      "LLM02",
+      "Sensitive Information Disclosure",
+      19,
+      32
+    ],
+    [
+      "LLM03",
+      "Excessive Agency",
+      9,
+      38
+    ],
+    [
+      "LLM04",
+      "Supply Chain",
+      7,
+      33
+    ],
+    [
+      "LLM05",
+      "Data and Model Poisoning",
+      12,
+      35
+    ],
+    [
+      "LLM06",
+      "Unbounded Consumption",
+      10,
+      28
+    ],
+    [
+      "LLM07",
+      "Misinformation",
+      10,
+      31
+    ],
+    [
+      "LLM08",
+      "Hidden Context Exposure",
+      3,
+      22
+    ],
+    [
+      "LLM09",
+      "Vector and Embedding Weaknesses",
+      6,
+      36
+    ],
+    [
+      "LLM10",
+      "Improper Output Handling",
+      9,
+      30
+    ]
+  ],
+  "llm2025": [
+    [
+      "LLM01",
+      "Prompt Injection",
+      7,
+      3
+    ],
+    [
+      "LLM02",
+      "Sensitive Information Disclosure",
+      12,
+      3
+    ],
+    [
+      "LLM03",
+      "Supply Chain",
+      10,
+      1
+    ],
+    [
+      "LLM04",
+      "Data and Model Poisoning",
+      10,
+      2
+    ],
+    [
+      "LLM05",
+      "Improper Output Handling",
+      7,
+      0
+    ],
+    [
+      "LLM06",
+      "Excessive Agency",
+      10,
+      0
+    ],
+    [
+      "LLM07",
+      "System Prompt Leakage",
+      4,
+      1
+    ],
+    [
+      "LLM08",
+      "Vector and Embedding Weaknesses",
+      4,
+      0
+    ],
+    [
+      "LLM09",
+      "Misinformation",
+      8,
+      1
+    ],
+    [
+      "LLM10",
+      "Unbounded Consumption",
+      15,
+      8
+    ]
+  ],
+  "asi2026": [
+    [
+      "ASI01",
+      "Agent Goal Hijack",
+      9,
+      5
+    ],
+    [
+      "ASI02",
+      "Tool Misuse and Exploitation",
+      8,
+      5
+    ],
+    [
+      "ASI03",
+      "Identity and Privilege Abuse",
+      9,
+      5
+    ],
+    [
+      "ASI04",
+      "Agentic Supply Chain Vulnerabilities",
+      9,
+      8
+    ],
+    [
+      "ASI05",
+      "Unexpected Code Execution (RCE)",
+      7,
+      4
+    ],
+    [
+      "ASI06",
+      "Memory & Context Poisoning",
+      9,
+      8
+    ],
+    [
+      "ASI07",
+      "Insecure Inter-Agent Communication",
+      9,
+      5
+    ],
+    [
+      "ASI08",
+      "Cascading Failures",
+      10,
+      6
+    ],
+    [
+      "ASI09",
+      "Human-Agent Trust Exploitation",
+      9,
+      8
+    ],
+    [
+      "ASI10",
+      "Rogue Agents",
+      7,
+      8
+    ]
+  ],
+  "appendixFrameworks": [
+    [
+      "OWASP Top 10 for Agentic Applications (ASI)",
+      "2026 (announced 2025-12-09)",
+      31
+    ],
+    [
+      "OWASP GenAI Data Security 2026 (DSGAI)",
+      "v1.0 (2026-03-17)",
+      39
+    ],
+    [
+      "MITRE ATLAS",
+      "content v2026.06 (format-version 6.0.0)",
+      46
+    ],
+    [
+      "MITRE ATT&CK",
+      "v19.1",
+      29
+    ],
+    [
+      "MITRE CWE (Common Weakness Enumeration)",
+      "4.20",
+      48
+    ],
+    [
+      "NIST AI 600-1 (Generative AI Profile)",
+      "v1.0 (July 2024)",
+      39
+    ],
+    [
+      "NIST AI RMF (AI 100-1)",
+      "v1.0 (2023)",
+      25
+    ],
+    [
+      "CSA AI Controls Matrix (AICM)",
+      "v1.1 (2026-06-22)",
+      44
+    ],
+    [
+      "OWASP AIVSS (AI Vulnerability Scoring System)",
+      "v0.8",
+      30
+    ]
+  ],
+  "notes": [],
+  "errors": []
+}

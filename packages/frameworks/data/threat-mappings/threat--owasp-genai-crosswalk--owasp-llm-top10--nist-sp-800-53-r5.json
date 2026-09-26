@@ -1,0 +1,502 @@
+{
+ "id": "threat--owasp-genai-crosswalk--owasp-llm-top10--nist-sp-800-53-r5",
+ "title": "OWASP GenAI Security Crosswalk (unreviewed)",
+ "sourceFramework": "owasp-llm-top10",
+ "targetFramework": "nist-sp-800-53-r5",
+ "authority": "OWASP GenAI Security Crosswalk (unreviewed)",
+ "status": "unreviewed",
+ "mappings": [
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "nist-sp-800-53-r5:SI-3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM01 — Prompt Injection; table 'FedRAMP AI mapping'), line 139",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "nist-sp-800-53-r5:SI-10",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM01 — Prompt Injection; table 'FedRAMP AI mapping'), line 140",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "nist-sp-800-53-r5:RA-5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM01 — Prompt Injection; table 'FedRAMP AI mapping'), line 141",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "nist-sp-800-53-r5:CA-8",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM01 — Prompt Injection; table 'FedRAMP AI mapping'), line 142",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02",
+   "target": "nist-sp-800-53-r5:SC-28",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM02 — Sensitive Information Disclosure; table 'FedRAMP AI mapping'), line 211",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02",
+   "target": "nist-sp-800-53-r5:AU-2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM02 — Sensitive Information Disclosure; table 'FedRAMP AI mapping'), line 212",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02",
+   "target": "nist-sp-800-53-r5:AC-3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM02 — Sensitive Information Disclosure; table 'FedRAMP AI mapping'), line 213",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02",
+   "target": "nist-sp-800-53-r5:SI-4",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM02 — Sensitive Information Disclosure; table 'FedRAMP AI mapping'), line 214",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "nist-sp-800-53-r5:AC-6",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM03 — Excessive Agency; table 'FedRAMP AI mapping'), line 281",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "nist-sp-800-53-r5:CM-7",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM03 — Excessive Agency; table 'FedRAMP AI mapping'), line 282",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "nist-sp-800-53-r5:AC-3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM03 — Excessive Agency; table 'FedRAMP AI mapping'), line 283",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "nist-sp-800-53-r5:PM-9",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM03 — Excessive Agency; table 'FedRAMP AI mapping'), line 284",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "nist-sp-800-53-r5:SR-2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM04 — Supply Chain; table 'FedRAMP AI mapping'), line 356",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "nist-sp-800-53-r5:SR-3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM04 — Supply Chain; table 'FedRAMP AI mapping'), line 357",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "nist-sp-800-53-r5:SA-9",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM04 — Supply Chain; table 'FedRAMP AI mapping'), line 358",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "nist-sp-800-53-r5:SA-3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM04 — Supply Chain; table 'FedRAMP AI mapping'), line 359",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "nist-sp-800-53-r5:SR-2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM05 — Data and Model Poisoning; table 'FedRAMP AI mapping'), line 438",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "nist-sp-800-53-r5:SR-3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM05 — Data and Model Poisoning; table 'FedRAMP AI mapping'), line 439",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "nist-sp-800-53-r5:SI-3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM05 — Data and Model Poisoning; table 'FedRAMP AI mapping'), line 440",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "nist-sp-800-53-r5:CM-3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM05 — Data and Model Poisoning; table 'FedRAMP AI mapping'), line 441",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM06",
+   "target": "nist-sp-800-53-r5:SC-7",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM06 — Unbounded Consumption; table 'FedRAMP AI mapping'), line 508",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM06",
+   "target": "nist-sp-800-53-r5:SI-4",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM06 — Unbounded Consumption; table 'FedRAMP AI mapping'), line 509",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM06",
+   "target": "nist-sp-800-53-r5:CM-7",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM06 — Unbounded Consumption; table 'FedRAMP AI mapping'), line 510",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM06",
+   "target": "nist-sp-800-53-r5:IR-4",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM06 — Unbounded Consumption; table 'FedRAMP AI mapping'), line 511",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "nist-sp-800-53-r5:SI-4",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM07 — Misinformation; table 'FedRAMP AI mapping'), line 575",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "nist-sp-800-53-r5:CA-7",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM07 — Misinformation; table 'FedRAMP AI mapping'), line 576",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "nist-sp-800-53-r5:AU-6",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM07 — Misinformation; table 'FedRAMP AI mapping'), line 577",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "nist-sp-800-53-r5:SI-10",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM07 — Misinformation; table 'FedRAMP AI mapping'), line 578",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM08",
+   "target": "nist-sp-800-53-r5:SC-28",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM08 — Hidden Context Exposure; table 'FedRAMP AI mapping'), line 654",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM08",
+   "target": "nist-sp-800-53-r5:AC-3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM08 — Hidden Context Exposure; table 'FedRAMP AI mapping'), line 655",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM08",
+   "target": "nist-sp-800-53-r5:AU-2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM08 — Hidden Context Exposure; table 'FedRAMP AI mapping'), line 656",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM08",
+   "target": "nist-sp-800-53-r5:SI-3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM08 — Hidden Context Exposure; table 'FedRAMP AI mapping'), line 657",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "nist-sp-800-53-r5:SC-28",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM09 — Vector and Embedding Weaknesses; table 'FedRAMP AI mapping'), line 724",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "nist-sp-800-53-r5:SI-3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM09 — Vector and Embedding Weaknesses; table 'FedRAMP AI mapping'), line 725",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "nist-sp-800-53-r5:RA-5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM09 — Vector and Embedding Weaknesses; table 'FedRAMP AI mapping'), line 726",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "nist-sp-800-53-r5:AC-3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM09 — Vector and Embedding Weaknesses; table 'FedRAMP AI mapping'), line 727",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10",
+   "target": "nist-sp-800-53-r5:SI-10",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM10 — Improper Output Handling; table 'FedRAMP AI mapping'), line 807",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10",
+   "target": "nist-sp-800-53-r5:SI-15",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM10 — Improper Output Handling; table 'FedRAMP AI mapping'), line 808",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10",
+   "target": "nist-sp-800-53-r5:CM-7",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM10 — Improper Output Handling; table 'FedRAMP AI mapping'), line 809",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10",
+   "target": "nist-sp-800-53-r5:AU-2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM10 — Improper Output Handling; table 'FedRAMP AI mapping'), line 810",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10",
+   "target": "nist-sp-800-53-r5:AC-3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-fedramp",
+    "locator": "llm-top10/LLM_FedRAMP.md (LLM10 — Improper Output Handling; table 'FedRAMP AI mapping'), line 811",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  }
+ ]
+}

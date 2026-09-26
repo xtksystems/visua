@@ -166,7 +166,7 @@ export function SettingsPage() {
           <div className="panel">
             <h2 className="section-title">Frameworks</h2>
             <div className="stack" style={{ gap: 10 }}>
-              {(meta.data?.frameworks ?? []).filter((f) => f.id !== "nist-rmf").map((f) => {
+              {(meta.data?.frameworks ?? []).filter((f) => f.id !== "nist-rmf" && f.family !== "threat").map((f) => {
                 const on = data.frameworks.some((x) => x.id === f.id);
                 return (
                   <div key={f.id} className="row" style={{ gap: 10 }}>

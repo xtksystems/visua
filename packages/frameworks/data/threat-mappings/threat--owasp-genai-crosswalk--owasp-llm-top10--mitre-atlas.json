@@ -1,0 +1,190 @@
+{
+ "id": "threat--owasp-genai-crosswalk--owasp-llm-top10--mitre-atlas",
+ "title": "OWASP GenAI Security Crosswalk (unreviewed)",
+ "sourceFramework": "owasp-llm-top10",
+ "targetFramework": "mitre-atlas",
+ "authority": "OWASP GenAI Security Crosswalk (unreviewed)",
+ "status": "unreviewed",
+ "mappings": [
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "mitre-atlas:AML.T0051.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-mitreatlas",
+    "locator": "llm-top10/LLM_MITREATLAS.md (LLM01 — Prompt Injection; table 'MITRE ATLAS techniques'), line 136",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "mitre-atlas:AML.T0051.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-mitreatlas",
+    "locator": "llm-top10/LLM_MITREATLAS.md (LLM01 — Prompt Injection; table 'MITRE ATLAS techniques'), line 137",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "mitre-atlas:AML.T0054",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-mitreatlas",
+    "locator": "llm-top10/LLM_MITREATLAS.md (LLM01 — Prompt Injection; table 'MITRE ATLAS techniques'), line 138",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02",
+   "target": "mitre-atlas:AML.T0057",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-mitreatlas",
+    "locator": "llm-top10/LLM_MITREATLAS.md (LLM02 — Sensitive Information Disclosure; table 'MITRE ATLAS techniques'), line 206",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "mitre-atlas:AML.T0053",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-mitreatlas",
+    "locator": "llm-top10/LLM_MITREATLAS.md (LLM03 — Excessive Agency; table 'MITRE ATLAS techniques'), line 274",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "mitre-atlas:AML.T0126",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-mitreatlas",
+    "locator": "llm-top10/LLM_MITREATLAS.md (LLM03 — Excessive Agency; table 'MITRE ATLAS techniques'), line 275",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "mitre-atlas:AML.T0018",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-mitreatlas",
+    "locator": "llm-top10/LLM_MITREATLAS.md (LLM04 — Supply Chain; table 'MITRE ATLAS techniques'), line 350",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "mitre-atlas:AML.T0070",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-mitreatlas",
+    "locator": "llm-top10/LLM_MITREATLAS.md (LLM05 — Data and Model Poisoning; table 'MITRE ATLAS techniques'), line 422",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "mitre-atlas:AML.T0018",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-mitreatlas",
+    "locator": "llm-top10/LLM_MITREATLAS.md (LLM05 — Data and Model Poisoning; table 'MITRE ATLAS techniques'), line 423",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "mitre-atlas:AML.T0024.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-mitreatlas",
+    "locator": "llm-top10/LLM_MITREATLAS.md (LLM05 — Data and Model Poisoning; table 'MITRE ATLAS techniques'), line 424",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM06",
+   "target": "mitre-atlas:AML.T0029",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-mitreatlas",
+    "locator": "llm-top10/LLM_MITREATLAS.md (LLM06 — Unbounded Consumption; table 'MITRE ATLAS techniques'), line 492",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM06",
+   "target": "mitre-atlas:AML.T0034",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-mitreatlas",
+    "locator": "llm-top10/LLM_MITREATLAS.md (LLM06 — Unbounded Consumption; table 'MITRE ATLAS techniques'), line 493",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM08",
+   "target": "mitre-atlas:AML.T0056",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-mitreatlas",
+    "locator": "llm-top10/LLM_MITREATLAS.md (LLM08 — Hidden Context Exposure; table 'MITRE ATLAS techniques'), line 628",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM08",
+   "target": "mitre-atlas:AML.T0051.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-mitreatlas",
+    "locator": "llm-top10/LLM_MITREATLAS.md (LLM08 — Hidden Context Exposure; table 'MITRE ATLAS techniques'), line 629",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "mitre-atlas:AML.T0066",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-llm-mitreatlas",
+    "locator": "llm-top10/LLM_MITREATLAS.md (LLM09 — Vector and Embedding Weaknesses; table 'MITRE ATLAS techniques'), line 688",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  }
+ ]
+}

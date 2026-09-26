@@ -35,6 +35,8 @@ one exists.
 | NIST RMF | SP 800-37r2, extracted to `corpus/nist-rmf/rmf-tasks.json` | 47 tasks across 7 steps |
 | SOC 2 (TSC 2017) | Visua's skeleton; overlaid with the verbatim criteria and points of focus from a licensed local copy | 61 criteria in 20 series across 5 categories |
 | NIST AI RMF 1.0 | `ai-rmf-core.json`, extracted from the AI 100-1 PDF with page citations (NIST's CPRT and Playbook JSON differ from the final text in dozens of statements, so they are not used for statements); the AI RMF Playbook JSON; `genai-profile.json` extracted from NIST AI 600-1 | 72 outcomes in 19 categories across 4 functions (GOVERN 19, MAP 18, MEASURE 22, MANAGE 13); 460 Playbook suggested actions; the Generative AI Profile's 12 GAI risks and 212 actions, attached to 49 outcomes |
+| U.S. state AI laws | `corpus/us-state-ai-laws/obligations.json`: obligations quoted from the enrolled statutes and adopted regulations, each with its section and page | jurisdiction → law → obligation; each obligation names the roles it falls on (developer, deployer, employer, operator…), its category and its effective date |
+| Threat catalogs (never assessed) | `corpus/ai-threats/`: the MITRE ATLAS 2026.09 release YAML; the OWASP Top 10 for LLM Applications 2026 (and 2025) and for Agentic Applications 2026, extracted from the PDFs; NIST AI 100-2 E2025 from NIST's taxonomy export | ATLAS: 16 tactics, 120 techniques, 88 sub-techniques, 40 mitigations · OWASP LLM: 10 risks per edition · OWASP Agentic: 10 risks · AI 100-2: 5 objectives, 25 attacks |
 
 Tests in `packages/frameworks/test` pin these official counts. Ingestion is
 deterministic: the same corpus in produces the same data out.
@@ -49,7 +51,51 @@ official ids stay everywhere else.
 
 NIST publishes AI RMF crosswalks (to ISO/IEC 42001 and 23894, the OECD principles, the
 EU AI Act and others) only as PDFs, and none targets a framework Visua models, so the
-AI RMF is not yet in the Crosswalk Nexus.
+AI RMF has no requirement-to-requirement mapping set. It joins the Crosswalk Nexus
+through the threat links below.
+
+**Overlays.** NIST's AI security drafts attach to frameworks Visua already models
+instead of becoming frameworks of their own (`data/overlays/`, `FrameworkOverlay`):
+
+- the *Cyber AI Profile* (NIST IR 8596, initial preliminary draft), a CSF 2.0 Community
+  Profile: for each of the 106 subcategories, general considerations and, per focus
+  area (Secure, Defend, Thwart), a proposed priority, considerations and example
+  informative references;
+- *COSAiS* (SP 800-53 Control Overlays for Securing AI Systems), the annotated outline
+  of the "Using and Fine-Tuning Predictive AI" overlay: 59 SP 800-53 controls, 11 of
+  them annotated with tailoring and the NIST AI 100-2 attacks they address.
+
+Every entry must attach to an existing node or ingestion fails. A workspace *adopts*
+an overlay (and, for the profile, chooses focus areas). Adopting COSAiS brings its
+controls into SP 800-53 scope as tailoring entries with a `source`, which dropping the
+overlay removes again; the Cyber AI Profile's High priorities can raise CSF priorities
+on request. Drafts are always labeled as drafts.
+
+**Threat links.** `corpus/ai-threats/mappings.json` keeps every published link between
+threats and requirements, each with its publisher and status. Ingestion turns them into
+mapping sets in `data/threat-mappings/`, loaded into `registry.threatLinks`, apart
+from the requirement crosswalk: a threat link says a requirement is relevant to a
+threat, not that one requirement satisfies another.
+
+| Authority | Status | Links |
+|---|---|---|
+| MITRE ATLAS 2026.09: mitigation → technique | final | 361 |
+| OWASP LLM Top 10 2026, Appendix A: → AI RMF categories, ATLAS tactics, Agentic Top 10 | final | 102 |
+| OWASP Agentic Top 10 2026, Appendix A: → LLM Top 10 2025 | final | 23 |
+| NIST AI 100-2 E2025: attack → ATLAS mitigations it cites | final | 4 |
+| NIST IR 8596 (Cyber AI Profile, draft): CSF 2.0 → ATLAS mitigations, → LLM03:2025 | draft | 183 |
+| NIST COSAiS outline (draft): SP 800-53 control → AI 100-2 attack | draft | 21 |
+| OWASP GenAI Security Crosswalk: OWASP → CSF 2.0, AI RMF, SP 800-53, ATLAS | unreviewed | 237 |
+| OWASP LLM Top 10 2025: → ATLAS techniques | superseded | 15 |
+
+Links to catalogs Visua does not model (MITRE ATT&CK, CWE, CSA AICM, OWASP AIVSS and
+data-security entries, NIST AI 600-1 risks) stay on the threat as references. No
+publisher maps ATLAS to CSF 2.0, SP 800-53 or the AI RMF, or the OWASP Top 10s to CSF
+2.0 or SP 800-53, in a final document; the table above is everything there is.
+
+OWASP renumbered its LLM Top 10 in 2026 (Supply Chain moved from LLM03 to LLM04). The
+current edition keeps the bare codes (`LLM04`), the superseded one gains the year
+(`LLM03-2025`), and each entry records its counterpart in the other edition.
 
 **Crosswalk mapping sets.** Each set records its authority. The UI and the agents
 show that authority wherever a mapping appears.
@@ -112,6 +158,24 @@ stay local.
   become *proposals*: a mapping is never evidence.
 - **CSF Tiers** (the CSWP 29 Appendix B statements, verbatim) and **FIPS 199**
   categorization (the high-water mark selects the baseline).
+- **U.S. state AI laws.** Laws impose obligations, not maturity levels, so obligations
+  use a Visua-authored status scale (Not addressed → Met and reviewed). Nothing is in
+  scope until the organization records, per law, the roles it holds under that law's
+  own definitions (`LawSettings.applicability`, a decision reserved for approvers and
+  recorded in the audit trail). `scopeOf()` then scopes exactly the obligations of
+  those roles, and an obligation whose `until` date has passed drops out.
+- **Threat coverage** (`apps/server/src/services/threats.ts`). Threat catalogs are
+  never enabled or assessed. A threat's coverage is derived from the requirements linked
+  to it, reached three ways: directly; through an ATLAS mitigation of it (CSF 2.0 →
+  mitigation, from the Cyber AI Profile draft; mitigation → technique, from MITRE);
+  or through the same OWASP entry in the other edition. A link to a group (an AI RMF
+  category) stands for that group's units. A path is only as strong as its weakest
+  link's status, and views choose the weakest status they count (final, final and
+  draft, or all published links). Coverage on the 0–4 threat scale is the mean
+  progress toward target of the linked requirements in the workspace's frameworks
+  (4 when all are at target); a threat is *unmapped* without links at the chosen
+  status and *out of scope* when its links lead only to frameworks the workspace does
+  not follow. Tactics, editions and objectives pool their threats' coverage.
 - **AI governance.** The NIST AI RMF defines no maturity tiers, so outcomes use a
   Visua-authored scale (Not addressed → Measured and improving). The AI system inventory
   lives in the AI RMF framework settings: purpose and context of use, the
@@ -224,6 +288,11 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   - tasks, the plan, evidence (with SHA-256), policies (lifecycle), risks, connectors,
     checks, agent runs, proposals and decisions
   - activity, crosswalk overview and rows, the SOC 2 description
+  - overlays (adopt, drop, apply priorities), U.S. state AI laws (overview and
+    applicability), AI governance
+  - threat views: catalog overviews, one catalog's coverage (`?min=final|draft|unreviewed`),
+    and the Nexus threat ring (`/crosswalk/threats`); a threat catalog's `frameworks/:fw/state`
+    returns coverage in the shape of a state bundle for the 3D Observatory
   - exports and the public trust center
   - `GET /events` (SSE) pushes invalidations and agent steps to clients.
 - **Connectors.** *Web posture* (HTTPS redirect, HSTS, TLS protocol and certificate
@@ -240,7 +309,8 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 ## 5. Web (`apps/web`)
 
 - **Shell.** A rail with Mission control, Observatory, Plan, Evidence, Agents, Policies,
-  Profile, Crosswalk, SOC 2, RMF, Reports and Settings. It also has a command palette
+  Profile, Crosswalk, SOC 2, RMF, AI governance, State AI laws, AI threats, Reports,
+  Organization and Settings. It also has a command palette
   (⌘K: search requirements or ask the copilot), a live approvals badge and toasts.
 - **Observatory.** Instanced hex prisms in two layouts:
   - *constellation*: radial sectors per top-level group
@@ -261,7 +331,20 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   unit-level mappings, with width ∝ √count and a color gradient from the source
   framework to the target. Selecting a group flies the camera behind it, animates its
   arcs and lists every mapping with live status. A searchable group list is the
-  keyboard path.
+  keyboard path. An inner **threat ring** holds ATLAS tactics, the OWASP entries and
+  the NIST AI 100-2 objectives in neutral ink (threat catalogs have no identity hue);
+  their pillars take the status color of their pooled coverage, and their arcs bundle
+  the threat links onto requirement groups.
+- **Threat views.** The Threats page shows the ATLAS matrix (tactics as columns,
+  techniques colored by coverage, with glyphs), the OWASP LLM Top 10 by edition, the
+  OWASP Agentic Top 10 and the NIST AI 100-2 attacks by objective. A link filter (all
+  published, final and draft, final only) is shared with the threat Observatory and
+  the Nexus ring. The threat inspector lists the linked requirements with live status
+  and why each is linked (every link with its publisher and status); a requirement's
+  inspector lists the threats it helps address. Threat catalogs also open in the 3D
+  Observatory, where height is the coverage level.
+- **Laws.** The State AI laws page records which laws apply and in what role, shows an
+  effective-date timeline, safe harbors and enforcement, and scopes the obligations.
 - **Programs.**
   - *CSF*: Profile with bullet charts and the Tier assessment
   - *SOC 2*: scope, observation window, DC 200 checklist, readiness by series
@@ -274,7 +357,7 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 6. Testing
 
-- `packages/*/test` and `apps/server/test` (Vitest, 53 tests):
+- `packages/*/test` and `apps/server/test` (Vitest, 98 tests):
   - official counts and citations
   - identifier normalization
   - the SOC 2 skeleton and the licensed overlay
@@ -286,6 +369,13 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     detection, and no plan-as-evidence
   - AI governance: AI RMF official counts, the Generative AI Profile's risks and actions,
     the AI system inventory API, Playbook-based planning and the AI RMF profile export
+  - overlays: the Cyber AI Profile's priorities for all 106 subcategories and COSAiS's
+    59 controls, adoption and dropping through the API
+  - state AI laws: nothing in scope until a role is recorded, exactly that role's
+    obligations after, and out of scope again when the law no longer applies
+  - threat views: official catalog counts, every link's endpoints, OWASP edition
+    lineage, coverage under each link filter, coverage rising to "covered" as linked
+    requirements reach target, ATLAS reached through mitigations, and the Nexus ring
   - storage (`storage.test.ts`): rollback and savepoints, a linear audit chain and no
     lost updates under two concurrent server instances, cross-instance cache
     invalidation, and the in-place upgrade of a pre-migration SQLite database
@@ -295,11 +385,12 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     domain checks, tenant-scoped sessions, Require SSO)
   - `VISUA_TEST_DATABASE_URL=postgres://…` runs the server suites on Postgres, each run
     in its own schema
-- `e2e/` (Playwright, 12 tests) runs against the production bundle served by the API,
+- `e2e/` (Playwright, 13 tests) runs against the production bundle served by the API,
   with an in-memory seeded database and WebGL on SwiftShader. It covers Home, the
   Observatory and its 2D twin, the Nexus, RMF, SOC 2, AI governance, an agent run with
   citations, the trust center, persona sign-in, a viewer's read-only view, tenant
-  separation, and organization administration.
+  separation, organization administration, and the threat views (ATLAS matrix, the
+  coverage inspector and its link filter, OWASP editions, the Nexus threat ring).
 
 ## 7. Known limitations
 
@@ -312,3 +403,11 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   integrations are on the roadmap.
 - The SOC 2 structured extraction tooling is not in the repository. Installations
   without a local copy run on the skeleton.
+- Threat coverage is only as good as the published links: most links to CSF 2.0 and
+  SP 800-53 come from NIST drafts or OWASP's unreviewed community crosswalk, and 98 ATLAS
+  techniques have no link to any requirement. Coverage is never a guarantee of
+  protection. ATLAS case studies and the OWASP example scenarios are not ingested.
+- The OWASP site serves its PDFs only to browsers, so `pnpm corpus:sync` cannot
+  re-download them; the committed copies are hash-checked.
+- State AI laws change often. The corpus records what was retrieved and when; Visua
+  tracks obligations and is not legal advice.

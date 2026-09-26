@@ -8,11 +8,15 @@ import { CrosswalkIndex, FrameworkIndex, type FrameworkGraph, type FrameworkOver
 import { CORPUS_DIR, DATA_DIR } from "./paths.ts";
 import { CorpusSearch, type CorpusChunk } from "./search.ts";
 import { buildTscGraph, loadDescriptionCriteria, TSC_ID, type DescriptionCriterion } from "./ingest/tsc.ts";
+import { ThreatLinkIndex } from "./threat-links.ts";
 
 export { CORPUS_DIR, DATA_DIR, REPO_ROOT } from "./paths.ts";
 export { CorpusSearch, tokenize, bestQuote, type CorpusChunk, type SearchHit } from "./search.ts";
 export { buildTscGraph, loadDescriptionCriteria, TSC_ID, type DescriptionCriterion } from "./ingest/tsc.ts";
 export { CYBER_AI_PROFILE_ID, COSAIS_PREDICTIVE_ID } from "./ingest/ai-overlays.ts";
+export { STATE_LAWS_ID } from "./ingest/state-laws.ts";
+export { ATLAS_ID, ATLAS_MITIGATIONS, OWASP_LLM_ID, OWASP_AGENTIC_ID, AI_100_2_ID, THREAT_CATALOG_IDS, EXTERNAL_SCHEMES } from "./ingest/threats.ts";
+export { ThreatLinkIndex, type ThreatLink } from "./threat-links.ts";
 
 export interface CorpusDocument {
   id: string;
@@ -40,7 +44,19 @@ export interface CorpusManifest {
 }
 
 /** Order in which frameworks are presented (increasing complexity). */
-export const FRAMEWORK_ORDER = ["nist-csf-2.0", "aicpa-tsc-2017", "nist-sp-800-53-r5", "nist-rmf", "nist-ai-rmf"];
+export const FRAMEWORK_ORDER = [
+  "nist-csf-2.0",
+  "aicpa-tsc-2017",
+  "nist-sp-800-53-r5",
+  "nist-rmf",
+  "nist-ai-rmf",
+  "us-state-ai-laws",
+  // Threat catalogs, viewed through the requirements above.
+  "mitre-atlas",
+  "owasp-llm-top10",
+  "owasp-agentic-top10",
+  "nist-ai-100-2",
+];
 
 function readJson<T>(path: string): T {
   return JSON.parse(readFileSync(path, "utf8")) as T;
@@ -67,6 +83,16 @@ export function loadMappingSets(dataDir: string = DATA_DIR): MappingSet[] {
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
     .filter((f) => f.endsWith(".json"))
+    .map((f) => readJson<MappingSet>(resolve(dir, f)));
+}
+
+/** Links between threats and requirements (data/threat-mappings), kept apart from the requirement crosswalk. */
+export function loadThreatMappingSets(dataDir: string = DATA_DIR): MappingSet[] {
+  const dir = resolve(dataDir, "threat-mappings");
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((f) => f.endsWith(".json"))
+    .sort()
     .map((f) => readJson<MappingSet>(resolve(dir, f)));
 }
 
@@ -107,11 +133,14 @@ export class FrameworkRegistry {
   readonly descriptionCriteria: DescriptionCriterion[] = loadDescriptionCriteria();
   /** Community profiles and control overlays on the frameworks above. */
   readonly overlays: FrameworkOverlay[];
+  /** Published links between threat catalogs and requirements. */
+  readonly threatLinks: ThreatLinkIndex;
   private readonly overlayByNode = new Map<string, { overlay: FrameworkOverlay; entry: OverlayEntry }[]>();
 
-  constructor(input: { graphs: FrameworkGraph[]; mappings: MappingSet[]; chunks: CorpusChunk[]; manifests: CorpusManifest[]; overlays?: FrameworkOverlay[] }) {
+  constructor(input: { graphs: FrameworkGraph[]; mappings: MappingSet[]; chunks: CorpusChunk[]; manifests: CorpusManifest[]; overlays?: FrameworkOverlay[]; threatMappings?: MappingSet[] }) {
     for (const g of input.graphs) this.indexes.set(g.framework.id, new FrameworkIndex(g));
     this.crosswalk = new CrosswalkIndex(input.mappings);
+    this.threatLinks = new ThreatLinkIndex((input.threatMappings ?? []).filter((s) => this.indexes.has(s.sourceFramework) && this.indexes.has(s.targetFramework)));
     this.search = new CorpusSearch(input.chunks);
     this.manifests = input.manifests;
     for (const m of input.manifests) for (const d of m.documents) this.documents.set(d.id, { ...d, framework: m.framework });
@@ -128,6 +157,7 @@ export class FrameworkRegistry {
       chunks: loadCorpusChunks(),
       manifests: loadCorpusManifests(),
       overlays: loadOverlays(),
+      threatMappings: loadThreatMappingSets(),
     });
   }
 

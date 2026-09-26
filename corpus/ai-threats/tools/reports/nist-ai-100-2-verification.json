@@ -1,0 +1,277 @@
+{
+  "counts": {
+    "taxonomies": 2,
+    "objectives": 5,
+    "attacks": 25,
+    "taxonomyElements": 30,
+    "sections": 57,
+    "mitigationSections": 5,
+    "inlineMitigationParagraphs": 4
+  },
+  "definitionChecks": [
+    {
+      "id": "NISTAML.01",
+      "section": "2.1.2",
+      "page": 19,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.01",
+      "section": "3.1.2",
+      "page": 52,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.011",
+      "section": "2.3.4",
+      "page": 39,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.012",
+      "section": "2.3.1",
+      "page": 33,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.013",
+      "section": "2.3.1",
+      "page": 32,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.014",
+      "section": "2.1.2",
+      "page": 19,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.015",
+      "section": "3.4",
+      "page": 63,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.016",
+      "section": "3.4.1",
+      "page": 64,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.017",
+      "section": "3.4.1",
+      "page": 64,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.018",
+      "section": "3.3",
+      "page": 56,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.02",
+      "section": "2.1.2",
+      "page": 19,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.02",
+      "section": "3.1.2",
+      "page": 53,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.021",
+      "section": "2.3.3",
+      "page": 35,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.022",
+      "section": "2.2",
+      "page": 24,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.023",
+      "section": "2.3.3",
+      "page": 35,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.024",
+      "section": "2.3.2",
+      "page": 34,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.025",
+      "section": "2.2.2",
+      "page": 28,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.026",
+      "section": "2.3.4",
+      "page": 39,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.027",
+      "section": "3.4.2",
+      "page": 64,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.03",
+      "section": "2.1.2",
+      "page": 20,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.03",
+      "section": "2.4",
+      "page": 41,
+      "textInPdf": true,
+      "wordDifferences": [
+        {
+          "cprt": "pa rameters3",
+          "pdf": "parameters3"
+        }
+      ]
+    },
+    {
+      "id": "NISTAML.03",
+      "section": "3.1.2",
+      "page": 53,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.031",
+      "section": "2.4.4",
+      "page": 44,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.032",
+      "section": "2.4.1",
+      "page": 41,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.033",
+      "section": "2.4.2",
+      "page": 42,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.034",
+      "section": "2.4.3",
+      "page": 43,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.035",
+      "section": "3.1.1",
+      "page": 51,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.036",
+      "section": "3.4.3",
+      "page": 66,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.037",
+      "section": "3.1.1",
+      "page": 50,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.038",
+      "section": "3.3.2",
+      "page": 59,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.039",
+      "section": "3.4.3",
+      "page": 66,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.04",
+      "section": "3.1.2",
+      "page": 53,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.05",
+      "section": "2.3.4",
+      "page": 39,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.05",
+      "section": "3.2",
+      "page": 54,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.051",
+      "section": "2.3.4",
+      "page": 39,
+      "textInPdf": true,
+      "wordDifferences": []
+    },
+    {
+      "id": "NISTAML.051",
+      "section": "3.2.2",
+      "page": 55,
+      "textInPdf": true,
+      "wordDifferences": [
+        {
+          "cprt": "itis",
+          "pdf": "it is"
+        }
+      ]
+    }
+  ],
+  "notes": [],
+  "errors": []
+}

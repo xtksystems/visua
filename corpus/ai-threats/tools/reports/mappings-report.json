@@ -1,0 +1,282 @@
+{
+  "counts": {
+    "total": 1292,
+    "byAuthority": {
+      "mitre-atlas-2026.09": 423,
+      "nist-ai-100-2e2025": 4,
+      "nist-cosais-outline": 21,
+      "nist-ir-8596-iprd": 195,
+      "owasp-agentic-top10-2026": 62,
+      "owasp-genai-crosswalk": 238,
+      "owasp-llm-top10-2025": 18,
+      "owasp-llm-top10-2026": 331
+    },
+    "byAuthorityAndSchemes": [
+      {
+        "authority": "mitre-atlas-2026.09",
+        "source": "atlas",
+        "target": "atlas",
+        "rows": 361
+      },
+      {
+        "authority": "mitre-atlas-2026.09",
+        "source": "atlas",
+        "target": "mitre-attack",
+        "rows": 62
+      },
+      {
+        "authority": "nist-ai-100-2e2025",
+        "source": "nist-ai-100-2",
+        "target": "atlas",
+        "rows": 4
+      },
+      {
+        "authority": "nist-cosais-outline",
+        "source": "nist-sp-800-53-r5",
+        "target": "nist-ai-100-2",
+        "rows": 21
+      },
+      {
+        "authority": "nist-ir-8596-iprd",
+        "source": "nist-csf-2.0",
+        "target": "atlas",
+        "rows": 128
+      },
+      {
+        "authority": "nist-ir-8596-iprd",
+        "source": "nist-csf-2.0",
+        "target": "owasp-llm-top10",
+        "rows": 67
+      },
+      {
+        "authority": "owasp-agentic-top10-2026",
+        "source": "owasp-agentic-top10",
+        "target": "owasp-agentic-threats",
+        "rows": 27
+      },
+      {
+        "authority": "owasp-agentic-top10-2026",
+        "source": "owasp-agentic-top10",
+        "target": "owasp-aivss",
+        "rows": 12
+      },
+      {
+        "authority": "owasp-agentic-top10-2026",
+        "source": "owasp-agentic-top10",
+        "target": "owasp-llm-top10",
+        "rows": 23
+      },
+      {
+        "authority": "owasp-genai-crosswalk",
+        "source": "owasp-agentic-top10",
+        "target": "atlas",
+        "rows": 21
+      },
+      {
+        "authority": "owasp-genai-crosswalk",
+        "source": "owasp-agentic-top10",
+        "target": "nist-ai-rmf",
+        "rows": 40
+      },
+      {
+        "authority": "owasp-genai-crosswalk",
+        "source": "owasp-agentic-top10",
+        "target": "nist-csf-2.0",
+        "rows": 40
+      },
+      {
+        "authority": "owasp-genai-crosswalk",
+        "source": "owasp-llm-top10",
+        "target": "atlas",
+        "rows": 16
+      },
+      {
+        "authority": "owasp-genai-crosswalk",
+        "source": "owasp-llm-top10",
+        "target": "nist-ai-rmf",
+        "rows": 40
+      },
+      {
+        "authority": "owasp-genai-crosswalk",
+        "source": "owasp-llm-top10",
+        "target": "nist-csf-2.0",
+        "rows": 40
+      },
+      {
+        "authority": "owasp-genai-crosswalk",
+        "source": "owasp-llm-top10",
+        "target": "nist-sp-800-53-r5",
+        "rows": 41
+      },
+      {
+        "authority": "owasp-llm-top10-2025",
+        "source": "owasp-llm-top10",
+        "target": "atlas",
+        "rows": 15
+      },
+      {
+        "authority": "owasp-llm-top10-2025",
+        "source": "owasp-llm-top10",
+        "target": "cwe",
+        "rows": 1
+      },
+      {
+        "authority": "owasp-llm-top10-2025",
+        "source": "owasp-llm-top10",
+        "target": "owasp-api-top10",
+        "rows": 1
+      },
+      {
+        "authority": "owasp-llm-top10-2025",
+        "source": "owasp-llm-top10",
+        "target": "owasp-ml-top10",
+        "rows": 1
+      },
+      {
+        "authority": "owasp-llm-top10-2026",
+        "source": "owasp-llm-top10",
+        "target": "atlas",
+        "rows": 46
+      },
+      {
+        "authority": "owasp-llm-top10-2026",
+        "source": "owasp-llm-top10",
+        "target": "csa-aicm",
+        "rows": 44
+      },
+      {
+        "authority": "owasp-llm-top10-2026",
+        "source": "owasp-llm-top10",
+        "target": "cwe",
+        "rows": 48
+      },
+      {
+        "authority": "owasp-llm-top10-2026",
+        "source": "owasp-llm-top10",
+        "target": "mitre-attack",
+        "rows": 29
+      },
+      {
+        "authority": "owasp-llm-top10-2026",
+        "source": "owasp-llm-top10",
+        "target": "nist-ai-600-1",
+        "rows": 39
+      },
+      {
+        "authority": "owasp-llm-top10-2026",
+        "source": "owasp-llm-top10",
+        "target": "nist-ai-rmf",
+        "rows": 25
+      },
+      {
+        "authority": "owasp-llm-top10-2026",
+        "source": "owasp-llm-top10",
+        "target": "owasp-agentic-top10",
+        "rows": 31
+      },
+      {
+        "authority": "owasp-llm-top10-2026",
+        "source": "owasp-llm-top10",
+        "target": "owasp-aivss",
+        "rows": 30
+      },
+      {
+        "authority": "owasp-llm-top10-2026",
+        "source": "owasp-llm-top10",
+        "target": "owasp-genai-data-security",
+        "rows": 39
+      }
+    ],
+    "excluded": 155,
+    "unknownIdentifiers": 0
+  },
+  "crosswalkFiles": {
+    "llm-top10/LLM_NISTCSF2.md": {
+      "framework": "NIST CSF 2.0",
+      "rows": 40,
+      "included": 40,
+      "excluded": 0
+    },
+    "llm-top10/LLM_NISTAIRMF.md": {
+      "framework": "NIST AI RMF 1.0",
+      "rows": 40,
+      "included": 40,
+      "excluded": 0
+    },
+    "llm-top10/LLM_MITREATLAS.md": {
+      "framework": "MITRE ATLAS",
+      "rows": 24,
+      "included": 16,
+      "excluded": 8
+    },
+    "llm-top10/LLM_FedRAMP.md": {
+      "framework": "FedRAMP (SP 800-53 controls)",
+      "rows": 41,
+      "included": 41,
+      "excluded": 0
+    },
+    "agentic-top10/Agentic_NISTCSF2.md": {
+      "framework": "NIST CSF 2.0",
+      "rows": 40,
+      "included": 40,
+      "excluded": 0
+    },
+    "agentic-top10/Agentic_NISTAIRMF.md": {
+      "framework": "NIST AI RMF 1.0",
+      "rows": 40,
+      "included": 40,
+      "excluded": 0
+    },
+    "agentic-top10/Agentic_MITREATLAS.md": {
+      "framework": "MITRE ATLAS",
+      "rows": 30,
+      "included": 21,
+      "excluded": 9
+    },
+    "agentic-top10/Agentic_FedRAMP.md": {
+      "framework": "FedRAMP (SP 800-53 controls)",
+      "rows": 40,
+      "included": 0,
+      "excluded": 40
+    }
+  },
+  "unknownIdentifiers": [],
+  "crosswalkLabelMatch": {
+    "atlas": {
+      "exact": 37
+    },
+    "nist-csf-2.0": {
+      "exact": 70,
+      "close": 10
+    },
+    "nist-sp-800-53-r5": {
+      "exact": 35,
+      "different": 4,
+      "close": 2
+    }
+  },
+  "crossChecks": {
+    "nistIr8596": {
+      "file": "nist-ai-rmf/cyber-ai-profile.json",
+      "sha256": "fcae1d9a9ba15eb288a50673f5715d8f3a3097f6ec102bc8a33c734d2923ec83",
+      "elementReferences": 195,
+      "documentLevelReferences": 96,
+      "onlyHere": [],
+      "onlyThere": [],
+      "documentLevelOnlyHere": [],
+      "documentLevelOnlyThere": [],
+      "referenceListsCompared": 136,
+      "referenceListsDiffering": [],
+      "identical": true
+    },
+    "cosais": {
+      "file": "nist-ai-rmf/cosais.json",
+      "sha256": "17e31b8b447fffde8b53a6dedd045c3998ed949e2b34a29e8f160591fd256159",
+      "pairs": 21,
+      "onlyHere": [],
+      "onlyThere": [],
+      "identical": true
+    }
+  },
+  "problems": []
+}

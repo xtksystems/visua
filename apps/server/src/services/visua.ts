@@ -82,6 +82,7 @@ export function chainHash(prevHash: string, event: ActivityEvent): string {
 export class ValidationError extends Error {}
 
 const PRIORITY_ORDER: Priority[] = ["low", "medium", "high", "critical"];
+const STATE_LAWS = "us-state-ai-laws";
 const maxPriority = (a: Priority, b: Priority): Priority => (PRIORITY_ORDER.indexOf(a) >= PRIORITY_ORDER.indexOf(b) ? a : b);
 const now = () => new Date().toISOString();
 
@@ -318,6 +319,9 @@ export class VisuaService {
     if (frameworkId === "nist-ai-rmf") {
       settings.ai = { systems: [] };
     }
+    if (frameworkId === STATE_LAWS) {
+      settings.law = { applicability: {} };
+    }
     if (frameworkId === "nist-sp-800-53-r5") {
       settings.defaultTarget = 3;
       settings.rmf = {
@@ -361,6 +365,17 @@ export class VisuaService {
       if (!settings.soc2.categories.includes(category as Soc2Settings["categories"][number])) {
         return { applicable: false, rationale: `The ${category.replace("-", " ")} category is not in the SOC 2 examination scope` };
       }
+    }
+    if (node.frameworkId === STATE_LAWS && node.kind === "obligation") {
+      const lawId = String(node.attributes?.["lawId"] ?? "");
+      const law = this.registry.framework(fw)?.byId.get(node.parentId ?? "");
+      const chosen = settings?.law?.applicability[lawId]?.roles ?? [];
+      if (!chosen.length) return { applicable: false, rationale: `Not in scope: you have not said how ${law?.code ?? "this law"} applies to your organization` };
+      const roles = (node.attributes?.["roles"] as string[] | undefined) ?? [];
+      if (!roles.some((r) => chosen.includes(r))) return { applicable: false, rationale: `Applies to ${roles.join(", ")}; your role under ${law?.code ?? "this law"}: ${chosen.join(", ")}` };
+      const until = node.attributes?.["until"] as string | undefined;
+      if (until && until < now().slice(0, 10)) return { applicable: false, rationale: `No longer in effect after ${until}` };
+      return { applicable: true };
     }
     if (fw === "nist-sp-800-53-r5" && settings?.rmf) {
       const tailored = settings.rmf.tailoring.find((t) => t.nodeId === nodeId);
@@ -422,7 +437,9 @@ export class VisuaService {
   }
 
   async enableFramework(id: string, frameworkId: string, settings: Partial<WorkspaceFramework> = {}, actor = "user"): Promise<Workspace> {
-    if (!this.registry.framework(frameworkId)) throw new ValidationError(`Framework '${frameworkId}' is not available`);
+    const index = this.registry.framework(frameworkId);
+    if (!index) throw new ValidationError(`Framework '${frameworkId}' is not available`);
+    if (index.graph.framework.family === "threat") throw new ValidationError(`${index.graph.framework.shortName} is a threat catalog: it is viewed through your frameworks, not enabled`);
     return this.mutate(id, async (ws) => {
       const rec = recommend(ws.profile);
       const existing = this.frameworkSettings(ws, frameworkId);
@@ -435,6 +452,8 @@ export class VisuaService {
         soc2: settings.soc2 ? { ...base.soc2!, ...settings.soc2 } : base.soc2,
         rmf: settings.rmf ? { ...base.rmf!, ...settings.rmf } : base.rmf,
         ai: settings.ai ? { ...(base.ai ?? { systems: [] }), ...settings.ai } : base.ai,
+        // Law applicability is replaced as a whole, so a law can be taken out of scope.
+        law: settings.law ?? base.law,
       };
       const next: Workspace = {
         ...ws,
@@ -603,6 +622,36 @@ export class VisuaService {
         nodeIds: changed.map((c) => c.nodeId),
       });
       return { raised: changed.length };
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // U.S. state AI laws: applicability per law
+  // -------------------------------------------------------------------------
+
+  /** Record the roles the organization holds under one law (none = the law does not apply). Re-scopes its obligations. */
+  async setLawApplicability(id: string, lawId: string, input: { roles: string[]; note?: string }, actor = "user"): Promise<Workspace> {
+    const index = this.registry.framework(STATE_LAWS);
+    const law = index?.graph.nodes.find((n) => n.kind === "law" && n.attributes?.["lawId"] === lawId);
+    if (!index || !law) throw new NotFoundError(`Law '${lawId}' not found`);
+    const known = new Set(
+      index
+        .childrenOf(law.id)
+        .flatMap((o) => (o.attributes?.["roles"] as string[] | undefined) ?? [])
+        .concat(((law.attributes?.["appliesTo"] as { role: string }[] | undefined) ?? []).map((a) => a.role.toLowerCase().replace(/\s+/g, "-"))),
+    );
+    const roles = [...new Set(input.roles)];
+    const unknown = roles.filter((r) => !known.has(r));
+    if (unknown.length) throw new ValidationError(`${law.code} does not define the role(s) ${unknown.join(", ")} — choose from ${[...known].join(", ")}`);
+    return this.mutate(id, async (ws) => {
+      const settings = this.frameworkSettings(ws, STATE_LAWS);
+      if (!settings?.enabled) throw new ValidationError("Enable U.S. state AI laws for this workspace first");
+      const applicability = { ...(settings.law?.applicability ?? {}) };
+      if (roles.length) applicability[lawId] = { roles, note: input.note?.trim() || undefined, decidedAt: now(), decidedBy: actor };
+      else delete applicability[lawId];
+      const result = await this.enableFramework(ws.id, STATE_LAWS, { law: { applicability } }, actor);
+      await this.log(ws.id, actor, "scoped", "law", lawId, roles.length ? `${law.code} applies to us as ${roles.join(", ")}${input.note ? ` — ${input.note.trim()}` : ""}` : `${law.code} marked as not applying to us`);
+      return result;
     });
   }
 

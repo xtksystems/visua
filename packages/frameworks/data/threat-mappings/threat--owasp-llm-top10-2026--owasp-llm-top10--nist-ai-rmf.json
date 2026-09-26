@@ -1,0 +1,360 @@
+{
+ "id": "threat--owasp-llm-top10-2026--owasp-llm-top10--nist-ai-rmf",
+ "title": "OWASP LLM Top 10 2026, Appendix A",
+ "sourceFramework": "owasp-llm-top10",
+ "targetFramework": "nist-ai-rmf",
+ "authority": "OWASP LLM Top 10 2026, Appendix A",
+ "status": "final",
+ "mappings": [
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "nist-ai-rmf:MEASURE 1",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM01",
+    "page": 89,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "nist-ai-rmf:MEASURE 2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM01",
+    "page": 89,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "nist-ai-rmf:MAP 4",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM01",
+    "page": 89,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02",
+   "target": "nist-ai-rmf:MAP 5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM02",
+    "page": 89,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02",
+   "target": "nist-ai-rmf:MEASURE 2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM02",
+    "page": 89,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02",
+   "target": "nist-ai-rmf:MANAGE 4",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM02",
+    "page": 89,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "nist-ai-rmf:MANAGE 4",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM03",
+    "page": 90,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "nist-ai-rmf:GOVERN 6",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM04",
+    "page": 90,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "nist-ai-rmf:MAP 4",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM04",
+    "page": 90,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "nist-ai-rmf:MANAGE 3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM04",
+    "page": 90,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "nist-ai-rmf:MEASURE 2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM04",
+    "page": 90,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "nist-ai-rmf:MEASURE 3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM04",
+    "page": 90,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "nist-ai-rmf:MEASURE 3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM05",
+    "page": 90,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "nist-ai-rmf:MEASURE 2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM05",
+    "page": 91,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "nist-ai-rmf:GOVERN 6",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM05",
+    "page": 91,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM06",
+   "target": "nist-ai-rmf:MANAGE 1",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM06",
+    "page": 91,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM06",
+   "target": "nist-ai-rmf:MEASURE 2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM06",
+    "page": 91,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "nist-ai-rmf:MEASURE 2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM07",
+    "page": 91,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "nist-ai-rmf:MEASURE 1",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM07",
+    "page": 91,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "nist-ai-rmf:MEASURE 3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM07",
+    "page": 92,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "nist-ai-rmf:MANAGE 1",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM07",
+    "page": 92,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM08",
+   "target": "nist-ai-rmf:MEASURE 2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM08",
+    "page": 92,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "nist-ai-rmf:MAP 4",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM09",
+    "page": 92,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "nist-ai-rmf:MAP 5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM09",
+    "page": 92,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "nist-ai-rmf:MANAGE 4",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — NIST AI RMF (AI 100-1), row LLM09",
+    "page": 92,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  }
+ ]
+}

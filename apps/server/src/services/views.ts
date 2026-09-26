@@ -7,6 +7,7 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { CORPUS_DIR, FRAMEWORK_ORDER } from "@visua/frameworks";
 import { overlayLevelFor, overlayLevels } from "./overlays.ts";
+import { threatDetail, threatStateBundle, threatsAddressedBy, type MinStatus } from "./threats.ts";
 import type { VisuaService } from "./visua.ts";
 
 export interface LeanNode {
@@ -23,7 +24,7 @@ export interface LeanNode {
   meta?: Record<string, unknown>;
 }
 
-const LEAN_ATTRIBUTE_KEYS = ["baselines", "category", "cosoPrinciple", "level", "party", "label"];
+const LEAN_ATTRIBUTE_KEYS = ["baselines", "category", "cosoPrinciple", "level", "party", "label", "role", "effective", "section", "status", "tactics", "maturity"];
 
 export function leanGraph(graph: FrameworkGraph): { framework: FrameworkGraph["framework"]; nodes: LeanNode[]; profiles?: FrameworkGraph["profiles"] } {
   return {
@@ -50,20 +51,23 @@ export function leanGraph(graph: FrameworkGraph): { framework: FrameworkGraph["f
 }
 
 /** Everything the inspector needs for one requirement. */
-export async function nodeDetail(svc: VisuaService, ws: Workspace, node: RequirementNode) {
+export async function nodeDetail(svc: VisuaService, ws: Workspace, node: RequirementNode, opts: { minStatus?: MinStatus } = {}) {
   const index = svc.registry.framework(node.frameworkId)!;
+  // Threat catalogs are not assessed: their nodes show derived coverage instead of a status.
+  const isThreat = index.graph.framework.family === "threat";
   const related = svc.registry.crosswalk.related(node.id);
   const under = new Set(index.assessableUnder(node.id).map((n) => n.id));
-  const [score, states, allTasks, allEvidence, allChecks, allProposals, recentActivity] = await Promise.all([
-    svc.score(ws.id, node.frameworkId),
+  const [score, states, allTasks, allEvidence, allChecks, allProposals, recentActivity, threat] = await Promise.all([
+    isThreat ? null : svc.score(ws.id, node.frameworkId),
     svc.store.states.getMany(ws.id, [node.id, ...related.map((e) => e.to)]),
     svc.store.tasks.list(ws.id),
     svc.store.evidence.list(ws.id),
     svc.store.checks.list(ws.id),
     svc.store.proposals.list(ws.id),
     svc.store.activity.recent(ws.id, 400),
+    isThreat ? threatDetail(svc, ws, node, opts.minStatus) : null,
   ]);
-  const state = node.assessable ? states.get(node.id) : undefined;
+  const state = node.assessable && !isThreat ? states.get(node.id) : undefined;
   const tasks = allTasks.filter((t) => t.requirementIds.some((id) => id === node.id || under.has(id)));
   const evidence = allEvidence.filter((e) => e.requirementIds.some((id) => id === node.id || under.has(id)));
   const checks = allChecks.filter((c) => c.requirementIds.includes(node.id)).slice(-20);
@@ -91,9 +95,9 @@ export async function nodeDetail(svc: VisuaService, ws: Workspace, node: Require
     ancestors: index.ancestors(node.id).map((a) => ({ id: a.id, code: a.code, title: a.title })),
     children: index.childrenOf(node.id).map((c) => ({ id: c.id, code: c.code, title: c.title, text: c.text.slice(0, 160), assessable: c.assessable })),
     state,
-    status: score.statuses.get(node.id) ?? null,
-    score: score.scores.get(node.id) ?? null,
-    groupStatus: !node.assessable && score.scores.get(node.id) ? groupStatus(score.scores.get(node.id)!) : null,
+    status: score?.statuses.get(node.id) ?? null,
+    score: score?.scores.get(node.id) ?? null,
+    groupStatus: score && !node.assessable && score.scores.get(node.id) ? groupStatus(score.scores.get(node.id)!) : null,
     tasks,
     evidence,
     checks,
@@ -104,6 +108,8 @@ export async function nodeDetail(svc: VisuaService, ws: Workspace, node: Require
       ? { id: doc.id, title: doc.title, identifier: doc.identifier, path: doc.path, url: doc.url, page: node.citation.page, locator: node.citation.locator, present: existsSync(resolve(CORPUS_DIR, doc.path)) }
       : null,
     contentNotice: svc.registry.framework(node.frameworkId)?.graph.framework.contentNotice,
+    threat,
+    threats: isThreat ? [] : threatsAddressedBy(svc, node.id),
     overlays: svc.registry.overlaysOf(node.id).map(({ overlay, entry }) => ({
       id: overlay.id,
       kind: overlay.kind,
@@ -125,7 +131,9 @@ export async function nodeDetail(svc: VisuaService, ws: Workspace, node: Require
 }
 
 /** Per-framework state bundle driving the 3D colors, heights and HUD. */
-export async function frameworkState(svc: VisuaService, ws: Workspace, frameworkId: string) {
+export async function frameworkState(svc: VisuaService, ws: Workspace, frameworkId: string, opts: { minStatus?: MinStatus } = {}) {
+  // Threat catalogs are not assessed: their bundle carries derived coverage.
+  if (svc.registry.framework(frameworkId)?.graph.framework.family === "threat") return threatStateBundle(svc, ws, frameworkId, opts.minStatus);
   const [score, states, tasks, evidence] = await Promise.all([
     svc.score(ws.id, frameworkId),
     svc.store.states.list(ws.id, frameworkId),

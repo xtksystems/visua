@@ -173,3 +173,94 @@ describe.skipIf(!registry.overlay("nist-ir-8596-iprd"))("AI security overlays (N
     expect(registry.overlaysOf("nist-csf-2.0:GV.OC-01").map((x) => x.overlay.id)).toContain("nist-ir-8596-iprd");
   });
 });
+
+describe("AI threat catalogs", () => {
+  const kinds = (id: string) => registry.framework(id)!.graph.nodes.reduce<Record<string, number>>((acc, n) => ((acc[n.kind] = (acc[n.kind] ?? 0) + 1), acc), {});
+
+  it("MITRE ATLAS 2026.09: 16 tactics, 120 techniques, 88 sub-techniques, 40 mitigations", () => {
+    const atlas = registry.framework("mitre-atlas")!;
+    expect(atlas.graph.framework.family).toBe("threat");
+    expect(atlas.graph.framework.version).toBe("2026.09");
+    expect(kinds("mitre-atlas")).toMatchObject({ tactic: 16, technique: 120, "sub-technique": 88, mitigation: 40 });
+    expect(atlas.assessable).toHaveLength(208);
+    // Matrix order starts with Reconnaissance; a technique sits under its first tactic and keeps every tactic it serves.
+    expect(atlas.roots()[0]!.code).toBe("AML.TA0002");
+    const techniques = atlas.graph.nodes.filter((n) => n.kind === "technique");
+    for (const n of techniques) expect((n.attributes!["tactics"] as string[])[0]).toBe(n.parentId);
+    expect(techniques.some((n) => (n.attributes!["tactics"] as string[]).length > 1)).toBe(true);
+    expect(atlas.graph.framework.contentNotice).toMatch(/Apache License 2\.0/);
+  });
+
+  it("OWASP LLM Top 10: the 2026 edition is current, 2025 is kept with its lineage", () => {
+    const owasp = registry.framework("owasp-llm-top10")!;
+    expect(kinds("owasp-llm-top10")).toMatchObject({ edition: 2, risk: 20 });
+    expect(owasp.assessable.map((n) => n.code)).toEqual(["LLM01", "LLM02", "LLM03", "LLM04", "LLM05", "LLM06", "LLM07", "LLM08", "LLM09", "LLM10"]);
+    // 2026 renumbered the list: Supply Chain moved from LLM03 to LLM04.
+    const supply = owasp.get("LLM04")!;
+    expect(supply.title).toBe("Supply Chain");
+    expect(supply.attributes?.["previousEdition"]).toMatchObject({ key: "LLM03:2025", nodeId: "owasp-llm-top10:LLM03-2025" });
+    expect(owasp.get("LLM03-2025")!.attributes?.["nextEdition"]).toMatchObject({ key: "LLM04:2026" });
+    expect(owasp.graph.framework.contentNotice).toMatch(/CC BY-SA 4\.0/);
+  });
+
+  it("OWASP Agentic Top 10 2026 and NIST AI 100-2 E2025", () => {
+    expect(registry.framework("owasp-agentic-top10")!.assessable.map((n) => n.code)).toEqual(["ASI01", "ASI02", "ASI03", "ASI04", "ASI05", "ASI06", "ASI07", "ASI08", "ASI09", "ASI10"]);
+    expect(kinds("nist-ai-100-2")).toMatchObject({ objective: 5, attack: 25 });
+  });
+
+  it("keeps every published link with its authority and status, apart from the requirement crosswalk", () => {
+    const sets = registry.threatLinks.sets;
+    const count = (authority: RegExp, status: string) => sets.filter((s) => authority.test(s.authority) && s.status === status).reduce((n, s) => n + s.mappings.length, 0);
+    expect(count(/^MITRE ATLAS/, "final")).toBe(361);
+    expect(count(/^NIST COSAiS/, "draft")).toBe(21);
+    expect(count(/^OWASP LLM Top 10 2026/, "final")).toBe(102);
+    expect(count(/unreviewed/, "unreviewed")).toBe(237);
+    for (const set of sets) for (const m of set.mappings) {
+      expect(registry.node(m.source), m.source).toBeDefined();
+      expect(registry.node(m.target), m.target).toBeDefined();
+    }
+    // Threat links never enter the requirement crosswalk.
+    expect(registry.crosswalk.sets.some((s) => s.id.startsWith("threat--"))).toBe(false);
+    const gvoc = registry.threatLinks.of("nist-csf-2.0:GV.OC-01");
+    expect(gvoc.some((l) => l.nodeId === "mitre-atlas:AML.M0020" && l.status === "draft")).toBe(true);
+    // Catalogs Visua does not model are kept as references on the threat.
+    const refs = registry.node("owasp-llm-top10:LLM01")!.attributes?.["externalRefs"] as { scheme: string }[];
+    expect(new Set(refs.map((r) => r.scheme))).toEqual(new Set(["mitre-attack", "cwe", "csa-aicm", "owasp-aivss", "owasp-genai-data-security", "nist-ai-600-1"]));
+  });
+});
+
+describe.skipIf(!registry.framework("us-state-ai-laws"))("U.S. state AI laws", () => {
+  const laws = registry.framework("us-state-ai-laws")!;
+  const byKind = (k: string) => laws?.graph.nodes.filter((n) => n.kind === k) ?? [];
+
+  it("26 laws in 8 jurisdictions with 187 obligations quoted from the statutes and regulations", () => {
+    expect(laws.graph.framework.family).toBe("law");
+    expect(byKind("jurisdiction").map((n) => n.code)).toEqual(["CA", "CO", "IL", "ME", "NY", "NYC", "TX", "UT"]);
+    expect(byKind("law")).toHaveLength(26);
+    expect(byKind("obligation")).toHaveLength(187);
+    expect(laws.assessable).toHaveLength(187);
+    // Codes are node ids: unique, short and stable.
+    const codes = byKind("law").map((n) => n.code);
+    expect(new Set(codes).size).toBe(codes.length);
+    expect(codes.every((c) => /^[A-Z]{2,3}-[A-Z0-9-]+$/.test(c) && c.length <= 20)).toBe(true);
+    expect(codes).toEqual(expect.arrayContaining(["TX-TRAIGA", "CA-TFAIA", "CO-SB26-189", "NY-RAISE", "NYC-AEDT", "UT-HB276-PROVENANCE", "UT-HB276-VOYEURISM"]));
+  });
+
+  it("cites every obligation to its section and page, and names the roles it falls on", () => {
+    const docs = new Set(loadCorpusManifests().flatMap((m) => m.documents.map((d) => d.id)));
+    for (const o of byKind("obligation")) {
+      expect(docs.has(o.citation.documentId), `${o.code} → ${o.citation.documentId}`).toBe(true);
+      expect(o.citation.locator, o.code).toBeTruthy();
+      expect(o.citation.page, o.code).toBeGreaterThan(0);
+      expect((o.attributes?.["roles"] as string[]).length, o.code).toBeGreaterThan(0);
+      expect(o.text.length, o.code).toBeGreaterThan(20);
+    }
+  });
+
+  it("keeps an enjoined law with its status and no obligations to track", () => {
+    const co = laws.get("CO-SB24-205")!;
+    expect(co.attributes?.["status"]).toBe("enjoined");
+    expect(laws.childrenOf(co.id)).toHaveLength(0);
+    expect(laws.get("TX-TRAIGA")!.attributes?.["safeHarbors"]).toEqual(expect.arrayContaining([expect.objectContaining({ references: expect.arrayContaining([expect.stringMatching(/600-1/)]) })]));
+  });
+});

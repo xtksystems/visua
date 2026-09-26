@@ -3,6 +3,8 @@
  *
  *   corpus/<framework>/…  ──►  packages/frameworks/data/<framework-id>.json
  *                              packages/frameworks/data/mappings/*.json
+ *                              packages/frameworks/data/threat-mappings/*.json
+ *                              packages/frameworks/data/overlays/*.json
  *                              packages/frameworks/data/chunks/<corpus>.json
  *                              packages/frameworks/data/_ingest-report.json
  *
@@ -20,6 +22,8 @@ import { ingestRmf, rmfToControls } from "../src/ingest/rmf.ts";
 import { ingest80053 } from "../src/ingest/sp80053.ts";
 import { ingestAiRmf } from "../src/ingest/ai-rmf.ts";
 import { ingestCosais, ingestCyberAiProfile } from "../src/ingest/ai-overlays.ts";
+import { ingestStateLaws } from "../src/ingest/state-laws.ts";
+import { ingestThreatCatalogs, threatLinks } from "../src/ingest/threats.ts";
 import { buildTscGraph } from "../src/ingest/tsc.ts";
 import { aicpaTscMappingSets } from "../src/ingest/tsc-mappings.ts";
 
@@ -50,6 +54,24 @@ if (aiRmf) {
   log("NIST AI RMF: corpus not available — skipped");
 }
 
+const laws = ingestStateLaws();
+if (laws) {
+  graphs.push(laws);
+  const count = (kind: string) => laws.nodes.filter((n) => n.kind === kind).length;
+  log(`U.S. state AI laws: ${count("jurisdiction")} jurisdictions, ${count("law")} laws, ${count("obligation")} obligations`);
+} else {
+  log("U.S. state AI laws: corpus not available — skipped");
+}
+
+// Threat catalogs (never assessed; viewed through the requirements linked to them).
+const threatGraphs = ingestThreatCatalogs();
+for (const g of threatGraphs) {
+  graphs.push(g);
+  const byKind = g.nodes.reduce<Record<string, number>>((acc, n) => ((acc[n.kind] = (acc[n.kind] ?? 0) + 1), acc), {});
+  log(`${g.framework.shortName} ${g.framework.version}: ${Object.entries(byKind).map(([k, v]) => `${v} ${k}`).join(", ")}`);
+}
+if (!threatGraphs.length) log("AI threat catalogs: corpus not available — skipped");
+
 const tsc = buildTscGraph();
 graphs.push(tsc);
 const tscLicensed = tsc.nodes.filter((n) => n.attributes?.["licensed"] === true).length;
@@ -67,6 +89,25 @@ const mappingSets: MappingSet[] = [...csfMappingSets(csf.crosswalkRefs, exists),
 for (const set of mappingSets) {
   writeFileSync(resolve(DATA_DIR, "mappings", `${set.id}.json`), JSON.stringify(set, null, 1));
   log(`mapping ${set.id}: ${set.mappings.length}`);
+}
+
+// Threat links: one set per publishing authority, labeled with its status (final, draft,
+// unreviewed, superseded). Links to catalogs Visua does not model become node references.
+const threats = threatLinks(exists);
+rmSync(resolve(DATA_DIR, "threat-mappings"), { recursive: true, force: true });
+if (threats.sets.length) mkdirSync(resolve(DATA_DIR, "threat-mappings"), { recursive: true });
+for (const set of threats.sets) {
+  writeFileSync(resolve(DATA_DIR, "threat-mappings", `${set.id}.json`), JSON.stringify(set, null, 1));
+  log(`threat links ${set.id} (${set.status}): ${set.mappings.length}`);
+}
+const nodeIndex = new Map(graphs.flatMap((g) => g.nodes.map((n) => [n.id, n] as const)));
+for (const [nodeId, refs] of threats.external) {
+  const node = nodeIndex.get(nodeId)!;
+  node.attributes = { ...node.attributes, externalRefs: refs };
+}
+if (threatGraphs.length) {
+  log(`threat links kept: ${threats.kept}; external references: ${[...threats.external.values()].reduce((n, r) => n + r.length, 0)}`);
+  for (const [why, n] of Object.entries(threats.dropped)) log(`  dropped ${n}: ${why}`);
 }
 
 for (const g of graphs) writeFileSync(resolve(DATA_DIR, `${g.framework.id}.json`), JSON.stringify(g));
@@ -101,6 +142,8 @@ function nodeChunk(n: RequirementNode): CorpusChunk {
   if (suggested?.length) parts.push(`Suggested actions (AI RMF Playbook): ${suggested.join(" ")}`);
   const profileActions = n.attributes?.["profileActions"] as { id: string; text: string }[] | undefined;
   if (profileActions?.length) parts.push(`Generative AI Profile actions: ${profileActions.map((a) => `${a.id} ${a.text}`).join(" ")}`);
+  const prevention = n.attributes?.["preventionStrategies"] as { title?: string; text: string }[] | undefined;
+  if (prevention?.length) parts.push(`Prevention and mitigation strategies: ${prevention.map((p) => `${p.title ? `${p.title}. ` : ""}${p.text}`).join(" ")}`);
   if (n.guidance) parts.push(`Discussion: ${n.guidance.slice(0, 1600)}`);
   return {
     id: `node:${n.id}`,
@@ -198,6 +241,7 @@ const report = {
     byKind: g.nodes.reduce<Record<string, number>>((acc, n) => ((acc[n.kind] = (acc[n.kind] ?? 0) + 1), acc), {}),
   })),
   mappings: mappingSets.map((m) => ({ id: m.id, count: m.mappings.length, authority: m.authority })),
+  threatMappings: threats.sets.map((m) => ({ id: m.id, count: m.mappings.length, authority: m.authority, status: m.status })),
   overlays: overlays.map((o) => ({ id: o.id, frameworkId: o.frameworkId, status: o.status, entries: o.entries.length })),
   corpus: { chunks: chunks.length, pdfDocuments: pdfCount, manifests: manifests.map((m) => ({ framework: m.framework, documents: m.documents.length })) },
   sources: manifests.flatMap((m) => m.documents.filter((d) => d.role === "machine-readable" || d.role === "criteria").map((d) => ({ id: d.id, sha256: d.sha256 }))),

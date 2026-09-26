@@ -1,0 +1,4703 @@
+{
+ "id": "threat--mitre-atlas-2026.09--mitre-atlas--mitre-atlas",
+ "title": "MITRE ATLAS 2026.09",
+ "sourceFramework": "mitre-atlas",
+ "targetFramework": "mitre-atlas",
+ "authority": "MITRE ATLAS 2026.09",
+ "status": "final",
+ "mappings": [
+  {
+   "source": "mitre-atlas:AML.M0000",
+   "target": "mitre-atlas:AML.T0000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0000'].mitigates → AML.T0000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit the connection between publicly disclosed approaches and the data, models, and algorithms used in production."
+  },
+  {
+   "source": "mitre-atlas:AML.M0000",
+   "target": "mitre-atlas:AML.T0001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0000'].mitigates → AML.T0001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit disclosure of the production AI stack and system-specific technical details that let adversaries connect public vulnerability research to the deployed target."
+  },
+  {
+   "source": "mitre-atlas:AML.M0000",
+   "target": "mitre-atlas:AML.T0002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0000'].mitigates → AML.T0002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit the release of sensitive information in the metadata of deployed systems and publicly available applications."
+  },
+  {
+   "source": "mitre-atlas:AML.M0000",
+   "target": "mitre-atlas:AML.T0003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0000'].mitigates → AML.T0003",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Restrict release of technical information on ML-enabled products and organizational information on the teams supporting ML-enabled products."
+  },
+  {
+   "source": "mitre-atlas:AML.M0000",
+   "target": "mitre-atlas:AML.T0004",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0000'].mitigates → AML.T0004",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit the release of sensitive information in the metadata of deployed systems and publicly available applications."
+  },
+  {
+   "source": "mitre-atlas:AML.M0000",
+   "target": "mitre-atlas:AML.T0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0000'].mitigates → AML.T0005",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limiting release of technical information about a model and training data can reduce an adversary's ability to create an accurate proxy model."
+  },
+  {
+   "source": "mitre-atlas:AML.M0000",
+   "target": "mitre-atlas:AML.T0005.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0000'].mitigates → AML.T0005.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limiting release of technical information about a model and training data can reduce an adversary's ability to create an accurate proxy model."
+  },
+  {
+   "source": "mitre-atlas:AML.M0000",
+   "target": "mitre-atlas:AML.T0005.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0000'].mitigates → AML.T0005.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limiting release of technical information about a model and training data can reduce an adversary's ability to create an accurate proxy model."
+  },
+  {
+   "source": "mitre-atlas:AML.M0000",
+   "target": "mitre-atlas:AML.T0064",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0000'].mitigates → AML.T0064",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Withhold public documentation that identifies RAG data sources, indexes, and retrieval architecture."
+  },
+  {
+   "source": "mitre-atlas:AML.M0000",
+   "target": "mitre-atlas:AML.T0069",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0000'].mitigates → AML.T0069",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Withhold public prompt templates, model configuration, and architecture details that could aid LLM reconnaissance."
+  },
+  {
+   "source": "mitre-atlas:AML.M0000",
+   "target": "mitre-atlas:AML.T0084",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0000'].mitigates → AML.T0084",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit public disclosure of agent tools, services, configuration, and workflows."
+  },
+  {
+   "source": "mitre-atlas:AML.M0000",
+   "target": "mitre-atlas:AML.T0084.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0000'].mitigates → AML.T0084.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Avoid publicly documenting sensitive agent tool definitions and capabilities."
+  },
+  {
+   "source": "mitre-atlas:AML.M0000",
+   "target": "mitre-atlas:AML.T0084.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0000'].mitigates → AML.T0084.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Avoid publicly disclosing agent activation keywords, events, and workflows."
+  },
+  {
+   "source": "mitre-atlas:AML.M0000",
+   "target": "mitre-atlas:AML.T0084.003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0000'].mitigates → AML.T0084.003",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit public disclosure of agent call chains and execution-sink details."
+  },
+  {
+   "source": "mitre-atlas:AML.M0000",
+   "target": "mitre-atlas:AML.T0095",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0000'].mitigates → AML.T0095",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit public technical and organizational information that reveals the AI stack, services, personnel, or other targeting details on websites and domains."
+  },
+  {
+   "source": "mitre-atlas:AML.M0001",
+   "target": "mitre-atlas:AML.T0002.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0001'].mitigates → AML.T0002.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limiting the release of datasets can reduce an adversary's ability to target production models trained on the same or similar data."
+  },
+  {
+   "source": "mitre-atlas:AML.M0001",
+   "target": "mitre-atlas:AML.T0002.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0001'].mitigates → AML.T0002.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limiting the release of model architectures and checkpoints can reduce an adversary's ability to target those models."
+  },
+  {
+   "source": "mitre-atlas:AML.M0001",
+   "target": "mitre-atlas:AML.T0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0001'].mitigates → AML.T0005",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limiting the release of model artifacts can reduce an adversary's ability to create an accurate proxy model."
+  },
+  {
+   "source": "mitre-atlas:AML.M0001",
+   "target": "mitre-atlas:AML.T0005.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0001'].mitigates → AML.T0005.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limiting the release of model artifacts can reduce an adversary's ability to create an accurate proxy model."
+  },
+  {
+   "source": "mitre-atlas:AML.M0001",
+   "target": "mitre-atlas:AML.T0016",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0001'].mitigates → AML.T0016",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit public release of production model artifacts that adversaries could acquire and adapt as operational capabilities."
+  },
+  {
+   "source": "mitre-atlas:AML.M0001",
+   "target": "mitre-atlas:AML.T0016.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0001'].mitigates → AML.T0016.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit public release of production model artifacts that adversaries could acquire and adapt as operational capabilities."
+  },
+  {
+   "source": "mitre-atlas:AML.M0001",
+   "target": "mitre-atlas:AML.T0020",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0001'].mitigates → AML.T0020",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Published datasets can be a target for poisoning attacks."
+  },
+  {
+   "source": "mitre-atlas:AML.M0001",
+   "target": "mitre-atlas:AML.T0035",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0001'].mitigates → AML.T0035",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limiting the release of artifacts can reduce an adversary's ability to collect model artifacts"
+  },
+  {
+   "source": "mitre-atlas:AML.M0002",
+   "target": "mitre-atlas:AML.T0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0002'].mitigates → AML.T0005",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Obfuscating model outputs can reduce an adversary's ability to produce an accurate proxy model."
+  },
+  {
+   "source": "mitre-atlas:AML.M0002",
+   "target": "mitre-atlas:AML.T0005.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0002'].mitigates → AML.T0005.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Obfuscating model outputs restricts an adversary's ability to create an accurate proxy model by querying a model and observing its outputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0002",
+   "target": "mitre-atlas:AML.T0013",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0002'].mitigates → AML.T0013",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Suggested approaches: - Restrict the number of results shown - Limit specificity of output class ontology - Use randomized smoothing techniques - Reduce the precision of numerical outputs"
+  },
+  {
+   "source": "mitre-atlas:AML.M0002",
+   "target": "mitre-atlas:AML.T0014",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0002'].mitigates → AML.T0014",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Suggested approaches: - Restrict the number of results shown - Limit specificity of output class ontology - Use randomized smoothing techniques - Reduce the precision of numerical outputs"
+  },
+  {
+   "source": "mitre-atlas:AML.M0002",
+   "target": "mitre-atlas:AML.T0024.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0002'].mitigates → AML.T0024.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Suggested approaches: - Restrict the number of results shown - Limit specificity of output class ontology - Use randomized smoothing techniques - Reduce the precision of numerical outputs"
+  },
+  {
+   "source": "mitre-atlas:AML.M0002",
+   "target": "mitre-atlas:AML.T0024.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0002'].mitigates → AML.T0024.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Suggested approaches: - Restrict the number of results shown - Limit specificity of output class ontology - Use randomized smoothing techniques - Reduce the precision of numerical outputs"
+  },
+  {
+   "source": "mitre-atlas:AML.M0002",
+   "target": "mitre-atlas:AML.T0024.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0002'].mitigates → AML.T0024.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Suggested approaches: - Restrict the number of results shown - Limit specificity of output class ontology - Use randomized smoothing techniques - Reduce the precision of numerical outputs"
+  },
+  {
+   "source": "mitre-atlas:AML.M0002",
+   "target": "mitre-atlas:AML.T0042",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0002'].mitigates → AML.T0042",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Obfuscating model outputs reduces an adversary's ability to verify the efficacy of an attack."
+  },
+  {
+   "source": "mitre-atlas:AML.M0002",
+   "target": "mitre-atlas:AML.T0043",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0002'].mitigates → AML.T0043",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Obfuscating model outputs reduces an adversary's ability to generate effective adversarial data."
+  },
+  {
+   "source": "mitre-atlas:AML.M0002",
+   "target": "mitre-atlas:AML.T0043.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0002'].mitigates → AML.T0043.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Obfuscating model outputs reduces an adversary's ability to create effective adversarial inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0002",
+   "target": "mitre-atlas:AML.T0063",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0002'].mitigates → AML.T0063",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Obfuscating model outputs can prevent adversaries from collecting sensitive information about the model outputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0003",
+   "target": "mitre-atlas:AML.T0015",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0003'].mitigates → AML.T0015",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Hardened models are more difficult to evade."
+  },
+  {
+   "source": "mitre-atlas:AML.M0003",
+   "target": "mitre-atlas:AML.T0031",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0003'].mitigates → AML.T0031",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Hardened models are less susceptible to integrity attacks."
+  },
+  {
+   "source": "mitre-atlas:AML.M0003",
+   "target": "mitre-atlas:AML.T0043",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0003'].mitigates → AML.T0043",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Hardened models are more robust to adversarial inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0003",
+   "target": "mitre-atlas:AML.T0043.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0003'].mitigates → AML.T0043.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Hardened models are more robust to adversarial inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0003",
+   "target": "mitre-atlas:AML.T0043.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0003'].mitigates → AML.T0043.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Hardened models are more robust to adversarial inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0003",
+   "target": "mitre-atlas:AML.T0043.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0003'].mitigates → AML.T0043.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Hardened models are more robust to adversarial inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0003",
+   "target": "mitre-atlas:AML.T0043.003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0003'].mitigates → AML.T0043.003",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Hardened models are more robust to adversarial inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0003",
+   "target": "mitre-atlas:AML.T0043.004",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0003'].mitigates → AML.T0043.004",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Hardened models are more robust to adversarial inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0004",
+   "target": "mitre-atlas:AML.T0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0004'].mitigates → AML.T0005",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit inference queries to reduce the labeled outputs available for training a proxy model."
+  },
+  {
+   "source": "mitre-atlas:AML.M0004",
+   "target": "mitre-atlas:AML.T0005.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0004'].mitigates → AML.T0005.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit inference queries to reduce the labeled outputs available for training a proxy model."
+  },
+  {
+   "source": "mitre-atlas:AML.M0004",
+   "target": "mitre-atlas:AML.T0013",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0004'].mitigates → AML.T0013",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit inference queries to reduce an adversary's ability to discover the model's full output ontology."
+  },
+  {
+   "source": "mitre-atlas:AML.M0004",
+   "target": "mitre-atlas:AML.T0014",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0004'].mitigates → AML.T0014",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit inference queries to reduce an adversary's ability to infer the family of AI model."
+  },
+  {
+   "source": "mitre-atlas:AML.M0004",
+   "target": "mitre-atlas:AML.T0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0004'].mitigates → AML.T0024",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit the volume of API queries in a given period of time to regulate the amount and fidelity of potentially sensitive information an attacker can learn."
+  },
+  {
+   "source": "mitre-atlas:AML.M0004",
+   "target": "mitre-atlas:AML.T0024.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0004'].mitigates → AML.T0024.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit the volume of API queries in a given period of time to regulate the amount and fidelity of potentially sensitive information an attacker can learn."
+  },
+  {
+   "source": "mitre-atlas:AML.M0004",
+   "target": "mitre-atlas:AML.T0024.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0004'].mitigates → AML.T0024.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit the volume of API queries in a given period of time to regulate the amount and fidelity of potentially sensitive information an attacker can learn."
+  },
+  {
+   "source": "mitre-atlas:AML.M0004",
+   "target": "mitre-atlas:AML.T0024.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0004'].mitigates → AML.T0024.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit the volume of API queries in a given period of time to regulate the amount and fidelity of potentially sensitive information an attacker can learn."
+  },
+  {
+   "source": "mitre-atlas:AML.M0004",
+   "target": "mitre-atlas:AML.T0029",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0004'].mitigates → AML.T0029",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit the number of queries users can perform in a given interval to prevent a denial of service."
+  },
+  {
+   "source": "mitre-atlas:AML.M0004",
+   "target": "mitre-atlas:AML.T0034",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0004'].mitigates → AML.T0034",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit the number of queries users can perform in a given interval to hinder an attacker's ability to send computationally expensive inputs"
+  },
+  {
+   "source": "mitre-atlas:AML.M0004",
+   "target": "mitre-atlas:AML.T0042",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0004'].mitigates → AML.T0042",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit repeated queries used to test and refine an attack against the target model."
+  },
+  {
+   "source": "mitre-atlas:AML.M0004",
+   "target": "mitre-atlas:AML.T0043",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0004'].mitigates → AML.T0043",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit volume of model queries to prevent or slow an adversary's ability to create adversarial inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0004",
+   "target": "mitre-atlas:AML.T0043.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0004'].mitigates → AML.T0043.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit volume of model queries to prevent or slow an adversary's ability to perform black-box optimization attacks."
+  },
+  {
+   "source": "mitre-atlas:AML.M0004",
+   "target": "mitre-atlas:AML.T0043.003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0004'].mitigates → AML.T0043.003",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit volume of model queries to prevent or slow an adversary's ability to refine manually crafted adversarial inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0004",
+   "target": "mitre-atlas:AML.T0046",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0004'].mitigates → AML.T0046",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit volume and rate of queries to protect the system from chaff data spam."
+  },
+  {
+   "source": "mitre-atlas:AML.M0004",
+   "target": "mitre-atlas:AML.T0062",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0004'].mitigates → AML.T0062",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit repeated prompts used to search for exploitable hallucinations."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0007",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0007",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Access controls can limit an adversary's ability to identify AI models, datasets, and other artifacts on a system."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0010.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0010.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Access controls can prevent tampering with ML artifacts and prevent unauthorized copying."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0010.003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0010.003",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Access controls can prevent tampering with ML artifacts and prevent unauthorized copying."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0012",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0012",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Restrict model registries and training data to approved identities so compromised accounts expose only explicitly authorized AI assets."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0018",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0018",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Access controls can prevent tampering with AI artifacts and prevent unauthorized modification."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0018.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0018.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Access controls can prevent tampering with ML artifacts and prevent unauthorized copying."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0018.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0018.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Access controls can prevent tampering with ML artifacts and prevent unauthorized copying."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0020",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0020",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Access controls can prevent tampering with ML artifacts and prevent unauthorized copying."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0021",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0021",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Verify identities before granting access to model registries so newly established accounts cannot automatically access protected AI artifacts."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0025",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Access controls can prevent exfiltration."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0035",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0035",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Access controls can prevent or limit the collection of AI artifacts on the victim system."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0042",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0042",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Access controls on models at rest can prevent an adversary's ability to verify attack efficacy."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0043.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0043.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Access controls can reduce unnecessary access to AI models and prevent an adversary from achieving white-box access."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0044",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0044",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Access controls on models and data at rest can help prevent full model access."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0048.004",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0048.004",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Access controls can prevent theft of intellectual property."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0069",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0069",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Restrict access to stored system prompts, configuration files, and model metadata."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0069.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0069.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Restrict access to stored prompt templates and configurations containing internal delimiters."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0069.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0069.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Restrict access to stored system instructions and tool definitions containing privileged keywords."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0069.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0069.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Restrict access to stored system prompts and prompt templates."
+  },
+  {
+   "source": "mitre-atlas:AML.M0005",
+   "target": "mitre-atlas:AML.T0112.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0005'].mitigates → AML.T0112.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Restrict write access to model registries and AI artifact stores."
+  },
+  {
+   "source": "mitre-atlas:AML.M0006",
+   "target": "mitre-atlas:AML.T0010.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0006'].mitigates → AML.T0010.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Using multiple different models ensures minimal performance loss if security flaw is found in tool for one model or family."
+  },
+  {
+   "source": "mitre-atlas:AML.M0006",
+   "target": "mitre-atlas:AML.T0010.003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0006'].mitigates → AML.T0010.003",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Using multiple different models ensures minimal performance loss if security flaw is found in tool for one model or family."
+  },
+  {
+   "source": "mitre-atlas:AML.M0006",
+   "target": "mitre-atlas:AML.T0014",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0006'].mitigates → AML.T0014",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Use multiple different models to fool adversaries of which type of model is used and how the model used."
+  },
+  {
+   "source": "mitre-atlas:AML.M0006",
+   "target": "mitre-atlas:AML.T0015",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0006'].mitigates → AML.T0015",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Using multiple different models increases robustness to attack."
+  },
+  {
+   "source": "mitre-atlas:AML.M0006",
+   "target": "mitre-atlas:AML.T0031",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0006'].mitigates → AML.T0031",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Using multiple different models increases robustness to attack."
+  },
+  {
+   "source": "mitre-atlas:AML.M0006",
+   "target": "mitre-atlas:AML.T0043",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0006'].mitigates → AML.T0043",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Using an ensemble of models increases the difficulty of crafting effective adversarial data and improves overall robustness."
+  },
+  {
+   "source": "mitre-atlas:AML.M0006",
+   "target": "mitre-atlas:AML.T0043.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0006'].mitigates → AML.T0043.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Using an ensemble of models increases the difficulty of crafting effective adversarial data and improves overall robustness."
+  },
+  {
+   "source": "mitre-atlas:AML.M0006",
+   "target": "mitre-atlas:AML.T0043.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0006'].mitigates → AML.T0043.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Using an ensemble of models increases the difficulty of crafting effective adversarial data and improves overall robustness."
+  },
+  {
+   "source": "mitre-atlas:AML.M0006",
+   "target": "mitre-atlas:AML.T0043.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0006'].mitigates → AML.T0043.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Using an ensemble of models increases the difficulty of crafting effective adversarial data and improves overall robustness."
+  },
+  {
+   "source": "mitre-atlas:AML.M0006",
+   "target": "mitre-atlas:AML.T0043.003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0006'].mitigates → AML.T0043.003",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Using an ensemble of models increases the difficulty of crafting effective adversarial data and improves overall robustness."
+  },
+  {
+   "source": "mitre-atlas:AML.M0006",
+   "target": "mitre-atlas:AML.T0043.004",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0006'].mitigates → AML.T0043.004",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Using an ensemble of models increases the difficulty of crafting effective adversarial data and improves overall robustness."
+  },
+  {
+   "source": "mitre-atlas:AML.M0007",
+   "target": "mitre-atlas:AML.T0010.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0007'].mitigates → AML.T0010.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Detect and remove or remediate poisoned data to avoid adversarial model drift or backdoor attacks."
+  },
+  {
+   "source": "mitre-atlas:AML.M0007",
+   "target": "mitre-atlas:AML.T0018.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0007'].mitigates → AML.T0018.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Prevent attackers from leveraging poisoned datasets to launch backdoor attacks against a model."
+  },
+  {
+   "source": "mitre-atlas:AML.M0007",
+   "target": "mitre-atlas:AML.T0020",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0007'].mitigates → AML.T0020",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Detect modification of data and labels which may cause adversarial model drift or backdoor attacks."
+  },
+  {
+   "source": "mitre-atlas:AML.M0007",
+   "target": "mitre-atlas:AML.T0059",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0007'].mitigates → AML.T0059",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Remediating poisoned data can re-establish dataset integrity."
+  },
+  {
+   "source": "mitre-atlas:AML.M0007",
+   "target": "mitre-atlas:AML.T0115",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0007'].mitigates → AML.T0115",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Dataset repositories inspect submissions and quarantine poisoned samples, labels, annotations, or metadata before listing."
+  },
+  {
+   "source": "mitre-atlas:AML.M0007",
+   "target": "mitre-atlas:AML.T0115.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0007'].mitigates → AML.T0115.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Dataset repositories inspect submissions and quarantine poisoned samples, labels, annotations, or metadata before listing."
+  },
+  {
+   "source": "mitre-atlas:AML.M0008",
+   "target": "mitre-atlas:AML.T0010.003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0008'].mitigates → AML.T0010.003",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Ensure that acquired models do not respond to potential backdoor triggers or adversarial influence."
+  },
+  {
+   "source": "mitre-atlas:AML.M0008",
+   "target": "mitre-atlas:AML.T0018",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0008'].mitigates → AML.T0018",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Validating an AI model against a wide range of adversarial inputs can help increase confidence that the model has not been manipulated."
+  },
+  {
+   "source": "mitre-atlas:AML.M0008",
+   "target": "mitre-atlas:AML.T0018.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0008'].mitigates → AML.T0018.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Ensure that trained models do not respond to potential backdoor triggers or adversarial influence."
+  },
+  {
+   "source": "mitre-atlas:AML.M0008",
+   "target": "mitre-atlas:AML.T0018.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0008'].mitigates → AML.T0018.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Ensure that acquired models do not respond to potential backdoor triggers or adversarial influence."
+  },
+  {
+   "source": "mitre-atlas:AML.M0008",
+   "target": "mitre-atlas:AML.T0020",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0008'].mitigates → AML.T0020",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Robust evaluation of an AI model can help increase confidence that the model has not been poisoned."
+  },
+  {
+   "source": "mitre-atlas:AML.M0008",
+   "target": "mitre-atlas:AML.T0043",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0008'].mitigates → AML.T0043",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Validating an AI model against adversarial data can ensure the model is performing as intended and is robust to adversarial inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0008",
+   "target": "mitre-atlas:AML.T0043.004",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0008'].mitigates → AML.T0043.004",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Validating that an AI model does not respond to backdoor triggers can help increase confidence that the model has not been poisoned."
+  },
+  {
+   "source": "mitre-atlas:AML.M0008",
+   "target": "mitre-atlas:AML.T0057",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0008'].mitigates → AML.T0057",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Robust evaluation of an AI model can be used to detect privacy concerns, data leakage, and potential for revealing sensitive information."
+  },
+  {
+   "source": "mitre-atlas:AML.M0008",
+   "target": "mitre-atlas:AML.T0115",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0008'].mitigates → AML.T0115",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Model repositories evaluate submissions for backdoors, data leakage, adversarial influence, and unexpected behavior before listing."
+  },
+  {
+   "source": "mitre-atlas:AML.M0008",
+   "target": "mitre-atlas:AML.T0115.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0008'].mitigates → AML.T0115.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Model repositories evaluate submissions for backdoors, data leakage, adversarial influence, and unexpected behavior before listing."
+  },
+  {
+   "source": "mitre-atlas:AML.M0009",
+   "target": "mitre-atlas:AML.T0015",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0009'].mitigates → AML.T0015",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Using a variety of sensors can make it more difficult for an attacker to compromise and produce malicious results."
+  },
+  {
+   "source": "mitre-atlas:AML.M0009",
+   "target": "mitre-atlas:AML.T0041",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0009'].mitigates → AML.T0041",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Using a variety of sensors can make it more difficult for an attacker with physical access to compromise and produce malicious results."
+  },
+  {
+   "source": "mitre-atlas:AML.M0009",
+   "target": "mitre-atlas:AML.T0088",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0009'].mitigates → AML.T0088",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Using a variety of sensors, such as IR depth cameras, can aid in detecting deepfakes."
+  },
+  {
+   "source": "mitre-atlas:AML.M0010",
+   "target": "mitre-atlas:AML.T0015",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0010'].mitigates → AML.T0015",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Preprocessing model inputs can prevent malicious data from going through the machine learning pipeline."
+  },
+  {
+   "source": "mitre-atlas:AML.M0010",
+   "target": "mitre-atlas:AML.T0031",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0010'].mitigates → AML.T0031",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Preprocessing model inputs can prevent malicious data from going through the machine learning pipeline."
+  },
+  {
+   "source": "mitre-atlas:AML.M0010",
+   "target": "mitre-atlas:AML.T0043",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0010'].mitigates → AML.T0043",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Input restoration can help remediate adversarial inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0010",
+   "target": "mitre-atlas:AML.T0043.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0010'].mitigates → AML.T0043.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Input restoration can help remediate adversarial inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0010",
+   "target": "mitre-atlas:AML.T0043.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0010'].mitigates → AML.T0043.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Input restoration adds an extra layer of unknowns and randomness when an adversary evaluates the input-output relationship."
+  },
+  {
+   "source": "mitre-atlas:AML.M0010",
+   "target": "mitre-atlas:AML.T0043.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0010'].mitigates → AML.T0043.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Input restoration can help remediate adversarial inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0010",
+   "target": "mitre-atlas:AML.T0043.003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0010'].mitigates → AML.T0043.003",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Input restoration can help remediate adversarial inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0010",
+   "target": "mitre-atlas:AML.T0043.004",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0010'].mitigates → AML.T0043.004",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Input restoration can help remediate adversarial inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0011",
+   "target": "mitre-atlas:AML.T0011",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0011'].mitigates → AML.T0011",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Restricting binaries from loading external libraries can limit their ability to execute malicious code."
+  },
+  {
+   "source": "mitre-atlas:AML.M0011",
+   "target": "mitre-atlas:AML.T0011.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0011'].mitigates → AML.T0011.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Restrict library loading by ML artifacts."
+  },
+  {
+   "source": "mitre-atlas:AML.M0011",
+   "target": "mitre-atlas:AML.T0011.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0011'].mitigates → AML.T0011.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Restricting packages from loading external libraries can limit their ability to execute malicious code."
+  },
+  {
+   "source": "mitre-atlas:AML.M0011",
+   "target": "mitre-atlas:AML.T0050",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0011'].mitigates → AML.T0050",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Restrict library loading so command and script interpreters cannot load untrusted libraries as an execution mechanism."
+  },
+  {
+   "source": "mitre-atlas:AML.M0011",
+   "target": "mitre-atlas:AML.T0074",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0011'].mitigates → AML.T0074",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Restrict library loading to trusted locations and approved libraries so disguised malicious libraries cannot be loaded as legitimate dependencies."
+  },
+  {
+   "source": "mitre-atlas:AML.M0011",
+   "target": "mitre-atlas:AML.T0090",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0011'].mitigates → AML.T0090",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Restrict library loading to block credential-dumping paths that inject or load malicious code into processes holding authentication material."
+  },
+  {
+   "source": "mitre-atlas:AML.M0012",
+   "target": "mitre-atlas:AML.T0007",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0012'].mitigates → AML.T0007",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Encrypting AI artifacts can protect against adversary attempts to discover sensitive information."
+  },
+  {
+   "source": "mitre-atlas:AML.M0012",
+   "target": "mitre-atlas:AML.T0035",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0012'].mitigates → AML.T0035",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Protect machine learning artifacts with encryption."
+  },
+  {
+   "source": "mitre-atlas:AML.M0012",
+   "target": "mitre-atlas:AML.T0048.004",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0012'].mitigates → AML.T0048.004",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Protect machine learning artifacts with encryption."
+  },
+  {
+   "source": "mitre-atlas:AML.M0012",
+   "target": "mitre-atlas:AML.T0063",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0012'].mitigates → AML.T0063",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Encrypting model outputs can prevent adversaries from discovering sensitive information about the AI-enabled system or its operations."
+  },
+  {
+   "source": "mitre-atlas:AML.M0013",
+   "target": "mitre-atlas:AML.T0010.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0013'].mitigates → AML.T0010.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Enforce properly signed drivers and ML software frameworks."
+  },
+  {
+   "source": "mitre-atlas:AML.M0013",
+   "target": "mitre-atlas:AML.T0010.003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0013'].mitigates → AML.T0010.003",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Enforce properly signed model files."
+  },
+  {
+   "source": "mitre-atlas:AML.M0013",
+   "target": "mitre-atlas:AML.T0011.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0013'].mitigates → AML.T0011.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Prevent execution of ML artifacts that are not properly signed."
+  },
+  {
+   "source": "mitre-atlas:AML.M0013",
+   "target": "mitre-atlas:AML.T0011.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0013'].mitigates → AML.T0011.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Code signing provides a guarantee that the software package has not been manipulated after signing took place."
+  },
+  {
+   "source": "mitre-atlas:AML.M0013",
+   "target": "mitre-atlas:AML.T0018",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0013'].mitigates → AML.T0018",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Code signing provides a guarantee that the model has not been manipulated after signing took place."
+  },
+  {
+   "source": "mitre-atlas:AML.M0013",
+   "target": "mitre-atlas:AML.T0018.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0013'].mitigates → AML.T0018.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Code signing provides a guarantee that the model has not been manipulated after signing took place."
+  },
+  {
+   "source": "mitre-atlas:AML.M0013",
+   "target": "mitre-atlas:AML.T0018.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0013'].mitigates → AML.T0018.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Code signing provides a guarantee that the model has not been manipulated after signing took place."
+  },
+  {
+   "source": "mitre-atlas:AML.M0013",
+   "target": "mitre-atlas:AML.T0018.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0013'].mitigates → AML.T0018.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Code signing provides a guarantee that the model has not been manipulated after signing took place."
+  },
+  {
+   "source": "mitre-atlas:AML.M0014",
+   "target": "mitre-atlas:AML.T0002.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0014'].mitigates → AML.T0002.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Introduce proper checking of signatures to ensure that unsafe AI models will not be introduced to the system."
+  },
+  {
+   "source": "mitre-atlas:AML.M0014",
+   "target": "mitre-atlas:AML.T0010",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0014'].mitigates → AML.T0010",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Introduce proper checking of signatures to ensure that unsafe AI artifacts will not be introduced to the system."
+  },
+  {
+   "source": "mitre-atlas:AML.M0014",
+   "target": "mitre-atlas:AML.T0010.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0014'].mitigates → AML.T0010.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Introduce proper checking of signatures to ensure that unsafe AI data will not be introduced to the system."
+  },
+  {
+   "source": "mitre-atlas:AML.M0014",
+   "target": "mitre-atlas:AML.T0011",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0014'].mitigates → AML.T0011",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Introduce proper checking of signatures to ensure that unsafe AI artifacts will not be executed in the system."
+  },
+  {
+   "source": "mitre-atlas:AML.M0014",
+   "target": "mitre-atlas:AML.T0011.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0014'].mitigates → AML.T0011.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Introduce proper checking of signatures to ensure that unsafe AI artifacts will not be executed in the system."
+  },
+  {
+   "source": "mitre-atlas:AML.M0015",
+   "target": "mitre-atlas:AML.T0015",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0015'].mitigates → AML.T0015",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Prevent an attacker from introducing adversarial data into the system."
+  },
+  {
+   "source": "mitre-atlas:AML.M0015",
+   "target": "mitre-atlas:AML.T0029",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0015'].mitigates → AML.T0029",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Assess queries before inference call or enforce timeout policy for queries which consume excessive resources."
+  },
+  {
+   "source": "mitre-atlas:AML.M0015",
+   "target": "mitre-atlas:AML.T0031",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0015'].mitigates → AML.T0031",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Incorporate adversarial input detection into the pipeline before inputs reach the model."
+  },
+  {
+   "source": "mitre-atlas:AML.M0015",
+   "target": "mitre-atlas:AML.T0043",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0015'].mitigates → AML.T0043",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Incorporate adversarial input detection to block malicious inputs at inference time."
+  },
+  {
+   "source": "mitre-atlas:AML.M0015",
+   "target": "mitre-atlas:AML.T0043.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0015'].mitigates → AML.T0043.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Incorporate adversarial input detection to block malicious inputs at inference time."
+  },
+  {
+   "source": "mitre-atlas:AML.M0015",
+   "target": "mitre-atlas:AML.T0043.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0015'].mitigates → AML.T0043.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Monitor queries and query patterns to the target model, block access if suspicious queries are detected."
+  },
+  {
+   "source": "mitre-atlas:AML.M0015",
+   "target": "mitre-atlas:AML.T0043.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0015'].mitigates → AML.T0043.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Incorporate adversarial input detection to block malicious inputs at inference time."
+  },
+  {
+   "source": "mitre-atlas:AML.M0015",
+   "target": "mitre-atlas:AML.T0043.003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0015'].mitigates → AML.T0043.003",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Incorporate adversarial input detection to block malicious inputs at inference time."
+  },
+  {
+   "source": "mitre-atlas:AML.M0015",
+   "target": "mitre-atlas:AML.T0043.004",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0015'].mitigates → AML.T0043.004",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Incorporate adversarial input detection to block malicious inputs at inference time."
+  },
+  {
+   "source": "mitre-atlas:AML.M0016",
+   "target": "mitre-atlas:AML.T0011",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0016'].mitigates → AML.T0011",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Vulnerability scanning can help identify malicious binaries and prevent user execution."
+  },
+  {
+   "source": "mitre-atlas:AML.M0016",
+   "target": "mitre-atlas:AML.T0011.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0016'].mitigates → AML.T0011.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Vulnerability scanning can help identify malicious AI artifacts, such as models or data, and prevent user execution."
+  },
+  {
+   "source": "mitre-atlas:AML.M0016",
+   "target": "mitre-atlas:AML.T0011.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0016'].mitigates → AML.T0011.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Vulnerability scanning can help identify malicious packages and prevent user execution."
+  },
+  {
+   "source": "mitre-atlas:AML.M0016",
+   "target": "mitre-atlas:AML.T0106",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0016'].mitigates → AML.T0106",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Vulnerability scanning identifies and remediates software flaws before they can be exploited to obtain credentials."
+  },
+  {
+   "source": "mitre-atlas:AML.M0016",
+   "target": "mitre-atlas:AML.T0107",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0016'].mitigates → AML.T0107",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Vulnerability scanning reduces opportunities for adversaries to exploit weaknesses that bypass security controls."
+  },
+  {
+   "source": "mitre-atlas:AML.M0016",
+   "target": "mitre-atlas:AML.T0115",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0016'].mitigates → AML.T0115",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Model and agent tool registries scan uploaded artifacts for malicious content before listing."
+  },
+  {
+   "source": "mitre-atlas:AML.M0016",
+   "target": "mitre-atlas:AML.T0115.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0016'].mitigates → AML.T0115.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Model registries scan uploaded models for unsafe serialization, embedded code, malware, and known vulnerabilities before listing."
+  },
+  {
+   "source": "mitre-atlas:AML.M0016",
+   "target": "mitre-atlas:AML.T0115.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0016'].mitigates → AML.T0115.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Tool registries scan uploaded tool packages and dependencies for malicious code and vulnerabilities before listing."
+  },
+  {
+   "source": "mitre-atlas:AML.M0016",
+   "target": "mitre-atlas:AML.T0119",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0016'].mitigates → AML.T0119",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Vulnerability scanning reduces opportunities for adversaries to exploit weaknesses in artifact processing pipelines."
+  },
+  {
+   "source": "mitre-atlas:AML.M0016",
+   "target": "mitre-atlas:AML.T0122",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0016'].mitigates → AML.T0122",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Vulnerability scanning reduces opportunities for adversaries to exploit weaknesses in remote services."
+  },
+  {
+   "source": "mitre-atlas:AML.M0017",
+   "target": "mitre-atlas:AML.T0010.003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0017'].mitigates → AML.T0010.003",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "An adversary could repackage the application with a malicious version of the model."
+  },
+  {
+   "source": "mitre-atlas:AML.M0017",
+   "target": "mitre-atlas:AML.T0035",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0017'].mitigates → AML.T0035",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Avoiding the deployment of models to edge devices reduces the attack surface and can prevent adversary artifact collection."
+  },
+  {
+   "source": "mitre-atlas:AML.M0017",
+   "target": "mitre-atlas:AML.T0043.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0017'].mitigates → AML.T0043.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "With full access to the model, an adversary could perform white-box attacks."
+  },
+  {
+   "source": "mitre-atlas:AML.M0017",
+   "target": "mitre-atlas:AML.T0044",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0017'].mitigates → AML.T0044",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Not distributing the model in software to edge devices, can limit an adversary's ability to gain full access to the model."
+  },
+  {
+   "source": "mitre-atlas:AML.M0017",
+   "target": "mitre-atlas:AML.T0048.004",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0017'].mitigates → AML.T0048.004",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Avoiding the deployment of models to edge devices reduces an adversary's potential access to models or AI artifacts."
+  },
+  {
+   "source": "mitre-atlas:AML.M0017",
+   "target": "mitre-atlas:AML.T0063",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0017'].mitigates → AML.T0063",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Avoiding the deployment of models to edge devices reduces an adversary's ability to collect sensitive information about the model outputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0018",
+   "target": "mitre-atlas:AML.T0011",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0018'].mitigates → AML.T0011",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Training users to be able to identify attempts at manipulation will make them less susceptible to performing techniques that cause the execution of malicious code."
+  },
+  {
+   "source": "mitre-atlas:AML.M0018",
+   "target": "mitre-atlas:AML.T0011.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0018'].mitigates → AML.T0011.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Train users to identify attempts of manipulation to prevent them from running unsafe code which when executed could develop unsafe artifacts. These artifacts may have a detrimental effect on the system."
+  },
+  {
+   "source": "mitre-atlas:AML.M0018",
+   "target": "mitre-atlas:AML.T0011.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0018'].mitigates → AML.T0011.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Train users to identify attempts of manipulation to prevent them from running unsafe code from external packages."
+  },
+  {
+   "source": "mitre-atlas:AML.M0018",
+   "target": "mitre-atlas:AML.T0052",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0018'].mitigates → AML.T0052",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Train users to identify phishing attempts by an adversary to reduce the risk of successful spearphishing, social engineering, and other techniques that involve user interaction."
+  },
+  {
+   "source": "mitre-atlas:AML.M0018",
+   "target": "mitre-atlas:AML.T0052.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0018'].mitigates → AML.T0052.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Train users to identify phishing attempts and understand that AI can be used to generate targeted and convincing messages."
+  },
+  {
+   "source": "mitre-atlas:AML.M0018",
+   "target": "mitre-atlas:AML.T0052.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0018'].mitigates → AML.T0052.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Train users on deepfake threats, including how to recognize synthetic voice, video, and text. Recommend verification through independent channels (e.g. known call-back number) before processing sensitive requests or providing sensitive information via voice or video calls."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0005",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Access controls on models APIs can reduce an adversary's ability to produce an accurate proxy model."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0006",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0006",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Require authenticated access to production AI endpoints and monitor queries to limit unauthenticated probing of exposed AI services."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0012",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0012",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Authenticate production AI endpoints and monitor model queries for misuse of otherwise valid credentials."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0021",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0021",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Verify identities before granting production AI access so newly established accounts cannot automatically access protected AI services."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0024",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Adversaries can use unrestricted API access to build a proxy training dataset and reveal private information."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0029",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0029",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Access controls on model APIs can prevent an adversary from excessively querying and disabling the system."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0034",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0034",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Access controls can limit API access and prevent cost harvesting."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0040",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0040",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Adversaries can use unrestricted API access to gain information about a production system, stage attacks, and introduce malicious data to the system."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0042",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0042",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Use access controls in production to prevent adversary's ability to verify attack efficacy."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0043",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0043",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Access controls on model APIs can restrict an adversary's access required to generate adversarial data."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0043.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0043.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Access controls on model APIs can deny adversaries the access required for black-box optimization methods."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0046",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0046",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Authentication on production models can help prevent anonymous chaff data spam."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0051",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0051",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Use access controls in production to prevent adversaries from injecting malicious prompts."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0063",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0063",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Controlling access to the model in production can help prevent adversaries from inferring information from the model outputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0069",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0069",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Authenticate and monitor access to production models and configuration interfaces."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0069.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0069.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Authenticate and monitor access to production models and prompt configuration."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0069.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0069.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Authenticate and monitor access to production models and prompt configuration."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0091",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0091",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Enforce authorization and monitor production AI API use for anomalous activity associated with replayed access tokens."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0091.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0091.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Enforce authorization and monitor production AI API use for anomalous activity associated with replayed access tokens."
+  },
+  {
+   "source": "mitre-atlas:AML.M0019",
+   "target": "mitre-atlas:AML.T0096",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0019'].mitigates → AML.T0096",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Authenticate AI service API callers and monitor queries for policy violations and misuse."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0010",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0010",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Guardrails can detect harmful code in model outputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0016.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0016.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Apply guardrails to block malicious use and jailbreak attempts against generative AI models or services."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0051",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0051",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Guardrails can prevent harmful inputs that can lead to prompt injection."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0053",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0053",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Guardrails can prevent harmful inputs that can lead to plugin compromise, and they can detect PII in model outputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0054",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0054",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Guardrails can prevent harmful inputs that can lead to a jailbreak."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0056",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0056",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Guardrails can prevent harmful inputs that can lead to meta prompt extraction."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0057",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0057",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Guardrails can detect sensitive data and PII in model outputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0061",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0061",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Guardrails can help prevent replication attacks in model inputs and outputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0062",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0062",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Guardrails can help block hallucinated content that appears in model output."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0066",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0066",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Apply retrieval guardrails to reject untrusted, malicious, irrelevant, or unsupported RAG content."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0068",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0068",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Apply input guardrails that decode, normalize, inspect, and block concealed malicious instructions."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0069",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0069",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Block output of system prompts, hidden instructions, secrets, and internal configuration details."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0069.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0069.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Filter responses that expose hidden prompt formatting, delimiters, or internal instructions."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0069.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0069.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Filter responses that reveal system keywords, tool names, function definitions, or hidden instructions."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0069.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0069.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Filter responses that reveal system prompts and hidden instructions."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0070",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0070",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Apply retrieval guardrails to reject untrusted, malicious, irrelevant, or unsupported RAG content."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0071",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0071",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Validate retrieved documents and block nested false entries, malicious instructions, and unsupported content."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0078",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0078",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Apply retrieval, input, and tool-action guardrails to detect and block malicious instructions embedded in websites before execution."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0099",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0099",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Apply retrieval guardrails to reject untrusted, malicious, irrelevant, or unsupported tool-retrieved content."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0100",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0100",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Apply guardrails to untrusted web content and proposed computer-use actions."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0102",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0102",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Block prompts and outputs that request or contain malicious commands."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0108",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0108",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Block malicious agent instructions, command outputs, and unsafe tool requests with guardrails."
+  },
+  {
+   "source": "mitre-atlas:AML.M0020",
+   "target": "mitre-atlas:AML.T0112.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0020'].mitigates → AML.T0112.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Block malicious prompts, unsafe outputs, and prohibited agent actions with guardrails."
+  },
+  {
+   "source": "mitre-atlas:AML.M0021",
+   "target": "mitre-atlas:AML.T0051",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0021'].mitigates → AML.T0051",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Model guidelines can instruct the model to refuse a response to unsafe inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0021",
+   "target": "mitre-atlas:AML.T0053",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0021'].mitigates → AML.T0053",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Model guidelines can instruct the model to refuse a response to unsafe inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0021",
+   "target": "mitre-atlas:AML.T0054",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0021'].mitigates → AML.T0054",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Model guidelines can instruct the model to refuse a response to unsafe inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0021",
+   "target": "mitre-atlas:AML.T0056",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0021'].mitigates → AML.T0056",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Model guidelines can instruct the model to refuse a response to unsafe inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0021",
+   "target": "mitre-atlas:AML.T0057",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0021'].mitigates → AML.T0057",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Model guidelines can instruct the model to refuse a response to unsafe inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0021",
+   "target": "mitre-atlas:AML.T0061",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0021'].mitigates → AML.T0061",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Guidelines can help instruct the model to produce more secure output, preventing the model from generating self-replicating outputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0021",
+   "target": "mitre-atlas:AML.T0062",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0021'].mitigates → AML.T0062",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Guidelines can instruct the model to avoid producing hallucinated content."
+  },
+  {
+   "source": "mitre-atlas:AML.M0021",
+   "target": "mitre-atlas:AML.T0100",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0021'].mitigates → AML.T0100",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Instruct agents to treat webpage instructions as untrusted and request approval for consequential actions."
+  },
+  {
+   "source": "mitre-atlas:AML.M0022",
+   "target": "mitre-atlas:AML.T0016.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0022'].mitigates → AML.T0016.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Align generative models to resist and adversary's malicious requests and attempts to remove safety behavior."
+  },
+  {
+   "source": "mitre-atlas:AML.M0022",
+   "target": "mitre-atlas:AML.T0051",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0022'].mitigates → AML.T0051",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Model alignment can improve the parametric safety of a model by guiding it away from unsafe prompts and responses."
+  },
+  {
+   "source": "mitre-atlas:AML.M0022",
+   "target": "mitre-atlas:AML.T0053",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0022'].mitigates → AML.T0053",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Model alignment can improve the parametric safety of a model by guiding it away from unsafe prompts and responses."
+  },
+  {
+   "source": "mitre-atlas:AML.M0022",
+   "target": "mitre-atlas:AML.T0054",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0022'].mitigates → AML.T0054",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Model alignment can improve the parametric safety of a model by guiding it away from unsafe prompts and responses."
+  },
+  {
+   "source": "mitre-atlas:AML.M0022",
+   "target": "mitre-atlas:AML.T0056",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0022'].mitigates → AML.T0056",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Model alignment can improve the parametric safety of a model by guiding it away from unsafe prompts and responses."
+  },
+  {
+   "source": "mitre-atlas:AML.M0022",
+   "target": "mitre-atlas:AML.T0057",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0022'].mitigates → AML.T0057",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Model alignment can improve the parametric safety of a model by guiding it away from unsafe prompts and responses."
+  },
+  {
+   "source": "mitre-atlas:AML.M0022",
+   "target": "mitre-atlas:AML.T0061",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0022'].mitigates → AML.T0061",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Model alignment can increase the security of models to self replicating prompt attacks."
+  },
+  {
+   "source": "mitre-atlas:AML.M0022",
+   "target": "mitre-atlas:AML.T0062",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0022'].mitigates → AML.T0062",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Model alignment can help steer the model away from hallucinated content."
+  },
+  {
+   "source": "mitre-atlas:AML.M0022",
+   "target": "mitre-atlas:AML.T0102",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0022'].mitigates → AML.T0102",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Align generative AI models with safety objectives to reduce the likelihood that they will generate malicious commands or harmful instructions."
+  },
+  {
+   "source": "mitre-atlas:AML.M0023",
+   "target": "mitre-atlas:AML.T0010",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0023'].mitigates → AML.T0010",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "An AI BOM can help users identify untrustworthy components of their AI supply chain."
+  },
+  {
+   "source": "mitre-atlas:AML.M0023",
+   "target": "mitre-atlas:AML.T0011",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0023'].mitigates → AML.T0011",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "An AI BOM can help users identify untrustworthy binaries."
+  },
+  {
+   "source": "mitre-atlas:AML.M0023",
+   "target": "mitre-atlas:AML.T0011.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0023'].mitigates → AML.T0011.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "An AI BOM can help users identify untrustworthy model artifacts."
+  },
+  {
+   "source": "mitre-atlas:AML.M0023",
+   "target": "mitre-atlas:AML.T0011.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0023'].mitigates → AML.T0011.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "An AI BOM can help users identify untrustworthy software dependencies."
+  },
+  {
+   "source": "mitre-atlas:AML.M0023",
+   "target": "mitre-atlas:AML.T0020",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0023'].mitigates → AML.T0020",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "An AI BOM can help users identify untrustworthy model artifacts."
+  },
+  {
+   "source": "mitre-atlas:AML.M0024",
+   "target": "mitre-atlas:AML.T0005.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0024'].mitigates → AML.T0005.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Telemetry logging can help identify if a proxy training dataset has been exfiltrated."
+  },
+  {
+   "source": "mitre-atlas:AML.M0024",
+   "target": "mitre-atlas:AML.T0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0024'].mitigates → AML.T0024",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Telemetry logging can help identify if sensitive data has been exfiltrated."
+  },
+  {
+   "source": "mitre-atlas:AML.M0024",
+   "target": "mitre-atlas:AML.T0024.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0024'].mitigates → AML.T0024.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Telemetry logging can help identify if sensitive data has been exfiltrated."
+  },
+  {
+   "source": "mitre-atlas:AML.M0024",
+   "target": "mitre-atlas:AML.T0024.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0024'].mitigates → AML.T0024.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Telemetry logging can help identify if sensitive data has been exfiltrated."
+  },
+  {
+   "source": "mitre-atlas:AML.M0024",
+   "target": "mitre-atlas:AML.T0024.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0024'].mitigates → AML.T0024.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Telemetry logging can help identify if sensitive data has been exfiltrated."
+  },
+  {
+   "source": "mitre-atlas:AML.M0024",
+   "target": "mitre-atlas:AML.T0040",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0024'].mitigates → AML.T0040",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Telemetry logging can help audit API usage of the model."
+  },
+  {
+   "source": "mitre-atlas:AML.M0024",
+   "target": "mitre-atlas:AML.T0047",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0024'].mitigates → AML.T0047",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Telemetry logging can help identify if sensitive model information has been sent to an attacker."
+  },
+  {
+   "source": "mitre-atlas:AML.M0024",
+   "target": "mitre-atlas:AML.T0051",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0024'].mitigates → AML.T0051",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Telemetry logging can help identify if unsafe prompts have been submitted to the LLM."
+  },
+  {
+   "source": "mitre-atlas:AML.M0024",
+   "target": "mitre-atlas:AML.T0051.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0024'].mitigates → AML.T0051.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Telemetry logging can help identify if unsafe prompts have been submitted to the LLM."
+  },
+  {
+   "source": "mitre-atlas:AML.M0024",
+   "target": "mitre-atlas:AML.T0051.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0024'].mitigates → AML.T0051.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Telemetry logging can help identify if unsafe prompts have been submitted to the LLM."
+  },
+  {
+   "source": "mitre-atlas:AML.M0024",
+   "target": "mitre-atlas:AML.T0051.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0024'].mitigates → AML.T0051.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Telemetry logging can help identify if unsafe prompts have been submitted to the LLM."
+  },
+  {
+   "source": "mitre-atlas:AML.M0024",
+   "target": "mitre-atlas:AML.T0053",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0024'].mitigates → AML.T0053",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Log AI agent tool invocations to detect malicious calls."
+  },
+  {
+   "source": "mitre-atlas:AML.M0024",
+   "target": "mitre-atlas:AML.T0085",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0024'].mitigates → AML.T0085",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Log requests to AI services to detect malicious queries for data."
+  },
+  {
+   "source": "mitre-atlas:AML.M0024",
+   "target": "mitre-atlas:AML.T0085.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0024'].mitigates → AML.T0085.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Log requests to AI services to detect malicious queries for data."
+  },
+  {
+   "source": "mitre-atlas:AML.M0024",
+   "target": "mitre-atlas:AML.T0085.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0024'].mitigates → AML.T0085.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Log requests to AI services to detect malicious queries for data."
+  },
+  {
+   "source": "mitre-atlas:AML.M0024",
+   "target": "mitre-atlas:AML.T0086",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0024'].mitigates → AML.T0086",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Log AI agent tool invocations to detect malicious calls."
+  },
+  {
+   "source": "mitre-atlas:AML.M0024",
+   "target": "mitre-atlas:AML.T0101",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0024'].mitigates → AML.T0101",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Log AI agent tool invocations to detect malicious calls."
+  },
+  {
+   "source": "mitre-atlas:AML.M0024",
+   "target": "mitre-atlas:AML.T0114",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0024'].mitigates → AML.T0114",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "AI telemetry logging can help detect suspicious prompts, browser-based AI service interactions, URL-fetch requests, and AI responses used to relay command-and-control data."
+  },
+  {
+   "source": "mitre-atlas:AML.M0025",
+   "target": "mitre-atlas:AML.T0010.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0025'].mitigates → AML.T0010.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Dataset provenance can protect against supply chain compromise of data."
+  },
+  {
+   "source": "mitre-atlas:AML.M0025",
+   "target": "mitre-atlas:AML.T0018.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0025'].mitigates → AML.T0018.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Dataset provenance can protect against poisoning of models."
+  },
+  {
+   "source": "mitre-atlas:AML.M0025",
+   "target": "mitre-atlas:AML.T0020",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0025'].mitigates → AML.T0020",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Dataset provenance can protect against poisoning of training data"
+  },
+  {
+   "source": "mitre-atlas:AML.M0025",
+   "target": "mitre-atlas:AML.T0059",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0025'].mitigates → AML.T0059",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Maintaining dataset provenance can help identify adverse changes to the data."
+  },
+  {
+   "source": "mitre-atlas:AML.M0025",
+   "target": "mitre-atlas:AML.T0074",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0025'].mitigates → AML.T0074",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Record dataset sources and modification history so datasets falsely presented as trusted can be identified."
+  },
+  {
+   "source": "mitre-atlas:AML.M0026",
+   "target": "mitre-atlas:AML.T0053",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0026'].mitigates → AML.T0053",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring privileged AI agents with proper access controls for tool use can limit an adversary's ability to abuse tool invocations if the agent is compromised."
+  },
+  {
+   "source": "mitre-atlas:AML.M0026",
+   "target": "mitre-atlas:AML.T0082",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0026'].mitigates → AML.T0082",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring privileged AI agents with proper access controls can limit an adversary's ability to harvest credentials from RAG Databases if the agent is compromised."
+  },
+  {
+   "source": "mitre-atlas:AML.M0026",
+   "target": "mitre-atlas:AML.T0085",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0026'].mitigates → AML.T0085",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring privileged AI agents with proper access controls can limit an adversary's ability to collect data from AI services if the agent is compromised."
+  },
+  {
+   "source": "mitre-atlas:AML.M0026",
+   "target": "mitre-atlas:AML.T0085.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0026'].mitigates → AML.T0085.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring privileged AI agents with proper access controls can limit an adversary's ability to collect data from RAG Databases if the agent is compromised."
+  },
+  {
+   "source": "mitre-atlas:AML.M0026",
+   "target": "mitre-atlas:AML.T0085.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0026'].mitigates → AML.T0085.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring privileged AI agents with proper access controls can limit an adversary's ability to collect data from agent tool invocation if the agent is compromised."
+  },
+  {
+   "source": "mitre-atlas:AML.M0026",
+   "target": "mitre-atlas:AML.T0086",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0026'].mitigates → AML.T0086",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring privileged AI agents with proper access controls for tool use can limit an adversary's ability to abuse tool invocations if the agent is compromised."
+  },
+  {
+   "source": "mitre-atlas:AML.M0026",
+   "target": "mitre-atlas:AML.T0101",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0026'].mitigates → AML.T0101",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring privileged AI agents with proper access controls for tool use can limit an adversary's ability to abuse tool invocations if the agent is compromised."
+  },
+  {
+   "source": "mitre-atlas:AML.M0027",
+   "target": "mitre-atlas:AML.T0053",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0027'].mitigates → AML.T0053",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring AI agents with permissions that are inherited from the user for tool use can limit an adversary's ability to abuse tool invocations if the agent is compromised."
+  },
+  {
+   "source": "mitre-atlas:AML.M0027",
+   "target": "mitre-atlas:AML.T0082",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0027'].mitigates → AML.T0082",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring AI agents with permissions that are inherited from the user can limit an adversary's ability to harvest credentials from RAG Databases if the agent is compromised."
+  },
+  {
+   "source": "mitre-atlas:AML.M0027",
+   "target": "mitre-atlas:AML.T0085",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0027'].mitigates → AML.T0085",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring AI agents with permissions that are inherited from the user can limit an adversary's ability to collect data from AI services if the agent is compromised."
+  },
+  {
+   "source": "mitre-atlas:AML.M0027",
+   "target": "mitre-atlas:AML.T0085.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0027'].mitigates → AML.T0085.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring AI agents with permissions that are inherited from the user can limit an adversary's ability to collect data from RAG Databases if the agent is compromised."
+  },
+  {
+   "source": "mitre-atlas:AML.M0027",
+   "target": "mitre-atlas:AML.T0085.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0027'].mitigates → AML.T0085.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring AI agents with permissions that are inherited from the user can limit an adversary's ability to collect data from agent tool invocation if the agent is compromised."
+  },
+  {
+   "source": "mitre-atlas:AML.M0027",
+   "target": "mitre-atlas:AML.T0086",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0027'].mitigates → AML.T0086",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring AI agents with permissions that are inherited from the user for tool use can limit an adversary's ability to abuse tool invocations if the agent is compromised."
+  },
+  {
+   "source": "mitre-atlas:AML.M0027",
+   "target": "mitre-atlas:AML.T0101",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0027'].mitigates → AML.T0101",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring AI agents with permissions that are inherited from the user for tool use can limit an adversary's ability to abuse tool invocations if the agent is compromised."
+  },
+  {
+   "source": "mitre-atlas:AML.M0028",
+   "target": "mitre-atlas:AML.T0053",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0028'].mitigates → AML.T0053",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring AI Agent tools with access controls inherited from the user or the AI Agent invoking the tool can limit an adversary's capabilities within a system, including their ability to abuse tool invocations and access sensitive data."
+  },
+  {
+   "source": "mitre-atlas:AML.M0028",
+   "target": "mitre-atlas:AML.T0085",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0028'].mitigates → AML.T0085",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring AI Agent tools with access controls inherited from the user or the AI Agent invoking the tool can limit adversary's access to sensitive data."
+  },
+  {
+   "source": "mitre-atlas:AML.M0028",
+   "target": "mitre-atlas:AML.T0085.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0028'].mitigates → AML.T0085.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring AI Agent tools with access controls that are inherited from the user or the AI Agent invoking the tool can limit adversary's access to sensitive data."
+  },
+  {
+   "source": "mitre-atlas:AML.M0028",
+   "target": "mitre-atlas:AML.T0086",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0028'].mitigates → AML.T0086",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring AI Agent tools with access controls inherited from the user or the AI Agent invoking the tool can limit an adversary's capabilities within a system, including their ability to abuse tool invocations and exfiltrate sensitive data."
+  },
+  {
+   "source": "mitre-atlas:AML.M0028",
+   "target": "mitre-atlas:AML.T0101",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0028'].mitigates → AML.T0101",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Configuring AI Agent tools with access controls inherited from the user or the AI Agent invoking the tool can limit an adversary's capabilities within a system, including their ability to abuse tool invocations to destroy data."
+  },
+  {
+   "source": "mitre-atlas:AML.M0029",
+   "target": "mitre-atlas:AML.T0053",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0029'].mitigates → AML.T0053",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Requiring user confirmation of AI agent tool invocations can prevent the automatic execution of tools by an adversary."
+  },
+  {
+   "source": "mitre-atlas:AML.M0029",
+   "target": "mitre-atlas:AML.T0086",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0029'].mitigates → AML.T0086",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Requiring user confirmation of AI agent tool invocations can prevent the automatic execution of tools by an adversary."
+  },
+  {
+   "source": "mitre-atlas:AML.M0029",
+   "target": "mitre-atlas:AML.T0101",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0029'].mitigates → AML.T0101",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Requiring user confirmation of AI agent tool invocations can prevent the automatic execution of tools by an adversary."
+  },
+  {
+   "source": "mitre-atlas:AML.M0030",
+   "target": "mitre-atlas:AML.T0053",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0030'].mitigates → AML.T0053",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Restricting the automatic tool use when untrusted data is present can prevent adversaries from invoking tools via prompt injections."
+  },
+  {
+   "source": "mitre-atlas:AML.M0030",
+   "target": "mitre-atlas:AML.T0086",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0030'].mitigates → AML.T0086",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Restricting the automatic tool use when untrusted data is present can prevent adversaries from invoking tools via prompt injections."
+  },
+  {
+   "source": "mitre-atlas:AML.M0030",
+   "target": "mitre-atlas:AML.T0101",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0030'].mitigates → AML.T0101",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Restricting the automatic tool use when untrusted data is present can prevent adversaries from invoking tools via prompt injections."
+  },
+  {
+   "source": "mitre-atlas:AML.M0031",
+   "target": "mitre-atlas:AML.T0080",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0031'].mitigates → AML.T0080",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Memory hardening reduces persistent context poisoning by controlling what an agent may save as memory, preventing saved data from becoming higher-authority instructions, and enabling poisoned records to be identified, quarantined, and rolled back."
+  },
+  {
+   "source": "mitre-atlas:AML.M0031",
+   "target": "mitre-atlas:AML.T0080.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0031'].mitigates → AML.T0080.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Memory hardening reduces persistent context poisoning by controlling what an agent may save as memory, preventing saved data from becoming higher-authority instructions, and enabling poisoned records to be identified, quarantined, and rolled back."
+  },
+  {
+   "source": "mitre-atlas:AML.M0032",
+   "target": "mitre-atlas:AML.T0006",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0032'].mitigates → AML.T0006",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Segment AI agent components so an exposed service does not reveal or provide reachability to additional internal components."
+  },
+  {
+   "source": "mitre-atlas:AML.M0032",
+   "target": "mitre-atlas:AML.T0053",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0032'].mitigates → AML.T0053",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Segmentation can prevent adversaries from utilizing tools in an agentic workflow to perform unsafe actions that affect other components."
+  },
+  {
+   "source": "mitre-atlas:AML.M0032",
+   "target": "mitre-atlas:AML.T0085",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0032'].mitigates → AML.T0085",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Segmentation can prevent adversaries from utilizing tools in an agentic workflow to collect sensitive data from AI services."
+  },
+  {
+   "source": "mitre-atlas:AML.M0032",
+   "target": "mitre-atlas:AML.T0085.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0032'].mitigates → AML.T0085.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Segmentation can prevent adversaries from utilizing tools in an agentic workflow to collect sensitive data from RAG databases."
+  },
+  {
+   "source": "mitre-atlas:AML.M0032",
+   "target": "mitre-atlas:AML.T0085.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0032'].mitigates → AML.T0085.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Segmentation can prevent adversaries from utilizing tools in an agentic workflow to collect sensitive data."
+  },
+  {
+   "source": "mitre-atlas:AML.M0032",
+   "target": "mitre-atlas:AML.T0086",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0032'].mitigates → AML.T0086",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Segmentation can prevent adversaries from utilizing tools in an agentic workflow to compromise sensitive data sources."
+  },
+  {
+   "source": "mitre-atlas:AML.M0032",
+   "target": "mitre-atlas:AML.T0098",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0032'].mitigates → AML.T0098",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Segmentation can prevent adversaries from utilizing tools in an agentic workflow to harvest credentials."
+  },
+  {
+   "source": "mitre-atlas:AML.M0033",
+   "target": "mitre-atlas:AML.T0051",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0033'].mitigates → AML.T0051",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Validation can prevent adversaries from executing prompt injections that could affect agentic workflows."
+  },
+  {
+   "source": "mitre-atlas:AML.M0033",
+   "target": "mitre-atlas:AML.T0051.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0033'].mitigates → AML.T0051.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Validation can prevent adversaries from executing prompt injections that could affect agentic workflows."
+  },
+  {
+   "source": "mitre-atlas:AML.M0033",
+   "target": "mitre-atlas:AML.T0051.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0033'].mitigates → AML.T0051.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Validation can prevent adversaries from executing prompt injections that could affect agentic workflows."
+  },
+  {
+   "source": "mitre-atlas:AML.M0033",
+   "target": "mitre-atlas:AML.T0051.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0033'].mitigates → AML.T0051.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Validation can prevent adversaries from executing prompt injections that could affect agentic workflows."
+  },
+  {
+   "source": "mitre-atlas:AML.M0033",
+   "target": "mitre-atlas:AML.T0053",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0033'].mitigates → AML.T0053",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Validation can prevent adversaries from utilizing tools in an agentic workflow to generate unsafe output."
+  },
+  {
+   "source": "mitre-atlas:AML.M0033",
+   "target": "mitre-atlas:AML.T0086",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0033'].mitigates → AML.T0086",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Validation can prevent adversaries from utilizing tools in an agentic workflow to compromise sensitive data sources."
+  },
+  {
+   "source": "mitre-atlas:AML.M0034",
+   "target": "mitre-atlas:AML.T0015",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0034'].mitigates → AML.T0015",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Deepfake detection can be used to identify and block generated content."
+  },
+  {
+   "source": "mitre-atlas:AML.M0034",
+   "target": "mitre-atlas:AML.T0052",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0034'].mitigates → AML.T0052",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Deepfake detection can be used to identify and block phishing attempts that use generated content."
+  },
+  {
+   "source": "mitre-atlas:AML.M0034",
+   "target": "mitre-atlas:AML.T0052.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0034'].mitigates → AML.T0052.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Deepfake detection can be used to identify and block phishing attempts that use generated content."
+  },
+  {
+   "source": "mitre-atlas:AML.M0034",
+   "target": "mitre-atlas:AML.T0052.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0034'].mitigates → AML.T0052.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Deploy technical controls to detect and block synthetic audio and video. This includes AI-based analysis tools that examine media for artifacts indicative deepfakes."
+  },
+  {
+   "source": "mitre-atlas:AML.M0034",
+   "target": "mitre-atlas:AML.T0088",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0034'].mitigates → AML.T0088",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Deepfake detection can be used to identify and block generated content."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0010",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0010",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Exercise the introduction of controlled untrusted software, data, models, and agent tools through representative acquisition and deployment paths. Remediate weaknesses in provenance, validation, approvals, isolation, and rollback."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0010.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0010.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Introduce controlled untrusted AI packages, libraries, plugins, or software components. Verify dependency controls, scanning, signing, approval, isolation, and safe installation."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0010.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0010.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Introduce controlled untrusted datasets through representative acquisition and ingestion paths. Verify provenance, integrity, sanitization, review, and rejection controls."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0010.003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0010.003",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Introduce a controlled untrusted or modified model through representative acquisition and deployment paths. Verify provenance, scanning, signing, approval, isolation, and rollback."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0010.005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0010.005",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Introduce a controlled untrusted agent tool or tool definition. Verify source authorization, integrity, review, permission boundaries, and safe activation."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0015",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0015",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Execute representative digital, multimodal, and physical-domain evasion attacks. Use successful attacks to improve model robustness, preprocessing, adversarial-input detection, human oversight, and monitoring."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0018",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0018",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Attempt controlled modification or substitution of models, weights, adapters, and related configuration. Remediate weaknesses in authorization, artifact integrity, deployment approval, monitoring, and recovery."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0018.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0018.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Test whether controlled changes to model weights, fine-tuning, or associated artifacts can introduce targeted or persistent behavior. Improve model provenance, validation, integrity monitoring, and rollback."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0018.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0018.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Attempt controlled unauthorized changes to model architecture or executable model components. Verify review, integrity checking, signing, deployment approval, and restoration controls."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0020",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0020",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Introduce controlled poisoned records or triggers into representative data pipelines. Verify and improve provenance, sanitization, review, drift detection, model validation, and rollback controls."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0024",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Exercise inference interfaces for membership inference, model inversion, and functional extraction. Use findings to improve privacy controls, authentication, output restriction, rate limits, and monitoring."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0024.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0024.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Test whether model outputs reveal the membership of known training samples. Improve privacy-preserving training, output restriction, access controls, and query monitoring."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0024.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0024.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Attempt to reconstruct sensitive records, attributes, or representative training information from model outputs. Remediate leakage through model changes, output minimization, privacy controls, and restricted inference access."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0024.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0024.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Simulate functional model extraction through inference queries. Establish appropriate authentication, rate limits, output restrictions, anomaly detection, and extraction monitoring."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0029",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0029",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Submit adversarial workloads and exercise dependency failures that could exhaust inference or supporting services. Apply quotas, concurrency limits, timeouts, resource isolation, and graceful degradation based on findings."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0034",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0034",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Exercise requests and workflows designed to amplify inference, infrastructure, or external-service costs. Verify budgets, quotas, rate limits, workload controls, alerting, and termination mechanisms."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0034.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0034.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Generate controlled high-volume query activity. Verify authentication, user and tenant quotas, rate limits, anomaly detection, cost alerts, and service protection."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0034.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0034.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Submit controlled requests designed to consume disproportionate inference resources. Verify input constraints, timeouts, workload limits, resource isolation, and cost monitoring."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0034.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0034.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Test recursive behavior, repeated tool calls, costly API use, and attacker-controlled task expansion. Verify budgets, iteration limits, timeouts, approval thresholds, and termination controls."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0051",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0051",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Test direct, indirect, and triggered instructions through user input, retrieved data, documents, messages, websites, images, metadata, and tool output. Remediate trust-boundary, instruction-handling, permission, and monitoring failures."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0051.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0051.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Submit controlled malicious instructions directly through user-facing model and application interfaces. Improve instruction enforcement, input controls, authorization, and monitoring."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0051.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0051.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Place controlled malicious instructions in external or retrieved content processed by the system. Improve content trust boundaries, retrieval controls, instruction isolation, and restrictions on resulting actions."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0051.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0051.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Place controlled instructions in content or workflows where later user actions or system events activate them. Verify trigger authorization, context handling, action restrictions, and monitoring."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0053",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0053",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Attempt to select unauthorized tools, supply unsafe arguments, exceed user privileges, or chain tools into harmful actions. Correct permissions, argument validation, sandboxing, action controls, and approval requirements."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0054",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0054",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Exercise manual and automated multi-turn, multilingual, encoded, transformed, and multimodal jailbreaks. Incorporate successful cases into guardrails, guidelines, alignment, monitoring, and regression evaluations."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0056",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0056",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Probe model and application interfaces for disclosure of system instructions, policies, tool definitions, or hidden context. Remove embedded secrets and improve configuration isolation and output controls."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0057",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0057",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Place synthetic secrets or canary records in representative data sources and attempt extraction through prompts, retrieval, tools, and rendered output. Improve authorization boundaries, filtering, tenant isolation, and exfiltration detection."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0068",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0068",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Test encoded, transformed, visually hidden, multilingual, and multimodal instructions. Use successful bypasses to improve normalization, decoding, content inspection, and detection controls."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0070",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0070",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Seed controlled malicious or misleading content into representative ingestion sources. Improve source authorization, provenance, content validation, indexing controls, and retrieval-time filtering."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0080",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0080",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Attempt to persist malicious instructions in agent memory and long-lived threads. Verify authorization for context changes, integrity checks, trust labeling, expiration, user visibility, and remediation."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0080.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0080.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Attempt to store controlled malicious instructions or preferences in persistent agent memory. Verify authorization, user visibility, integrity validation, expiration, and memory-remediation controls."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0080.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0080.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Introduce controlled malicious instructions into long-lived or shared conversation threads. Verify context isolation, trust handling, thread reset, expiration, and monitoring."
+  },
+  {
+   "source": "mitre-atlas:AML.M0035",
+   "target": "mitre-atlas:AML.T0081",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0035'].mitigates → AML.T0081",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Exercise unauthorized changes to system prompts, tools, knowledge sources, security settings, and approval requirements. Improve access controls, change approval, integrity monitoring, and restoration from trusted configurations."
+  },
+  {
+   "source": "mitre-atlas:AML.M0036",
+   "target": "mitre-atlas:AML.T0029",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0036'].mitigates → AML.T0029",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit the resources consumed by individual requests to reduce denial of service from computationally expensive inputs."
+  },
+  {
+   "source": "mitre-atlas:AML.M0036",
+   "target": "mitre-atlas:AML.T0034",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0036'].mitigates → AML.T0034",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Apply resource budgets to AI requests and workflows to limit costs from resource-intensive queries, excessive output, and uncontrolled agentic activity."
+  },
+  {
+   "source": "mitre-atlas:AML.M0036",
+   "target": "mitre-atlas:AML.T0034.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0036'].mitigates → AML.T0034.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Bound input size, output size, execution time, memory, and compute consumed by resource-intensive queries."
+  },
+  {
+   "source": "mitre-atlas:AML.M0036",
+   "target": "mitre-atlas:AML.T0034.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0036'].mitigates → AML.T0034.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Limit agent iterations, tool calls, fan-out, runtime, and downstream spending to constrain agentic resource consumption."
+  },
+  {
+   "source": "mitre-atlas:AML.M0037",
+   "target": "mitre-atlas:AML.T0116",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0037'].mitigates → AML.T0116",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "When an organization has sufficient administrative control over an AI system to enforce target restrictions, treating newly discovered targets and resources as outside the authorized boundary prevents autonomous reconnaissance from automatically expanding the agent's permitted target set or actively probing those targets without approval. These controls do not constrain reconnaissance performed by adversary-controlled AI systems over which the organization has no administrative control."
+  },
+  {
+   "source": "mitre-atlas:AML.M0037",
+   "target": "mitre-atlas:AML.T0117",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0037'].mitigates → AML.T0117",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "When an organization has sufficient administrative control over an AI system to enforce its authority boundaries, Authority Expansion Controls can directly constrain enabling objectives that seek new authorities, identities, execution environments, tools, communication paths, or trust relationships. These controls do not constrain adversary-controlled AI systems over which the organization has no administrative control."
+  },
+  {
+   "source": "mitre-atlas:AML.M0037",
+   "target": "mitre-atlas:AML.T0124",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0037'].mitigates → AML.T0124",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "When an organization has sufficient administrative control over an AI system to enforce delegation constraints, propagating the parent agent's authority constraints to sub-agents prevents autonomous orchestration from creating or directing executors with broader targets, permissions, or permitted actions than the originating agent. These controls do not constrain adversary-controlled multi-agent systems over which the organization has no administrative control."
+  },
+  {
+   "source": "mitre-atlas:AML.M0038",
+   "target": "mitre-atlas:AML.T0116",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0038'].mitigates → AML.T0116",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "When an organization has sufficient administrative control over an AI system to monitor its target selection and reconnaissance activity, Scope Drift Detection can identify when reconnaissance expands or substitutes targets in ways no longer consistent with the authorized objective. This control does not apply to adversary-controlled AI systems over which the organization has no administrative control."
+  },
+  {
+   "source": "mitre-atlas:AML.M0038",
+   "target": "mitre-atlas:AML.T0117",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0038'].mitigates → AML.T0117",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "When an organization has sufficient administrative control over an AI system to monitor its plans and actions, Scope Drift Detection evaluates whether dynamically generated intermediate actions are within the agent's task scope. This control does not apply to adversary-controlled AI systems over which the organization has no administrative control."
+  },
+  {
+   "source": "mitre-atlas:AML.M0038",
+   "target": "mitre-atlas:AML.T0124",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0038'].mitigates → AML.T0124",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "When an organization has sufficient administrative control over an AI system to monitor its planning and coordination activity, changes in task hierarchy, assignments, resource allocation, and newly initiated work provide observable signals that the orchestrator may be drifting from its authorized objective. This control does not apply to adversary-controlled AI systems over which the organization has no administrative control."
+  },
+  {
+   "source": "mitre-atlas:AML.M0039",
+   "target": "mitre-atlas:AML.T0000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0039'].mitigates → AML.T0000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Decoy assets are catalogued by the same internet scan databases (e.g., Shodan, Censys) that adversaries query to locate exposed AI infrastructure. Adversarial engagement that originates from those platforms can grant defenders visibility into those discovery channels."
+  },
+  {
+   "source": "mitre-atlas:AML.M0039",
+   "target": "mitre-atlas:AML.T0000.003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0039'].mitigates → AML.T0000.003",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Decoy assets are catalogued by the same internet scan databases (e.g., Shodan, Censys) that adversaries query to locate exposed AI infrastructure. Adversarial engagement that originates from those platforms can grant defenders visibility into those discovery channels."
+  },
+  {
+   "source": "mitre-atlas:AML.M0039",
+   "target": "mitre-atlas:AML.T0006",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0039'].mitigates → AML.T0006",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "By capturing adversarial fingerprinting behavior, honeypots can help provide early warning of sweeping activity meant to discover exposed AI targets and attack surfaces being explored by adversaries."
+  },
+  {
+   "source": "mitre-atlas:AML.M0039",
+   "target": "mitre-atlas:AML.T0006.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0039'].mitigates → AML.T0006.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "By capturing adversarial fingerprinting behavior, honeypots can help provide early warning of sweeping activity meant to discover exposed AI targets and attack surfaces being explored by adversaries."
+  },
+  {
+   "source": "mitre-atlas:AML.M0039",
+   "target": "mitre-atlas:AML.T0006.001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0039'].mitigates → AML.T0006.001",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "By capturing adversarial fingerprinting behavior, honeypots can help provide early warning of sweeping activity meant to discover exposed AI targets and attack surfaces being explored by adversaries."
+  },
+  {
+   "source": "mitre-atlas:AML.M0039",
+   "target": "mitre-atlas:AML.T0006.002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0039'].mitigates → AML.T0006.002",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "By capturing adversarial fingerprinting behavior, honeypots can help provide early warning of sweeping activity meant to discover exposed AI targets and attack surfaces being explored by adversaries."
+  },
+  {
+   "source": "mitre-atlas:AML.M0039",
+   "target": "mitre-atlas:AML.T0006.003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0039'].mitigates → AML.T0006.003",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "By capturing adversarial fingerprinting behavior, honeypots can help provide early warning of sweeping activity meant to discover exposed AI targets and attack surfaces being explored by adversaries."
+  },
+  {
+   "source": "mitre-atlas:AML.M0039",
+   "target": "mitre-atlas:AML.T0040",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0039'].mitigates → AML.T0040",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Honeypots capture which endpoints adversaries are targeting and how they use discovered inference APIs: the models they're interested in, the parameters they use, and the payloads they submit once they reach a live endpoint."
+  },
+  {
+   "source": "mitre-atlas:AML.M0039",
+   "target": "mitre-atlas:AML.T0049",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0039'].mitigates → AML.T0049",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Honeypots can safely absorb real attacks and exploit attempts, turning payloads into mapped defensive signatures for a potential target without risking real assets."
+  },
+  {
+   "source": "mitre-atlas:AML.M0039",
+   "target": "mitre-atlas:AML.T0084",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0039'].mitigates → AML.T0084",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Honeypots can surface which agent configuration and related assets adversaries hunt for, exposing the reconnaissance that precedes agent-targeted attacks, and acting as both canary tokens and decoy."
+  },
+  {
+   "source": "mitre-atlas:AML.M0039",
+   "target": "mitre-atlas:AML.T0093",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0039'].mitigates → AML.T0093",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Since honeypots capture real input, they can provide visibility into attacks and prompt payloads that are target-specific."
+  },
+  {
+   "source": "mitre-atlas:AML.M0039",
+   "target": "mitre-atlas:AML.T0095",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0039'].mitigates → AML.T0095",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Decoy assets, such as honeypots, can act as a first contact for adversarial activity and reveal discovery channels that attackers are using to find web AI assets for targeting."
+  },
+  {
+   "source": "mitre-atlas:AML.M0039",
+   "target": "mitre-atlas:AML.T0095.000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0039'].mitigates → AML.T0095.000",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Decoy assets, such as honeypots, can act as a first contact for adversarial activity and reveal discovery channels that attackers are using to find web AI assets for targeting."
+  },
+  {
+   "source": "mitre-atlas:AML.M0039",
+   "target": "mitre-atlas:AML.T0132",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0039'].mitigates → AML.T0132",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Honeypots can safely absorb real attacks and exploit attempts, turning payloads into mapped defensive signatures for a potential target without risking real assets."
+  },
+  {
+   "source": "mitre-atlas:AML.M0039",
+   "target": "mitre-atlas:AML.T0133",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "mitre-atlas-2026-09-yaml",
+    "locator": "relationships['AML.M0039'].mitigates → AML.T0133",
+    "authority": "MITRE ATLAS 2026.09"
+   },
+   "label": "mitigates",
+   "status": "final",
+   "note": "Interactive agentic decoys can present a plausible but fake toolset and capabilities. When an adversary enumerates the agent's capabilities at runtime, the honeypot can capture which tools and privileges they probe for and how they attempt to exploit it, while planted decoy credentials can also be used as canary tokens."
+  }
+ ]
+}

@@ -46,6 +46,8 @@
   --color-framework-rmf-container: #27310F;
   --color-framework-ai: #B47825;
   --color-framework-ai-container: #211608;
+  --color-framework-law: #BB55C5;
+  --color-framework-law-container: #1C091E;
   --radius-none: 0px;
   --radius-xs: 2px;
   --radius-sm: 4px;
@@ -235,6 +237,9 @@
   --badge-framework-ai-bg: #211608;
   --badge-framework-ai-fg: #B47825;
   --badge-framework-ai-radius: 4px;
+  --badge-framework-law-bg: #1C091E;
+  --badge-framework-law-fg: #BB55C5;
+  --badge-framework-law-radius: 4px;
   --requirement-code-bg: #121927;
   --requirement-code-fg: #7AA2FF;
   --requirement-code-radius: 2px;

@@ -1,6 +1,8 @@
 /** React Query hooks — server state. SSE events invalidate these keys (see events.ts). */
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useUi } from "../state/ui.ts";
 import { api } from "./api.ts";
+import { familyOf, frameworkOf } from "./format.ts";
 import type {
   ActivityEvent,
   CheckResult,
@@ -48,15 +50,28 @@ export const useWorkspace = (ws: string | undefined) =>
   useQuery({ queryKey: keys.workspace(ws ?? ""), queryFn: () => api.get<WorkspaceSummary>(`/workspaces/${enc(ws!)}`), enabled: !!ws });
 export const useGraph = (fw: string | undefined) =>
   useQuery({ queryKey: keys.graph(fw ?? ""), queryFn: () => api.get<LeanGraph>(`/frameworks/${enc(fw!)}`), enabled: !!fw, staleTime: Infinity });
-export const useFrameworkState = (ws: string | undefined, fw: string | undefined) =>
-  useQuery({
-    queryKey: keys.state(ws ?? "", fw ?? ""),
-    queryFn: () => api.get<FrameworkStateBundle>(`/workspaces/${enc(ws!)}/frameworks/${enc(fw!)}/state`),
+export const useFrameworkState = (ws: string | undefined, fw: string | undefined) => {
+  // Threat catalogs carry derived coverage, counted down to the chosen link status.
+  const min = useUi((s) => s.threatMin);
+  const threat = !!fw && familyOf(fw) === "threat";
+  return useQuery({
+    queryKey: threat ? [...keys.state(ws ?? "", fw ?? ""), min] : keys.state(ws ?? "", fw ?? ""),
+    queryFn: () => api.get<FrameworkStateBundle>(`/workspaces/${enc(ws!)}/frameworks/${enc(fw!)}/state${threat ? `?min=${min}` : ""}`),
     enabled: !!ws && !!fw,
     placeholderData: keepPreviousData,
   });
-export const useNodeDetail = (ws: string | undefined, id: string | undefined) =>
-  useQuery({ queryKey: keys.node(ws ?? "", id ?? ""), queryFn: () => api.get<NodeDetail>(`/workspaces/${enc(ws!)}/requirements/${enc(id!)}`), enabled: !!ws && !!id });
+};
+export const useNodeDetail = (ws: string | undefined, id: string | undefined) => {
+  const min = useUi((s) => s.threatMin);
+  const threat = !!id && familyOf(frameworkOf(id)) === "threat";
+  return useQuery({
+    queryKey: threat ? [...keys.node(ws ?? "", id ?? ""), min] : keys.node(ws ?? "", id ?? ""),
+    queryFn: () => api.get<NodeDetail>(`/workspaces/${enc(ws!)}/requirements/${enc(id!)}${threat ? `?min=${min}` : ""}`),
+    enabled: !!ws && !!id,
+    // Changing the link filter refetches the same node: keep showing it (and the open tab) meanwhile.
+    placeholderData: (prev) => (prev?.node.id === id ? prev : undefined),
+  });
+};
 export const useTasks = (ws: string | undefined) => useQuery({ queryKey: keys.tasks(ws ?? ""), queryFn: () => api.get<Task[]>(`/workspaces/${enc(ws!)}/tasks`), enabled: !!ws });
 export const useEvidence = (ws: string | undefined) => useQuery({ queryKey: keys.evidence(ws ?? ""), queryFn: () => api.get<Evidence[]>(`/workspaces/${enc(ws!)}/evidence`), enabled: !!ws });
 export const usePolicies = (ws: string | undefined) => useQuery({ queryKey: keys.policies(ws ?? ""), queryFn: () => api.get<Policy[]>(`/workspaces/${enc(ws!)}/policies`), enabled: !!ws });

@@ -1,0 +1,490 @@
+{
+ "id": "threat--owasp-genai-crosswalk--owasp-agentic-top10--nist-ai-rmf",
+ "title": "OWASP GenAI Security Crosswalk (unreviewed)",
+ "sourceFramework": "owasp-agentic-top10",
+ "targetFramework": "nist-ai-rmf",
+ "authority": "OWASP GenAI Security Crosswalk (unreviewed)",
+ "status": "unreviewed",
+ "mappings": [
+  {
+   "source": "owasp-agentic-top10:ASI01",
+   "target": "nist-ai-rmf:GOVERN 1.7",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI01 — Agent Goal Hijack; table 'NIST AI RMF mapping'), line 127",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI01",
+   "target": "nist-ai-rmf:MAP 2.3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI01 — Agent Goal Hijack; table 'NIST AI RMF mapping'), line 128",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI01",
+   "target": "nist-ai-rmf:MEASURE 2.5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI01 — Agent Goal Hijack; table 'NIST AI RMF mapping'), line 129",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI01",
+   "target": "nist-ai-rmf:MANAGE 2.2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI01 — Agent Goal Hijack; table 'NIST AI RMF mapping'), line 130",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI02",
+   "target": "nist-ai-rmf:GOVERN 1.7",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI02 — Tool Misuse & Exploitation; table 'NIST AI RMF mapping'), line 207",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI02",
+   "target": "nist-ai-rmf:MAP 5.1",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI02 — Tool Misuse & Exploitation; table 'NIST AI RMF mapping'), line 208",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI02",
+   "target": "nist-ai-rmf:MEASURE 2.5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI02 — Tool Misuse & Exploitation; table 'NIST AI RMF mapping'), line 209",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI02",
+   "target": "nist-ai-rmf:MANAGE 2.2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI02 — Tool Misuse & Exploitation; table 'NIST AI RMF mapping'), line 210",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI03",
+   "target": "nist-ai-rmf:GOVERN 1.6",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI03 — Identity & Privilege Abuse; table 'NIST AI RMF mapping'), line 283",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI03",
+   "target": "nist-ai-rmf:MAP 2.3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI03 — Identity & Privilege Abuse; table 'NIST AI RMF mapping'), line 284",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI03",
+   "target": "nist-ai-rmf:MEASURE 2.5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI03 — Identity & Privilege Abuse; table 'NIST AI RMF mapping'), line 285",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI03",
+   "target": "nist-ai-rmf:MANAGE 2.2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI03 — Identity & Privilege Abuse; table 'NIST AI RMF mapping'), line 286",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI04",
+   "target": "nist-ai-rmf:GOVERN 1.6",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI04 — Agentic Supply Chain Vulnerabilities; table 'NIST AI RMF mapping'), line 359",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI04",
+   "target": "nist-ai-rmf:MAP 5.1",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI04 — Agentic Supply Chain Vulnerabilities; table 'NIST AI RMF mapping'), line 360",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI04",
+   "target": "nist-ai-rmf:MEASURE 2.5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI04 — Agentic Supply Chain Vulnerabilities; table 'NIST AI RMF mapping'), line 361",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI04",
+   "target": "nist-ai-rmf:MANAGE 3.2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI04 — Agentic Supply Chain Vulnerabilities; table 'NIST AI RMF mapping'), line 362",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI05",
+   "target": "nist-ai-rmf:GOVERN 1.7",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI05 — Unexpected Code Execution; table 'NIST AI RMF mapping'), line 433",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI05",
+   "target": "nist-ai-rmf:MAP 2.3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI05 — Unexpected Code Execution; table 'NIST AI RMF mapping'), line 434",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI05",
+   "target": "nist-ai-rmf:MEASURE 2.5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI05 — Unexpected Code Execution; table 'NIST AI RMF mapping'), line 435",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI05",
+   "target": "nist-ai-rmf:MANAGE 2.2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI05 — Unexpected Code Execution; table 'NIST AI RMF mapping'), line 436",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI06",
+   "target": "nist-ai-rmf:GOVERN 1.6",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI06 — Memory & Context Poisoning; table 'NIST AI RMF mapping'), line 506",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI06",
+   "target": "nist-ai-rmf:MAP 2.3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI06 — Memory & Context Poisoning; table 'NIST AI RMF mapping'), line 507",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI06",
+   "target": "nist-ai-rmf:MEASURE 2.5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI06 — Memory & Context Poisoning; table 'NIST AI RMF mapping'), line 508",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI06",
+   "target": "nist-ai-rmf:MANAGE 2.4",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI06 — Memory & Context Poisoning; table 'NIST AI RMF mapping'), line 509",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI07",
+   "target": "nist-ai-rmf:GOVERN 1.6",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI07 — Insecure Inter-Agent Communication; table 'NIST AI RMF mapping'), line 575",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI07",
+   "target": "nist-ai-rmf:MAP 5.1",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI07 — Insecure Inter-Agent Communication; table 'NIST AI RMF mapping'), line 576",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI07",
+   "target": "nist-ai-rmf:MEASURE 2.5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI07 — Insecure Inter-Agent Communication; table 'NIST AI RMF mapping'), line 577",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI07",
+   "target": "nist-ai-rmf:MANAGE 2.2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI07 — Insecure Inter-Agent Communication; table 'NIST AI RMF mapping'), line 578",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI08",
+   "target": "nist-ai-rmf:MAP 4.1",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI08 — Cascading Agent Failures; table 'NIST AI RMF mapping'), line 648",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI08",
+   "target": "nist-ai-rmf:MEASURE 2.5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI08 — Cascading Agent Failures; table 'NIST AI RMF mapping'), line 649",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI08",
+   "target": "nist-ai-rmf:MANAGE 2.2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI08 — Cascading Agent Failures; table 'NIST AI RMF mapping'), line 650",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI08",
+   "target": "nist-ai-rmf:MANAGE 3.2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI08 — Cascading Agent Failures; table 'NIST AI RMF mapping'), line 651",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI09",
+   "target": "nist-ai-rmf:GOVERN 1.7",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI09 — Human-Agent Trust Exploitation; table 'NIST AI RMF mapping'), line 718",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI09",
+   "target": "nist-ai-rmf:MEASURE 2.6",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI09 — Human-Agent Trust Exploitation; table 'NIST AI RMF mapping'), line 719",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI09",
+   "target": "nist-ai-rmf:MEASURE 4.1",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI09 — Human-Agent Trust Exploitation; table 'NIST AI RMF mapping'), line 720",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI09",
+   "target": "nist-ai-rmf:MANAGE 2.4",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI09 — Human-Agent Trust Exploitation; table 'NIST AI RMF mapping'), line 721",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI10",
+   "target": "nist-ai-rmf:GOVERN 1.7",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI10 — Rogue Agents; table 'NIST AI RMF mapping'), line 782",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI10",
+   "target": "nist-ai-rmf:MAP 2.3",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI10 — Rogue Agents; table 'NIST AI RMF mapping'), line 783",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI10",
+   "target": "nist-ai-rmf:MEASURE 2.5",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI10 — Rogue Agents; table 'NIST AI RMF mapping'), line 784",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI10",
+   "target": "nist-ai-rmf:MANAGE 2.2",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-genai-crosswalk-agentic-nistairmf",
+    "locator": "agentic-top10/Agentic_NISTAIRMF.md (ASI10 — Rogue Agents; table 'NIST AI RMF mapping'), line 785",
+    "authority": "OWASP GenAI Security Crosswalk (unreviewed)"
+   },
+   "label": "maps to",
+   "status": "unreviewed"
+  }
+ ]
+}

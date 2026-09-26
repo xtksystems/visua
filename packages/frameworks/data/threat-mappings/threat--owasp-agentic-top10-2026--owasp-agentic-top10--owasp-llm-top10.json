@@ -1,0 +1,309 @@
+{
+ "id": "threat--owasp-agentic-top10-2026--owasp-agentic-top10--owasp-llm-top10",
+ "title": "OWASP Agentic Top 10 2026, Appendix A",
+ "sourceFramework": "owasp-agentic-top10",
+ "targetFramework": "owasp-llm-top10",
+ "authority": "OWASP Agentic Top 10 2026, Appendix A",
+ "status": "final",
+ "mappings": [
+  {
+   "source": "owasp-agentic-top10:ASI01",
+   "target": "owasp-llm-top10:LLM01-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI01, column 'OWASP LLM Top 10 (2025)'",
+    "page": 40,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI01",
+   "target": "owasp-llm-top10:LLM06-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI01, column 'OWASP LLM Top 10 (2025)'",
+    "page": 40,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI02",
+   "target": "owasp-llm-top10:LLM06-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI02, column 'OWASP LLM Top 10 (2025)'",
+    "page": 40,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI03",
+   "target": "owasp-llm-top10:LLM01-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI03, column 'OWASP LLM Top 10 (2025)'",
+    "page": 40,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI03",
+   "target": "owasp-llm-top10:LLM06-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI03, column 'OWASP LLM Top 10 (2025)'",
+    "page": 40,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI03",
+   "target": "owasp-llm-top10:LLM02-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI03, column 'OWASP LLM Top 10 (2025)'",
+    "page": 40,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI04",
+   "target": "owasp-llm-top10:LLM03-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI04, column 'OWASP LLM Top 10 (2025)'",
+    "page": 40,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI05",
+   "target": "owasp-llm-top10:LLM01-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI05, column 'OWASP LLM Top 10 (2025)'",
+    "page": 40,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI05",
+   "target": "owasp-llm-top10:LLM05-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI05, column 'OWASP LLM Top 10 (2025)'",
+    "page": 40,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI06",
+   "target": "owasp-llm-top10:LLM01-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI06, column 'OWASP LLM Top 10 (2025)'",
+    "page": 40,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI06",
+   "target": "owasp-llm-top10:LLM04-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI06, column 'OWASP LLM Top 10 (2025)'",
+    "page": 40,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI06",
+   "target": "owasp-llm-top10:LLM08-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI06, column 'OWASP LLM Top 10 (2025)'",
+    "page": 40,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI07",
+   "target": "owasp-llm-top10:LLM02-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI07, column 'OWASP LLM Top 10 (2025)'",
+    "page": 41,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI07",
+   "target": "owasp-llm-top10:LLM06-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI07, column 'OWASP LLM Top 10 (2025)'",
+    "page": 41,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI08",
+   "target": "owasp-llm-top10:LLM01-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI08, column 'OWASP LLM Top 10 (2025)'",
+    "page": 41,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI08",
+   "target": "owasp-llm-top10:LLM04-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI08, column 'OWASP LLM Top 10 (2025)'",
+    "page": 41,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI08",
+   "target": "owasp-llm-top10:LLM06-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI08, column 'OWASP LLM Top 10 (2025)'",
+    "page": 41,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI09",
+   "target": "owasp-llm-top10:LLM01-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI09, column 'OWASP LLM Top 10 (2025)'",
+    "page": 41,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI09",
+   "target": "owasp-llm-top10:LLM05-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI09, column 'OWASP LLM Top 10 (2025)'",
+    "page": 41,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI09",
+   "target": "owasp-llm-top10:LLM06-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI09, column 'OWASP LLM Top 10 (2025)'",
+    "page": 41,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI09",
+   "target": "owasp-llm-top10:LLM09-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI09, column 'OWASP LLM Top 10 (2025)'",
+    "page": 41,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI10",
+   "target": "owasp-llm-top10:LLM02-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI10, column 'OWASP LLM Top 10 (2025)'",
+    "page": 41,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  },
+  {
+   "source": "owasp-agentic-top10:ASI10",
+   "target": "owasp-llm-top10:LLM09-2025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-agentic-top10-2026-pdf",
+    "locator": "Appendix A - OWASP Agentic AI Security Mapping Matrix, row ASI10, column 'OWASP LLM Top 10 (2025)'",
+    "page": 41,
+    "authority": "OWASP Agentic Top 10 2026, Appendix A"
+   },
+   "label": "cross mapping",
+   "status": "final"
+  }
+ ]
+}

@@ -171,3 +171,33 @@ test("organization admin: members, roles and a one-time API token", async ({ pag
   await expect(page.getByText("Chain intact")).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test("threat views: ATLAS matrix, coverage from linked requirements, and the Nexus threat ring", async ({ page }) => {
+  await signIn(page);
+  const errors = watchErrors(page);
+  await page.goto(`${WS}/threats`);
+  await expect(page.getByRole("heading", { level: 1, name: /AI threats/ })).toBeVisible();
+  const matrix = page.getByRole("grid", { name: /MITRE ATLAS matrix/ });
+  await expect(matrix).toBeVisible();
+  await expect(matrix.getByText("Reconnaissance", { exact: true })).toBeVisible();
+  // A technique opens the coverage inspector: never a status of its own, always the linked requirements.
+  await matrix.getByRole("button", { name: /LLM Prompt Injection/ }).first().click();
+  const inspector = page.getByRole("complementary", { name: /AML\.T0051 details/ });
+  await expect(inspector.getByText(/Partly covered|Covered|Open/).first()).toBeVisible();
+  await inspector.getByRole("tab", { name: /Linked requirements/ }).click();
+  await expect(inspector.getByText("Draft").first()).toBeVisible();
+  // Final links only: ATLAS has no final link to a requirement.
+  await inspector.getByRole("button", { name: "Final only" }).click();
+  await expect(inspector.getByText("No linked requirement at the chosen link status.")).toBeVisible();
+  await inspector.getByRole("button", { name: "All published links" }).click();
+  // OWASP LLM Top 10: the 2026 edition, with the 2025 entry each one replaces.
+  await page.getByRole("tab", { name: /OWASP LLM Top 10/ }).click();
+  await expect(page.getByText("LLM04:2026")).toBeVisible();
+  await expect(page.getByText("was LLM03:2025")).toBeVisible();
+  // The Nexus shows the inner threat ring and its detail.
+  await page.goto(`${WS}/crosswalk?group=${encodeURIComponent("mitre-atlas:AML.TA0004")}`);
+  await expect(page.locator(".observatory__canvas canvas")).toBeVisible();
+  await expect(page.getByText("MITRE ATLAS · threat ring")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Threat ring/ })).toHaveAttribute("aria-pressed", "true");
+  expect(errors).toEqual([]);
+});

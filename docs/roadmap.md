@@ -27,8 +27,19 @@ generated from the product, not written by marketing.
     checklists, and the 12 GAI risks and 212 actions of NIST AI 600-1.
   - An AI system inventory, readiness per function, GAI risk coverage, an AI RMF
     profile export and an AI governance policy template.
+- **NIST's AI security drafts as overlays.** The Cyber AI Profile (NIST IR 8596 iprd) on
+  CSF 2.0 with per-focus-area priorities, and the COSAiS predictive-AI overlay on
+  SP 800-53, both adoptable per workspace and labeled as drafts.
+- **U.S. state AI laws.** 26 laws in 8 jurisdictions with 187 obligations quoted from the
+  statutes and regulations, scoped by the roles the organization records under each law.
+- **AI threat views.** MITRE ATLAS 2026.09, the OWASP Top 10s for LLM (2026, 2025) and
+  agentic applications, and NIST AI 100-2, with coverage derived from published links
+  labeled by status; a Threats page, threat catalogs in the 3D Observatory, and a threat
+  ring in the Nexus.
 - **Crosswalk Nexus.** 2,188 authoritative mappings with authority labels; composed and
   editorial sets are flagged.
+- **Organizations, roles and SSO** (OpenID Connect, per-organization connections, API
+  tokens) and **PostgreSQL storage** for multi-instance hosting, alongside SQLite.
 - **Agents.** Eight agents on Claude or offline playbooks, with a flight recorder,
   proposals, autonomy per change type, and citations to the local corpus.
 - **Integrity.**
@@ -39,11 +50,10 @@ generated from the product, not written by marketing.
 
 ## Next: platform foundations
 
-1. **Identity and tenancy.** OIDC/SAML SSO, roles (owner, practitioner, reviewer,
-   auditor read-only), per-tenant isolation, and scoped API tokens. This is the
-   prerequisite for any hosted deployment.
-2. **Postgres storage** with row-level tenancy and object storage for evidence files
-   (content-addressed by SHA-256). SQLite stays the local and single-user mode.
+1. **Identity follow-ups.** SAML and SCIM provisioning, DNS verification of SSO
+   domains.
+2. **Evidence file storage.** Object storage for evidence files, content-addressed by
+   SHA-256, and Postgres row-level security as a second tenancy guard.
 3. **Connector depth.** Label each connector by automation depth (API-automated,
    agent-assisted, manual):
    - AWS (Config, IAM, CloudTrail, KMS), Azure and GCP
@@ -82,9 +92,9 @@ Order and reasoning come from `docs/research/ai-governance-landscape.md` (status
 |---|---|---|---|---|
 | 1 | ISO/IEC 42001:2023 (AI management system), with ISO/IEC 42005 and 23894 as references | Certifiable framework: clauses 4–10 plus 38 Annex A controls, Statement of Applicability | The strongest buyer pull: accredited certification, required by some large buyers of AI services and by CSA STAR for AI Level 2. A crosswalk to the AI RMF is published on NIST's site. Shares its structure with ISO 27001. | © ISO: Visua skeleton with its own titles; verbatim text only from the customer's licensed copy, withheld from language models by default (the SOC 2 pattern) |
 | 2 | EU AI Act, as amended by Regulation (EU) 2026/1744 | Regulatory obligations with deadlines, by role (provider, deployer…) and risk class | Binding law. Upcoming dates: 2 Dec 2026, 2 Aug 2027, 2 Dec 2027 (Annex III high-risk) and 2 Aug 2028 (Annex I) | EUR-Lex (reusable with attribution) |
-| 3 | NIST Cyber AI Profile (NIST IR 8596) and the SP 800-53 control overlays for AI (COSAiS) | Profiles and overlays on the CSF 2.0 and SP 800-53 graphs Visua already ships, labeled as drafts | Brings AI into the flagship frameworks at no licensing cost; the federal path | NIST (public domain), drafts only so far |
-| 4 | U.S. state AI obligations (Texas, California, Colorado, New York, NYC, Illinois) | A light obligations pack with deadlines | Texas TRAIGA makes substantial compliance with the NIST AI RMF Generative AI Profile an affirmative defense; the California and Colorado dates fall in 2026–2028. Volatile under federal preemption efforts. | Public legislative texts |
-| 5 | MITRE ATLAS and the OWASP Top 10 for LLM and agentic applications (CSA AI Controls Matrix optional) | Threat lenses mapped to controls, not frameworks | Open licenses and machine-readable data; demand for agentic AI security | Apache-2.0 / CC licenses; CSA AICM needs a CSA license |
+| 3 | ~~NIST Cyber AI Profile (NIST IR 8596) and the SP 800-53 control overlays for AI (COSAiS)~~ | Shipped as overlays; follow the drafts to final (COSAiS's other four use cases, the Cyber AI Profile's next draft) | | NIST (public domain) |
+| 4 | ~~U.S. state AI obligations~~ | Shipped: 26 laws in 8 jurisdictions. Next: re-check the bills pending on 2026-09-26 (California, New York) and add states as laws take effect | Volatile under federal preemption efforts | Public legislative texts |
+| 5 | ~~MITRE ATLAS and the OWASP Top 10 for LLM and agentic applications~~ | Shipped as threat views. Next: the CSA AI Controls Matrix (needs a CSA license) and ATLAS case studies | | Apache-2.0 / CC BY-SA 4.0 |
 
 All of these reuse the same primitives, which the AI RMF work puts in place: the AI
 system inventory, the organization's role, the system's risk tier, impact assessments,

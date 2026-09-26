@@ -30,13 +30,26 @@ change the web app.
   in Visua's own words.
 - **Official counts are tested.** If an ingest change moves a count (106 CSF outcomes,
   1,014 SP 800-53 units, 47 RMF tasks, 61 TSC criteria, 72 AI RMF outcomes, 12 GAI
-  risks and 212 Generative AI Profile actions), the change is wrong unless the official
-  source changed.
+  risks and 212 Generative AI Profile actions; ATLAS 2026.09's 16 tactics, 120
+  techniques, 88 sub-techniques and 40 mitigations; 10 entries in each OWASP Top 10;
+  25 NIST AI 100-2 attacks), the change is wrong unless the official source changed.
+  The state-law counts (26 laws, 187 obligations) are Visua's compilation: change them
+  only with a deliberate corpus refresh.
+- **Threat catalogs are views, not frameworks.** Never enable or assess a threat catalog.
+  Its coverage derives from published threat links (`registry.threatLinks`), and every
+  link keeps its authority and status (final, draft, unreviewed, superseded). Don't add
+  links Visua wrote itself, and keep them out of the requirement crosswalk.
+- **Law codes are node ids.** Never change a published law code; add new ones to
+  `CODE_OVERRIDES` in `packages/frameworks/src/ingest/state-laws.ts` when needed.
 - **AI RMF text comes from the PDF-based extraction** (`corpus/nist-ai-rmf/ai-rmf-core.json`).
   NIST's own CPRT and Playbook JSON differ from the final AI 100-1 text in dozens of
   statements; don't switch the ingest to them.
-- **Licensing.** Never commit AICPA, ISO, PCI SSC or other copyrighted framework text,
-  including derived JSON, mappings and search chunks.
+- **Licensing.** Never commit framework text whose license does not allow
+  redistribution (AICPA, ISO, PCI SSC, MITRE SAFE-AI…), including derived JSON,
+  mappings and search chunks; keep such files in a git-ignored `.local/` folder.
+  Openly licensed catalogs may be committed with their notices: MITRE ATLAS
+  (Apache-2.0) and OWASP (CC BY-SA 4.0; files derived from OWASP text stay CC BY-SA,
+  see `packages/frameworks/data/NOTICE.md`).
   - `.gitignore` covers `corpus/aicpa-soc2/**` (except `manifest.json` and
     `STRUCTURE.md`), `packages/frameworks/data/aicpa-*.json`,
     `mappings/*tsc-2017*.json` and `chunks/aicpa-soc2.json`. Check `git status` before

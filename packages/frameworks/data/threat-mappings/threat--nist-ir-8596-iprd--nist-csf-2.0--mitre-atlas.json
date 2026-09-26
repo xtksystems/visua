@@ -1,0 +1,1518 @@
+{
+ "id": "threat--nist-ir-8596-iprd--nist-csf-2.0--mitre-atlas",
+ "title": "NIST IR 8596 (Cyber AI Profile, draft)",
+ "sourceFramework": "nist-csf-2.0",
+ "targetFramework": "mitre-atlas",
+ "authority": "NIST IR 8596 (Cyber AI Profile, draft)",
+ "status": "draft",
+ "mappings": [
+  {
+   "source": "nist-csf-2.0:GV.OC-01",
+   "target": "mitre-atlas:AML.M0020",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.OC-01, focus area 'Defend' — Example Informative References",
+    "page": 25,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.OC-02",
+   "target": "mitre-atlas:AML.M0003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.OC-02, focus area 'Defend' — Example Informative References",
+    "page": 26,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.OC-03",
+   "target": "mitre-atlas:AML.M0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.OC-03, focus area 'Defend' — Example Informative References",
+    "page": 27,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.OC-04",
+   "target": "mitre-atlas:AML.M0008",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.OC-04, focus area 'Defend' — Example Informative References",
+    "page": 27,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.OC-05",
+   "target": "mitre-atlas:AML.M0023",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.OC-05, focus area 'Defend' — Example Informative References",
+    "page": 28,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.RM-01",
+   "target": "mitre-atlas:AML.M0000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.RM-01, focus area 'Defend' — Example Informative References",
+    "page": 29,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.RM-02",
+   "target": "mitre-atlas:AML.M0019",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.RM-02, focus area 'Defend' — Example Informative References",
+    "page": 29,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.RM-03",
+   "target": "mitre-atlas:AML.M0023",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.RM-03, focus area 'Defend' — Example Informative References",
+    "page": 30,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.RM-04",
+   "target": "mitre-atlas:AML.M0011",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.RM-04, focus area 'Defend' — Example Informative References",
+    "page": 31,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.RM-05",
+   "target": "mitre-atlas:AML.M0023",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.RM-05, focus area 'Defend' — Example Informative References",
+    "page": 31,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.RM-06",
+   "target": "mitre-atlas:AML.M0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.RM-06, focus area 'Defend' — Example Informative References",
+    "page": 32,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.RR-02",
+   "target": "mitre-atlas:AML.M0019",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.RR-02, focus area 'Defend' — Example Informative References",
+    "page": 34,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.RR-02",
+   "target": "mitre-atlas:AML.M0003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.RR-02, focus area 'Defend' — Example Informative References",
+    "page": 34,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.SC-01",
+   "target": "mitre-atlas:AML.M0023",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.SC-01, focus area 'Secure' — Example Informative References",
+    "page": 38,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.SC-02",
+   "target": "mitre-atlas:AML.M0023",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.SC-02, focus area 'Secure' — Example Informative References",
+    "page": 39,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.SC-04",
+   "target": "mitre-atlas:AML.M0023",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.SC-04, focus area 'Secure' — Example Informative References",
+    "page": 40,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.SC-05",
+   "target": "mitre-atlas:AML.M0023",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.SC-05, focus area 'Secure' — Example Informative References",
+    "page": 41,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.SC-06",
+   "target": "mitre-atlas:AML.M0023",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.SC-06, focus area 'Secure' — Example Informative References",
+    "page": 42,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.SC-07",
+   "target": "mitre-atlas:AML.M0023",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.SC-07, focus area 'Secure' — Example Informative References",
+    "page": 42,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.SC-08",
+   "target": "mitre-atlas:AML.M0023",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.SC-08, focus area 'Secure' — Example Informative References",
+    "page": 43,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.SC-09",
+   "target": "mitre-atlas:AML.M0023",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.SC-09, focus area 'Secure' — Example Informative References",
+    "page": 43,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:GV.SC-10",
+   "target": "mitre-atlas:AML.M0023",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), GV.SC-10, focus area 'Secure' — Example Informative References",
+    "page": 44,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:ID.AM-01",
+   "target": "mitre-atlas:AML.M0023",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), ID.AM-01, focus area 'Defend' — Example Informative References",
+    "page": 45,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:ID.AM-04",
+   "target": "mitre-atlas:AML.M0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), ID.AM-04, focus area 'Defend' — Example Informative References",
+    "page": 47,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:ID.AM-04",
+   "target": "mitre-atlas:AML.M0023",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), ID.AM-04, focus area 'Thwart' — Example Informative References",
+    "page": 47,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:ID.AM-08",
+   "target": "mitre-atlas:AML.M0023",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), ID.AM-08, focus area 'Thwart' — Example Informative References",
+    "page": 50,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:ID.RA-01",
+   "target": "mitre-atlas:AML.M0016",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), ID.RA-01, focus area 'Thwart' — Example Informative References",
+    "page": 50,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:ID.RA-04",
+   "target": "mitre-atlas:AML.M0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), ID.RA-04, focus area 'Defend' — Example Informative References",
+    "page": 53,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:ID.RA-04",
+   "target": "mitre-atlas:AML.M0016",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), ID.RA-04, focus area 'Thwart' — Example Informative References",
+    "page": 53,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:ID.IM-01",
+   "target": "mitre-atlas:AML.M0008",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), ID.IM-01, focus area 'Defend' — Example Informative References",
+    "page": 57,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:ID.IM-02",
+   "target": "mitre-atlas:AML.M0018",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), ID.IM-02, focus area 'Defend' — Example Informative References",
+    "page": 58,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:ID.IM-03",
+   "target": "mitre-atlas:AML.M0008",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), ID.IM-03, focus area 'Defend' — Example Informative References",
+    "page": 59,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:ID.IM-03",
+   "target": "mitre-atlas:AML.M0015",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), ID.IM-03, focus area 'Defend' — Example Informative References",
+    "page": 59,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:ID.IM-04",
+   "target": "mitre-atlas:AML.M0014",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), ID.IM-04, focus area 'Defend' — Example Informative References",
+    "page": 59,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-01",
+   "target": "mitre-atlas:AML.M0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-01, focus area 'Secure' — Example Informative References",
+    "page": 60,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-01",
+   "target": "mitre-atlas:AML.M0019",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-01, focus area 'Secure' — Example Informative References",
+    "page": 60,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-02",
+   "target": "mitre-atlas:AML.M0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-02, focus area 'Secure' — Example Informative References",
+    "page": 61,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-02",
+   "target": "mitre-atlas:AML.M0026",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-02, focus area 'Secure' — Example Informative References",
+    "page": 61,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-02",
+   "target": "mitre-atlas:AML.M0027",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-02, focus area 'Secure' — Example Informative References",
+    "page": 61,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-02",
+   "target": "mitre-atlas:AML.M0028",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-02, focus area 'Secure' — Example Informative References",
+    "page": 61,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-02",
+   "target": "mitre-atlas:AML.M0013",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-02, focus area 'Defend' — Example Informative References",
+    "page": 61,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-02",
+   "target": "mitre-atlas:AML.M0014",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-02, focus area 'Defend' — Example Informative References",
+    "page": 61,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-03",
+   "target": "mitre-atlas:AML.M0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-03, focus area 'Secure' — Example Informative References",
+    "page": 61,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-03",
+   "target": "mitre-atlas:AML.M0019",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-03, focus area 'Defend' — Example Informative References",
+    "page": 62,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-04",
+   "target": "mitre-atlas:AML.M0013",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-04, focus area 'Defend' — Example Informative References",
+    "page": 62,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-04",
+   "target": "mitre-atlas:AML.M0014",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-04, focus area 'Defend' — Example Informative References",
+    "page": 62,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-05",
+   "target": "mitre-atlas:AML.M0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-05, focus area 'Secure' — Example Informative References",
+    "page": 63,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-05",
+   "target": "mitre-atlas:AML.M0012",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-05, focus area 'Secure' — Example Informative References",
+    "page": 63,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-05",
+   "target": "mitre-atlas:AML.M0026",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-05, focus area 'Secure' — Example Informative References",
+    "page": 63,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-05",
+   "target": "mitre-atlas:AML.M0027",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-05, focus area 'Secure' — Example Informative References",
+    "page": 63,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-05",
+   "target": "mitre-atlas:AML.M0019",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-05, focus area 'Defend' — Example Informative References",
+    "page": 63,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-05",
+   "target": "mitre-atlas:AML.M0028",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-05, focus area 'Defend' — Example Informative References",
+    "page": 63,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-06",
+   "target": "mitre-atlas:AML.M0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-06, focus area 'Secure' — Example Informative References",
+    "page": 63,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-06",
+   "target": "mitre-atlas:AML.M0012",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-06, focus area 'Secure' — Example Informative References",
+    "page": 63,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AA-06",
+   "target": "mitre-atlas:AML.M0009",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AA-06, focus area 'Defend' — Example Informative References",
+    "page": 63,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AT-01",
+   "target": "mitre-atlas:AML.M0012",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AT-01, focus area 'Secure' — Example Informative References",
+    "page": 64,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AT-01",
+   "target": "mitre-atlas:AML.M0018",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AT-01, focus area 'Thwart' — Example Informative References",
+    "page": 64,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AT-02",
+   "target": "mitre-atlas:AML.M0012",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AT-02, focus area 'Secure' — Example Informative References",
+    "page": 65,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AT-02",
+   "target": "mitre-atlas:AML.M0018",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AT-02, focus area 'Defend' — Example Informative References",
+    "page": 65,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.AT-02",
+   "target": "mitre-atlas:AML.M0003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.AT-02, focus area 'Defend' — Example Informative References",
+    "page": 65,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.DS-01",
+   "target": "mitre-atlas:AML.M0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.DS-01, focus area 'Secure' — Example Informative References",
+    "page": 65,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.DS-01",
+   "target": "mitre-atlas:AML.M0012",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.DS-01, focus area 'Secure' — Example Informative References",
+    "page": 65,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.DS-01",
+   "target": "mitre-atlas:AML.M0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.DS-01, focus area 'Secure' — Example Informative References",
+    "page": 65,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.DS-01",
+   "target": "mitre-atlas:AML.M0025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.DS-01, focus area 'Secure' — Example Informative References",
+    "page": 65,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.DS-01",
+   "target": "mitre-atlas:AML.M0007",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.DS-01, focus area 'Thwart' — Example Informative References",
+    "page": 65,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.DS-02",
+   "target": "mitre-atlas:AML.M0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.DS-02, focus area 'Secure' — Example Informative References",
+    "page": 66,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.DS-02",
+   "target": "mitre-atlas:AML.M0019",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.DS-02, focus area 'Defend' — Example Informative References",
+    "page": 66,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.DS-10",
+   "target": "mitre-atlas:AML.M0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.DS-10, focus area 'Secure' — Example Informative References",
+    "page": 67,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.DS-11",
+   "target": "mitre-atlas:AML.M0012",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.DS-11, focus area 'Secure' — Example Informative References",
+    "page": 68,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.DS-11",
+   "target": "mitre-atlas:AML.M0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.DS-11, focus area 'Secure' — Example Informative References",
+    "page": 68,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.DS-11",
+   "target": "mitre-atlas:AML.M0025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.DS-11, focus area 'Secure' — Example Informative References",
+    "page": 68,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.DS-11",
+   "target": "mitre-atlas:AML.M0014",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.DS-11, focus area 'Defend' — Example Informative References",
+    "page": 68,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.DS-11",
+   "target": "mitre-atlas:AML.M0007",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.DS-11, focus area 'Defend' — Example Informative References",
+    "page": 68,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.PS-01",
+   "target": "mitre-atlas:AML.M0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.PS-01, focus area 'Secure' — Example Informative References",
+    "page": 68,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.PS-01",
+   "target": "mitre-atlas:AML.M0012",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.PS-01, focus area 'Secure' — Example Informative References",
+    "page": 68,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.PS-01",
+   "target": "mitre-atlas:AML.M0023",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.PS-01, focus area 'Defend' — Example Informative References",
+    "page": 68,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.PS-01",
+   "target": "mitre-atlas:AML.M0021",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.PS-01, focus area 'Defend' — Example Informative References",
+    "page": 68,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.PS-03",
+   "target": "mitre-atlas:AML.M0016",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.PS-03, focus area 'Defend' — Example Informative References",
+    "page": 69,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.PS-03",
+   "target": "mitre-atlas:AML.M0011",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.PS-03, focus area 'Defend' — Example Informative References",
+    "page": 69,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.PS-04",
+   "target": "mitre-atlas:AML.M0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.PS-04, focus area 'Secure' — Example Informative References",
+    "page": 70,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.PS-05",
+   "target": "mitre-atlas:AML.M0011",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.PS-05, focus area 'Defend' — Example Informative References",
+    "page": 70,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.PS-05",
+   "target": "mitre-atlas:AML.M0013",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.PS-05, focus area 'Defend' — Example Informative References",
+    "page": 70,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.PS-06",
+   "target": "mitre-atlas:AML.M0008",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.PS-06, focus area 'Defend' — Example Informative References",
+    "page": 71,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.PS-06",
+   "target": "mitre-atlas:AML.M0003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.PS-06, focus area 'Defend' — Example Informative References",
+    "page": 71,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.IR-01",
+   "target": "mitre-atlas:AML.M0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.IR-01, focus area 'Secure' — Example Informative References",
+    "page": 72,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.IR-01",
+   "target": "mitre-atlas:AML.M0012",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.IR-01, focus area 'Secure' — Example Informative References",
+    "page": 72,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.IR-01",
+   "target": "mitre-atlas:AML.M0019",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.IR-01, focus area 'Defend' — Example Informative References",
+    "page": 71,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.IR-02",
+   "target": "mitre-atlas:AML.M0009",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.IR-02, focus area 'Defend' — Example Informative References",
+    "page": 72,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.IR-02",
+   "target": "mitre-atlas:AML.M0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.IR-02, focus area 'Defend' — Example Informative References",
+    "page": 72,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.IR-03",
+   "target": "mitre-atlas:AML.M0003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.IR-03, focus area 'Defend' — Example Informative References",
+    "page": 73,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.IR-03",
+   "target": "mitre-atlas:AML.M0006",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.IR-03, focus area 'Defend' — Example Informative References",
+    "page": 73,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.IR-04",
+   "target": "mitre-atlas:AML.M0004",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.IR-04, focus area 'Defend' — Example Informative References",
+    "page": 74,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:PR.IR-04",
+   "target": "mitre-atlas:AML.M0017",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), PR.IR-04, focus area 'Defend' — Example Informative References",
+    "page": 74,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:DE.CM-01",
+   "target": "mitre-atlas:AML.M0012",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), DE.CM-01, focus area 'Secure' — Example Informative References",
+    "page": 75,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:DE.CM-01",
+   "target": "mitre-atlas:AML.M0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), DE.CM-01, focus area 'Secure' — Example Informative References",
+    "page": 75,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:DE.CM-03",
+   "target": "mitre-atlas:AML.M0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), DE.CM-03, focus area 'Secure' — Example Informative References",
+    "page": 77,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:DE.CM-06",
+   "target": "mitre-atlas:AML.M0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), DE.CM-06, focus area 'Secure' — Example Informative References",
+    "page": 77,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:DE.CM-09",
+   "target": "mitre-atlas:AML.M0012",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), DE.CM-09, focus area 'Secure' — Example Informative References",
+    "page": 78,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:DE.CM-09",
+   "target": "mitre-atlas:AML.M0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), DE.CM-09, focus area 'Secure' — Example Informative References",
+    "page": 78,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:DE.AE-03",
+   "target": "mitre-atlas:AML.M0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), DE.AE-03, focus area 'Secure' — Example Informative References",
+    "page": 80,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:DE.AE-06",
+   "target": "mitre-atlas:AML.M0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), DE.AE-06, focus area 'Secure' — Example Informative References",
+    "page": 81,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:RS.MA-03",
+   "target": "mitre-atlas:AML.M0015",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), RS.MA-03, focus area 'Thwart' — Example Informative References",
+    "page": 85,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:RS.MA-04",
+   "target": "mitre-atlas:AML.M0017",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), RS.MA-04, focus area 'Defend' — Example Informative References",
+    "page": 85,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:RS.MA-05",
+   "target": "mitre-atlas:AML.M0008",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), RS.MA-05, focus area 'Defend' — Example Informative References",
+    "page": 86,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:RS.MA-05",
+   "target": "mitre-atlas:AML.M0014",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), RS.MA-05, focus area 'Defend' — Example Informative References",
+    "page": 86,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:RS.AN-03",
+   "target": "mitre-atlas:AML.M0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), RS.AN-03, focus area 'Defend' — Example Informative References",
+    "page": 86,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:RS.AN-07",
+   "target": "mitre-atlas:AML.M0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), RS.AN-07, focus area 'Defend' — Example Informative References",
+    "page": 87,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:RS.CO-02",
+   "target": "mitre-atlas:AML.M0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), RS.CO-02, focus area 'Defend' — Example Informative References",
+    "page": 89,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:RC.RP-01",
+   "target": "mitre-atlas:AML.M0008",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), RC.RP-01, focus area 'Defend' — Example Informative References",
+    "page": 92,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:RC.RP-03",
+   "target": "mitre-atlas:AML.M0012",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), RC.RP-03, focus area 'Secure' — Example Informative References",
+    "page": 93,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:RC.RP-04",
+   "target": "mitre-atlas:AML.M0008",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), RC.RP-04, focus area 'Defend' — Example Informative References",
+    "page": 93,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:RC.RP-05",
+   "target": "mitre-atlas:AML.M0014",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), RC.RP-05, focus area 'Defend' — Example Informative References",
+    "page": 94,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:RC.RP-05",
+   "target": "mitre-atlas:AML.M0008",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), RC.RP-05, focus area 'Defend' — Example Informative References",
+    "page": 94,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:RC.RP-06",
+   "target": "mitre-atlas:AML.M0024",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), RC.RP-06, focus area 'Defend' — Example Informative References",
+    "page": 95,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:RC.RP-06",
+   "target": "mitre-atlas:AML.M0025",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), RC.RP-06, focus area 'Defend' — Example Informative References",
+    "page": 95,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  },
+  {
+   "source": "nist-csf-2.0:RC.CO-04",
+   "target": "mitre-atlas:AML.M0002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ir-8596-iprd",
+    "locator": "Cyber AI Profile tables (Sec. 2.3-2.8), RC.CO-04, focus area 'Defend' — Example Informative References",
+    "page": 96,
+    "authority": "NIST IR 8596 (Cyber AI Profile, draft)"
+   },
+   "label": "example informative reference",
+   "status": "draft"
+  }
+ ]
+}

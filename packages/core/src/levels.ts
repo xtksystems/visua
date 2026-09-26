@@ -126,11 +126,51 @@ export const AI_SCALE: LevelScale = {
   ],
 };
 
+/**
+ * Statutory obligations have no maturity levels. This scale records progress
+ * toward meeting each obligation; it is not a legal determination.
+ */
+export const LAW_SCALE: LevelScale = {
+  family: "law",
+  name: "Obligation status",
+  basis:
+    "Visua convention. Laws impose obligations without maturity levels; this scale records how far the organization has " +
+    "gone in meeting each obligation that applies to it. It is not legal advice or a determination of compliance.",
+  levels: [
+    { level: 0, label: "Not addressed", description: "No measure addresses the obligation yet." },
+    { level: 1, label: "Planned", description: "An owner and an approach are agreed; measures are not yet in place." },
+    { level: 2, label: "Partially met", description: "Measures are in place for some in-scope systems, products or activities." },
+    { level: 3, label: "Met", description: "Measures are in place for everything in scope and documented." },
+    { level: 4, label: "Met and reviewed", description: "Met, evidenced, and periodically reviewed (for example by counsel or internal audit)." },
+  ],
+};
+
+/**
+ * Threat catalogs are never assessed. Coverage is derived from the workspace's
+ * implementation of the requirements that authorities link to each threat.
+ */
+export const THREAT_SCALE: LevelScale = {
+  family: "threat",
+  name: "Coverage",
+  basis:
+    "Derived, not assessed: the implementation of the requirements that the publishing authorities (NIST, MITRE, OWASP) link " +
+    "to the threat, in the frameworks the workspace follows. Coverage is not a guarantee of protection.",
+  levels: [
+    { level: 0, label: "None", description: "No linked requirement is implemented." },
+    { level: 1, label: "Minimal", description: "Linked requirements are mostly not started." },
+    { level: 2, label: "Partial", description: "Linked requirements are partly implemented." },
+    { level: 3, label: "Substantial", description: "Most linked requirements are implemented." },
+    { level: 4, label: "Full", description: "All linked requirements are at their targets." },
+  ],
+};
+
 export const LEVEL_SCALES: Record<FrameworkFamily, LevelScale> = {
   csf: CSF_SCALE,
   soc2: SOC2_SCALE,
   rmf: RMF_SCALE,
   ai: AI_SCALE,
+  law: LAW_SCALE,
+  threat: THREAT_SCALE,
 };
 
 export const MAX_LEVEL = 4;

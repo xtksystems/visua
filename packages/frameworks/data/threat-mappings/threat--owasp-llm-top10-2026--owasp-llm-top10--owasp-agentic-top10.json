@@ -1,0 +1,444 @@
+{
+ "id": "threat--owasp-llm-top10-2026--owasp-llm-top10--owasp-agentic-top10",
+ "title": "OWASP LLM Top 10 2026, Appendix A",
+ "sourceFramework": "owasp-llm-top10",
+ "targetFramework": "owasp-agentic-top10",
+ "authority": "OWASP LLM Top 10 2026, Appendix A",
+ "status": "final",
+ "mappings": [
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "owasp-agentic-top10:ASI01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM01",
+    "page": 59,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "owasp-agentic-top10:ASI02",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM01",
+    "page": 59,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "owasp-agentic-top10:ASI03",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM01",
+    "page": 60,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "owasp-agentic-top10:ASI05",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM01",
+    "page": 60,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "owasp-agentic-top10:ASI06",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM01",
+    "page": 60,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "owasp-agentic-top10:ASI08",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM01",
+    "page": 60,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "owasp-agentic-top10:ASI09",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM01",
+    "page": 60,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02",
+   "target": "owasp-agentic-top10:ASI06",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM02",
+    "page": 60,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "owasp-agentic-top10:ASI01",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM03",
+    "page": 60,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "owasp-agentic-top10:ASI02",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM03",
+    "page": 60,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "owasp-agentic-top10:ASI03",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM03",
+    "page": 60,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "owasp-agentic-top10:ASI05",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM03",
+    "page": 60,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "owasp-agentic-top10:ASI07",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM03",
+    "page": 60,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "owasp-agentic-top10:ASI08",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM03",
+    "page": 61,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "owasp-agentic-top10:ASI09",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM03",
+    "page": 61,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "owasp-agentic-top10:ASI04",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM04",
+    "page": 61,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "owasp-agentic-top10:ASI04",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM05",
+    "page": 61,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "owasp-agentic-top10:ASI06",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM05",
+    "page": 61,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "owasp-agentic-top10:ASI08",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM05",
+    "page": 61,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM06",
+   "target": "owasp-agentic-top10:ASI02",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM06",
+    "page": 61,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM06",
+   "target": "owasp-agentic-top10:ASI08",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM06",
+    "page": 61,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "owasp-agentic-top10:ASI08",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM07",
+    "page": 61,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "owasp-agentic-top10:ASI09",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM07",
+    "page": 62,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "owasp-agentic-top10:ASI10",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM07",
+    "page": 62,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM08",
+   "target": "owasp-agentic-top10:ASI06",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM08",
+    "page": 62,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM08",
+   "target": "owasp-agentic-top10:ASI07",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM08",
+    "page": 62,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "owasp-agentic-top10:ASI04",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM09",
+    "page": 62,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "owasp-agentic-top10:ASI06",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM09",
+    "page": 62,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10",
+   "target": "owasp-agentic-top10:ASI02",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM10",
+    "page": 63,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10",
+   "target": "owasp-agentic-top10:ASI05",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM10",
+    "page": 63,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10",
+   "target": "owasp-agentic-top10:ASI09",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — OWASP Top 10 for Agentic Applications (ASI), row LLM10",
+    "page": 63,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  }
+ ]
+}

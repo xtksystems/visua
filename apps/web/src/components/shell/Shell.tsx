@@ -14,6 +14,8 @@ import {
   LayoutDashboard,
   Network,
   Orbit,
+  Radar,
+  Scale,
   Search,
   Settings,
   ShieldCheck,
@@ -61,6 +63,8 @@ function NavRail({ ws, approvals }: { ws: string; approvals: number }) {
       <RailItem to={`${base}/soc2`} icon={<ShieldCheck size={s} />} label="SOC 2 program" />
       <RailItem to={`${base}/rmf`} icon={<Network size={s} />} label="RMF program" />
       <RailItem to={`${base}/ai`} icon={<BrainCircuit size={s} />} label="AI governance (AI RMF)" />
+      <RailItem to={`${base}/laws`} icon={<Scale size={s} />} label="State AI laws" />
+      <RailItem to={`${base}/threats`} icon={<Radar size={s} />} label="AI threats (ATLAS, OWASP)" />
       <RailItem to={`${base}/reports`} icon={<Activity size={s} />} label="Reports, audit trail & trust" />
       <span className="rail__spacer" />
       <RailItem to={`${base}/organization`} icon={<Building2 size={s} />} label="Organization: members, SSO & API tokens" />
@@ -314,6 +318,13 @@ function CommandPalette({ ws }: { ws: string }) {
       ["SOC 2 program", `${base}/soc2`],
       ["RMF program", `${base}/rmf`],
       ["AI governance (AI RMF)", `${base}/ai`],
+      ["State AI laws", `${base}/laws`],
+      ["Observatory — State AI laws", `${base}/observatory/us-state-ai-laws`],
+      ["AI threats — MITRE ATLAS matrix", `${base}/threats/mitre-atlas`],
+      ["AI threats — OWASP Top 10 for LLM Applications", `${base}/threats/owasp-llm-top10`],
+      ["AI threats — OWASP Top 10 for Agentic Applications", `${base}/threats/owasp-agentic-top10`],
+      ["AI threats — NIST AI 100-2 attacks", `${base}/threats/nist-ai-100-2`],
+      ["Observatory — MITRE ATLAS coverage in 3D", `${base}/observatory/mitre-atlas`],
       ["Reports & trust center", `${base}/reports`],
       ["New workspace", "/onboarding"],
     ];

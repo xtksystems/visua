@@ -13,6 +13,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Color, QuadraticBezierCurve3, Vector3, type Group } from "three";
 import { designSystem } from "@visua/design";
 import type { Status } from "@visua/core";
+import type { ThreatRing } from "../lib/types.ts";
 import { TOKENS } from "./colors.ts";
 import { usePrefersReducedMotion } from "./Observatory.tsx";
 
@@ -27,7 +28,7 @@ export interface NexusGroup {
 export interface NexusFramework {
   id: string;
   shortName: string;
-  family: "csf" | "soc2" | "rmf" | "ai";
+  family: "csf" | "soc2" | "rmf" | "ai" | "law" | "threat";
   enabled: boolean;
   groups: NexusGroup[];
 }
@@ -41,9 +42,12 @@ export interface NexusData {
   frameworks: NexusFramework[];
   sets: { id: string; title: string; authority: string; source: string; target: string; count: number; documentId?: string; documentTitle?: string }[];
   bundles: NexusBundle[];
+  /** Inner ring: threat catalogs bundled onto the requirement groups their publishers link them to. */
+  threats?: ThreatRing;
 }
 
 const RADIUS = 30;
+const INNER_RADIUS = 13;
 const FRAMEWORK_GAP = 0.16;
 const ORDER = ["nist-csf-2.0", "aicpa-tsc-2017", "nist-sp-800-53-r5", "nist-rmf", "nist-ai-rmf"];
 
@@ -58,29 +62,48 @@ export const FRAMEWORK_COLORS: Record<string, string> = {
 };
 
 export interface NexusLayout {
-  positions: Map<string, { angle: number; pos: [number, number, number]; framework: string; group: NexusGroup }>;
-  sectors: { framework: NexusFramework; start: number; end: number }[];
+  positions: Map<string, { angle: number; pos: [number, number, number]; framework: string; group: NexusGroup; inner: boolean }>;
+  sectors: { framework: NexusFramework; start: number; end: number; inner: boolean }[];
 }
 
-export function nexusLayout(frameworks: NexusFramework[]): NexusLayout {
-  const visible = [...frameworks].sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id));
-  const total = visible.reduce((s, f) => s + f.groups.length, 0);
-  const per = (Math.PI * 2 - FRAMEWORK_GAP * visible.length) / Math.max(1, total);
-  const positions: NexusLayout["positions"] = new Map();
-  const sectors: NexusLayout["sectors"] = [];
+/** Lay groups around a ring, one sector per framework (or threat catalog). */
+function ring(frameworks: NexusFramework[], radius: number, inner: boolean, into: NexusLayout) {
+  const total = frameworks.reduce((s, f) => s + f.groups.length, 0);
+  const per = (Math.PI * 2 - FRAMEWORK_GAP * frameworks.length) / Math.max(1, total);
   let angle = Math.PI / 2 + FRAMEWORK_GAP / 2;
-  for (const f of visible) {
+  for (const f of frameworks) {
     const start = angle;
     for (const g of f.groups) {
       const a = angle + per / 2;
-      positions.set(g.id, { angle: a, pos: [RADIUS * Math.cos(a), 0, -RADIUS * Math.sin(a)], framework: f.id, group: g });
+      into.positions.set(g.id, { angle: a, pos: [radius * Math.cos(a), 0, -radius * Math.sin(a)], framework: f.id, group: g, inner });
       angle += per;
     }
-    sectors.push({ framework: f, start, end: angle });
+    into.sectors.push({ framework: f, start, end: angle, inner });
     angle += FRAMEWORK_GAP;
   }
-  return { positions, sectors };
 }
+
+/** Threat catalogs as ring frameworks: their groups (tactics, entries, objectives) colored by pooled coverage. */
+export function threatFrameworks(threats: ThreatRing | undefined): NexusFramework[] {
+  return (threats?.catalogs ?? []).map((c) => ({
+    id: c.id,
+    shortName: c.shortName,
+    family: "threat",
+    enabled: true,
+    groups: c.groups.map((g) => ({ id: g.id, code: g.code, title: g.title, units: g.units, readiness: g.readiness, status: g.status })),
+  }));
+}
+
+export function nexusLayout(frameworks: NexusFramework[], threats?: NexusFramework[]): NexusLayout {
+  const layout: NexusLayout = { positions: new Map(), sectors: [] };
+  ring([...frameworks].sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id)), RADIUS, false, layout);
+  if (threats?.length) ring(threats, INNER_RADIUS, true, layout);
+  return layout;
+}
+
+/** Threat catalogs carry no identity hue (DESIGN.md): neutral ink. */
+const THREAT_INK = TOKENS.muted;
+const inkOf = (framework: string) => (FRAMEWORK_COLORS[framework] ? new Color(FRAMEWORK_COLORS[framework]) : THREAT_INK.clone());
 
 const heightOf = (units: number) => 0.8 + Math.log2(units + 1) * 0.75;
 
@@ -89,9 +112,9 @@ function Pillars({ layout, selected, hovered, related, onHover, onSelect }: { la
   return (
     <group>
       {[...layout.positions.entries()].map(([id, p]) => {
-        const h = heightOf(p.group.units);
+        const h = heightOf(p.group.units) * (p.inner ? 0.8 : 1);
         const enabled = p.group.status !== null;
-        const base = enabled ? TOKENS.status[p.group.status!] : new Color(FRAMEWORK_COLORS[p.framework]).multiplyScalar(0.45);
+        const base = enabled ? TOKENS.status[p.group.status!] : inkOf(p.framework).multiplyScalar(0.45);
         const dim = focus && id !== focus && !related.has(id);
         const isSel = id === selected;
         return (
@@ -112,7 +135,7 @@ function Pillars({ layout, selected, hovered, related, onHover, onSelect }: { la
                 onSelect(id);
               }}
             >
-              <cylinderGeometry args={[0.62, 0.7, h, 6]} />
+              {p.inner ? <cylinderGeometry args={[0.5, 0.5, h, 3]} /> : <cylinderGeometry args={[0.62, 0.7, h, 6]} />}
               <meshStandardMaterial color={base} emissive={base} emissiveIntensity={isSel ? 1.4 : id === hovered ? 0.9 : 0.28} transparent opacity={dim ? 0.22 : 1} roughness={0.45} metalness={0.1} />
             </mesh>
             {!dim && (
@@ -147,25 +170,27 @@ function Sectors({ layout }: { layout: NexusLayout }) {
   return (
     <group>
       {layout.sectors.map((s) => {
-        const color = new Color(FRAMEWORK_COLORS[s.framework.id]);
+        const color = inkOf(s.framework.id);
         const mid = (s.start + s.end) / 2;
-        const labelR = RADIUS + 7.5;
+        const r = s.inner ? INNER_RADIUS : RADIUS;
+        // Outer labels sit outside the ring; threat-catalog labels sit just inside theirs.
+        const labelR = s.inner ? INNER_RADIUS + 3.6 : RADIUS + 7.5;
         return (
           <group key={s.framework.id}>
             <mesh rotation-x={-Math.PI / 2} position={[0, 0.02, 0]}>
-              <ringGeometry args={[RADIUS - 1.5, RADIUS - 1.0, 96, 1, s.start, s.end - s.start]} />
-              <meshBasicMaterial color={color} transparent opacity={0.85} toneMapped={false} />
+              <ringGeometry args={[r - 1.5, r - (s.inner ? 1.2 : 1.0), 96, 1, s.start, s.end - s.start]} />
+              <meshBasicMaterial color={color} transparent opacity={s.inner ? 0.6 : 0.85} toneMapped={false} />
             </mesh>
             <mesh rotation-x={-Math.PI / 2} position={[0, 0.01, 0]}>
-              <ringGeometry args={[RADIUS - 1.0, RADIUS + 1.6, 96, 1, s.start, s.end - s.start]} />
+              <ringGeometry args={[r - 1.0, r + (s.inner ? 1.1 : 1.6), 96, 1, s.start, s.end - s.start]} />
               <meshBasicMaterial color={color} transparent opacity={0.07} />
             </mesh>
-            <FadingBillboard position={[labelR * Math.cos(mid), 2.2, -labelR * Math.sin(mid)]} near={62}>
-              <Text font={FONT_DISPLAY} fontSize={2.1} color={color} anchorX="center" anchorY="middle" outlineWidth={0.05} outlineColor={TOKENS.neutral}>
+            <FadingBillboard position={[labelR * Math.cos(mid), s.inner ? 1.2 : 2.2, -labelR * Math.sin(mid)]} near={s.inner ? 40 : 62}>
+              <Text font={FONT_DISPLAY} fontSize={s.inner ? 1.15 : 2.1} color={color} anchorX="center" anchorY="middle" outlineWidth={0.05} outlineColor={TOKENS.neutral}>
                 {s.framework.shortName}
               </Text>
-              <Text font={FONT_MONO} fontSize={0.85} position={[0, -1.9, 0]} color={TOKENS.muted} anchorX="center" anchorY="middle">
-                {`${s.framework.groups.length} groups${s.framework.enabled ? "" : " · not enabled"}`}
+              <Text font={FONT_MONO} fontSize={s.inner ? 0.6 : 0.85} position={[0, s.inner ? -1.1 : -1.9, 0]} color={TOKENS.muted} anchorX="center" anchorY="middle">
+                {s.inner ? `${s.framework.groups.length} groups · threats` : `${s.framework.groups.length} groups${s.framework.enabled ? "" : " · not enabled"}`}
               </Text>
             </FadingBillboard>
           </group>
@@ -193,10 +218,11 @@ function arcsFor(layout: NexusLayout, bundles: NexusBundle[]): ArcGeometry[] {
     const z = new Vector3(pb.pos[0] * 0.955, 0.3, pb.pos[2] * 0.955);
     const chord = a.distanceTo(z);
     const mid = a.clone().add(z).multiplyScalar(0.5);
-    const control = mid.multiplyScalar(0.18).setY(4 + chord * 0.42);
+    // Threat links rise from the inner ring in a lower, flatter arc.
+    const control = pa.inner || pb.inner ? mid.multiplyScalar(0.7).setY(3 + chord * 0.28) : mid.multiplyScalar(0.18).setY(4 + chord * 0.42);
     const points = new QuadraticBezierCurve3(a, control, z).getPoints(40);
-    const ca = new Color(FRAMEWORK_COLORS[pa.framework]);
-    const cb = new Color(FRAMEWORK_COLORS[pb.framework]);
+    const ca = inkOf(pa.framework);
+    const cb = inkOf(pb.framework);
     const colors = points.map((_, i) => {
       const t = i / (points.length - 1);
       const col = ca.clone().lerp(cb, t);
@@ -266,18 +292,19 @@ function Rig({ selected, layout, reducedMotion }: { selected: string | null; lay
 export function NexusCanvas({ data, selected, onSelect, onHover, hovered }: { data: NexusData; selected: string | null; onSelect: (id: string | null) => void; onHover: (id: string | null) => void; hovered: string | null }) {
   const reducedMotion = usePrefersReducedMotion();
   const [effects, setEffects] = useState(true);
-  const layout = useMemo(() => nexusLayout(data.frameworks), [data.frameworks]);
-  const arcs = useMemo(() => arcsFor(layout, data.bundles), [layout, data.bundles]);
+  const layout = useMemo(() => nexusLayout(data.frameworks, threatFrameworks(data.threats)), [data.frameworks, data.threats]);
+  const bundles = useMemo<NexusBundle[]>(() => [...data.bundles, ...(data.threats?.bundles ?? []).map((b) => ({ a: b.a, b: b.b, count: b.count, setId: `threat:${b.best}` }))], [data.bundles, data.threats]);
+  const arcs = useMemo(() => arcsFor(layout, bundles), [layout, bundles]);
   const focus = hovered ?? selected;
   const related = useMemo(() => {
     const s = new Set<string>();
     if (!focus) return s;
-    for (const b of data.bundles) {
+    for (const b of bundles) {
       if (b.a === focus) s.add(b.b);
       if (b.b === focus) s.add(b.a);
     }
     return s;
-  }, [focus, data.bundles]);
+  }, [focus, bundles]);
   return (
     <Canvas
       dpr={[1, 1.75]}

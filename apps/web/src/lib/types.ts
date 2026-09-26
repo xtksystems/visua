@@ -106,6 +106,8 @@ export interface FrameworkStateBundle {
   groups: Record<string, NodeScore & { status: Status }>;
   units: Record<string, UnitState>;
   overlay: { id: string; shortName: string; status: string; adopted: boolean; lenses: string[]; levels: { level: number; label: string }[] } | null;
+  /** Threat catalogs: the bundle carries derived coverage (THREAT_SCALE), not assessments. */
+  threat?: { minStatus: MinStatus; levels: { level: number; label: string; description: string }[] };
 }
 
 export interface MappingView {
@@ -140,6 +142,150 @@ export interface NodeDetail {
   contentNotice?: string;
   /** Overlays (Cyber AI Profile, COSAiS…) with an entry for this requirement. */
   overlays: NodeOverlay[];
+  /** Threat-catalog nodes only: derived coverage and the requirements linked to the threat. */
+  threat: ThreatSection | null;
+  /** Requirements only: threats this requirement helps address, by published links. */
+  threats: ThreatAddressed[];
+}
+
+// ---------------------------------------------------------------------------
+// Threat views (MITRE ATLAS, OWASP Top 10s, NIST AI 100-2)
+// ---------------------------------------------------------------------------
+
+export type LinkStatus = "final" | "draft" | "unreviewed" | "superseded";
+export type MinStatus = "final" | "draft" | "unreviewed";
+export type CoverageState = "covered" | "partial" | "open" | "out-of-scope" | "unmapped";
+
+export interface ThreatCoverage {
+  state: CoverageState;
+  level: number | null;
+  linked: number;
+  inScope: number;
+  met: number;
+  atRisk: number;
+  progress: number;
+  best: LinkStatus | null;
+  frameworks: string[];
+}
+
+export interface BriefNode {
+  id: string;
+  code: string;
+  title: string;
+  kind: string;
+  framework: string;
+}
+
+export interface LinkView {
+  label: string;
+  status: LinkStatus;
+  authority: string;
+  strength?: string;
+  note?: string;
+  citation: { documentId: string; locator?: string; page?: number };
+}
+
+export interface ThreatPathView {
+  kind: "direct" | "mitigation" | "edition";
+  via?: BriefNode;
+  group?: string;
+  links: LinkView[];
+  status: LinkStatus;
+}
+
+export interface ThreatRequirement extends BriefNode {
+  enabled: boolean;
+  current?: number;
+  target?: number;
+  applicable?: boolean;
+  status: Status | null;
+  best: LinkStatus | null;
+  paths: ThreatPathView[];
+}
+
+export interface ExternalReference {
+  scheme: string;
+  schemeName: string;
+  id: string | null;
+  label?: string;
+  url?: string;
+  relationship: string;
+  strength?: string;
+  authority: string;
+  status: LinkStatus;
+  citation: { documentId: string; locator?: string; page?: number };
+}
+
+export interface ThreatSection {
+  minStatus: MinStatus;
+  coverage: ThreatCoverage;
+  /** Set for a tactic, edition or objective: its threats' coverage, pooled. */
+  group: { units: number; byState: Record<CoverageState, number> } | null;
+  requirements: ThreatRequirement[];
+  related: (BriefNode & LinkView & { direction: "out" | "in" })[];
+  externalRefs: ExternalReference[];
+}
+
+export interface ThreatAddressed extends BriefNode {
+  best: LinkStatus;
+  paths: ThreatPathView[];
+}
+
+export interface ThreatCatalogSummary {
+  id: string;
+  shortName: string;
+  name: string;
+  publisher: string;
+  version: string;
+  published: string;
+  description: string;
+  unitLabel: string;
+  unitLabelPlural: string;
+  contentNotice?: string;
+  units: number;
+  byState: Record<CoverageState, number>;
+  linkedFrameworks: { id: string; shortName: string; enabled: boolean; threats: number }[];
+  weakest: { id: string; code: string; title: string; coverage: ThreatCoverage }[];
+}
+
+export interface ThreatsOverview {
+  minStatus: MinStatus;
+  catalogs: ThreatCatalogSummary[];
+  sources: { id: string; authority: string; status: LinkStatus; source: { id: string; shortName: string }; target: { id: string; shortName: string }; links: number }[];
+}
+
+export interface ThreatNode {
+  id: string;
+  code: string;
+  kind: string;
+  parentId: string | null;
+  order: number;
+  title: string;
+  summary: string;
+  assessable: boolean;
+  label?: string;
+  tactics?: string[];
+  maturity?: string;
+  status?: string;
+  edition?: string;
+  objectives?: string[];
+  taxonomies?: string[];
+  previousEdition?: { key: string; nodeId: string };
+  nextEdition?: { key: string; nodeId: string };
+}
+
+export interface ThreatCatalogState {
+  catalog: { id: string; shortName: string; name: string; publisher: string; version: string; published: string; description: string; unitLabel: string; unitLabelPlural: string; contentNotice?: string };
+  minStatus: MinStatus;
+  enabledFrameworks: string[];
+  nodes: ThreatNode[];
+  coverage: Record<string, ThreatCoverage>;
+}
+
+export interface ThreatRing {
+  minStatus: MinStatus;
+  catalogs: { id: string; shortName: string; groups: { id: string; code: string; title: string; units: number; byState: Record<CoverageState, number>; readiness: number | null; status: Status | null }[] }[];
+  bundles: { a: string; b: string; count: number; best: LinkStatus }[];
 }
 
 export interface NodeOverlay {

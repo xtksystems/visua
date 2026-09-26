@@ -1,0 +1,654 @@
+{
+ "id": "threat--owasp-llm-top10-2026--owasp-llm-top10--mitre-atlas",
+ "title": "OWASP LLM Top 10 2026, Appendix A",
+ "sourceFramework": "owasp-llm-top10",
+ "targetFramework": "mitre-atlas",
+ "authority": "OWASP LLM Top 10 2026, Appendix A",
+ "status": "final",
+ "mappings": [
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "mitre-atlas:AML.TA0004",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM01",
+    "page": 68,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "mitre-atlas:AML.TA0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM01",
+    "page": 68,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "mitre-atlas:AML.TA0006",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM01",
+    "page": 69,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "mitre-atlas:AML.TA0007",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM01",
+    "page": 69,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "mitre-atlas:AML.TA0010",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM01",
+    "page": 69,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "mitre-atlas:AML.TA0001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM01",
+    "page": 69,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "mitre-atlas:AML.TA0011",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM01",
+    "page": 69,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM01",
+   "target": "mitre-atlas:AML.TA0012",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM01",
+    "page": 69,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02",
+   "target": "mitre-atlas:AML.TA0010",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM02",
+    "page": 69,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02",
+   "target": "mitre-atlas:AML.TA0013",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM02",
+    "page": 69,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02",
+   "target": "mitre-atlas:AML.TA0000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM02",
+    "page": 69,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM02",
+   "target": "mitre-atlas:AML.TA0007",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM02",
+    "page": 70,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "mitre-atlas:AML.TA0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM03",
+    "page": 70,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "mitre-atlas:AML.TA0011",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM03",
+    "page": 70,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "mitre-atlas:AML.TA0010",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM03",
+    "page": 70,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM03",
+   "target": "mitre-atlas:AML.TA0012",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM03",
+    "page": 70,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "mitre-atlas:AML.TA0004",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM04",
+    "page": 70,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "mitre-atlas:AML.TA0003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM04",
+    "page": 70,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "mitre-atlas:AML.TA0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM04",
+    "page": 70,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM04",
+   "target": "mitre-atlas:AML.TA0006",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM04",
+    "page": 70,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "mitre-atlas:AML.TA0003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM05",
+    "page": 71,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "mitre-atlas:AML.TA0006",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM05",
+    "page": 71,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "mitre-atlas:AML.TA0011",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM05",
+    "page": 71,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "mitre-atlas:AML.TA0004",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM05",
+    "page": 71,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "mitre-atlas:AML.TA0001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM05",
+    "page": 71,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM05",
+   "target": "mitre-atlas:AML.TA0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM05",
+    "page": 71,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM06",
+   "target": "mitre-atlas:AML.TA0011",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM06",
+    "page": 71,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM06",
+   "target": "mitre-atlas:AML.TA0010",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM06",
+    "page": 71,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM06",
+   "target": "mitre-atlas:AML.TA0000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM06",
+    "page": 71,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "mitre-atlas:AML.TA0011",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM07",
+    "page": 72,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "mitre-atlas:AML.TA0003",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM07",
+    "page": 72,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "mitre-atlas:AML.TA0004",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM07",
+    "page": 72,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM07",
+   "target": "mitre-atlas:AML.TA0001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM07",
+    "page": 72,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM08",
+   "target": "mitre-atlas:AML.TA0008",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM08",
+    "page": 72,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM08",
+   "target": "mitre-atlas:AML.TA0010",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM08",
+    "page": 72,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM08",
+   "target": "mitre-atlas:AML.TA0002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM08",
+    "page": 72,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM08",
+   "target": "mitre-atlas:AML.TA0013",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM08",
+    "page": 72,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "mitre-atlas:AML.TA0006",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM09",
+    "page": 72,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "mitre-atlas:AML.TA0010",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM09",
+    "page": 73,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "mitre-atlas:AML.TA0001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM09",
+    "page": 73,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "mitre-atlas:AML.TA0011",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM09",
+    "page": 73,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM09",
+   "target": "mitre-atlas:AML.TA0008",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM09",
+    "page": 73,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10",
+   "target": "mitre-atlas:AML.TA0005",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM10",
+    "page": 73,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "primary"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10",
+   "target": "mitre-atlas:AML.TA0010",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM10",
+    "page": 73,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10",
+   "target": "mitre-atlas:AML.TA0011",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM10",
+    "page": 73,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  },
+  {
+   "source": "owasp-llm-top10:LLM10",
+   "target": "mitre-atlas:AML.TA0012",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "owasp-llm-top10-2026-pdf",
+    "locator": "Appendix A: Related Framework Mappings — MITRE ATLAS, row LLM10",
+    "page": 73,
+    "authority": "OWASP LLM Top 10 2026, Appendix A"
+   },
+   "label": "related framework mapping",
+   "status": "final",
+   "strength": "supporting"
+  }
+ ]
+}

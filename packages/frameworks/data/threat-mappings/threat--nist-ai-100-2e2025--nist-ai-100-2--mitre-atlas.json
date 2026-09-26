@@ -1,0 +1,62 @@
+{
+ "id": "threat--nist-ai-100-2e2025--nist-ai-100-2--mitre-atlas",
+ "title": "NIST AI 100-2 E2025",
+ "sourceFramework": "nist-ai-100-2",
+ "targetFramework": "mitre-atlas",
+ "authority": "NIST AI 100-2 E2025",
+ "status": "final",
+ "mappings": [
+  {
+   "source": "nist-ai-100-2:NISTAML.018",
+   "target": "mitre-atlas:AML.M0002",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ai-100-2e2025",
+    "locator": "Sec. 3.3.3 Mitigations (Direct Prompting Attacks and Mitigations [NISTAML.018]), 'Usage restrictions', reference [250]",
+    "page": 62,
+    "authority": "NIST AI 100-2 E2025"
+   },
+   "label": "mitigation cites",
+   "status": "final"
+  },
+  {
+   "source": "nist-ai-100-2:NISTAML.018",
+   "target": "mitre-atlas:AML.M0000",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ai-100-2e2025",
+    "locator": "Sec. 3.3.3 Mitigations (Direct Prompting Attacks and Mitigations [NISTAML.018]), 'Usage restrictions', reference [252]",
+    "page": 62,
+    "authority": "NIST AI 100-2 E2025"
+   },
+   "label": "mitigation cites",
+   "status": "final"
+  },
+  {
+   "source": "nist-ai-100-2:NISTAML.018",
+   "target": "mitre-atlas:AML.M0001",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ai-100-2e2025",
+    "locator": "Sec. 3.3.3 Mitigations (Direct Prompting Attacks and Mitigations [NISTAML.018]), 'Usage restrictions', reference [249]",
+    "page": 62,
+    "authority": "NIST AI 100-2 E2025"
+   },
+   "label": "mitigation cites",
+   "status": "final"
+  },
+  {
+   "source": "nist-ai-100-2:NISTAML.018",
+   "target": "mitre-atlas:AML.M0004",
+   "relationship": "related-to",
+   "origin": {
+    "documentId": "nist-ai-100-2e2025",
+    "locator": "Sec. 3.3.3 Mitigations (Direct Prompting Attacks and Mitigations [NISTAML.018]), 'Usage restrictions', reference [251]",
+    "page": 62,
+    "authority": "NIST AI 100-2 E2025"
+   },
+   "label": "mitigation cites",
+   "status": "final"
+  }
+ ]
+}
