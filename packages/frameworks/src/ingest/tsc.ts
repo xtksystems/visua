@@ -124,6 +124,7 @@ export function buildTscGraph(licensed: LicensedTsc | null = loadLicensedTsc()):
       id: TSC_ID,
       family: "soc2",
       shortName: "SOC 2 (TSC 2017)",
+      badge: "SOC 2",
       name: "AICPA 2017 Trust Services Criteria for Security, Availability, Processing Integrity, Confidentiality, and Privacy (points of focus revised 2022)",
       publisher: "American Institute of Certified Public Accountants (AICPA)",
       version: "2017 (points of focus revised 2022)",

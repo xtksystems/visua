@@ -39,6 +39,8 @@ export interface FrameworkDescriptor {
   id: string;
   family: FrameworkFamily;
   shortName: string;
+  /** Compact label for badges and dense views, e.g. "SOC 2" (falls back to shortName). */
+  badge?: string;
   name: string;
   publisher: string;
   version: string;

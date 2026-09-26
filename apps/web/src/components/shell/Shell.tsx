@@ -13,7 +13,6 @@ import {
   GitCompareArrows,
   LayoutDashboard,
   Network,
-  Orbit,
   Radar,
   Scale,
   Search,
@@ -29,7 +28,8 @@ import { api, setCsrfToken } from "../../lib/api.ts";
 import { ROLE_NAMES, useMe, useResetSession } from "../../lib/auth.ts";
 import { initials } from "../../pages/LoginPage.tsx";
 import { useWorkspaceEvents } from "../../lib/events.ts";
-import { FRAMEWORK_SHORT, truncate } from "../../lib/format.ts";
+import { truncate } from "../../lib/format.ts";
+import { allFrameworks, threatCatalogs } from "../../lib/frameworks.ts";
 import { useMeta, useSearch, useWorkspace, useWorkspaces } from "../../lib/queries.ts";
 import { useAgentActivity } from "../../state/agentActivity.ts";
 import { useUi } from "../../state/ui.ts";
@@ -304,11 +304,7 @@ function CommandPalette({ ws }: { ws: string }) {
     const base = `/w/${ws}`;
     const nav: [string, string][] = [
       ["Mission control", base],
-      ["Observatory — NIST CSF 2.0", `${base}/observatory/nist-csf-2.0`],
-      ["Observatory — SOC 2", `${base}/observatory/aicpa-tsc-2017`],
-      ["Observatory — SP 800-53", `${base}/observatory/nist-sp-800-53-r5`],
-      ["Observatory — RMF steps", `${base}/observatory/nist-rmf`],
-      ["Observatory — NIST AI RMF", `${base}/observatory/nist-ai-rmf`],
+      ...allFrameworks().map((f): [string, string] => [`Observatory — ${f.shortName}${f.family === "threat" ? " coverage in 3D" : ""}`, `${base}/observatory/${f.id}`]),
       ["Plan & tasks", `${base}/plan`],
       ["Evidence & monitoring", `${base}/evidence`],
       ["Agents & approvals", `${base}/agents`],
@@ -319,12 +315,7 @@ function CommandPalette({ ws }: { ws: string }) {
       ["RMF program", `${base}/rmf`],
       ["AI governance (AI RMF)", `${base}/ai`],
       ["State AI laws", `${base}/laws`],
-      ["Observatory — State AI laws", `${base}/observatory/us-state-ai-laws`],
-      ["AI threats — MITRE ATLAS matrix", `${base}/threats/mitre-atlas`],
-      ["AI threats — OWASP Top 10 for LLM Applications", `${base}/threats/owasp-llm-top10`],
-      ["AI threats — OWASP Top 10 for Agentic Applications", `${base}/threats/owasp-agentic-top10`],
-      ["AI threats — NIST AI 100-2 attacks", `${base}/threats/nist-ai-100-2`],
-      ["Observatory — MITRE ATLAS coverage in 3D", `${base}/observatory/mitre-atlas`],
+      ...threatCatalogs().map((f): [string, string] => [`AI threats — ${f.name}`, `${base}/threats/${f.id}`]),
       ["Reports & trust center", `${base}/reports`],
       ["New workspace", "/onboarding"],
     ];
@@ -400,6 +391,8 @@ function CommandPalette({ ws }: { ws: string }) {
 export function Shell() {
   const { ws = "" } = useParams();
   const { data, error } = useWorkspace(ws);
+  // Framework families, names and pages come from /api/meta: pages render once it has loaded.
+  const meta = useMeta();
   const openPalette = useUi((s) => s.openPalette);
   const navigate = useNavigate();
   useWorkspaceEvents(data?.workspace.id);
@@ -419,6 +412,7 @@ export function Shell() {
     if (error) navigate("/");
   }, [error, navigate]);
 
+  if (!meta.data) return <div className="page muted">{meta.error ? `Visua could not load: ${(meta.error as Error).message}` : "Loading Visua…"}</div>;
   return (
     <div className="shell">
       <NavRail ws={ws} approvals={data?.approvals ?? 0} />
@@ -431,9 +425,3 @@ export function Shell() {
     </div>
   );
 }
-
-export function FrameworkName({ id }: { id: string }) {
-  return <>{FRAMEWORK_SHORT[id] ?? id}</>;
-}
-
-export { Orbit };

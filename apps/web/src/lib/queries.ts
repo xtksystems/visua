@@ -2,7 +2,8 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUi } from "../state/ui.ts";
 import { api } from "./api.ts";
-import { familyOf, frameworkOf } from "./format.ts";
+import { frameworkOf } from "./format.ts";
+import { familyOf, registerFrameworks } from "./frameworks.ts";
 import type {
   ActivityEvent,
   CheckResult,
@@ -44,7 +45,16 @@ export const keys = {
 
 const enc = encodeURIComponent;
 
-export const useMeta = () => useQuery({ queryKey: keys.meta, queryFn: () => api.get<Meta>("/meta"), staleTime: Infinity });
+export const useMeta = () =>
+  useQuery({
+    queryKey: keys.meta,
+    queryFn: async () => {
+      const meta = await api.get<Meta>("/meta");
+      registerFrameworks(meta.frameworks);
+      return meta;
+    },
+    staleTime: Infinity,
+  });
 export const useWorkspaces = () => useQuery({ queryKey: keys.workspaces, queryFn: () => api.get<WorkspaceSummary[]>("/workspaces") });
 export const useWorkspace = (ws: string | undefined) =>
   useQuery({ queryKey: keys.workspace(ws ?? ""), queryFn: () => api.get<WorkspaceSummary>(`/workspaces/${enc(ws!)}`), enabled: !!ws });

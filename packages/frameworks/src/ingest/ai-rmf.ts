@@ -155,6 +155,7 @@ export function ingestAiRmf(dir = resolve(CORPUS_DIR, "nist-ai-rmf")): Framework
       id: AI_RMF_ID,
       family: "ai",
       shortName: "NIST AI RMF",
+      badge: "AI RMF",
       name: "NIST Artificial Intelligence Risk Management Framework (AI RMF 1.0)",
       publisher: "National Institute of Standards and Technology (NIST)",
       version: core.source.version ?? "1.0",

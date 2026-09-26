@@ -100,6 +100,7 @@ export function ingestRmf(): { graph: FrameworkGraph; csfMentions: { taskId: str
         id: RMF_ID,
         family: "rmf",
         shortName: "NIST RMF",
+        badge: "RMF",
         name: "NIST Risk Management Framework (SP 800-37 Rev. 2)",
         publisher: "National Institute of Standards and Technology",
         version: "Rev. 2",

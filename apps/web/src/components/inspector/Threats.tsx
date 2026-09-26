@@ -8,7 +8,8 @@ import { ExternalLink, Info, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { corpusFileUrl } from "../../lib/api.ts";
-import { FRAMEWORK_SHORT, truncate } from "../../lib/format.ts";
+import { truncate } from "../../lib/format.ts";
+import { badgeOf, isThreatCatalog } from "../../lib/frameworks.ts";
 import type { ExternalReference, LinkView, NodeDetail, ThreatAddressed, ThreatPathView, ThreatRequirement } from "../../lib/types.ts";
 import { CoverageBar, CoverageChip, CoverageLegend, LinkStatusBadge, ThreatLinkFilter } from "../threats/Coverage.tsx";
 import { FrameworkBadge, LevelPips, StatusChip, Tabs } from "../ui/index.tsx";
@@ -19,8 +20,6 @@ const enc = encodeURIComponent;
 export function nodeHref(ws: string, framework: string, id: string, threat: boolean) {
   return threat ? `/w/${ws}/threats/${framework}?select=${enc(id)}` : `/w/${ws}/observatory/${framework}?select=${enc(id)}`;
 }
-
-const THREAT_FRAMEWORKS = new Set(["mitre-atlas", "owasp-llm-top10", "owasp-agentic-top10", "nist-ai-100-2"]);
 
 /**
  * ATLAS descriptions are Markdown with links to other ATLAS objects ("/techniques/AML.T0051.000")
@@ -53,7 +52,7 @@ function ThreatText({ ws, text }: { ws: string; text: string }) {
   if (last < text.length) parts.push(text.slice(last));
   return <p style={{ whiteSpace: "pre-line", lineHeight: 1.6 }}>{parts}</p>;
 }
-const isThreat = (framework: string) => THREAT_FRAMEWORKS.has(framework);
+const isThreat = isThreatCatalog;
 
 function LinkLine({ link }: { link: LinkView }) {
   return (
@@ -261,7 +260,7 @@ export function ThreatInspector({ data, onClose }: { data: NodeDetail; onClose: 
                   : c.state === "unmapped"
                   ? "No publisher links this threat to a requirement at the chosen link status."
                   : c.state === "out-of-scope"
-                    ? `${c.linked} linked requirement${c.linked === 1 ? "" : "s"}, all in frameworks this workspace does not follow (${c.frameworks.map((f) => FRAMEWORK_SHORT[f] ?? f).join(", ")}).`
+                    ? `${c.linked} linked requirement${c.linked === 1 ? "" : "s"}, all in frameworks this workspace does not follow (${c.frameworks.map(badgeOf).join(", ")}).`
                     : `${c.met} of ${c.inScope} linked requirement${c.inScope === 1 ? "" : "s"} in scope ${c.met === 1 ? "is" : "are"} at target · ${Math.round(c.progress * 100)}% of the way overall${c.atRisk ? ` · ${c.atRisk} at risk` : ""}.`}
               </div>
               {c.best && (

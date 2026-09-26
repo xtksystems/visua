@@ -9,7 +9,8 @@ import type { Status } from "@visua/core";
 import { Inspector } from "../components/inspector/Inspector.tsx";
 import { ThreatLinkFilter } from "../components/threats/Coverage.tsx";
 import { StatusBar, StatusGlyph } from "../components/ui/index.tsx";
-import { FRAMEWORK_SHORT, STATUS_LABEL, familyOf, truncate } from "../lib/format.ts";
+import { STATUS_LABEL, truncate } from "../lib/format.ts";
+import { badgeOf, isThreatCatalog, threatCatalogs } from "../lib/frameworks.ts";
 import { useFrameworkState, useGraph, useWorkspace } from "../lib/queries.ts";
 import type { FrameworkStateBundle, LeanNode } from "../lib/types.ts";
 import { LENS_INFO, THREAT_LENS, THREAT_STATUS_LABEL, overlaySwatch } from "../scene/colors.ts";
@@ -17,9 +18,6 @@ import { computeLayout } from "../scene/layout.ts";
 import { Observatory } from "../scene/Observatory.tsx";
 import { useAgentActivity } from "../state/agentActivity.ts";
 import { LENSES, useUi, type Lens } from "../state/ui.ts";
-
-/** Threat catalogs open in the Observatory with coverage in place of status. */
-const THREAT_CATALOGS = ["mitre-atlas", "owasp-llm-top10", "owasp-agentic-top10", "nist-ai-100-2"];
 
 function nodeStatus(state: FrameworkStateBundle | undefined, node: LeanNode): Status {
   if (!state) return "not-started";
@@ -222,7 +220,8 @@ export function ObservatoryPage() {
   // The overlay lens exists only where the framework has an overlay (CSF: Cyber AI Profile; SP 800-53: COSAiS).
   const overlay = state.data?.overlay ?? null;
   // Threat catalogs: coverage (status lens) and its gap only.
-  const threat = familyOf(fw) === "threat";
+  // Threat catalogs open with coverage in place of status.
+  const threat = isThreatCatalog(fw);
   const activeLens: Lens = threat ? (lens === "gap" ? "gap" : "status") : lens === "overlay" && !overlay ? "status" : lens;
   const lensInfo = threat
     ? THREAT_LENS[activeLens === "gap" ? "gap" : "status"]
@@ -283,9 +282,9 @@ export function ObservatoryPage() {
                 <button className="chip" onClick={() => navigate(`/w/${ws}/observatory/${enabled[0] ?? "nist-csf-2.0"}`)} title="Back to your frameworks">
                   ← Frameworks
                 </button>
-                {THREAT_CATALOGS.map((id) => (
-                  <button key={id} className="chip" aria-pressed={id === fw} onClick={() => navigate(`/w/${ws}/observatory/${id}`)} title="Coverage derived from the requirements linked to each threat">
-                    {FRAMEWORK_SHORT[id] ?? id}
+                {threatCatalogs().map((c) => (
+                  <button key={c.id} className="chip" aria-pressed={c.id === fw} onClick={() => navigate(`/w/${ws}/observatory/${c.id}`)} title="Coverage derived from the requirements linked to each threat">
+                    {badgeOf(c.id)}
                   </button>
                 ))}
               </>
@@ -293,7 +292,7 @@ export function ObservatoryPage() {
               <>
                 {enabled.map((id) => (
                   <button key={id} className="chip" aria-pressed={id === fw} onClick={() => navigate(`/w/${ws}/observatory/${id}`)}>
-                    {FRAMEWORK_SHORT[id] ?? id}
+                    {badgeOf(id)}
                   </button>
                 ))}
                 {!enabled.includes("nist-rmf") && (
@@ -301,7 +300,7 @@ export function ObservatoryPage() {
                     RMF steps
                   </button>
                 )}
-                <button className="chip" onClick={() => navigate(`/w/${ws}/observatory/mitre-atlas`)} title="AI threat catalogs (MITRE ATLAS, OWASP, NIST AI 100-2), colored by coverage">
+                <button className="chip" onClick={() => navigate(`/w/${ws}/observatory/${threatCatalogs()[0]?.id ?? ""}`)} title="AI threat catalogs (MITRE ATLAS, OWASP, NIST AI 100-2), colored by coverage">
                   Threats →
                 </button>
               </>
@@ -309,7 +308,7 @@ export function ObservatoryPage() {
           </div>
           <nav aria-label="Breadcrumb" className="row" style={{ gap: 4, marginTop: 8, fontSize: 12, flexWrap: "wrap" }}>
             <button className="btn btn--quiet btn--sm" onClick={() => (ui.select(null), ui.focus([]))}>
-              {graph.data?.framework.shortName ?? FRAMEWORK_SHORT[fw]}
+              {graph.data?.framework.shortName ?? badgeOf(fw)}
             </button>
             {breadcrumb.map((b) => (
               <span key={b.id} className="row" style={{ gap: 4 }}>

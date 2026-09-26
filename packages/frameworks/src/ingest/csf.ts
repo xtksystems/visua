@@ -192,6 +192,7 @@ export async function ingestCsf(): Promise<CsfIngestResult> {
       id: CSF_ID,
       family: "csf",
       shortName: "NIST CSF 2.0",
+      badge: "CSF 2.0",
       name: "The NIST Cybersecurity Framework (CSF) 2.0",
       publisher: "National Institute of Standards and Technology",
       version: "2.0",

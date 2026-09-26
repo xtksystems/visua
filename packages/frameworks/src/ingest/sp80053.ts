@@ -230,6 +230,7 @@ export async function ingest80053(): Promise<FrameworkGraph> {
       id: SP80053_ID,
       family: "rmf",
       shortName: "SP 800-53 Rev. 5",
+      badge: "SP 800-53",
       name: "NIST SP 800-53 Rev. 5 — Security and Privacy Controls for Information Systems and Organizations (Release 5.2.0)",
       publisher: "National Institute of Standards and Technology",
       version: catalog.catalog.metadata.version,

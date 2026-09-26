@@ -15,12 +15,12 @@ import { COVERAGE_LABEL, CoverageBar, CoverageChip, CoverageGlyph, CoverageLegen
 import { Empty, FrameworkBadge, Segmented } from "../components/ui/index.tsx";
 import { api } from "../lib/api.ts";
 import { truncate } from "../lib/format.ts";
+import { threatCatalogs } from "../lib/frameworks.ts";
 import { keys } from "../lib/queries.ts";
 import type { CoverageState, LinkStatus, ThreatCatalogState, ThreatCoverage, ThreatNode, ThreatsOverview } from "../lib/types.ts";
 import { useUi } from "../state/ui.ts";
 
 const enc = encodeURIComponent;
-const CATALOGS = ["mitre-atlas", "owasp-llm-top10", "owasp-agentic-top10", "nist-ai-100-2"];
 
 type Show = "all" | "linked" | "gaps";
 const SHOW: { id: Show; label: string }[] = [
@@ -248,7 +248,8 @@ export function ThreatsPage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const min = useUi((s) => s.threatMin);
-  const active = catalog && CATALOGS.includes(catalog) ? catalog : "mitre-atlas";
+  const catalogs = threatCatalogs().map((c) => c.id);
+  const active = catalog && catalogs.includes(catalog) ? catalog : (catalogs[0] ?? "");
   const [show, setShow] = useState<Show>("all");
   const [query, setQuery] = useState("");
   const overview = useQuery({ queryKey: [...keys.workspace(ws), "threats", min], queryFn: () => api.get<ThreatsOverview>(`/workspaces/${enc(ws)}/threats?min=${min}`), enabled: !!ws, placeholderData: keepPreviousData });

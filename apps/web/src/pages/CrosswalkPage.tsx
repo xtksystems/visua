@@ -12,10 +12,11 @@ import { useRunAgent } from "../components/inspector/Inspector.tsx";
 import { CoverageBar, CoverageLegend, LinkStatusBadge, ThreatLinkFilter } from "../components/threats/Coverage.tsx";
 import { Empty, FrameworkBadge, StatusChip } from "../components/ui/index.tsx";
 import { api } from "../lib/api.ts";
-import { FRAMEWORK_SHORT, truncate } from "../lib/format.ts";
+import { truncate } from "../lib/format.ts";
+import { badgeOf } from "../lib/frameworks.ts";
 import { useWorkspace } from "../lib/queries.ts";
 import type { ThreatRing } from "../lib/types.ts";
-import { FRAMEWORK_COLORS, NexusCanvas, type NexusData } from "../scene/Nexus.tsx";
+import { NexusCanvas, frameworkColor, type NexusData } from "../scene/Nexus.tsx";
 import { useUi } from "../state/ui.ts";
 
 interface Side {
@@ -49,7 +50,7 @@ function authorityNote(a: string): string {
 }
 
 function Dot({ fw }: { fw: string }) {
-  return <span aria-hidden style={{ display: "inline-block", width: 9, height: 9, borderRadius: 99, background: FRAMEWORK_COLORS[fw] ?? "var(--color-outline)", flexShrink: 0 }} />;
+  return <span aria-hidden style={{ display: "inline-block", width: 9, height: 9, borderRadius: 99, background: frameworkColor(fw) ?? "var(--color-outline)", flexShrink: 0 }} />;
 }
 
 function GroupDetail({ ws, data, groupId, onClose }: { ws: string; data: NexusData; groupId: string; onClose: () => void }) {
@@ -188,7 +189,7 @@ function ThreatGroupDetail({ ws, data, groupId, onClose }: { ws: string; data: N
         <div key={fw} className="stack" style={{ gap: 4 }}>
           <div className="row" style={{ gap: 6 }}>
             <Dot fw={fw} />
-            <strong style={{ fontSize: 13 }}>{FRAMEWORK_SHORT[fw] ?? fw}</strong>
+            <strong style={{ fontSize: 13 }}>{badgeOf(fw)}</strong>
           </div>
           {list.map((l) => {
             const target = groups.get(l.b);

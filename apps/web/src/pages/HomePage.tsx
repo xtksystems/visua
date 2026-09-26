@@ -8,6 +8,7 @@ import { useRunAgent } from "../components/inspector/Inspector.tsx";
 import { AgentBadge, CodeTag, FrameworkBadge, Metric, StatusBar } from "../components/ui/index.tsx";
 import { api } from "../lib/api.ts";
 import { pct, relativeTime, truncate } from "../lib/format.ts";
+import { frameworkMeta, programPath } from "../lib/frameworks.ts";
 import { useActivity, useAuditVerification, useFrameworkState, useGraph, useProposals, useRuns, useWorkspace } from "../lib/queries.ts";
 
 const PRIORITY_WEIGHT = { critical: 4, high: 3, medium: 2, low: 1 } as const;
@@ -90,7 +91,7 @@ export function HomePage() {
 
       {primary && (
         <div className="grid grid--4" style={{ marginBottom: 20 }}>
-          <Metric label={`${primary.shortName} readiness`} value={Math.round(primary.readiness * 100)} unit="%" sub={`${primary.total} in-scope ${primary.family === "csf" ? "outcomes" : "requirements"}`} />
+          <Metric label={`${primary.shortName} readiness`} value={Math.round(primary.readiness * 100)} unit="%" sub={`${primary.total} in-scope ${frameworkMeta(primary.id)?.unitLabelPlural ?? "requirements"}`} />
           <Metric label="Open gaps" value={primary.gaps} sub={`${data.tasks.open} open tasks · ${data.tasks.overdue} overdue`} />
           <Metric label="Evidence coverage" value={Math.round(primary.evidenceCoverage * 100)} unit="%" sub={`${pct(primary.verifiedShare)} verified`} />
           <Metric label="Awaiting your decision" value={data.approvals} sub={`${data.agents.running} agent run(s) active`} />
@@ -120,7 +121,7 @@ export function HomePage() {
                   <Link className="btn btn--sm" to={`/w/${ws}/observatory/${f.id}`}>
                     <Telescope size={13} /> 3D
                   </Link>
-                  <Link className="btn btn--quiet btn--sm" to={`/w/${ws}/${f.id === "aicpa-tsc-2017" ? "soc2" : f.id === "nist-sp-800-53-r5" || f.id === "nist-rmf" ? "rmf" : f.id === "nist-ai-rmf" ? "ai" : "profile"}`}>
+                  <Link className="btn btn--quiet btn--sm" to={programPath(ws, f.id)}>
                     Program <ArrowRight size={13} />
                   </Link>
                 </div>

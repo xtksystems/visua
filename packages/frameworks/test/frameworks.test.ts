@@ -8,6 +8,16 @@ import { tokenize } from "../src/search.ts";
 const registry = FrameworkRegistry.load();
 
 describe("ingested framework graphs match the official sources", () => {
+  it("describes every framework with a family, names and a compact badge label for the UI", () => {
+    for (const f of registry.frameworks) {
+      expect(["csf", "soc2", "rmf", "ai", "law", "threat"], f.id).toContain(f.family);
+      expect(f.badge, f.id).toBeTruthy();
+      expect(f.badge!.length, f.id).toBeLessThanOrEqual(f.shortName.length);
+    }
+    // The skeleton built without the licensed AICPA copy carries it too.
+    expect(buildTscGraph().framework.badge).toBe("SOC 2");
+  });
+
   it("NIST CSF 2.0: 6 Functions, 22 Categories, 106 Subcategories, 363 Implementation Examples", () => {
     const csf = registry.framework("nist-csf-2.0")!;
     const byKind = (k: string) => csf.graph.nodes.filter((n) => n.kind === k);

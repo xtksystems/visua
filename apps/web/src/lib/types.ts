@@ -7,6 +7,7 @@ import type {
   Connector,
   Evidence,
   FrameworkDescriptor,
+  FrameworkFamily,
   LevelScale,
   NodeScore,
   Policy,
@@ -43,7 +44,7 @@ export interface Meta {
 export interface FrameworkSummary {
   id: string;
   shortName: string;
-  family: "csf" | "soc2" | "rmf" | "ai";
+  family: FrameworkFamily;
   settings: WorkspaceFramework;
   readiness: number;
   gaps: number;

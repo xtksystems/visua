@@ -3,7 +3,8 @@ import { useEffect, type ReactNode } from "react";
 import { create } from "zustand";
 import type { Citation as CitationType, Status } from "@visua/core";
 import { corpusFileUrl } from "../../lib/api.ts";
-import { FRAMEWORK_SHORT, STATUS_LABEL, codeOf, familyOf, frameworkOf, pct } from "../../lib/format.ts";
+import { STATUS_LABEL, codeOf, frameworkOf, pct } from "../../lib/format.ts";
+import { badgeOf, familyOf } from "../../lib/frameworks.ts";
 import { useUi } from "../../state/ui.ts";
 
 // ------------------------------------------------------------------ status
@@ -118,7 +119,7 @@ export function Progress({ value, color }: { value: number; color?: string }) {
 // ------------------------------------------------------------------ identifiers
 
 export function FrameworkBadge({ frameworkId }: { frameworkId: string }) {
-  return <span className={`badge-fw badge-fw--${familyOf(frameworkId)}`}>{FRAMEWORK_SHORT[frameworkId] ?? frameworkId}</span>;
+  return <span className={`badge-fw badge-fw--${familyOf(frameworkId) ?? "unknown"}`}>{badgeOf(frameworkId)}</span>;
 }
 
 /** A requirement code; clicking flies the camera to it (DESIGN.md: requirement-code). */
@@ -323,7 +324,7 @@ export function Toasts() {
 }
 
 export function frameworkLabel(id: string) {
-  return FRAMEWORK_SHORT[frameworkOf(id)] ?? frameworkOf(id);
+  return badgeOf(frameworkOf(id));
 }
 
 export { pct };

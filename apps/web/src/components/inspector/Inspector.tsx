@@ -8,7 +8,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { levelLabel, type FrameworkFamily, type ProfileAction } from "@visua/core";
 import { api, corpusFileUrl } from "../../lib/api.ts";
 import { useCan } from "../../lib/auth.ts";
-import { FRAMEWORK_SHORT, STATUS_LABEL, TASK_STATUS_LABEL, familyOf, relativeTime, shortDate, truncate } from "../../lib/format.ts";
+import { STATUS_LABEL, TASK_STATUS_LABEL, relativeTime, shortDate, truncate } from "../../lib/format.ts";
+import { badgeOf, familyOf } from "../../lib/frameworks.ts";
 import { useGraph, useMeta, useNodeDetail, useWsMutation } from "../../lib/queries.ts";
 import type { NodeDetail } from "../../lib/types.ts";
 import { useUi } from "../../state/ui.ts";
@@ -628,7 +629,7 @@ function AgentFooter({ data }: { data: NodeDetail }) {
         </button>
       </div>
       <div className="muted" style={{ fontSize: 11, marginTop: 8 }}>
-        Agents propose; you approve in <strong>Agents</strong>. {STATUS_LABEL[data.status?.status ?? "not-started"]} · {FRAMEWORK_SHORT[node.frameworkId] ?? node.frameworkId}
+        Agents propose; you approve in <strong>Agents</strong>. {STATUS_LABEL[data.status?.status ?? "not-started"]} · {badgeOf(node.frameworkId)}
       </div>
     </footer>
   );

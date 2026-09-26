@@ -12,7 +12,8 @@ import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Color, QuadraticBezierCurve3, Vector3, type Group } from "three";
 import { designSystem } from "@visua/design";
-import type { Status } from "@visua/core";
+import type { FrameworkFamily, Status } from "@visua/core";
+import { allFrameworks, frameworkMeta } from "../lib/frameworks.ts";
 import type { ThreatRing } from "../lib/types.ts";
 import { TOKENS } from "./colors.ts";
 import { usePrefersReducedMotion } from "./Observatory.tsx";
@@ -28,7 +29,7 @@ export interface NexusGroup {
 export interface NexusFramework {
   id: string;
   shortName: string;
-  family: "csf" | "soc2" | "rmf" | "ai" | "law" | "threat";
+  family: FrameworkFamily;
   enabled: boolean;
   groups: NexusGroup[];
 }
@@ -49,17 +50,21 @@ export interface NexusData {
 const RADIUS = 30;
 const INNER_RADIUS = 13;
 const FRAMEWORK_GAP = 0.16;
-const ORDER = ["nist-csf-2.0", "aicpa-tsc-2017", "nist-sp-800-53-r5", "nist-rmf", "nist-ai-rmf"];
-
 const c = designSystem.colors;
-export const FRAMEWORK_COLORS: Record<string, string> = {
-  "nist-csf-2.0": c["framework-csf"],
-  "aicpa-tsc-2017": c["framework-soc2"],
-  "nist-sp-800-53-r5": c["framework-rmf"],
-  // RMF tasks share the RMF family hue, lifted toward white to separate them from the control catalog.
-  "nist-rmf": `#${new Color(c["framework-rmf"]).lerp(new Color("#ffffff"), 0.45).getHexString()}`,
-  "nist-ai-rmf": c["framework-ai"],
-};
+const order = (id: string) => allFrameworks().findIndex((f) => f.id === id);
+
+/**
+ * A framework's hue is its family's (DESIGN.md framework-*). A second framework of the
+ * same family (RMF tasks after the SP 800-53 catalog) is lifted toward white to tell
+ * them apart. Threat catalogs have no identity hue: they use neutral ink.
+ */
+export function frameworkColor(id: string): string | undefined {
+  const meta = frameworkMeta(id);
+  if (!meta || meta.family === "threat") return undefined;
+  const base = c[`framework-${meta.family}` as keyof typeof c];
+  const first = allFrameworks().find((f) => f.family === meta.family)?.id === id;
+  return first ? base : `#${new Color(base).lerp(new Color("#ffffff"), 0.45).getHexString()}`;
+}
 
 export interface NexusLayout {
   positions: Map<string, { angle: number; pos: [number, number, number]; framework: string; group: NexusGroup; inner: boolean }>;
@@ -96,14 +101,17 @@ export function threatFrameworks(threats: ThreatRing | undefined): NexusFramewor
 
 export function nexusLayout(frameworks: NexusFramework[], threats?: NexusFramework[]): NexusLayout {
   const layout: NexusLayout = { positions: new Map(), sectors: [] };
-  ring([...frameworks].sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id)), RADIUS, false, layout);
+  ring([...frameworks].sort((a, b) => order(a.id) - order(b.id)), RADIUS, false, layout);
   if (threats?.length) ring(threats, INNER_RADIUS, true, layout);
   return layout;
 }
 
 /** Threat catalogs carry no identity hue (DESIGN.md): neutral ink. */
 const THREAT_INK = TOKENS.muted;
-const inkOf = (framework: string) => (FRAMEWORK_COLORS[framework] ? new Color(FRAMEWORK_COLORS[framework]) : THREAT_INK.clone());
+const inkOf = (framework: string) => {
+  const hue = frameworkColor(framework);
+  return hue ? new Color(hue) : THREAT_INK.clone();
+};
 
 const heightOf = (units: number) => 0.8 + Math.log2(units + 1) * 0.75;
 

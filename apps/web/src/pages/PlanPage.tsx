@@ -5,7 +5,8 @@ import { useParams } from "react-router-dom";
 import { useRunAgent } from "../components/inspector/Inspector.tsx";
 import { AgentBadge, CodeTag, Dialog, Empty, Segmented, toast } from "../components/ui/index.tsx";
 import { api } from "../lib/api.ts";
-import { FRAMEWORK_SHORT, TASK_STATUS_LABEL, codeOf, frameworkOf, shortDate } from "../lib/format.ts";
+import { TASK_STATUS_LABEL, codeOf, frameworkOf, shortDate } from "../lib/format.ts";
+import { badgeOf } from "../lib/frameworks.ts";
 import { Markdown } from "../lib/markdown.tsx";
 import { useTasks, useWorkspace, useWsMutation } from "../lib/queries.ts";
 import type { Task } from "../lib/types.ts";
@@ -251,7 +252,7 @@ export function PlanPage() {
           <option value="all">All frameworks</option>
           {workspace.data?.frameworks.map((f) => (
             <option key={f.id} value={f.id}>
-              {FRAMEWORK_SHORT[f.id] ?? f.shortName}
+              {badgeOf(f.id)}
             </option>
           ))}
         </select>

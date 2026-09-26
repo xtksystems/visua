@@ -209,6 +209,7 @@ export function ingestStateLaws(corpusDir = CORPUS_DIR): FrameworkGraph | undefi
       id: fw,
       family: "law",
       shortName: "State AI laws",
+      badge: "State AI laws",
       name: "U.S. state AI laws",
       publisher: "State legislatures and agencies (compiled by Visua)",
       version: src.retrieved,

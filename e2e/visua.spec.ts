@@ -30,6 +30,26 @@ test("home shows the workspace, its frameworks and next best actions", async ({ 
   expect(errors).toEqual([]);
 });
 
+test("mission control opens each framework's own program page", async ({ page }) => {
+  await signIn(page);
+  await page.goto(WS);
+  await expect(page.getByRole("heading", { level: 1, name: "Northwind Health" })).toBeVisible();
+  const expected: [string, string][] = [
+    ["NIST CSF 2.0", "/profile"],
+    ["SOC 2 (TSC 2017)", "/soc2"],
+    ["SP 800-53 Rev. 5", "/rmf"],
+    ["NIST RMF", "/rmf"],
+    ["NIST AI RMF", "/ai"],
+    ["State AI laws", "/laws"],
+  ];
+  for (const [name, path] of expected) {
+    const card = page.locator(".panel").filter({ has: page.getByRole("heading", { level: 3, name, exact: true }) });
+    await expect(card.getByRole("link", { name: /Program/ })).toHaveAttribute("href", `${WS}${path}`);
+  }
+  await page.locator(".panel").filter({ has: page.getByRole("heading", { level: 3, name: "State AI laws", exact: true }) }).getByRole("link", { name: /Program/ }).click();
+  await expect(page).toHaveURL(new RegExp(`${WS}/laws$`));
+});
+
 test("Observatory renders the 3D scene with its keyboard-accessible 2D twin", async ({ page }) => {
   await signIn(page);
   const errors = watchErrors(page);
