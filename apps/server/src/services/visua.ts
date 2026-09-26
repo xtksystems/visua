@@ -33,6 +33,7 @@ import {
   type Policy,
   type Priority,
   type Proposal,
+  type RequirementNode,
   type RequirementState,
   type Risk,
   type RmfSettings,
@@ -249,6 +250,50 @@ export class VisuaService {
     return ws.frameworks.find((f) => f.frameworkId === frameworkId);
   }
 
+  /**
+   * A unit of work the workspace can assess: an assessable requirement of a framework it
+   * has enabled. Threat catalogs are never assessed, whatever their nodes' shape.
+   */
+  assessableIn(ws: Workspace, nodeId: string): RequirementNode {
+    const node = this.registry.node(nodeId);
+    if (!node || !node.assessable) throw new ValidationError(`'${nodeId}' is not an assessable requirement`);
+    const fw = this.registry.framework(node.frameworkId)!.graph.framework;
+    if (fw.family === "threat") throw new ValidationError(`${node.code} is in ${fw.shortName}, a threat catalog: threats are never assessed. Its coverage comes from the requirements linked to it.`);
+    if (!this.frameworkSettings(ws, node.frameworkId)?.enabled) throw new ValidationError(`${fw.shortName} is not enabled in this workspace: enable it before assessing ${node.code}`);
+    return node;
+  }
+
+  /**
+   * The requirements a task, evidence item, policy or risk links to: known nodes, never
+   * threats (a threat is addressed through the requirements linked to it). Unknown ids
+   * are dropped, as before.
+   */
+  linkedRequirements(ids: readonly string[] | undefined): string[] {
+    const out: string[] = [];
+    for (const id of ids ?? []) {
+      const node = this.registry.node(id);
+      if (!node) continue;
+      const fw = this.registry.framework(node.frameworkId)!.graph.framework;
+      if (fw.family === "threat") throw new ValidationError(`${node.code} is a threat in ${fw.shortName}: link the requirements that address it instead`);
+      if (!out.includes(node.id)) out.push(node.id);
+    }
+    return out;
+  }
+
+  /**
+   * The one rule for changing a requirement's assessment, for people and agents alike.
+   * A requirement out of scope (by configuration or a documented exclusion) keeps no
+   * levels, verification or status override; owner, notes and priority stay editable.
+   */
+  private checkAssessment(node: RequirementNode, applicable: boolean, patch: Partial<RequirementState>, rationale: string | undefined): void {
+    const touches: string[] = (["current", "target"] as const).filter((k) => patch[k] !== undefined);
+    if (patch.verifiedAt) touches.push("verifiedAt");
+    if (patch.statusOverride) touches.push("statusOverride");
+    if (!applicable && touches.length) {
+      throw new ValidationError(`${node.code} is out of scope${rationale ? ` (${rationale})` : ""}: ${touches.join(", ")} can only be set on requirements in scope`);
+    }
+  }
+
   // -------------------------------------------------------------------------
   // Workspaces & onboarding
   // -------------------------------------------------------------------------
@@ -283,7 +328,7 @@ export class VisuaService {
       await this.store.workspaces.put(ws);
       for (const f of ws.frameworks) await this.initializeStates(ws, f.frameworkId, actor);
       await this.log(ws.id, actor, "created", "workspace", ws.id, `Workspace “${ws.name}” created with ${frameworkIds.length} framework(s)`, { rationale: rec.rationale });
-      if (input.planInitialTasks) await this.planWith(ws.id, "nist-csf-2.0", 12, actor);
+      if (input.planInitialTasks && frameworkIds.includes("nist-csf-2.0")) await this.planWith(ws.id, "nist-csf-2.0", 12, actor);
       return ws;
     });
   }
@@ -751,23 +796,33 @@ export class VisuaService {
     patch: Partial<Pick<RequirementState, "current" | "target" | "priority" | "applicable" | "applicabilityRationale" | "owner" | "notes" | "statusOverride" | "verifiedAt">>,
     actor = "user",
   ): Promise<RequirementState> {
-    const node = this.registry.node(nodeId);
-    if (!node || !node.assessable) throw new ValidationError(`'${nodeId}' is not an assessable requirement`);
     return this.mutate(workspaceId, async (ws) => {
+      const node = this.assessableIn(ws, nodeId);
+      const scope = this.scopeOf(ws, node.id);
+      const defaultTarget = this.frameworkSettings(ws, node.frameworkId)?.defaultTarget ?? 3;
       const prev =
         (await this.store.states.get(ws.id, node.id)) ??
-        ({ nodeId: node.id, current: 0, target: 3, priority: "medium", applicable: true, updatedAt: now(), updatedBy: actor } satisfies RequirementState);
-      const scope = this.scopeOf(ws, node.id);
+        ({
+          nodeId: node.id,
+          current: 0,
+          target: scope.applicable ? defaultTarget : 0,
+          priority: "medium",
+          applicable: scope.applicable,
+          applicabilityRationale: scope.rationale,
+          updatedAt: now(),
+          updatedBy: actor,
+        } satisfies RequirementState);
       let scoping: Partial<RequirementState> = {};
       if (patch.applicable === false) {
         const rationale = patch.applicabilityRationale?.trim() || (prev.userExclusion ? prev.applicabilityRationale?.trim() : "");
         if (!rationale) throw new ValidationError("Marking a requirement not applicable requires a written rationale that auditors can review");
         scoping = { applicable: false, applicabilityRationale: rationale, userExclusion: { rationale, at: now(), by: actor } };
       } else if (patch.applicable === true) {
-        if (!scope.applicable) throw new ValidationError(`Out of scope by configuration — ${scope.rationale}. Change the scope (SOC 2 categories or RMF baseline/tailoring) instead.`);
+        if (!scope.applicable) throw new ValidationError(`Out of scope by configuration — ${scope.rationale}. Change the scope instead (SOC 2 categories, RMF baseline or tailoring, or the roles a law applies to).`);
         scoping = { applicable: true, applicabilityRationale: scope.rationale, userExclusion: undefined };
-        if (prev.target === 0 && patch.target === undefined) scoping.target = this.frameworkSettings(ws, node.frameworkId)?.defaultTarget ?? 3;
+        if (prev.target === 0 && patch.target === undefined) scoping.target = defaultTarget;
       }
+      this.checkAssessment(node, scoping.applicable ?? prev.applicable, patch, scoping.applicabilityRationale ?? prev.applicabilityRationale);
       const next: RequirementState = {
         ...prev,
         ...patch,
@@ -796,7 +851,7 @@ export class VisuaService {
 
   async createTask(workspaceId: string, input: Partial<Task> & Pick<Task, "title">, actor = "user"): Promise<Task> {
     return this.mutate(workspaceId, async (ws) => {
-      const requirementIds = (input.requirementIds ?? []).map((id) => this.registry.node(id)?.id).filter((x): x is string => !!x);
+      const requirementIds = this.linkedRequirements(input.requirementIds);
       const ts = now();
       const task: Task = {
         id: newId("task"),
@@ -836,6 +891,7 @@ export class VisuaService {
     return this.mutate(workspaceId, async (ws) => {
       const prev = await this.store.tasks.get(taskId);
       if (!prev || prev.workspaceId !== ws.id) throw new NotFoundError(`Task '${taskId}' not found`);
+      if (patch.requirementIds) patch = { ...patch, requirementIds: this.linkedRequirements(patch.requirementIds) };
       const next: Task = { ...prev, ...patch, id: prev.id, workspaceId: prev.workspaceId, updatedAt: now() };
       if (patch.status === "done" && prev.status !== "done") next.completedAt = now();
       if (patch.status && patch.status !== "done") delete next.completedAt;
@@ -868,8 +924,10 @@ export class VisuaService {
 
   async planWith(workspaceId: string, frameworkId: string, maxTasks: number, actor = "system"): Promise<Task[]> {
     const index = this.registry.framework(frameworkId);
-    if (!index) return [];
+    if (!index) throw new NotFoundError(`Framework '${frameworkId}' not found`);
+    if (index.graph.framework.family === "threat") throw new ValidationError(`${index.graph.framework.shortName} is a threat catalog: plan the requirements linked to its threats instead`);
     return this.mutate(workspaceId, async (ws) => {
+      if (!this.frameworkSettings(ws, frameworkId)?.enabled) throw new ValidationError(`${index.graph.framework.shortName} is not enabled in this workspace`);
       const states = await this.store.states.map(ws.id, frameworkId);
       const open = new Set((await this.store.tasks.list(ws.id)).filter((t) => t.status !== "done").flatMap((t) => t.requirementIds));
       const planned = planTasks(index, states, {
@@ -900,7 +958,7 @@ export class VisuaService {
   async createEvidence(workspaceId: string, input: Partial<Evidence> & Pick<Evidence, "title">, actor = "user"): Promise<Evidence> {
     return this.mutate(workspaceId, async (ws) => {
       const ts = now();
-      const requirementIds = (input.requirementIds ?? []).map((id) => this.registry.node(id)?.id).filter((x): x is string => !!x);
+      const requirementIds = this.linkedRequirements(input.requirementIds);
       const evidence: Evidence = {
         id: newId("ev"),
         workspaceId: ws.id,
@@ -950,7 +1008,10 @@ export class VisuaService {
     return this.mutate(workspaceId, async (ws) => {
       const prev = await this.store.evidence.get(evidenceId);
       if (!prev || prev.workspaceId !== ws.id) throw new NotFoundError(`Evidence '${evidenceId}' not found`);
-      const next: Evidence = { ...prev, ...patch, id: prev.id, workspaceId: ws.id };
+      // Only the fields the caller sent: an absent title or link list is not a request to erase it.
+      const changes = Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined)) as Partial<Evidence>;
+      if (changes.requirementIds) changes.requirementIds = this.linkedRequirements(changes.requirementIds);
+      const next: Evidence = { ...prev, ...changes, id: prev.id, workspaceId: ws.id };
       await this.store.evidence.put(next);
       this.emit(ws.id, "evidence.updated", next);
       await this.log(ws.id, actor, "updated", "evidence", next.id, `Evidence “${next.title}” updated`);
@@ -973,7 +1034,7 @@ export class VisuaService {
         version: 1,
         status: input.status ?? "draft",
         body: input.body,
-        requirementIds: (input.requirementIds ?? []).map((id) => this.registry.node(id)?.id).filter((x): x is string => !!x),
+        requirementIds: this.linkedRequirements(input.requirementIds),
         owner: input.owner,
         reviewCadenceDays: input.reviewCadenceDays ?? 365,
         origin: input.origin ?? "user",
@@ -997,6 +1058,7 @@ export class VisuaService {
     return this.mutate(workspaceId, async (ws) => {
       const prev = await this.store.policies.get(policyId);
       if (!prev || prev.workspaceId !== ws.id) throw new NotFoundError(`Policy '${policyId}' not found`);
+      if (patch.requirementIds) patch = { ...patch, requirementIds: this.linkedRequirements(patch.requirementIds) };
       const bodyChanged = patch.body !== undefined && patch.body !== prev.body;
       const next: Policy = {
         ...prev,
@@ -1056,7 +1118,7 @@ export class VisuaService {
         impact: input.impact ?? prev?.impact ?? 3,
         treatment: input.treatment ?? prev?.treatment ?? "mitigate",
         status: input.status ?? prev?.status ?? "open",
-        requirementIds: input.requirementIds ?? prev?.requirementIds ?? [],
+        requirementIds: input.requirementIds ? this.linkedRequirements(input.requirementIds) : prev?.requirementIds ?? [],
         owner: input.owner ?? prev?.owner,
         createdAt: prev?.createdAt ?? ts,
         updatedAt: ts,
@@ -1341,8 +1403,43 @@ export class VisuaService {
     };
   }
 
+  /**
+   * An agent proposal meets the rules of the change it would make before it reaches the
+   * approvals inbox: no threat nodes, no frameworks the workspace has not enabled, no
+   * levels on requirements out of scope. Applying it checks again (state can change).
+   */
+  private async checkProposal(ws: Workspace, input: ProposalInput): Promise<void> {
+    const payload = input.payload;
+    switch (input.type) {
+      case "set-level":
+      case "set-target":
+      case "set-applicability": {
+        const node = this.assessableIn(ws, String(payload["nodeId"] ?? ""));
+        const state = await this.store.states.get(ws.id, node.id);
+        const scope = this.scopeOf(ws, node.id);
+        if (input.type === "set-applicability") {
+          if (payload["applicable"] === true && !scope.applicable) throw new ValidationError(`${node.code} is out of scope by configuration — ${scope.rationale}`);
+          if (payload["applicable"] === false && !String(payload["rationale"] ?? "").trim()) throw new ValidationError("Marking a requirement not applicable requires a written rationale that auditors can review");
+          return;
+        }
+        const patch = input.type === "set-level" ? { current: Number(payload["current"]) } : { target: Number(payload["target"]) };
+        this.checkAssessment(node, state ? state.applicable : scope.applicable, patch, state ? state.applicabilityRationale : scope.rationale);
+        return;
+      }
+      case "create-task":
+      case "create-evidence":
+      case "create-policy":
+      case "create-risk":
+        this.linkedRequirements(payload["requirementIds"] as string[] | undefined);
+        return;
+      default:
+        return;
+    }
+  }
+
   async createProposal(workspaceId: string, runId: string, input: ProposalInput, recorder?: RunRecorder): Promise<Proposal> {
     return this.mutate(workspaceId, async (ws) => {
+      await this.checkProposal(ws, input);
       const proposal: Proposal = {
         id: newId("prop"),
         runId,

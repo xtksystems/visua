@@ -362,6 +362,86 @@ describe.skipIf(!registry.framework("mitre-atlas"))("threat views: MITRE ATLAS, 
   });
 });
 
+describe("assessment guardrails: threat catalogs, enabled frameworks and scope", () => {
+  let gw = "";
+  const threat = "mitre-atlas:AML.T0051";
+  beforeAll(async () => {
+    const created = await api<{ workspace: { id: string } }>("POST", "/api/workspaces", {
+      name: "Guardrails Co",
+      profile: { industry: "saas", size: "11-50", dataTypes: [], drivers: ["ai-systems"], environments: ["cloud"], maturityTier: 2, guidance: "guided", securityTeamSize: 2 },
+      frameworks: ["nist-csf-2.0", "us-state-ai-laws"],
+    });
+    gw = created.json.workspace.id;
+  });
+  const patch = (nodeId: string, body: Record<string, unknown>) => api<{ error?: string; current?: number; owner?: string }>("PATCH", `/api/workspaces/${gw}/requirements/${encodeURIComponent(nodeId)}`, body);
+
+  it.skipIf(!registry.framework("mitre-atlas"))("never assesses a threat catalog node, through the API or an agent proposal", async () => {
+    const res = await patch(threat, { current: 3 });
+    expect(res.status).toBe(400);
+    expect(res.json.error).toMatch(/threat catalog/);
+    expect(await svc.store.states.list(gw, "mitre-atlas")).toHaveLength(0);
+    // Agent proposals meet the same rule before they reach the approvals inbox.
+    for (const [type, payload] of [
+      ["set-level", { nodeId: threat, current: 3 }],
+      ["set-target", { nodeId: threat, target: 4 }],
+      ["set-applicability", { nodeId: threat, applicable: false, rationale: "Not relevant to our systems at all" }],
+      ["create-task", { title: "Mitigate prompt injection", requirementIds: [threat] }],
+    ] as const) {
+      await expect(svc.createProposal(gw, "run_test", { type, title: type, rationale: "test", payload, citations: [], confidence: "low", nodeIds: [threat] })).rejects.toThrow(/threat/);
+    }
+    expect(await svc.store.proposals.list(gw)).toHaveLength(0);
+    // A proposal already waiting (stored before this rule existed) fails on approval and changes nothing.
+    await svc.store.proposals.put({ id: "prop_legacy", runId: "run_test", workspaceId: gw, type: "set-level", title: "legacy", rationale: "legacy", payload: { nodeId: threat, current: 3 }, citations: [], confidence: "low", status: "pending", nodeIds: [threat], createdAt: new Date().toISOString() });
+    const decided = await api<{ status: string }>("POST", `/api/workspaces/${gw}/proposals/prop_legacy/decision`, { decision: "approved" });
+    expect(decided.json.status).toBe("failed");
+    expect(await svc.store.states.list(gw, "mitre-atlas")).toHaveLength(0);
+    // Tasks and evidence link requirements, never threats; threat catalogs are not planned.
+    expect((await api("POST", `/api/workspaces/${gw}/tasks`, { title: "Threat task", requirementIds: [threat] })).status).toBe(400);
+    expect((await api("POST", `/api/workspaces/${gw}/evidence`, { title: "Threat evidence", requirementIds: [threat], content: "x" })).status).toBe(400);
+    expect((await api("POST", `/api/workspaces/${gw}/plan`, { framework: "mitre-atlas" })).status).toBe(400);
+  });
+
+  it.skipIf(!registry.framework("mitre-atlas"))("keeps offline agents off threat nodes", async () => {
+    const run = async (agent: string, input: Record<string, unknown>) =>
+      (await api<{ status: string; summary: string; proposals: unknown[] }>("POST", `/api/workspaces/${gw}/runs?wait=1`, { agent, goal: `Run ${agent}`, input })).json;
+    const assessed = await run("assessor", { nodeIds: [threat, "mitre-atlas:AML.TA0005"] });
+    expect(assessed.status).toBe("completed");
+    expect(assessed.proposals).toHaveLength(0);
+    const planned = await run("planner", { framework: "mitre-atlas" });
+    expect(planned.status).toBe("completed");
+    expect(planned.summary).toMatch(/threat catalog/);
+    expect(planned.proposals).toHaveLength(0);
+  });
+
+  it("refuses assessments in frameworks the workspace has not enabled", async () => {
+    const res = await patch("nist-sp-800-53-r5:AC-2", { current: 2 });
+    expect(res.status).toBe(400);
+    expect(res.json.error).toMatch(/not enabled/);
+    expect(await svc.store.states.list(gw, "nist-sp-800-53-r5")).toHaveLength(0);
+    await expect(svc.createProposal(gw, "run_test", { type: "set-level", title: "x", rationale: "x", payload: { nodeId: "nist-sp-800-53-r5:AC-2", current: 2 }, citations: [], confidence: "low", nodeIds: [] })).rejects.toThrow(/not enabled/);
+    expect((await api("POST", `/api/workspaces/${gw}/plan`, { framework: "nist-sp-800-53-r5" })).status).toBe(400);
+  });
+
+  it.skipIf(!registry.framework("us-state-ai-laws"))("sets no levels on requirements out of scope, whoever asks", async () => {
+    // No law applicability recorded: every obligation is out of scope by configuration.
+    const obligation = registry.framework("us-state-ai-laws")!.assessable[0]!.id;
+    for (const body of [{ current: 2 }, { target: 3 }, { verifiedAt: new Date().toISOString() }, { statusOverride: "implemented" }]) {
+      const res = await patch(obligation, body);
+      expect(res.status, JSON.stringify(body)).toBe(400);
+      expect(res.json.error).toMatch(/out of scope/);
+    }
+    // Documentation stays editable.
+    expect((await patch(obligation, { owner: "Legal" })).json.owner).toBe("Legal");
+    await expect(svc.createProposal(gw, "run_test", { type: "set-level", title: "x", rationale: "x", payload: { nodeId: obligation, current: 2 }, citations: [], confidence: "low", nodeIds: [obligation] })).rejects.toThrow(/out of scope/);
+    // A documented exclusion blocks levels too, until the requirement is brought back into scope.
+    const outcome = "nist-csf-2.0:PR.IR-02";
+    expect((await patch(outcome, { applicable: false, applicabilityRationale: "No on-premises facilities; inherited from the cloud provider." })).status).toBe(200);
+    expect((await patch(outcome, { current: 2 })).status).toBe(400);
+    expect((await patch(outcome, { applicable: false, applicabilityRationale: "Still excluded for audit purposes here", current: 1 })).status).toBe(400);
+    expect((await patch(outcome, { applicable: true, current: 2 })).json.current).toBe(2);
+  });
+});
+
 describe("agents (offline playbooks) with human-in-the-loop proposals", () => {
   const run = async (agent: string, goal: string, input: Record<string, unknown> = {}) =>
     (await api<{ status: string; mode: string; summary: string; steps: { type: string }[]; proposals: { id: string; type: string; status: string }[] }>("POST", `/api/workspaces/${wsId}/runs?wait=1`, { agent, goal, input })).json;
@@ -430,6 +510,9 @@ describe("evidence, monitoring and exports", () => {
     expect(ev.json.status).toBe("pending-review");
     const reviewed = await api<{ status: string }>("PATCH", `/api/workspaces/${wsId}/evidence/${ev.json.id}`, { decision: "accepted" });
     expect(reviewed.json.status).toBe("accepted");
+    // Changing one field leaves the others as they were.
+    const extended = await api<{ title: string; requirementIds: string[]; validUntil: string }>("PATCH", `/api/workspaces/${wsId}/evidence/${ev.json.id}`, { validUntil: "2027-12-31" });
+    expect(extended.json).toMatchObject({ title: "Access review Q3", requirementIds: ["nist-csf-2.0:PR.AA-05"], validUntil: "2027-12-31" });
   });
 
   it("exports the CSF Organizational Profile with the official template columns", async () => {

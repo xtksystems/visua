@@ -66,6 +66,34 @@ export function resolveNode(host: AgentHost, idOrCode: string): RequirementNode 
   return host.registry.node(idOrCode.trim());
 }
 
+/** Threat catalogs (ATLAS, OWASP, NIST AI 100-2) are views: never assessed, planned or linked as requirements. */
+export function isThreat(host: AgentHost, nodeId: string): boolean {
+  return familyOf(host, nodeId) === "threat";
+}
+
+export function frameworkEnabled(host: AgentHost, frameworkId: string): boolean {
+  return host.workspace().frameworks.some((f) => f.frameworkId === frameworkId && f.enabled);
+}
+
+/** Why this node cannot take an assessment proposal in this workspace, if it cannot. */
+function cannotAssess(host: AgentHost, node: RequirementNode | undefined, asked: string, levels: boolean): string | undefined {
+  if (!node || !node.assessable) return `'${asked}' is not an assessable requirement`;
+  const fw = host.registry.framework(node.frameworkId)!.graph.framework;
+  if (fw.family === "threat") return `${node.code} is a threat in ${fw.shortName}: threats are never assessed. Propose changes to the requirements linked to it instead (get_requirement lists them).`;
+  if (!frameworkEnabled(host, node.frameworkId)) return `${fw.shortName} is not enabled in this workspace`;
+  const s = host.state(node.id);
+  if (levels && s && !s.applicable) return `${node.code} is out of scope (${s.applicabilityRationale ?? "not applicable"}): levels apply only to requirements in scope`;
+  return undefined;
+}
+
+/** Requirements a task, policy or evidence item may link to: known nodes that are not threats. */
+function linkable(host: AgentHost, ids: string[]): { nodes: RequirementNode[]; error?: string } {
+  const nodes = ids.map((id) => resolveNode(host, id)).filter((n): n is RequirementNode => !!n);
+  const threats = nodes.filter((n) => isThreat(host, n.id));
+  if (threats.length) return { nodes: [], error: `${threats.map((n) => n.code).join(", ")} ${threats.length > 1 ? "are threats" : "is a threat"}, not requirements: link the requirements that address ${threats.length > 1 ? "them" : "it"} instead (get_requirement on a threat lists them).` };
+  return { nodes };
+}
+
 function short(text: string, n = 180): string {
   const t = text.replace(/\s+/g, " ").trim();
   return t.length > n ? `${t.slice(0, n - 1)}…` : t;
@@ -263,7 +291,8 @@ export const proposeAssessment = defineTool({
   }),
   async run(host, input) {
     const node = resolveNode(host, input.nodeId);
-    if (!node || !node.assessable) return { error: `'${input.nodeId}' is not an assessable requirement` };
+    const refused = cannotAssess(host, node, input.nodeId, true);
+    if (refused || !node) return { error: refused };
     const family = familyOf(host, node.id);
     const prev = host.state(node.id);
     const proposal = await host.propose({
@@ -286,7 +315,8 @@ export const proposeTarget = defineTool({
   schema: z.object({ nodeId: z.string(), target: Level, rationale: z.string().min(10) }),
   async run(host, input) {
     const node = resolveNode(host, input.nodeId);
-    if (!node || !node.assessable) return { error: `'${input.nodeId}' is not an assessable requirement` };
+    const refused = cannotAssess(host, node, input.nodeId, true);
+    if (refused || !node) return { error: refused };
     const family = familyOf(host, node.id);
     const proposal = await host.propose({
       type: "set-target",
@@ -308,7 +338,8 @@ export const proposeApplicability = defineTool({
   schema: z.object({ nodeId: z.string(), applicable: z.boolean(), rationale: z.string().min(10) }),
   async run(host, input) {
     const node = resolveNode(host, input.nodeId);
-    if (!node || !node.assessable) return { error: `'${input.nodeId}' is not an assessable requirement` };
+    const refused = cannotAssess(host, node, input.nodeId, false);
+    if (refused || !node) return { error: refused };
     const proposal = await host.propose({
       type: "set-applicability",
       title: `${node.code}: ${input.applicable ? "applicable" : "not applicable"}`,
@@ -337,7 +368,8 @@ export const proposeTask = defineTool({
     checklist: z.array(z.string()).optional(),
   }),
   async run(host, input) {
-    const nodes = input.requirementIds.map((id) => resolveNode(host, id)).filter((n): n is RequirementNode => !!n);
+    const { nodes, error } = linkable(host, input.requirementIds);
+    if (error) return { error };
     if (!nodes.length) return { error: "None of the requirementIds are known" };
     const proposal = await host.propose({
       type: "create-task",
@@ -364,7 +396,9 @@ export const proposePolicy = defineTool({
     citations: z.array(CitationInput).optional(),
   }),
   async run(host, input) {
-    const nodes = input.requirementIds.map((id) => resolveNode(host, id)).filter((n): n is RequirementNode => !!n);
+    const { nodes, error } = linkable(host, input.requirementIds);
+    if (error) return { error };
+    if (!nodes.length) return { error: "None of the requirementIds are known" };
     const proposal = await host.propose({
       type: "create-policy",
       title: `Draft: ${input.title}`,
@@ -391,7 +425,9 @@ export const proposeEvidence = defineTool({
     validDays: z.number().int().min(1).max(730).optional(),
   }),
   async run(host, input) {
-    const nodes = input.requirementIds.map((id) => resolveNode(host, id)).filter((n): n is RequirementNode => !!n);
+    const { nodes, error } = linkable(host, input.requirementIds);
+    if (error) return { error };
+    if (!nodes.length) return { error: "None of the requirementIds are known" };
     const proposal = await host.propose({
       type: "create-evidence",
       title: input.title,

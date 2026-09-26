@@ -23,8 +23,10 @@ import { composePolicy, frameworkLabel, templateFor } from "./policies.ts";
 import {
   crosswalk,
   focus,
+  frameworkEnabled,
   getRequirement,
   hitToCitation,
+  isThreat,
   listRequirements,
   proposeAssessment,
   proposePolicy,
@@ -71,18 +73,33 @@ function enabledFrameworks(host: AgentHost): string[] {
     .map((f) => f.frameworkId);
 }
 
+/**
+ * Why a run cannot work on the framework it was given: threat catalogs are never
+ * assessed or planned, and a framework the workspace does not follow has no scope.
+ */
+function unusableFramework(host: AgentHost, input: Record<string, unknown>): string | undefined {
+  const requested = typeof input["framework"] === "string" ? (input["framework"] as string) : undefined;
+  if (!requested) return undefined;
+  const index = host.registry.framework(requested);
+  if (!index) return `Unknown framework '${requested}'.`;
+  const fw = index.graph.framework;
+  if (fw.family === "threat") return `${fw.shortName} is a threat catalog: its threats are never assessed or planned. Their coverage comes from the requirements linked to them; open a threat on the AI threats page to see those requirements and work on them.`;
+  if (!frameworkEnabled(host, requested)) return `${fw.shortName} is not enabled in this workspace. An admin can enable it in Settings.`;
+  return undefined;
+}
+
 function primaryFramework(host: AgentHost, input: Record<string, unknown>): string {
   const requested = typeof input["framework"] === "string" ? (input["framework"] as string) : undefined;
-  if (requested && host.registry.framework(requested)) return requested;
+  if (requested && !unusableFramework(host, input)) return requested;
   return enabledFrameworks(host)[0] ?? "nist-csf-2.0";
 }
 
-/** Resolve the scope of nodes for a run: explicit ids, a parent code, a task, or top gaps. */
+/** Resolve the scope of nodes for a run: explicit ids, a parent code, a task, or top gaps. Never threats. */
 function scopeNodes(host: AgentHost, input: Record<string, unknown>, fallbackLimit = 10): RequirementNode[] {
   const ids = Array.isArray(input["nodeIds"]) ? (input["nodeIds"] as string[]) : [];
   const out: RequirementNode[] = [];
   const push = (n: RequirementNode | undefined) => {
-    if (n && !out.some((x) => x.id === n.id)) out.push(n);
+    if (n && !isThreat(host, n.id) && frameworkEnabled(host, n.frameworkId) && !out.some((x) => x.id === n.id)) out.push(n);
   };
   for (const id of ids) {
     const node = host.registry.node(id);
@@ -104,6 +121,8 @@ function scopeNodes(host: AgentHost, input: Record<string, unknown>, fallbackLim
     .slice(0, fallbackLimit)
     .map((x) => x.n);
 }
+
+const isThreatFramework = (host: AgentHost, frameworkId: string) => host.registry.framework(frameworkId)?.graph.framework.family === "threat";
 
 function pct(n: number): string {
   return `${Math.round(n * 100)}%`;
@@ -230,6 +249,8 @@ const copilot: Playbook = async (host, goal, input) => {
 // ---------------------------------------------------------------------------
 
 const assessor: Playbook = async (host, _goal, input) => {
+  const refused = !Array.isArray(input["nodeIds"]) && typeof input["taskId"] !== "string" ? unusableFramework(host, input) : undefined;
+  if (refused) return refused;
   const nodes = scopeNodes(host, input, 12);
   host.step({ type: "plan", title: `Assess ${nodes.length} requirement(s)`, detail: "Weigh accepted evidence, completed tasks and monitoring results; stay conservative without evidence.", nodeIds: nodes.map((n) => n.id) });
   let proposed = 0;
@@ -279,6 +300,8 @@ const assessor: Playbook = async (host, _goal, input) => {
 // ---------------------------------------------------------------------------
 
 const planner: Playbook = async (host, _goal, input) => {
+  const refused = unusableFramework(host, input);
+  if (refused) return refused;
   const fw = primaryFramework(host, input);
   const index = host.registry.framework(fw)!;
   const scoped = Array.isArray(input["nodeIds"]) || typeof input["taskId"] === "string" ? scopeNodes(host, input) : undefined;
@@ -429,7 +452,9 @@ const evidenceCollector: Playbook = async (host, _goal, input) => {
 // ---------------------------------------------------------------------------
 
 const crosswalkAnalyst: Playbook = async (host, _goal, input) => {
-  const targets = typeof input["framework"] === "string" ? [input["framework"] as string] : enabledFrameworks(host).filter((f) => f !== "nist-csf-2.0");
+  const refused = unusableFramework(host, input);
+  if (refused) return refused;
+  const targets = (typeof input["framework"] === "string" ? [input["framework"] as string] : enabledFrameworks(host).filter((f) => f !== "nist-csf-2.0")).filter((f) => !isThreatFramework(host, f));
   const allStates = new Map(host.states().map((s) => [s.nodeId, s]));
   const lines: string[] = [];
   host.step({ type: "plan", title: "Project progress across frameworks", detail: `Targets: ${targets.map(frameworkLabel).join(", ") || "none"} · ${host.registry.crosswalk.size} authoritative mappings loaded` });
@@ -468,6 +493,8 @@ const crosswalkAnalyst: Playbook = async (host, _goal, input) => {
 // ---------------------------------------------------------------------------
 
 const auditorPrep: Playbook = async (host, _goal, input) => {
+  const refused = unusableFramework(host, input);
+  if (refused) return refused;
   const fw = typeof input["framework"] === "string" ? (input["framework"] as string) : enabledFrameworks(host).includes("aicpa-tsc-2017") ? "aicpa-tsc-2017" : primaryFramework(host, input);
   const index = host.registry.framework(fw)!;
   const score = host.score(fw);
