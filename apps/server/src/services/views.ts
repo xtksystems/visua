@@ -5,7 +5,7 @@
 import { codeOf, frameworkOf, groupStatus, type FrameworkGraph, type RequirementNode, type Workspace } from "@visua/core";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { CORPUS_DIR } from "@visua/frameworks";
+import { CORPUS_DIR, FRAMEWORK_ORDER } from "@visua/frameworks";
 import type { VisuaService } from "./visua.ts";
 
 export interface LeanNode {
@@ -22,7 +22,7 @@ export interface LeanNode {
   meta?: Record<string, unknown>;
 }
 
-const LEAN_ATTRIBUTE_KEYS = ["baselines", "category", "cosoPrinciple", "level", "party"];
+const LEAN_ATTRIBUTE_KEYS = ["baselines", "category", "cosoPrinciple", "level", "party", "label"];
 
 export function leanGraph(graph: FrameworkGraph): { framework: FrameworkGraph["framework"]; nodes: LeanNode[]; profiles?: FrameworkGraph["profiles"] } {
   return {
@@ -132,8 +132,10 @@ export function frameworkState(svc: VisuaService, ws: Workspace, frameworkId: st
 }
 
 export function workspaceSummary(svc: VisuaService, ws: Workspace) {
+  const rank = (id: string) => (FRAMEWORK_ORDER.indexOf(id) === -1 ? 99 : FRAMEWORK_ORDER.indexOf(id));
   const frameworks = ws.frameworks
     .filter((f) => f.enabled && svc.registry.framework(f.frameworkId))
+    .sort((a, b) => rank(a.frameworkId) - rank(b.frameworkId))
     .map((f) => {
       const index = svc.registry.framework(f.frameworkId)!;
       const s = svc.score(ws.id, f.frameworkId).overall;

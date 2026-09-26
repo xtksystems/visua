@@ -34,9 +34,22 @@ one exists.
 | SP 800-53 Rev. 5.2.0 | OSCAL catalog 5.2.0 + SP 800-53B baseline profiles; SP 800-53A objectives; page citations from the 2020 PDF (OSCAL release locator for controls added later) | 1,014 active controls and enhancements in 20 families; LOW 149 · MODERATE 287 · HIGH 370 · PRIVACY 96 |
 | NIST RMF | SP 800-37r2, extracted to `corpus/nist-rmf/rmf-tasks.json` | 47 tasks across 7 steps |
 | SOC 2 (TSC 2017) | Visua's skeleton; overlaid with the verbatim criteria and points of focus from a licensed local copy | 61 criteria in 20 series across 5 categories |
+| NIST AI RMF 1.0 | `ai-rmf-core.json`, extracted from the AI 100-1 PDF with page citations (NIST's CPRT and Playbook JSON differ from the final text in dozens of statements, so they are not used for statements); the AI RMF Playbook JSON; `genai-profile.json` extracted from NIST AI 600-1 | 72 outcomes in 19 categories across 4 functions (GOVERN 19, MAP 18, MEASURE 22, MANAGE 13); 460 Playbook suggested actions; the Generative AI Profile's 12 GAI risks and 212 actions, attached to 49 outcomes |
 
 Tests in `packages/frameworks/test` pin these official counts. Ingestion is
 deterministic: the same corpus in produces the same data out.
+
+**Framework profiles.** A graph can carry profiles layered on it
+(`FrameworkGraph.profiles`). The NIST AI 600-1 Generative AI Profile is the first: its
+12 risks live on the graph, and each of its 212 actions is attached to the AI RMF
+outcome it serves (`attributes.profileActions`, with its risk tags and page). The AI
+governance view rolls outcome progress up to each risk. For dense 3D views, AI RMF
+nodes carry short labels in NIST AI 600-1's tag style (`GV-1.1`, `MS-2.11`); the
+official ids stay everywhere else.
+
+NIST publishes AI RMF crosswalks (to ISO/IEC 42001 and 23894, the OECD principles, the
+EU AI Act and others) only as PDFs, and none targets a framework Visua models, so the
+AI RMF is not yet in the Crosswalk Nexus.
 
 **Crosswalk mapping sets.** Each set records its authority. The UI and the agents
 show that authority wherever a mapping appears.
@@ -99,6 +112,13 @@ stay local.
   become *proposals*: a mapping is never evidence.
 - **CSF Tiers** (the CSWP 29 Appendix B statements, verbatim) and **FIPS 199**
   categorization (the high-water mark selects the baseline).
+- **AI governance.** The NIST AI RMF defines no maturity tiers, so outcomes use a
+  Visua-authored scale (Not addressed → Measured and improving). The AI system inventory
+  lives in the AI RMF framework settings: purpose and context of use, the
+  organization's role, lifecycle stage, generative or not, value-chain provider, risk
+  tier, data and human oversight. Every inventory change goes through the service and
+  lands in the audit trail. A generative system brings the Generative AI Profile into
+  scope.
 
 ## 3. Agents (`packages/agents`)
 
@@ -211,7 +231,7 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 6. Testing
 
-- `packages/*/test` and `apps/server/test` (Vitest, 48 tests):
+- `packages/*/test` and `apps/server/test` (Vitest, 53 tests):
   - official counts and citations
   - identifier normalization
   - the SOC 2 skeleton and the licensed overlay
@@ -221,10 +241,12 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   - all eight offline agents, autonomy, connectors, evidence hashing
   - integrity guardrails: N/A rationale, scope preservation, audit-chain tamper
     detection, and no plan-as-evidence
-- `e2e/` (Playwright, 7 tests) runs against the production bundle served by the API,
+  - AI governance: AI RMF official counts, the Generative AI Profile's risks and actions,
+    the AI system inventory API, Playbook-based planning and the AI RMF profile export
+- `e2e/` (Playwright, 8 tests) runs against the production bundle served by the API,
   with an in-memory seeded database and WebGL on SwiftShader. It covers Home, the
-  Observatory and its 2D twin, the Nexus, RMF, SOC 2, an agent run with citations, and
-  the trust center.
+  Observatory and its 2D twin, the Nexus, RMF, SOC 2, AI governance, an agent run with
+  citations, and the trust center.
 
 ## 7. Known limitations
 

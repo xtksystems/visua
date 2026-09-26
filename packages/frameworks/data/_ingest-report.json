@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-26T08:57:37.114Z",
+  "generatedAt": "2026-09-26T16:05:03.148Z",
   "frameworks": [
     {
       "id": "nist-csf-2.0",
@@ -28,6 +28,16 @@
       "byKind": {
         "step": 7,
         "task": 47
+      }
+    },
+    {
+      "id": "nist-ai-rmf",
+      "nodes": 95,
+      "assessable": 72,
+      "byKind": {
+        "function": 4,
+        "category": 19,
+        "subcategory": 72
       }
     },
     {
@@ -69,12 +79,16 @@
     }
   ],
   "corpus": {
-    "chunks": 5649,
-    "pdfDocuments": 49,
+    "chunks": 7019,
+    "pdfDocuments": 57,
     "manifests": [
       {
         "framework": "aicpa-soc2",
         "documents": 33
+      },
+      {
+        "framework": "nist-ai-rmf",
+        "documents": 45
       },
       {
         "framework": "nist-csf-2.0",
@@ -106,6 +120,22 @@
     {
       "id": "tsc-2017-original-april-2017",
       "sha256": "c8cf39e30683a65c8a1cb405ab042688268ef87a5ecb1f32f6205797d52ef08d"
+    },
+    {
+      "id": "cprt-ai-rmf-export-json",
+      "sha256": "169a9c5b586dca21225f1cc4d235502e2e27cdf6321cfc47c1ffc93c5eaa673d"
+    },
+    {
+      "id": "cprt-ai-rmf-export-xlsx",
+      "sha256": "6ec6f46192311b856cd0645cb0736d6e41abbce3eb9475543196903120b98cab"
+    },
+    {
+      "id": "cprt-ai-100-2e2025-export-json",
+      "sha256": "f77d358947ec3da0429981f022001ab8a829b765a4207d28c3c2dae61839e38f"
+    },
+    {
+      "id": "cprt-ai-100-2e2025-export-xlsx",
+      "sha256": "5c49e1143a8443fa92148392e90881feb5329389a46e7015e6f71d4a09b12e03"
     },
     {
       "id": "csf-2-0-reference-tool-elements-json",

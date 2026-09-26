@@ -1,0 +1,148 @@
+{
+ "riskLabelsSplitOnComma": [
+  {
+   "action": "MG-3.2-004",
+   "label": "Human-AI Configuration, Dangerous, Violent, or Hateful Content",
+   "split": [
+    "Human-AI Configuration",
+    "Dangerous, Violent, or Hateful Content"
+   ]
+  }
+ ],
+ "counts": {
+  "risks": 12,
+  "subcategoriesWithActions": 49,
+  "actions": 212,
+  "actionsPerFunction": {
+   "GOVERN": 58,
+   "MAP": 39,
+   "MEASURE": 72,
+   "MANAGE": 43
+  },
+  "subcategoriesPerFunction": {
+   "GOVERN": 15,
+   "MAP": 9,
+   "MEASURE": 16,
+   "MANAGE": 9
+  },
+  "actionsPerSubcategory": {
+   "GOVERN 1.1": 1,
+   "GOVERN 1.2": 2,
+   "GOVERN 1.3": 7,
+   "GOVERN 1.4": 2,
+   "GOVERN 1.5": 3,
+   "GOVERN 1.6": 3,
+   "GOVERN 1.7": 2,
+   "GOVERN 2.1": 5,
+   "GOVERN 3.2": 5,
+   "GOVERN 4.1": 3,
+   "GOVERN 4.2": 3,
+   "GOVERN 4.3": 3,
+   "GOVERN 5.1": 2,
+   "GOVERN 6.1": 10,
+   "GOVERN 6.2": 7,
+   "MAP 1.1": 4,
+   "MAP 1.2": 2,
+   "MAP 2.1": 2,
+   "MAP 2.2": 2,
+   "MAP 2.3": 5,
+   "MAP 3.4": 6,
+   "MAP 4.1": 10,
+   "MAP 5.1": 6,
+   "MAP 5.2": 2,
+   "MEASURE 1.1": 9,
+   "MEASURE 1.3": 3,
+   "MEASURE 2.2": 4,
+   "MEASURE 2.3": 4,
+   "MEASURE 2.5": 6,
+   "MEASURE 2.6": 7,
+   "MEASURE 2.7": 9,
+   "MEASURE 2.8": 4,
+   "MEASURE 2.9": 2,
+   "MEASURE 2.10": 3,
+   "MEASURE 2.11": 5,
+   "MEASURE 2.12": 4,
+   "MEASURE 2.13": 1,
+   "MEASURE 3.2": 1,
+   "MEASURE 3.3": 5,
+   "MEASURE 4.2": 5,
+   "MANAGE 1.3": 2,
+   "MANAGE 2.2": 9,
+   "MANAGE 2.3": 1,
+   "MANAGE 2.4": 4,
+   "MANAGE 3.1": 5,
+   "MANAGE 3.2": 9,
+   "MANAGE 4.1": 7,
+   "MANAGE 4.2": 3,
+   "MANAGE 4.3": 3
+  }
+ },
+ "duplicateActionIds": [],
+ "actionNumberingGaps": [],
+ "actionsWithoutSubcategoryHeader": [],
+ "actionsWithoutRiskTags": [],
+ "riskTagSpellings": {
+  "CBRN Information and Capability": 2,
+  "CBRN Information or Capabilities": 29,
+  "Civil Rights violations": 1,
+  "Confabulation": 18,
+  "Dangerous, Violent, or Hateful Content": 30,
+  "Data Privacy": 29,
+  "Environmental": 4,
+  "Harmful Bias and Homogenization": 57,
+  "Human AI Configuration": 1,
+  "Human-AI Configuration": 56,
+  "Human-AI Configuration, Dangerous, Violent, or Hateful Content": 1,
+  "Information Integrity": 73,
+  "Information Security": 51,
+  "Intellectual Property": 28,
+  "Obscene, Degrading, and/or Abusive Content": 14,
+  "Value Chain and Component Integration": 36
+ },
+ "riskTagAliasesUsed": {
+  "CBRN Information and Capability": 2,
+  "Environmental": 4,
+  "Harmful Bias and Homogenization": 57,
+  "Human AI Configuration": 1
+ },
+ "unknownRiskTags": {
+  "Civil Rights violations": 1
+ },
+ "actionsNotFoundInPdfText": [],
+ "subcategoryStatementsDifferingFromAi100_1": [
+  {
+   "id": "GOVERN 1.5",
+   "ai600_1": "Ongoing monitoring and periodic review of the risk management process and its outcomes are planned, and organizational roles and responsibilities are clearly defined, including determining the frequency of periodic review.",
+   "ai100_1": "Ongoing monitoring and periodic review of the risk management process and its outcomes are planned and organizational roles and responsibilities clearly defined, including determining the frequency of periodic review."
+  },
+  {
+   "id": "MAP 1.1",
+   "ai600_1": "Intended purposes, potentially beneficial uses, context specific laws, norms and expectations, and prospective settings in which the AI system will be deployed are understood and documented. Considerations include: the specific set or types of users along with their expectations; potential positive and negative impacts of system uses to individuals, communities, organizations, society, and the planet; assumptions and related limitations about AI system purposes, uses, and risks across the development or product AI lifecycle; and related TEVV and system metrics.",
+   "ai100_1": "Intended purposes, potentially beneficial uses, context-specific laws, norms and expectations, and prospective settings in which the AI system will be deployed are understood and documented. Considerations include: the specific set or types of users along with their expectations; potential positive and negative impacts of system uses to individuals, communities, organizations, society, and the planet; assumptions and related limitations about AI system purposes, uses, and risks across the development or product AI lifecycle; and related TEVV and system metrics."
+  },
+  {
+   "id": "MAP 2.3",
+   "ai600_1": "Scientific integrity and TEVV considerations are identified and documented, including those related to experimental design, data collection and selection (e.g., availability, representativeness, suitability), system trustworthiness, and construct validation",
+   "ai100_1": "Scientific integrity and TEVV considerations are identified and documented, including those related to experimental design, data collection and selection (e.g., availability, representativeness, suitability), system trustworthiness, and construct validation."
+  },
+  {
+   "id": "MAP 4.1",
+   "ai600_1": "Approaches for mapping AI technology and legal risks of its components – including the use of third-party data or software – are in place, followed, and documented, as are risks of infringement of a third-party’s intellectual property or other rights.",
+   "ai100_1": "Approaches for mapping AI technology and legal risks of its components – including the use of third-party data or software – are in place, followed, and documented, as are risks of infringement of a third party’s intellectual property or other rights."
+  }
+ ],
+ "riskActionCounts": {
+  "cbrn": 31,
+  "confabulation": 18,
+  "dangerous-violent-hateful-content": 31,
+  "data-privacy": 29,
+  "environmental-impacts": 4,
+  "harmful-bias-homogenization": 57,
+  "human-ai-configuration": 58,
+  "information-integrity": 73,
+  "information-security": 51,
+  "intellectual-property": 28,
+  "obscene-degrading-abusive-content": 14,
+  "value-chain-component-integration": 36
+ }
+}

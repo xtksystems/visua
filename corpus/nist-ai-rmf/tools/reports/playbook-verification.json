@@ -1,0 +1,1875 @@
+{
+ "entries": {
+  "GOVERN 1.1": {
+   "pdfPages": [
+    6,
+    7
+   ],
+   "itemsChecked": 15,
+   "counts": {
+    "suggestedActions": 3,
+    "suggestedActionItemsFlat": 3,
+    "transparencyDocumentation": 4,
+    "transparencyResources": 1,
+    "references": 4
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 3,
+    "documentation(D)": 4,
+    "resources(R)": 1,
+    "references(REF)": 4,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "GOVERN 1.2": {
+   "pdfPages": [
+    7,
+    9
+   ],
+   "itemsChecked": 36,
+   "counts": {
+    "suggestedActions": 15,
+    "suggestedActionItemsFlat": 15,
+    "transparencyDocumentation": 4,
+    "transparencyResources": 1,
+    "references": 12
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 15,
+    "documentation(D)": 4,
+    "resources(R)": 1,
+    "references(REF)": 12,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "GOVERN 1.3": {
+   "pdfPages": [
+    9,
+    11
+   ],
+   "itemsChecked": 15,
+   "counts": {
+    "suggestedActions": 5,
+    "suggestedActionItemsFlat": 5,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 1,
+    "references": 4
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 5,
+    "documentation(D)": 3,
+    "resources(R)": 1,
+    "references(REF)": 4,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Establish policies for assigning an overall risk measurement approach for an AI system, or its important components, e.g., via multiplication or combination of a mapped risk’s impact and likelihood (risk ˜ impact x likelihood).",
+    "Establish policies to assign systems to uniform risk scales that are valid across the organization’s AI portfolio (e.g., documentation templates) and acknowledge risk tolerance and risk levels may change over the lifecycle of an AI system."
+   ],
+   "notFoundInPdf": []
+  },
+  "GOVERN 1.4": {
+   "pdfPages": [
+    11,
+    13
+   ],
+   "itemsChecked": 37,
+   "counts": {
+    "suggestedActions": 7,
+    "suggestedActionItemsFlat": 20,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 2,
+    "references": 11
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 20,
+    "documentation(D)": 3,
+    "resources(R)": 2,
+    "references(REF)": 11,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "AI actors contact information"
+   ],
+   "notFoundInPdf": []
+  },
+  "GOVERN 1.5": {
+   "pdfPages": [
+    13,
+    14
+   ],
+   "itemsChecked": 17,
+   "counts": {
+    "suggestedActions": 7,
+    "suggestedActionItemsFlat": 7,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 2,
+    "references": 2
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 7,
+    "documentation(D)": 3,
+    "resources(R)": 2,
+    "references(REF)": 2,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Establish policies for AI system incident response or confirm that existing incident response policies apply to AI systems."
+   ],
+   "notFoundInPdf": []
+  },
+  "GOVERN 1.6": {
+   "pdfPages": [
+    14,
+    15
+   ],
+   "itemsChecked": 16,
+   "counts": {
+    "suggestedActions": 4,
+    "suggestedActionItemsFlat": 4,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 2,
+    "references": 3
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 4,
+    "documentation(D)": 3,
+    "resources(R)": 2,
+    "references(REF)": 3,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Establish policies that define which models or systems are inventoried, with preference to inventorying all models or systems, or minimally, to high-risk models or systems, or systems deployed in high-stakes settings.",
+    "Establish policies that define model or system attributes to be inventoried, e.g., documentation, links to source code, incident response plans, data dictionaries, AI actor contact information."
+   ],
+   "notFoundInPdf": []
+  },
+  "GOVERN 1.7": {
+   "pdfPages": [
+    15,
+    17
+   ],
+   "itemsChecked": 22,
+   "counts": {
+    "suggestedActions": 4,
+    "suggestedActionItemsFlat": 10,
+    "transparencyDocumentation": 4,
+    "transparencyResources": 3,
+    "references": 4
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 9,
+    "documentation(D)": 4,
+    "resources(R)": 3,
+    "references(REF)": 4,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "GOVERN 2.1": {
+   "pdfPages": [
+    17,
+    19
+   ],
+   "itemsChecked": 33,
+   "counts": {
+    "suggestedActions": 6,
+    "suggestedActionItemsFlat": 18,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 3,
+    "references": 5
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 6,
+    "documentation(D)": 5,
+    "resources(R)": 3,
+    "references(REF)": 5,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Establish policies that define the AI risk management roles and responsibilities for positions directly and indirectly related to AI systems, including, but not limited to - Boards of directors or advisory committees - Senior management - AI audit functions - Product management - Project management - AI design - AI development - Human-AI interaction - AI testing and evaluation - AI acquisition and procurement - Impact assessment functions - Oversight functions"
+   ],
+   "notFoundInPdf": []
+  },
+  "GOVERN 2.2": {
+   "pdfPages": [
+    19,
+    20
+   ],
+   "itemsChecked": 23,
+   "counts": {
+    "suggestedActions": 6,
+    "suggestedActionItemsFlat": 10,
+    "transparencyDocumentation": 4,
+    "transparencyResources": 3,
+    "references": 2
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 10,
+    "documentation(D)": 4,
+    "resources(R)": 3,
+    "references(REF)": 2,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Establish policies for personnel addressing ongoing education about: Applicable laws and regulations for AI systems. Potential negative impacts that may arise from AI systems. Organizational AI policies. Trustworthy AI characteristics."
+   ],
+   "notFoundInPdf": []
+  },
+  "GOVERN 2.3": {
+   "pdfPages": [
+    20,
+    21
+   ],
+   "itemsChecked": 17,
+   "counts": {
+    "suggestedActions": 2,
+    "suggestedActionItemsFlat": 7,
+    "transparencyDocumentation": 4,
+    "transparencyResources": 2,
+    "references": 2
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 6,
+    "documentation(D)": 4,
+    "resources(R)": 2,
+    "references(REF)": 2,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Support AI risk management efforts and play an active role in such efforts.",
+    "Integrate a risk and harm prevention mindset throughout the AI lifecycle as part of organizational culture."
+   ],
+   "notFoundInPdf": []
+  },
+  "GOVERN 3.1": {
+   "pdfPages": [
+    21,
+    23
+   ],
+   "itemsChecked": 25,
+   "counts": {
+    "suggestedActions": 5,
+    "suggestedActionItemsFlat": 5,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 2,
+    "references": 9
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 5,
+    "documentation(D)": 5,
+    "resources(R)": 2,
+    "references(REF)": 9,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "GOVERN 3.2": {
+   "pdfPages": [
+    23,
+    25
+   ],
+   "itemsChecked": 24,
+   "counts": {
+    "suggestedActions": 8,
+    "suggestedActionItemsFlat": 8,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 3,
+    "references": 5
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 8,
+    "documentation(D)": 5,
+    "resources(R)": 3,
+    "references(REF)": 5,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "GOVERN 4.1": {
+   "pdfPages": [
+    25,
+    26
+   ],
+   "itemsChecked": 22,
+   "counts": {
+    "suggestedActions": 5,
+    "suggestedActionItemsFlat": 5,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 3,
+    "references": 7
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 5,
+    "documentation(D)": 4,
+    "resources(R)": 3,
+    "references(REF)": 7,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "GOVERN 4.2": {
+   "pdfPages": [
+    26,
+    29
+   ],
+   "itemsChecked": 34,
+   "counts": {
+    "suggestedActions": 4,
+    "suggestedActionItemsFlat": 4,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 2,
+    "references": 16
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 4,
+    "documentation(D)": 5,
+    "resources(R)": 1,
+    "references(REF)": 15,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "GOVERN 4.3": {
+   "pdfPages": [
+    29,
+    30
+   ],
+   "itemsChecked": 22,
+   "counts": {
+    "suggestedActions": 5,
+    "suggestedActionItemsFlat": 5,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 2,
+    "references": 5
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 5,
+    "documentation(D)": 3,
+    "resources(R)": 2,
+    "references(REF)": 5,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "GOVERN 5.1": {
+   "pdfPages": [
+    30,
+    32
+   ],
+   "itemsChecked": 28,
+   "counts": {
+    "suggestedActions": 3,
+    "suggestedActionItemsFlat": 8,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 4,
+    "references": 6
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 8,
+    "documentation(D)": 5,
+    "resources(R)": 4,
+    "references(REF)": 6,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "GOVERN 5.2": {
+   "pdfPages": [
+    32,
+    34
+   ],
+   "itemsChecked": 23,
+   "counts": {
+    "suggestedActions": 5,
+    "suggestedActionItemsFlat": 9,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 4,
+    "references": 3
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 6,
+    "documentation(D)": 5,
+    "resources(R)": 4,
+    "references(REF)": 3,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "GOVERN 6.1": {
+   "pdfPages": [
+    34,
+    35
+   ],
+   "itemsChecked": 24,
+   "counts": {
+    "suggestedActions": 4,
+    "suggestedActionItemsFlat": 7,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 6,
+    "references": 3
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 3,
+    "documentation(D)": 5,
+    "resources(R)": 6,
+    "references(REF)": 3,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Establish policies related to: Transparency into third-party system functions, including knowledge about training data, training and inference algorithms, and assumptions and limitations. Thorough testing of third-party AI systems. (See measure for more detail) Requirements for clear and complete instructions for third-party system usage. Evaluate policies for third-party technology."
+   ],
+   "notFoundInPdf": []
+  },
+  "GOVERN 6.2": {
+   "pdfPages": [
+    35,
+    38
+   ],
+   "itemsChecked": 13,
+   "counts": {
+    "suggestedActions": 2,
+    "suggestedActionItemsFlat": 2,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 4,
+    "references": 3
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 2,
+    "documentation(D)": 3,
+    "resources(R)": 4,
+    "references(REF)": 3,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MANAGE 1.1": {
+   "pdfPages": [
+    38,
+    39
+   ],
+   "itemsChecked": 19,
+   "counts": {
+    "suggestedActions": 5,
+    "suggestedActionItemsFlat": 5,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 3,
+    "references": 7
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 5,
+    "documentation(D)": 3,
+    "resources(R)": 3,
+    "references(REF)": 7,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MANAGE 1.2": {
+   "pdfPages": [
+    39,
+    40
+   ],
+   "itemsChecked": 17,
+   "counts": {
+    "suggestedActions": 3,
+    "suggestedActionItemsFlat": 3,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 2,
+    "references": 7
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 3,
+    "documentation(D)": 3,
+    "resources(R)": 2,
+    "references(REF)": 7,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MANAGE 1.3": {
+   "pdfPages": [
+    40,
+    42
+   ],
+   "itemsChecked": 18,
+   "counts": {
+    "suggestedActions": 5,
+    "suggestedActionItemsFlat": 5,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 2,
+    "references": 7
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 5,
+    "documentation(D)": 3,
+    "resources(R)": 2,
+    "references(REF)": 7,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MANAGE 1.4": {
+   "pdfPages": [
+    42,
+    43
+   ],
+   "itemsChecked": 18,
+   "counts": {
+    "suggestedActions": 3,
+    "suggestedActionItemsFlat": 3,
+    "transparencyDocumentation": 4,
+    "transparencyResources": 3,
+    "references": 7
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 3,
+    "documentation(D)": 4,
+    "resources(R)": 3,
+    "references(REF)": 7,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MANAGE 2.1": {
+   "pdfPages": [
+    43,
+    45
+   ],
+   "itemsChecked": 25,
+   "counts": {
+    "suggestedActions": 6,
+    "suggestedActionItemsFlat": 14,
+    "transparencyDocumentation": 2,
+    "transparencyResources": 3,
+    "references": 5
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 13,
+    "documentation(D)": 2,
+    "resources(R)": 3,
+    "references(REF)": 5,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Verify risk management teams are resourced to carry out functions, including:",
+    "deemed high-risk,",
+    "that self-update (adaptive, online, reinforcement self-supervised learning or similar),",
+    "Regularly seek and integrate external expertise and perspectives to supplement organizational diversity (e.g., demographic, disciplinary),equity, inclusion, and accessibility where internal capacity is lacking."
+   ],
+   "notFoundInPdf": []
+  },
+  "MANAGE 2.2": {
+   "pdfPages": [
+    45,
+    51
+   ],
+   "itemsChecked": 91,
+   "counts": {
+    "suggestedActions": 5,
+    "suggestedActionItemsFlat": 14,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 2,
+    "references": 68
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 17,
+    "documentation(D)": 3,
+    "resources(R)": 2,
+    "references(REF)": 69,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Data management, quality, and privacy (e.g., minimization, rectification or deletion requests) controls as part of organizational data governance policies.",
+    "Business rules that augment, limit or restrict AI system outputs within certain contexts.",
+    "Data management, quality, and privacy (e.g., minimization, rectification or deletion requests) controls as part of organizational data governance policies.",
+    "Business rules that augment, limit or restrict AI system outputs within certain contexts.",
+    "Model assessment and test, evaluation, validation and verification(TEVV) protocols.",
+    "Establish mechanisms to capture feedback from system end users and potentially impacted groups."
+   ],
+   "notFoundInPdf": [
+    {
+     "kind": "action",
+     "text": "Establish mechanisms to capture feedback from system end users and potentially impacted groups about how changes in system deployment (e.g., introducing new technology, decommissioning algorithms and models, adapting system, model or algorithm) may create negative impacts that are not visible along the AI lifecycle."
+    }
+   ]
+  },
+  "MANAGE 2.3": {
+   "pdfPages": [
+    51,
+    52
+   ],
+   "itemsChecked": 21,
+   "counts": {
+    "suggestedActions": 7,
+    "suggestedActionItemsFlat": 7,
+    "transparencyDocumentation": 4,
+    "transparencyResources": 3,
+    "references": 6
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 7,
+    "documentation(D)": 4,
+    "resources(R)": 3,
+    "references(REF)": 6,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Protocols, resources, and metrics are in place for continual monitoring of AI systems’ performance, trustworthiness, and alignment with contextual norms and values.",
+    "Establish and maintain procedures to regularly monitor system components for drift, decontextualization, or other AI system behavior factors,"
+   ],
+   "notFoundInPdf": []
+  },
+  "MANAGE 2.4": {
+   "pdfPages": [
+    52,
+    54
+   ],
+   "itemsChecked": 23,
+   "counts": {
+    "suggestedActions": 8,
+    "suggestedActionItemsFlat": 8,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 1,
+    "references": 2
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 8,
+    "documentation(D)": 5,
+    "resources(R)": 1,
+    "references(REF)": 2,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Establish criteria for redeploying updated system components, in consideration of trustworthy characteristics."
+   ],
+   "notFoundInPdf": []
+  },
+  "MANAGE 3.1": {
+   "pdfPages": [
+    54,
+    55
+   ],
+   "itemsChecked": 19,
+   "counts": {
+    "suggestedActions": 10,
+    "suggestedActionItemsFlat": 10,
+    "transparencyDocumentation": 4,
+    "transparencyResources": 3,
+    "references": 1
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 10,
+    "documentation(D)": 4,
+    "resources(R)": 3,
+    "references(REF)": 1,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MANAGE 3.2": {
+   "pdfPages": [
+    55,
+    56
+   ],
+   "itemsChecked": 14,
+   "counts": {
+    "suggestedActions": 5,
+    "suggestedActionItemsFlat": 5,
+    "transparencyDocumentation": 4,
+    "transparencyResources": 3,
+    "references": 1
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 5,
+    "documentation(D)": 3,
+    "resources(R)": 3,
+    "references(REF)": 1,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MANAGE 4.1": {
+   "pdfPages": [
+    56,
+    57
+   ],
+   "itemsChecked": 15,
+   "counts": {
+    "suggestedActions": 9,
+    "suggestedActionItemsFlat": 9,
+    "transparencyDocumentation": 2,
+    "transparencyResources": 2,
+    "references": 1
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 9,
+    "documentation(D)": 2,
+    "resources(R)": 2,
+    "references(REF)": 1,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Establish and implement red-teaming exercises at a prescribed cadence and evaluate their efficacy."
+   ],
+   "notFoundInPdf": []
+  },
+  "MANAGE 4.2": {
+   "pdfPages": [
+    57,
+    59
+   ],
+   "itemsChecked": 15,
+   "counts": {
+    "suggestedActions": 5,
+    "suggestedActionItemsFlat": 5,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 2,
+    "references": 3
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 0,
+    "documentation(D)": 3,
+    "resources(R)": 2,
+    "references(REF)": 3,
+    "about(A)": 6
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MANAGE 4.3": {
+   "pdfPages": [
+    59,
+    62
+   ],
+   "itemsChecked": 17,
+   "counts": {
+    "suggestedActions": 5,
+    "suggestedActionItemsFlat": 5,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 1,
+    "references": 3
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 5,
+    "documentation(D)": 3,
+    "resources(R)": 1,
+    "references(REF)": 3,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MAP 1.1": {
+   "pdfPages": [
+    62,
+    66
+   ],
+   "itemsChecked": 62,
+   "counts": {
+    "suggestedActions": 13,
+    "suggestedActionItemsFlat": 17,
+    "transparencyDocumentation": 4,
+    "transparencyResources": 3,
+    "references": 25
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 16,
+    "documentation(D)": 4,
+    "resources(R)": 3,
+    "references(REF)": 25,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Examine trustworthiness of AI system design and consider, non-AI solutions.",
+    "Examine how changes in system performance affect downstream events such as decision-making (e.g.: changes in an AI model objective function create what types of impacts in how many candidates do/do not get a job interview)."
+   ],
+   "notFoundInPdf": []
+  },
+  "MAP 1.2": {
+   "pdfPages": [
+    66,
+    67
+   ],
+   "itemsChecked": 19,
+   "counts": {
+    "suggestedActions": 2,
+    "suggestedActionItemsFlat": 2,
+    "transparencyDocumentation": 6,
+    "transparencyResources": 4,
+    "references": 5
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 2,
+    "documentation(D)": 6,
+    "resources(R)": 4,
+    "references(REF)": 5,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MAP 1.3": {
+   "pdfPages": [
+    67,
+    69
+   ],
+   "itemsChecked": 19,
+   "counts": {
+    "suggestedActions": 5,
+    "suggestedActionItemsFlat": 5,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 2,
+    "references": 6
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 5,
+    "documentation(D)": 3,
+    "resources(R)": 2,
+    "references(REF)": 6,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": [
+    {
+     "kind": "resource",
+     "text": "Assessment List for Trustworthy AI (ALTAI) - The High-Level Expert Group on AI – 2019."
+    },
+    {
+     "kind": "resource",
+     "text": "Including Insights from the Comptroller General’s Forum on the Oversight of Artificial Intelligence An Accountability Framework for Federal Agencies and Other Entities, 2021."
+    }
+   ]
+  },
+  "MAP 1.4": {
+   "pdfPages": [
+    69,
+    70
+   ],
+   "itemsChecked": 15,
+   "counts": {
+    "suggestedActions": 3,
+    "suggestedActionItemsFlat": 3,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 3,
+    "references": 5
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 3,
+    "documentation(D)": 3,
+    "resources(R)": 3,
+    "references(REF)": 5,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MAP 1.5": {
+   "pdfPages": [
+    70,
+    72
+   ],
+   "itemsChecked": 24,
+   "counts": {
+    "suggestedActions": 6,
+    "suggestedActionItemsFlat": 6,
+    "transparencyDocumentation": 4,
+    "transparencyResources": 3,
+    "references": 6
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 6,
+    "documentation(D)": 4,
+    "resources(R)": 3,
+    "references(REF)": 6,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Review uses of AI systems for “off-label” purposes, especially insetting's that organizations have deemed as high-risk. Document decisions, risk-related trade-offs, and system limitations."
+   ],
+   "notFoundInPdf": [
+    {
+     "kind": "reference",
+     "text": "GAO-17-63: Enterprise Risk Management: Selected Agencies’ Experiences Illustrate Good Practices in Managing Risk. See Table 3."
+    }
+   ]
+  },
+  "MAP 1.6": {
+   "pdfPages": [
+    72,
+    74
+   ],
+   "itemsChecked": 27,
+   "counts": {
+    "suggestedActions": 8,
+    "suggestedActionItemsFlat": 8,
+    "transparencyDocumentation": 6,
+    "transparencyResources": 3,
+    "references": 8
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 8,
+    "documentation(D)": 6,
+    "resources(R)": 3,
+    "references(REF)": 8,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Develop and standardize practices to assess potential impacts at all stages of the AI lifecycle, and in collaboration with interdisciplinary experts, actors external to the team that developed or deployed the AI system, and potentially impacted communities .",
+    "Include potentially impacted groups, communities and external entities(e.g., civil society organizations, research institutes, local community groups, and trade associations) in the formulation of priorities, definitions and outcomes during impact assessment activities."
+   ],
+   "notFoundInPdf": []
+  },
+  "MAP 2.1": {
+   "pdfPages": [
+    74,
+    75
+   ],
+   "itemsChecked": 14,
+   "counts": {
+    "suggestedActions": 1,
+    "suggestedActionItemsFlat": 1,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 5,
+    "references": 2
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 1,
+    "documentation(D)": 5,
+    "resources(R)": 5,
+    "references(REF)": 2,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MAP 2.2": {
+   "pdfPages": [
+    75,
+    78
+   ],
+   "itemsChecked": 32,
+   "counts": {
+    "suggestedActions": 6,
+    "suggestedActionItemsFlat": 6,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 5,
+    "references": 16
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 6,
+    "documentation(D)": 3,
+    "resources(R)": 5,
+    "references(REF)": 16,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Design for end user workflows and toolsets, concept of operations, and explain ability and interpretability criteria in conjunction with end user(s)and associated qualitative feedback."
+   ],
+   "notFoundInPdf": []
+  },
+  "MAP 2.3": {
+   "pdfPages": [
+    78,
+    81
+   ],
+   "itemsChecked": 51,
+   "counts": {
+    "suggestedActions": 16,
+    "suggestedActionItemsFlat": 21,
+    "transparencyDocumentation": 7,
+    "transparencyResources": 6,
+    "references": 15
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 21,
+    "documentation(D)": 7,
+    "resources(R)": 6,
+    "references(REF)": 15,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Demonstrate and document that AI system performance and validation metrics are interpretable and unambiguous for downstream decision making tasks and take socio-technical factors such as context of use into consideration.",
+    "Identify testing modules that can be incorporated throughout the AI lifecycle and verify that processes enable corroboration by independent evaluators.",
+    "identification of constructs and proxy targets,",
+    "development of indices – especially those operationalizing concepts that are inherently unobservable (e.g., “hireability,”“criminality,” “lendability”).",
+    "Identify and document transparent methods (e.g., causal discovery methods) for inferring causal relationships between constructs being modeled and dataset attributes or proxies.",
+    "Document known limitations, risk mitigation efforts associated with, and methods used for, training data collection, selection, labeling, cleaning, and analysis (e.g., treatment of missing, spurious, or outlier data; biased estimators).",
+    "Identify techniques to manage and mitigate sources of bias(systemic, computational, human- cognitive) in computational models and systems, and the assumptions and decisions in their development."
+   ],
+   "notFoundInPdf": []
+  },
+  "MAP 3.1": {
+   "pdfPages": [
+    81,
+    83
+   ],
+   "itemsChecked": 20,
+   "counts": {
+    "suggestedActions": 6,
+    "suggestedActionItemsFlat": 6,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 3,
+    "references": 5
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 6,
+    "documentation(D)": 3,
+    "resources(R)": 3,
+    "references(REF)": 5,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Incorporate feedback from end users, and potentially impacted individuals and communities about perceived system benefits ."
+   ],
+   "notFoundInPdf": []
+  },
+  "MAP 3.2": {
+   "pdfPages": [
+    83,
+    84
+   ],
+   "itemsChecked": 19,
+   "counts": {
+    "suggestedActions": 2,
+    "suggestedActionItemsFlat": 6,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 3,
+    "references": 6
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 6,
+    "documentation(D)": 3,
+    "resources(R)": 3,
+    "references(REF)": 6,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MAP 3.3": {
+   "pdfPages": [
+    84,
+    86
+   ],
+   "itemsChecked": 17,
+   "counts": {
+    "suggestedActions": 2,
+    "suggestedActionItemsFlat": 7,
+    "transparencyDocumentation": 2,
+    "transparencyResources": 2,
+    "references": 4
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 2,
+    "documentation(D)": 2,
+    "resources(R)": 2,
+    "references(REF)": 4,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Consider narrowing contexts for system deployment, including factors related to: - How outcomes may directly or indirectly affect users, groups, communities and the environment. - Length of time the system is deployed in between re-trainings. - Geographical regions in which the system operates. - Dynamics related to community standards or likelihood of system misuse or abuses (either purposeful or unanticipated). - How AI system features and capabilities can be utilized within other applications, or in place of other existing processes."
+   ],
+   "notFoundInPdf": []
+  },
+  "MAP 3.4": {
+   "pdfPages": [
+    86,
+    88
+   ],
+   "itemsChecked": 32,
+   "counts": {
+    "suggestedActions": 10,
+    "suggestedActionItemsFlat": 10,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 2,
+    "references": 10
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 10,
+    "documentation(D)": 5,
+    "resources(R)": 2,
+    "references(REF)": 10,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Identify skills and proficiency requirements for operators, practitioners and other domain experts that interact with AI systems, Develop AI system operational documentation for AI actors in deployed and operational environments, including information about known risks, mitigation criteria, and trustworthy characteristics enumerated in Map-1.",
+    "Verify AI system output is interpretable and unambiguous for downstream decision-making tasks."
+   ],
+   "notFoundInPdf": []
+  },
+  "MAP 3.5": {
+   "pdfPages": [
+    88,
+    90
+   ],
+   "itemsChecked": 21,
+   "counts": {
+    "suggestedActions": 6,
+    "suggestedActionItemsFlat": 6,
+    "transparencyDocumentation": 4,
+    "transparencyResources": 1,
+    "references": 6
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 6,
+    "documentation(D)": 4,
+    "resources(R)": 1,
+    "references(REF)": 6,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MAP 4.1": {
+   "pdfPages": [
+    90,
+    92
+   ],
+   "itemsChecked": 18,
+   "counts": {
+    "suggestedActions": 4,
+    "suggestedActionItemsFlat": 4,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 3,
+    "references": 6
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 4,
+    "documentation(D)": 3,
+    "resources(R)": 3,
+    "references(REF)": 6,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Inventory third-party material (hardware, open-source software, foundation models, open-source data, proprietary software, proprietary data, etc.) required for system implementation and maintenance."
+   ],
+   "notFoundInPdf": []
+  },
+  "MAP 4.2": {
+   "pdfPages": [
+    92,
+    93
+   ],
+   "itemsChecked": 15,
+   "counts": {
+    "suggestedActions": 4,
+    "suggestedActionItemsFlat": 4,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 4,
+    "references": 3
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 4,
+    "documentation(D)": 3,
+    "resources(R)": 4,
+    "references(REF)": 3,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Track third parties preventing or hampering risk-mapping as indications of increased risk."
+   ],
+   "notFoundInPdf": []
+  },
+  "MAP 5.1": {
+   "pdfPages": [
+    93,
+    94
+   ],
+   "itemsChecked": 18,
+   "counts": {
+    "suggestedActions": 4,
+    "suggestedActionItemsFlat": 4,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 5,
+    "references": 5
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 3,
+    "documentation(D)": 3,
+    "resources(R)": 5,
+    "references(REF)": 5,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MAP 5.2": {
+   "pdfPages": [
+    94,
+    98
+   ],
+   "itemsChecked": 30,
+   "counts": {
+    "suggestedActions": 7,
+    "suggestedActionItemsFlat": 7,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 5,
+    "references": 13
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 7,
+    "documentation(D)": 3,
+    "resources(R)": 5,
+    "references(REF)": 13,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MEASURE 1.1": {
+   "pdfPages": [
+    98,
+    100
+   ],
+   "itemsChecked": 29,
+   "counts": {
+    "suggestedActions": 12,
+    "suggestedActionItemsFlat": 12,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 3,
+    "references": 7
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 12,
+    "documentation(D)": 5,
+    "resources(R)": 3,
+    "references(REF)": 7,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Identify testing procedures and metrics to demonstrate AI system trustworthiness.",
+    "Define acceptable limits for system performance (e.g., distribution of errors) and include course correction suggestions if/when the system performs beyond acceptable limits.",
+    "Define metrics for, and regularly assess, AI actor competency for effective system operation,"
+   ],
+   "notFoundInPdf": []
+  },
+  "MEASURE 1.2": {
+   "pdfPages": [
+    100,
+    101
+   ],
+   "itemsChecked": 21,
+   "counts": {
+    "suggestedActions": 8,
+    "suggestedActionItemsFlat": 8,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 2,
+    "references": 5
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 8,
+    "documentation(D)": 5,
+    "resources(R)": 2,
+    "references(REF)": 5,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Document reports of errors, incidents and negative impacts and assess sufficiency and efficacy of existing metrics for repairs, and upgrades."
+   ],
+   "notFoundInPdf": []
+  },
+  "MEASURE 1.3": {
+   "pdfPages": [
+    101,
+    103
+   ],
+   "itemsChecked": 22,
+   "counts": {
+    "suggestedActions": 8,
+    "suggestedActionItemsFlat": 8,
+    "transparencyDocumentation": 6,
+    "transparencyResources": 2,
+    "references": 5
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 7,
+    "documentation(D)": 6,
+    "resources(R)": 2,
+    "references(REF)": 5,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Utilize separate testing teams established in the Govern function (2.1and 4.1) to enable independent decisions and course-correction for AI systems. Track processes and measure and document change in performance.",
+    "Assess independence and stature of TEVV and oversight AI actors, to ensure they have the required levels of independence and resources to perform assurance, compliance, and feedback tasks effectively.",
+    "Evaluate interdisciplinary and demographically diverse internal team established in Map 1.2.",
+    "Evaluate effectiveness of external stakeholder feedback mechanisms for enhancing AI actor visibility and decision-making regarding AI system risks and trustworthy characteristics."
+   ],
+   "notFoundInPdf": []
+  },
+  "MEASURE 2.1": {
+   "pdfPages": [
+    103,
+    104
+   ],
+   "itemsChecked": 17,
+   "counts": {
+    "suggestedActions": 3,
+    "suggestedActionItemsFlat": 3,
+    "transparencyDocumentation": 2,
+    "transparencyResources": 3,
+    "references": 8
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 3,
+    "documentation(D)": 2,
+    "resources(R)": 3,
+    "references(REF)": 8,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Leverage existing industry best practices for transparency and documentation of all possible aspects of measurements. Examples include: data sheet for data sets, model cards, [commenters provided examples].",
+    "Regularly assess the effectiveness of tools used to document measurement approaches, test sets, metrics, processes and materials used.",
+    "Update the tools as needed."
+   ],
+   "notFoundInPdf": []
+  },
+  "MEASURE 2.2": {
+   "pdfPages": [
+    104,
+    107
+   ],
+   "itemsChecked": 39,
+   "counts": {
+    "suggestedActions": 8,
+    "suggestedActionItemsFlat": 14,
+    "transparencyDocumentation": 6,
+    "transparencyResources": 4,
+    "references": 13
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 14,
+    "documentation(D)": 6,
+    "resources(R)": 4,
+    "references(REF)": 13,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Utilize disaggregated evaluation methods (e.g., by race, age, gender, ethnicity, ability, region) to improve AI system performance when deployed in real world settings.",
+    "investigating known failure modes,",
+    "assessing data quality and diverse sourcing,",
+    "applying public benchmarks,",
+    "traditional bias testing,",
+    "chaos engineering,"
+   ],
+   "notFoundInPdf": [
+    {
+     "kind": "reference",
+     "text": "Office for Human Research Protections (OHRP). “45 CFR 46.” United States Department of Health and Human Services Office for Human Research Protections, March 10, 2021. Note: Federal Policy for Protection of Human Subjects (Common Rule). 45 CFR 46 (2018)"
+    }
+   ]
+  },
+  "MEASURE 2.3": {
+   "pdfPages": [
+    107,
+    109
+   ],
+   "itemsChecked": 32,
+   "counts": {
+    "suggestedActions": 9,
+    "suggestedActionItemsFlat": 9,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 3,
+    "references": 14
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 9,
+    "documentation(D)": 5,
+    "resources(R)": 3,
+    "references(REF)": 14,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Conduct regular and sustained engagement with potentially impacted communities.",
+    "Maintain a demographically diverse and multidisciplinary and collaborative internal team.",
+    "Regularly test and evaluate systems in non-optimized conditions, and in collaboration with AI actors in user interaction and user experience(UI/UX) roles."
+   ],
+   "notFoundInPdf": []
+  },
+  "MEASURE 2.4": {
+   "pdfPages": [
+    109,
+    111
+   ],
+   "itemsChecked": 16,
+   "counts": {
+    "suggestedActions": 7,
+    "suggestedActionItemsFlat": 7,
+    "transparencyDocumentation": 4,
+    "transparencyResources": 2,
+    "references": 2
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 7,
+    "documentation(D)": 4,
+    "resources(R)": 2,
+    "references(REF)": 2,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Utilize human review to track processing of unexpected data and reliability of generated outputs; warn system users when outputs maybe unreliable. Verify that human overseers responsible for these processes have clearly defined responsibilities and training for specified tasks.",
+    "Collect uses cases from the operational environment for system testing and monitoring activities in accordance with organizational policies and regulatory or disciplinary requirements (e.g., informed consent, institutional review board approval, human research protections),"
+   ],
+   "notFoundInPdf": []
+  },
+  "MEASURE 2.5": {
+   "pdfPages": [
+    111,
+    113
+   ],
+   "itemsChecked": 44,
+   "counts": {
+    "suggestedActions": 15,
+    "suggestedActionItemsFlat": 24,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 1,
+    "references": 12
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 24,
+    "documentation(D)": 5,
+    "resources(R)": 1,
+    "references(REF)": 12,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Establish or identify and document robustness measures.",
+    "Establish or identify and document reliability measures.",
+    "Utilize standard software testing approaches (e.g., unit, integration, functional and chaos testing, computer-generated test cases, etc.)",
+    "alerting other relevant AI actors before action,",
+    "requesting subsequent human review of action,",
+    "alerting downstream users and stakeholder that the system is operating outside it’s defined validity limits,"
+   ],
+   "notFoundInPdf": []
+  },
+  "MEASURE 2.6": {
+   "pdfPages": [
+    113,
+    115
+   ],
+   "itemsChecked": 29,
+   "counts": {
+    "suggestedActions": 7,
+    "suggestedActionItemsFlat": 12,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 2,
+    "references": 8
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 12,
+    "documentation(D)": 5,
+    "resources(R)": 2,
+    "references(REF)": 8,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Test the system under conditions similar to those related to past known incidents or near-misses and measure system performance and safety characteristics."
+   ],
+   "notFoundInPdf": []
+  },
+  "MEASURE 2.7": {
+   "pdfPages": [
+    115,
+    117
+   ],
+   "itemsChecked": 32,
+   "counts": {
+    "suggestedActions": 10,
+    "suggestedActionItemsFlat": 10,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 2,
+    "references": 13
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 10,
+    "documentation(D)": 5,
+    "resources(R)": 2,
+    "references(REF)": 13,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Use countermeasures (e.g., authentication, throttling, differential privacy, robust ML approaches) to increase the range of security conditions under which the system is able to return to normal function."
+   ],
+   "notFoundInPdf": []
+  },
+  "MEASURE 2.8": {
+   "pdfPages": [
+    117,
+    120
+   ],
+   "itemsChecked": 29,
+   "counts": {
+    "suggestedActions": 6,
+    "suggestedActionItemsFlat": 13,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 2,
+    "references": 6
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 13,
+    "documentation(D)": 5,
+    "resources(R)": 2,
+    "references(REF)": 6,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Calibrate controls for users in close collaboration with experts in user interaction and user experience (UI/UX), human computer interaction(HCI), and/or human-AI teaming.",
+    "Test provided explanations for calibration with different audiences including operators, end users, decision makers and decision subjects(individuals for whom decisions are being made), and to enable recourse for consequential system decisions that affect end users or subjects.",
+    "Track, document, and measure organizational accountability regarding AI systems via policy exceptions and escalations, and document “go \"and “no/go” decisions made by accountable parties."
+   ],
+   "notFoundInPdf": []
+  },
+  "MEASURE 2.9": {
+   "pdfPages": [
+    120,
+    123
+   ],
+   "itemsChecked": 43,
+   "counts": {
+    "suggestedActions": 11,
+    "suggestedActionItemsFlat": 11,
+    "transparencyDocumentation": 4,
+    "transparencyResources": 3,
+    "references": 21
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 11,
+    "documentation(D)": 4,
+    "resources(R)": 3,
+    "references(REF)": 21,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MEASURE 2.10": {
+   "pdfPages": [
+    123,
+    126
+   ],
+   "itemsChecked": 35,
+   "counts": {
+    "suggestedActions": 8,
+    "suggestedActionItemsFlat": 9,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 2,
+    "references": 16
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 9,
+    "documentation(D)": 5,
+    "resources(R)": 2,
+    "references(REF)": 16,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Quantify privacy-level data aspects such as the ability to identify individuals or groups (e.g., k-anonymity metrics, l-diversity, t-closeness).",
+    "Monitor PSI disclosures and inference of sensitive or legally protected attributes:",
+    "Assess the risk of manipulation from overly customized content. Evaluate information presented to representative users at various points along axes of difference between individuals (e.g., individuals of different ages, genders, races, political affiliation.)."
+   ],
+   "notFoundInPdf": []
+  },
+  "MEASURE 2.11": {
+   "pdfPages": [
+    126,
+    131
+   ],
+   "itemsChecked": 95,
+   "counts": {
+    "suggestedActions": 24,
+    "suggestedActionItemsFlat": 36,
+    "transparencyDocumentation": 6,
+    "transparencyResources": 4,
+    "references": 41
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 36,
+    "documentation(D)": 6,
+    "resources(R)": 4,
+    "references(REF)": 42,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Identify types of harms, including allocational, representational, quality of service, stereotyping, or erasure.",
+    "Identify across, within, and intersecting groups that might be harmed.",
+    "Quantify harms using both a general fairness metric, if appropriate(e.g., demographic parity, equalized odds, equal opportunity, statistical hypothesis tests), and custom, context-specific metrics developed in collaboration with affected communities.",
+    "Analyze quantified harms for contextually significant differences across groups, within groups, and among intersecting groups.",
+    "Forms of systemic bias in images, text (or word embeddings),audio or other complex or unstructured data.",
+    "Evaluate systems in regard to disability inclusion, including consideration of disability status in bias testing, and discriminatory screen out processes that may arise from non-inclusive design or deployment decisions.",
+    "Define acceptable levels of difference in performance in accordance with established organizational governance policies, business requirements, regulatory compliance, legal frameworks, and ethical standards within the context of use.",
+    "Consider mediations to mitigate differences, especially those that can be traced to past patterns of unfair or biased human decision-making.",
+    "Evaluate practices along the lifecycle to identify potential sources of human-cognitive bias such as availability, observational, and confirmation bias, and to make implicit decision-making processes more explicit and open to investigation."
+   ],
+   "notFoundInPdf": []
+  },
+  "MEASURE 2.12": {
+   "pdfPages": [
+    131,
+    133
+   ],
+   "itemsChecked": 21,
+   "counts": {
+    "suggestedActions": 6,
+    "suggestedActionItemsFlat": 6,
+    "transparencyDocumentation": 3,
+    "transparencyResources": 3,
+    "references": 6
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 6,
+    "documentation(D)": 3,
+    "resources(R)": 3,
+    "references(REF)": 6,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MEASURE 2.13": {
+   "pdfPages": [
+    133,
+    134
+   ],
+   "itemsChecked": 17,
+   "counts": {
+    "suggestedActions": 4,
+    "suggestedActionItemsFlat": 4,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 2,
+    "references": 4
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 4,
+    "documentation(D)": 5,
+    "resources(R)": 2,
+    "references(REF)": 4,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Regularly evaluate system metrics for utility and consider descriptive approaches in place of overly complex methods."
+   ],
+   "notFoundInPdf": []
+  },
+  "MEASURE 3.1": {
+   "pdfPages": [
+    134,
+    136
+   ],
+   "itemsChecked": 21,
+   "counts": {
+    "suggestedActions": 6,
+    "suggestedActionItemsFlat": 11,
+    "transparencyDocumentation": 4,
+    "transparencyResources": 3,
+    "references": 2
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 11,
+    "documentation(D)": 4,
+    "resources(R)": 3,
+    "references(REF)": 2,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MEASURE 3.2": {
+   "pdfPages": [
+    136,
+    137
+   ],
+   "itemsChecked": 28,
+   "counts": {
+    "suggestedActions": 3,
+    "suggestedActionItemsFlat": 12,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 2,
+    "references": 8
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 12,
+    "documentation(D)": 5,
+    "resources(R)": 2,
+    "references(REF)": 8,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [],
+   "notFoundInPdf": []
+  },
+  "MEASURE 3.3": {
+   "pdfPages": [
+    137,
+    139
+   ],
+   "itemsChecked": 24,
+   "counts": {
+    "suggestedActions": 6,
+    "suggestedActionItemsFlat": 6,
+    "transparencyDocumentation": 4,
+    "transparencyResources": 2,
+    "references": 9
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 6,
+    "documentation(D)": 4,
+    "resources(R)": 2,
+    "references(REF)": 9,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Evaluate measurement approaches to determine efficacy for enhancing organizational understanding of real-world impacts."
+   ],
+   "notFoundInPdf": []
+  },
+  "MEASURE 4.1": {
+   "pdfPages": [
+    139,
+    142
+   ],
+   "itemsChecked": 42,
+   "counts": {
+    "suggestedActions": 6,
+    "suggestedActionItemsFlat": 12,
+    "transparencyDocumentation": 4,
+    "transparencyResources": 3,
+    "references": 20
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 12,
+    "documentation(D)": 4,
+    "resources(R)": 3,
+    "references(REF)": 20,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Support mechanisms for capturing feedback from system end users(including domain experts, operators, and practitioners). Successful approaches are:",
+    "Identify and document approaches:",
+    "in collaboration with human-factors and socio-technical domain experts,"
+   ],
+   "notFoundInPdf": []
+  },
+  "MEASURE 4.2": {
+   "pdfPages": [
+    142,
+    145
+   ],
+   "itemsChecked": 35,
+   "counts": {
+    "suggestedActions": 6,
+    "suggestedActionItemsFlat": 6,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 2,
+    "references": 20
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 6,
+    "documentation(D)": 5,
+    "resources(R)": 2,
+    "references(REF)": 20,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Identify mechanisms to confirm/support AI system output (e.g., recommendations), and end user perspectives about that output.",
+    "Consult AI actors in impact assessment, human factors, and socio-technical tasks to assist with analysis and interpretation of results."
+   ],
+   "notFoundInPdf": []
+  },
+  "MEASURE 4.3": {
+   "pdfPages": [
+    145,
+    147
+   ],
+   "itemsChecked": 34,
+   "counts": {
+    "suggestedActions": 6,
+    "suggestedActionItemsFlat": 6,
+    "transparencyDocumentation": 5,
+    "transparencyResources": 2,
+    "references": 20
+   },
+   "cprtCounts": {
+    "suggestedActions(SA)": 6,
+    "documentation(D)": 5,
+    "resources(R)": 2,
+    "references(REF)": 20,
+    "about(A)": 1
+   },
+   "cprtSuggestedActionsNotMatchedVerbatim": [
+    "Monitor and assess measurements as part of continual improvement to identify potential system adjustments or modifications."
+   ],
+   "notFoundInPdf": []
+  }
+ },
+ "summary": {
+  "entries": 72,
+  "coversAll72Subcategories": true,
+  "statementsDifferingFromAi100_1": [
+   "GOVERN 1.2",
+   "GOVERN 1.3",
+   "GOVERN 1.5",
+   "GOVERN 1.7",
+   "GOVERN 3.1",
+   "GOVERN 4.1",
+   "GOVERN 4.2",
+   "GOVERN 5.2",
+   "GOVERN 6.1",
+   "MANAGE 1.1",
+   "MANAGE 1.2",
+   "MANAGE 1.3",
+   "MANAGE 2.1",
+   "MANAGE 2.4",
+   "MANAGE 4.3",
+   "MAP 1.1",
+   "MAP 1.2",
+   "MAP 1.3",
+   "MAP 2.1",
+   "MAP 2.2",
+   "MAP 3.4",
+   "MAP 3.5",
+   "MAP 4.1",
+   "MAP 4.2",
+   "MEASURE 1.2",
+   "MEASURE 2.1",
+   "MEASURE 2.6",
+   "MEASURE 2.9",
+   "MEASURE 4.2",
+   "MEASURE 4.3"
+  ],
+  "totals": {
+   "suggestedActions": 460,
+   "suggestedActionItemsFlat": 607,
+   "transparencyDocumentation": 294,
+   "transparencyResources": 196,
+   "references": 630
+  },
+  "cprtTotals": {
+   "SA": 575,
+   "D": 292,
+   "R": 195,
+   "REF": 631,
+   "A": 77
+  },
+  "itemsCheckedAgainstPdf": 1916,
+  "itemsNotFoundInPdf": 5,
+  "cprtSuggestedActionsNotMatchedVerbatim": 97
+ }
+}

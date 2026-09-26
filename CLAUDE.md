@@ -20,14 +20,19 @@ change the web app.
   (`var(--color-…)`) in the web app, and `designSystem` / `TOKENS` in scenes. Never
   hard-code colors.
   - Status colors are semantic and always paired with a glyph or label.
-  - Aurora Violet (`tertiary`) is reserved for AI and agent activity.
+  - Aurora Violet (`tertiary`) is reserved for agent activity. AI governance frameworks
+    (NIST AI RMF) use Circuit Copper (`framework-ai`), never violet.
 - **Citations.** Framework statements must come from the ingested graphs or the
   corpus index, with a citation (document id, locator, page). Do not write requirement
   text by hand. The one exception is the Visua-authored SOC 2 skeleton, which must stay
   in Visua's own words.
 - **Official counts are tested.** If an ingest change moves a count (106 CSF outcomes,
-  1,014 SP 800-53 units, 47 RMF tasks, 61 TSC criteria), the change is wrong unless the
-  official source changed.
+  1,014 SP 800-53 units, 47 RMF tasks, 61 TSC criteria, 72 AI RMF outcomes, 12 GAI
+  risks and 212 Generative AI Profile actions), the change is wrong unless the official
+  source changed.
+- **AI RMF text comes from the PDF-based extraction** (`corpus/nist-ai-rmf/ai-rmf-core.json`).
+  NIST's own CPRT and Playbook JSON differ from the final AI 100-1 text in dozens of
+  statements; don't switch the ingest to them.
 - **Licensing.** Never commit AICPA, ISO, PCI SSC or other copyrighted framework text,
   including derived JSON, mappings and search chunks.
   - `.gitignore` covers `corpus/aicpa-soc2/**` (except `manifest.json` and

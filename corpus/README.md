@@ -10,6 +10,7 @@ explains how the files are organized and how they were ingested.
 |---|---|---|---|---|
 | [`nist-csf-2.0/`](nist-csf-2.0/) | 47 — CSWP 29, the CSF 2.0 Reference Tool data, Implementation Examples, Quick-Start Guides, Community Profiles, OLIR crosswalks | 2026-09-26 | Public domain (U.S. Government work, 17 U.S.C. §105) | Yes |
 | [`nist-rmf/`](nist-rmf/) | 66 — SP 800-37r2 (RMF), SP 800-53 Rev. 5 / 5.2.0 (+ OSCAL catalog and 800-53B baselines), SP 800-53A, FIPS 199/200, SP 800-60, Quick-Start Guides | 2026-09-26 | Public domain (one third-party workbook is kept in `.local/`, not in git) | Yes |
+| [`nist-ai-rmf/`](nist-ai-rmf/) | 45 — NIST AI 100-1 (AI RMF 1.0), the AI RMF Playbook (PDF, JSON, CSV, XLSX), NIST AI 600-1 (Generative AI Profile), CPRT exports, NIST crosswalks, AI 100-2/100-4, SP 1270, NISTIR 8312, SP 800-218A, and drafts (Cyber AI Profile IR 8596, COSAiS, AI 800-1) | 2026-09-26 | Public domain (15 third-party files — non-NIST crosswalks, glossary exports, translations — are kept in `.local/`, not in git) | Yes |
 | [`aicpa-soc2/`](aicpa-soc2/) | 33 — 2017 Trust Services Criteria (points of focus revised 2022), DC 200, AICPA mapping workbooks, SOC 2 guides, COSO summaries | 2026-09-26 | **© AICPA / COSO — all rights reserved** | Manifest and notes only |
 
 ## Commands
@@ -20,6 +21,16 @@ pnpm corpus:sync                                 # download missing public-domai
 pnpm corpus:sync aicpa-soc2 --include-restricted # AICPA documents, for this installation's own use (read below first)
 pnpm ingest                                      # rebuild packages/frameworks/data from the local corpus
 ```
+
+## NIST AI RMF extractions
+
+`nist-ai-rmf/ai-rmf-core.json`, `ai-rmf-playbook.json` and `genai-profile.json` are
+extracted from the NIST publications by the scripts in `nist-ai-rmf/tools/`, which
+re-create the JSON byte for byte. Statement text comes from the AI 100-1 PDF (with
+physical and printed page numbers), because NIST's own machine-readable copies (CPRT,
+Playbook JSON) differ from the final text in dozens of statements; see
+`nist-ai-rmf/STRUCTURE.md`. The scripts are development-time tools that need Python with
+PyMuPDF (AGPL-3.0) and openpyxl (MIT); Visua itself does not depend on them.
 
 ## AICPA content (SOC 2)
 
@@ -74,7 +85,9 @@ without the JSON run on the skeleton (see the roadmap in `docs/roadmap.md`).
 
 ## Currency
 
-Checked on 2026-09-26: CSF 2.0 (Feb 2024) is current; SP 800-53 is at Release 5.2.0
+Checked on 2026-09-26: AI RMF 1.0 (January 2023) is the only final version; NIST says a
+revision is in progress under the 2025 AI Action Plan, but no draft has been published.
+NIST AI 600-1 (July 2024) is final. CSF 2.0 (Feb 2024) is current; SP 800-53 is at Release 5.2.0
 (the ingest uses the 5.2.0 OSCAL catalog, with page citations to the 2020 PDF where a
 control exists there); SP 800-37 Rev. 2 is current; the 2017 TSC with points of focus
 revised in 2022 is current. AICPA's Assurance Services Executive Committee has said a

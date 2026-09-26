@@ -520,26 +520,48 @@ function Labels({ layout, state, selectedId, hoveredId, focusIds }: SceneProps) 
     return [...set].slice(0, 90);
   }, [layout, selectedId, hoveredId, focusIds]);
   const size = layout.radius > 60 ? 0.9 : 0.46;
+  // Fit each label into the gap to its nearest labeled neighbor (monospace ≈ 0.62 em per glyph);
+  // labels that cannot stay legible are dropped, and the selection is lifted above its row.
+  const placed = useMemo(() => {
+    const textOf = (id: string) => {
+      const n = layout.byId.get(id);
+      return (n?.meta?.["label"] as string | undefined) ?? n?.code ?? "";
+    };
+    return ids.map((id) => {
+      const p = layout.positions.get(id)!;
+      let nearest = Infinity;
+      for (const other of ids) {
+        if (other === id) continue;
+        const q = layout.positions.get(other)!;
+        nearest = Math.min(nearest, Math.hypot(p[0] - q[0], p[2] - q[2]));
+      }
+      const text = textOf(id);
+      const fit = Number.isFinite(nearest) ? (nearest * 0.92) / (0.62 * Math.max(text.length, 1)) : size;
+      return { id, text, fontSize: Math.min(size, fit) };
+    });
+  }, [ids, layout, size]);
   return (
     <group>
-      {ids.map((id) => {
+      {placed.map(({ id, text, fontSize }) => {
         const node = layout.byId.get(id);
         const p = layout.positions.get(id)!;
         const u = state?.units[id];
-        const y = node?.assessable ? heightFor(Math.max(u?.current ?? 0, u?.target ?? 0), layout.view) + 0.75 : 1.1;
         const emphasized = id === selectedId || id === hoveredId;
+        if (!emphasized && fontSize < size * 0.42) return null;
+        const base = node?.assessable ? heightFor(Math.max(u?.current ?? 0, u?.target ?? 0), layout.view) + 0.75 : 1.1;
+        const y = emphasized ? base + size * 1.6 : base;
         return (
           <Billboard key={id} position={[p[0], y, p[2]]}>
             <Text
-              fontSize={emphasized ? size * 1.35 : size}
+              fontSize={emphasized ? size * 1.35 : fontSize}
               font={FONT_MONO}
               color={emphasized ? TOKENS.onSurface : TOKENS.muted}
-              outlineWidth={size * 0.12}
+              outlineWidth={(emphasized ? size : fontSize) * 0.12}
               outlineColor={TOKENS.neutral}
               anchorX="center"
               anchorY="bottom"
             >
-              {node?.code ?? ""}
+              {text}
             </Text>
           </Billboard>
         );

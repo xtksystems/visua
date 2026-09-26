@@ -179,7 +179,8 @@ describe.skipIf(!registry.framework("nist-ai-rmf"))("AI governance (NIST AI RMF)
 
   it("plans AI RMF work from the Playbook and exports the AI RMF profile", async () => {
     const run = await api<{ status: string; proposals: { type: string; payload: { requirementIds: string[] } }[] }>("POST", `/api/workspaces/${wsId}/runs?wait=1`, { agent: "planner", goal: "Plan AI RMF work", input: { framework: "nist-ai-rmf", maxTasks: 3 } });
-    expect(run.json.status).toBe("completed");
+    // Agents propose, people approve: the run waits for a human decision on its task proposals.
+    expect(run.json.status).toBe("awaiting-approval");
     const tasks = run.json.proposals.filter((p) => p.type === "create-task");
     expect(tasks.length).toBeGreaterThan(0);
     expect(tasks.every((t) => t.payload.requirementIds.every((id) => id.startsWith("nist-ai-rmf:")))).toBe(true);

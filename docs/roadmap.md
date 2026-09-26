@@ -22,6 +22,11 @@ generated from the product, not written by marketing.
   - The authorization record.
   - SP 800-53A objectives.
   - OSCAL SSP and POA&M export.
+- **NIST AI RMF 1.0 with the Generative AI Profile.**
+  - 72 outcomes with page citations to AI 100-1, 460 Playbook suggested actions as
+    checklists, and the 12 GAI risks and 212 actions of NIST AI 600-1.
+  - An AI system inventory, readiness per function, GAI risk coverage, an AI RMF
+    profile export and an AI governance policy template.
 - **Crosswalk Nexus.** 2,188 authoritative mappings with authority labels; composed and
   editorial sets are flagged.
 - **Agents.** Eight agents on Claude or offline playbooks, with a flight recorder,

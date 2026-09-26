@@ -1,0 +1,681 @@
+{
+ "counts": {
+  "functions": 4,
+  "categories": 19,
+  "subcategories": 72,
+  "perFunction": {
+   "GOVERN": {
+    "categories": 6,
+    "subcategories": 19
+   },
+   "MAP": {
+    "categories": 5,
+    "subcategories": 18
+   },
+   "MEASURE": {
+    "categories": 4,
+    "subcategories": 22
+   },
+   "MANAGE": {
+    "categories": 4,
+    "subcategories": 13
+   }
+  }
+ },
+ "cprtDifferences": [
+  {
+   "id": "GOVERN 1",
+   "pdf": "Policies, processes, procedures, and practices across the organization related to the mapping, measuring, and managing of AI risks are in place, transparent, and implemented effectively.",
+   "cprt": "Policies, processes, procedures and practices across the organization related to the mapping, measuring and managing of AI risks are in place, transparent, and implemented effectively."
+  },
+  {
+   "id": "MANAGE 2",
+   "pdf": "Strategies to maximize AI benefits and minimize negative impacts are planned, prepared, implemented, documented, and informed by input from relevant AI actors.",
+   "cprt": "Strategies to maximize AI benefits and minimize negative impacts are planned, prepared, implemented, and documented, and informed by input from relevant AI actors."
+  },
+  {
+   "id": "MANAGE 4",
+   "pdf": "Risk treatments, including response and recovery, and communication plans for the identified and measured AI risks are documented and monitored regularly.",
+   "cprt": "Risk treatments including response and recovery, and communication plans to the identified and measured AI risks are documented and monitored regularly."
+  },
+  {
+   "id": "GOVERN 1.2",
+   "pdf": "The characteristics of trustworthy AI are integrated into organizational policies, processes, procedures, and practices.",
+   "cprt": "The characteristics of trustworthy AI are integrated into organizational policies, processes, and procedures."
+  },
+  {
+   "id": "GOVERN 1.3",
+   "pdf": "Processes, procedures, and practices are in place to determine the needed level of risk management activities based on the organization’s risk tolerance.",
+   "cprt": "Processes and procedures are in place to determine the needed level of risk management activities based on the organization's risk tolerance."
+  },
+  {
+   "id": "GOVERN 1.5",
+   "pdf": "Ongoing monitoring and periodic review of the risk management process and its outcomes are planned and organizational roles and responsibilities clearly defined, including determining the frequency of periodic review.",
+   "cprt": "Ongoing monitoring and periodic review of the risk management process and its outcomes are planned, organizational roles and responsibilities are clearly defined, including determining the frequency of periodic review."
+  },
+  {
+   "id": "GOVERN 1.7",
+   "pdf": "Processes and procedures are in place for decommissioning and phasing out AI systems safely and in a manner that does not increase risks or decrease the organization’s trustworthiness.",
+   "cprt": "Processes and procedures are in place for decommissioning and phasing out of AI systems safely and in a manner that does not increase risks or decrease the organization’s trustworthiness."
+  },
+  {
+   "id": "GOVERN 3.1",
+   "pdf": "Decision-making related to mapping, measuring, and managing AI risks throughout the lifecycle is informed by a diverse team (e.g., diversity of demographics, disciplines, experience, expertise, and backgrounds).",
+   "cprt": "Decision-makings related to mapping, measuring, and managing AI risks throughout the lifecycle is informed by a diverse team (e.g., diversity of demographics, disciplines, experience, expertise, and backgrounds)."
+  },
+  {
+   "id": "GOVERN 4.1",
+   "pdf": "Organizational policies and practices are in place to foster a critical thinking and safety-first mindset in the design, development, deployment, and uses of AI systems to minimize potential negative impacts.",
+   "cprt": "Organizational policies, and practices are in place to foster a critical thinking and safety-first mindset in the design, development, deployment, and uses of AI systems to minimize negative impacts."
+  },
+  {
+   "id": "GOVERN 4.2",
+   "pdf": "Organizational teams document the risks and potential impacts of the AI technology they design, develop, deploy, evaluate, and use, and they communicate about the impacts more broadly.",
+   "cprt": "Organizational teams document the risks and potential impacts of the AI technology they design, develop, deploy, evaluate and use, and communicate about the impacts more broadly."
+  },
+  {
+   "id": "GOVERN 5.2",
+   "pdf": "Mechanisms are established to enable the team that developed or deployed AI systems to regularly incorporate adjudicated feedback from relevant AI actors into system design and implementation.",
+   "cprt": "Mechanisms are established to enable AI actors to regularly incorporate adjudicated feedback from relevant AI actors into system design and implementation."
+  },
+  {
+   "id": "GOVERN 6.1",
+   "pdf": "Policies and procedures are in place that address AI risks associated with third-party entities, including risks of infringement of a third-party’s intellectual property or other rights.",
+   "cprt": "Policies and procedures are in place that address AI risks associated with third-party entities, including risks of infringement of a third party's intellectual property or other rights."
+  },
+  {
+   "id": "MAP 1.1",
+   "pdf": "Intended purposes, potentially beneficial uses, context-specific laws, norms and expectations, and prospective settings in which the AI system will be deployed are understood and documented. Considerations include: the specific set or types of users along with their expectations; potential positive and negative impacts of system uses to individuals, communities, organizations, society, and the planet; assumptions and related limitations about AI system purposes, uses, and risks across the development or product AI lifecycle; and related TEVV and system metrics.",
+   "cprt": "Intended purpose, potentially beneficial uses, context-specific laws, norms and expectations, and prospective settings in which the AI system will be deployed are understood and documented. Considerations include: specific set or types of users along with their expectations; potential positive and negative impacts of system uses to individuals, communities, organizations, society, and the planet; assumptions and related limitations about AI system purposes; uses and risks across the development or product AI lifecycle; TEVV and system metrics."
+  },
+  {
+   "id": "MAP 1.2",
+   "pdf": "Interdisciplinary AI actors, competencies, skills, and capacities for establishing context reflect demographic diversity and broad domain and user experience expertise, and their participation is documented. Opportunities for interdisciplinary collaboration are prioritized.",
+   "cprt": "Inter-disciplinary AI actors, competencies, skills and capacities for establishing context reflect demographic diversity and broad domain and user experience expertise, and their participation is documented. Opportunities for interdisciplinary collaboration are prioritized."
+  },
+  {
+   "id": "MAP 1.3",
+   "pdf": "The organization’s mission and relevant goals for AI technology are understood and documented.",
+   "cprt": "The organization’s mission and relevant goals for the AI technology are understood and documented."
+  },
+  {
+   "id": "MAP 2.1",
+   "pdf": "The specific tasks and methods used to implement the tasks that the AI system will support are defined (e.g., classifiers, generative models, recommenders).",
+   "cprt": "The specific task, and methods used to implement the task, that the AI system will support is defined (e.g., classifiers, generative models, recommenders)."
+  },
+  {
+   "id": "MAP 2.2",
+   "pdf": "Information about the AI system’s knowledge limits and how system output may be utilized and overseen by humans is documented. Documentation provides sufficient information to assist relevant AI actors when making decisions and taking subsequent actions.",
+   "cprt": "Information about the AI system’s knowledge limits and how system output may be utilized and overseen by humans is documented. Documentation provides sufficient information to assist relevant AI actors when making informed decisions and taking subsequent actions."
+  },
+  {
+   "id": "MAP 2.3",
+   "pdf": "Scientific integrity and TEVV considerations are identified and documented, including those related to experimental design, data collection and selection (e.g., availability, representativeness, suitability), system trustworthiness, and construct validation.",
+   "cprt": "Scientific integrity and TEVV considerations are identified and documented, including those related to experimental design, data collection and selection(e.g., availability, representativeness, suitability), system trustworthiness, and construct validation."
+  },
+  {
+   "id": "MAP 3.4",
+   "pdf": "Processes for operator and practitioner proficiency with AI system performance and trustworthiness – and relevant technical standards and certifications – are defined, assessed, and documented.",
+   "cprt": "Processes for operator and practitioner proficiency with AI system performance and trustworthiness – and relevant technical standards and certifications – are defined, assessed and documented."
+  },
+  {
+   "id": "MAP 3.5",
+   "pdf": "Processes for human oversight are defined, assessed, and documented in accordance with organizational policies from the GOVERN function.",
+   "cprt": "Processes for human oversight are defined, assessed, and documented in accordance with organizational policies from GOVERN function."
+  },
+  {
+   "id": "MAP 4.1",
+   "pdf": "Approaches for mapping AI technology and legal risks of its components – including the use of third-party data or software – are in place, followed, and documented, as are risks of infringement of a third party’s intellectual property or other rights.",
+   "cprt": "Approaches for mapping AI technology and legal risks of its components –including the use of third-party data or software – are in place, followed, and documented, as are risks of infringement of a third-party’s intellectual property or other rights."
+  },
+  {
+   "id": "MAP 4.2",
+   "pdf": "Internal risk controls for components of the AI system, including third-party AI technologies, are identified and documented.",
+   "cprt": "Internal risk controls for components of the AI system including third-party AI technologies are identified and documented."
+  },
+  {
+   "id": "MEASURE 1.2",
+   "pdf": "Appropriateness of AI metrics and effectiveness of existing controls are regularly assessed and updated, including reports of errors and potential impacts on affected communities.",
+   "cprt": "Appropriateness of AI metrics and effectiveness of existing controls is regularly assessed and updated including reports of errors and impacts on affected communities."
+  },
+  {
+   "id": "MEASURE 2.1",
+   "pdf": "Test sets, metrics, and details about the tools used during TEVV are documented.",
+   "cprt": "Test sets, metrics, and details about the tools used during test, evaluation, validation, and verification (TEVV) are documented."
+  },
+  {
+   "id": "MEASURE 2.2",
+   "pdf": "Evaluations involving human subjects meet applicable requirements (including human subject protection) and are representative of the relevant population.",
+   "cprt": "Evaluations involving human subjects meet applicable requirements(including human subject protection) and are representative of the relevant population."
+  },
+  {
+   "id": "MEASURE 2.6",
+   "pdf": "The AI system is evaluated regularly for safety risks – as identified in the MAP function. The AI system to be deployed is demonstrated to be safe, its residual negative risk does not exceed the risk tolerance, and it can fail safely, particularly if made to operate beyond its knowledge limits. Safety metrics reflect system reliability and robustness, real-time monitoring, and response times for AI system failures.",
+   "cprt": "AI system is evaluated regularly for safety risks – as identified in the MAP function. The AI system to be deployed is demonstrated to be safe, its residual negative risk does not exceed the risk tolerance, and can fail safely, particularly if made to operate beyond its knowledge limits. Safety metrics implicate system reliability and robustness, real-time monitoring, and response times for AI system failures."
+  },
+  {
+   "id": "MEASURE 2.9",
+   "pdf": "The AI model is explained, validated, and documented, and AI system output is interpreted within its context – as identified in the MAP function – to inform responsible use and governance.",
+   "cprt": "The AI model is explained, validated, and documented, and an AI system output is interpreted within its context – as identified in the MAP function –and to inform responsible use and governance."
+  },
+  {
+   "id": "MEASURE 2.11",
+   "pdf": "Fairness and bias – as identified in the MAP function – are evaluated and results are documented.",
+   "cprt": "Fairness and bias – as identified in the MAP function – is evaluated and results are documented."
+  },
+  {
+   "id": "MEASURE 4.2",
+   "pdf": "Measurement results regarding AI system trustworthiness in deployment context(s) and across the AI lifecycle are informed by input from domain experts and relevant AI actors to validate whether the system is performing consistently as intended. Results are documented.",
+   "cprt": "measurement results regarding AI system trustworthiness in deployment context(s) and across AI lifecycle are informed by input from domain experts and other relevant AI actors to validate whether the system is performing consistently as intended. Results are documented."
+  },
+  {
+   "id": "MEASURE 4.3",
+   "pdf": "Measurable performance improvements or declines based on consultations with relevant AI actors, including affected communities, and field data about context-relevant risks and trustworthiness characteristics are identified and documented.",
+   "cprt": "Measurable performance improvements or declines based on consultations with relevant AI actors including affected communities, and field data about context-relevant risks and trustworthiness characteristics, are identified and documented."
+  },
+  {
+   "id": "MANAGE 1.1",
+   "pdf": "A determination is made as to whether the AI system achieves its intended purposes and stated objectives and whether its development or deployment should proceed.",
+   "cprt": "A determination is made as to whether the AI system achieves its intended purpose and stated objectives and whether its development or deployment should proceed."
+  },
+  {
+   "id": "MANAGE 1.2",
+   "pdf": "Treatment of documented AI risks is prioritized based on impact, likelihood, and available resources or methods.",
+   "cprt": "Treatment of documented AI risks is prioritized based on impact, likelihood, or available resources or methods."
+  },
+  {
+   "id": "MANAGE 1.3",
+   "pdf": "Responses to the AI risks deemed high priority, as identified by the MAP function, are developed, planned, and documented. Risk response options can include mitigating, transferring, avoiding, or accepting.",
+   "cprt": "Responses to the AI risks deemed high priority as identified by the Map function, are developed, planned, and documented. Risk response options can include mitigating, transferring, avoiding, or accepting."
+  },
+  {
+   "id": "MANAGE 2.1",
+   "pdf": "Resources required to manage AI risks are taken into account – along with viable non-AI alternative systems, approaches, or methods – to reduce the magnitude or likelihood of potential impacts.",
+   "cprt": "Resources required to manage AI risks are taken into account, along with viable non-AI alternative systems, approaches, or methods – to reduce the magnitude or likelihood of potential impacts."
+  },
+  {
+   "id": "MANAGE 2.4",
+   "pdf": "Mechanisms are in place and applied, and responsibilities are assigned and understood, to supersede, disengage, or deactivate AI systems that demonstrate performance or outcomes inconsistent with intended use.",
+   "cprt": "Mechanisms are in place and applied, responsibilities are assigned and understood to supersede, disengage, or deactivate AI systems that demonstrate performance or outcomes inconsistent with intended use."
+  },
+  {
+   "id": "MANAGE 4.3",
+   "pdf": "Incidents and errors are communicated to relevant AI actors, including affected communities. Processes for tracking, responding to, and recovering from incidents and errors are followed and documented.",
+   "cprt": "Incidents and errors are communicated to relevant AI actors including affected communities. Processes for tracking, responding to, and recovering from incidents and errors are followed and documented."
+  }
+ ],
+ "playbookDifferences": [
+  {
+   "id": "GOVERN 1.2",
+   "pdf": "The characteristics of trustworthy AI are integrated into organizational policies, processes, procedures, and practices.",
+   "playbook": "The characteristics of trustworthy AI are integrated into organizational policies, processes, and procedures."
+  },
+  {
+   "id": "GOVERN 1.3",
+   "pdf": "Processes, procedures, and practices are in place to determine the needed level of risk management activities based on the organization’s risk tolerance.",
+   "playbook": "Processes and procedures are in place to determine the needed level of risk management activities based on the organization's risk tolerance."
+  },
+  {
+   "id": "GOVERN 1.5",
+   "pdf": "Ongoing monitoring and periodic review of the risk management process and its outcomes are planned and organizational roles and responsibilities clearly defined, including determining the frequency of periodic review.",
+   "playbook": "Ongoing monitoring and periodic review of the risk management process and its outcomes are planned, organizational roles and responsibilities are clearly defined, including determining the frequency of periodic review."
+  },
+  {
+   "id": "GOVERN 1.7",
+   "pdf": "Processes and procedures are in place for decommissioning and phasing out AI systems safely and in a manner that does not increase risks or decrease the organization’s trustworthiness.",
+   "playbook": "Processes and procedures are in place for decommissioning and phasing out of AI systems safely and in a manner that does not increase risks or decrease the organization’s trustworthiness."
+  },
+  {
+   "id": "GOVERN 3.1",
+   "pdf": "Decision-making related to mapping, measuring, and managing AI risks throughout the lifecycle is informed by a diverse team (e.g., diversity of demographics, disciplines, experience, expertise, and backgrounds).",
+   "playbook": "Decision-makings related to mapping, measuring, and managing AI risks throughout the lifecycle is informed by a diverse team (e.g., diversity of demographics, disciplines, experience, expertise, and backgrounds)."
+  },
+  {
+   "id": "GOVERN 4.1",
+   "pdf": "Organizational policies and practices are in place to foster a critical thinking and safety-first mindset in the design, development, deployment, and uses of AI systems to minimize potential negative impacts.",
+   "playbook": "Organizational policies, and practices are in place to foster a critical thinking and safety-first mindset in the design, development, deployment, and uses of AI systems to minimize negative impacts."
+  },
+  {
+   "id": "GOVERN 4.2",
+   "pdf": "Organizational teams document the risks and potential impacts of the AI technology they design, develop, deploy, evaluate, and use, and they communicate about the impacts more broadly.",
+   "playbook": "Organizational teams document the risks and potential impacts of the AI technology they design, develop, deploy, evaluate and use, and communicate about the impacts more broadly."
+  },
+  {
+   "id": "GOVERN 5.2",
+   "pdf": "Mechanisms are established to enable the team that developed or deployed AI systems to regularly incorporate adjudicated feedback from relevant AI actors into system design and implementation.",
+   "playbook": "Mechanisms are established to enable AI actors to regularly incorporate adjudicated feedback from relevant AI actors into system design and implementation."
+  },
+  {
+   "id": "GOVERN 6.1",
+   "pdf": "Policies and procedures are in place that address AI risks associated with third-party entities, including risks of infringement of a third-party’s intellectual property or other rights.",
+   "playbook": "Policies and procedures are in place that address AI risks associated with third-party entities, including risks of infringement of a third party’s intellectual property or other rights."
+  },
+  {
+   "id": "MAP 1.1",
+   "pdf": "Intended purposes, potentially beneficial uses, context-specific laws, norms and expectations, and prospective settings in which the AI system will be deployed are understood and documented. Considerations include: the specific set or types of users along with their expectations; potential positive and negative impacts of system uses to individuals, communities, organizations, society, and the planet; assumptions and related limitations about AI system purposes, uses, and risks across the development or product AI lifecycle; and related TEVV and system metrics.",
+   "playbook": "Intended purpose, potentially beneficial uses, context-specific laws, norms and expectations, and prospective settings in which the AI system will be deployed are understood and documented. Considerations include: specific set or types of users along with their expectations; potential positive and negative impacts of system uses to individuals, communities, organizations, society, and the planet; assumptions and related limitations about AI system purposes; uses and risks across the development or product AI lifecycle; TEVV and system metrics."
+  },
+  {
+   "id": "MAP 1.2",
+   "pdf": "Interdisciplinary AI actors, competencies, skills, and capacities for establishing context reflect demographic diversity and broad domain and user experience expertise, and their participation is documented. Opportunities for interdisciplinary collaboration are prioritized.",
+   "playbook": "Inter-disciplinary AI actors, competencies, skills and capacities for establishing context reflect demographic diversity and broad domain and user experience expertise, and their participation is documented. Opportunities for interdisciplinary collaboration are prioritized."
+  },
+  {
+   "id": "MAP 1.3",
+   "pdf": "The organization’s mission and relevant goals for AI technology are understood and documented.",
+   "playbook": "The organization’s mission and relevant goals for the AI technology are understood and documented."
+  },
+  {
+   "id": "MAP 2.1",
+   "pdf": "The specific tasks and methods used to implement the tasks that the AI system will support are defined (e.g., classifiers, generative models, recommenders).",
+   "playbook": "The specific task, and methods used to implement the task, that the AI system will support is defined (e.g., classifiers, generative models, recommenders)."
+  },
+  {
+   "id": "MAP 2.2",
+   "pdf": "Information about the AI system’s knowledge limits and how system output may be utilized and overseen by humans is documented. Documentation provides sufficient information to assist relevant AI actors when making decisions and taking subsequent actions.",
+   "playbook": "Information about the AI system’s knowledge limits and how system output may be utilized and overseen by humans is documented. Documentation provides sufficient information to assist relevant AI actors when making informed decisions and taking subsequent actions."
+  },
+  {
+   "id": "MAP 3.4",
+   "pdf": "Processes for operator and practitioner proficiency with AI system performance and trustworthiness – and relevant technical standards and certifications – are defined, assessed, and documented.",
+   "playbook": "Processes for operator and practitioner proficiency with AI system performance and trustworthiness – and relevant technical standards and certifications – are defined, assessed and documented."
+  },
+  {
+   "id": "MAP 3.5",
+   "pdf": "Processes for human oversight are defined, assessed, and documented in accordance with organizational policies from the GOVERN function.",
+   "playbook": "Processes for human oversight are defined, assessed, and documented in accordance with organizational policies from GOVERN function."
+  },
+  {
+   "id": "MAP 4.1",
+   "pdf": "Approaches for mapping AI technology and legal risks of its components – including the use of third-party data or software – are in place, followed, and documented, as are risks of infringement of a third party’s intellectual property or other rights.",
+   "playbook": "Approaches for mapping AI technology and legal risks of its components – including the use of third-party data or software – are in place, followed, and documented, as are risks of infringement of a third-party’s intellectual property or other rights."
+  },
+  {
+   "id": "MAP 4.2",
+   "pdf": "Internal risk controls for components of the AI system, including third-party AI technologies, are identified and documented.",
+   "playbook": "Internal risk controls for components of the AI system including third-party AI technologies are identified and documented."
+  },
+  {
+   "id": "MEASURE 1.2",
+   "pdf": "Appropriateness of AI metrics and effectiveness of existing controls are regularly assessed and updated, including reports of errors and potential impacts on affected communities.",
+   "playbook": "Appropriateness of AI metrics and effectiveness of existing controls is regularly assessed and updated including reports of errors and impacts on affected communities."
+  },
+  {
+   "id": "MEASURE 2.1",
+   "pdf": "Test sets, metrics, and details about the tools used during TEVV are documented.",
+   "playbook": "Test sets, metrics, and details about the tools used during test, evaluation, validation, and verification (TEVV) are documented."
+  },
+  {
+   "id": "MEASURE 2.6",
+   "pdf": "The AI system is evaluated regularly for safety risks – as identified in the MAP function. The AI system to be deployed is demonstrated to be safe, its residual negative risk does not exceed the risk tolerance, and it can fail safely, particularly if made to operate beyond its knowledge limits. Safety metrics reflect system reliability and robustness, real-time monitoring, and response times for AI system failures.",
+   "playbook": "AI system is evaluated regularly for safety risks – as identified in the MAP function. The AI system to be deployed is demonstrated to be safe, its residual negative risk does not exceed the risk tolerance, and can fail safely, particularly if made to operate beyond its knowledge limits. Safety metrics implicate system reliability and robustness, real-time monitoring, and response times for AI system failures."
+  },
+  {
+   "id": "MEASURE 2.9",
+   "pdf": "The AI model is explained, validated, and documented, and AI system output is interpreted within its context – as identified in the MAP function – to inform responsible use and governance.",
+   "playbook": "The AI model is explained, validated, and documented, and  AI system output is interpreted within its context – as identified in the MAP function – and to inform responsible use and governance."
+  },
+  {
+   "id": "MEASURE 4.2",
+   "pdf": "Measurement results regarding AI system trustworthiness in deployment context(s) and across the AI lifecycle are informed by input from domain experts and relevant AI actors to validate whether the system is performing consistently as intended. Results are documented.",
+   "playbook": "Measurement results regarding AI system trustworthiness in deployment context(s) and across AI lifecycle are informed by input from domain experts and other relevant AI actors to validate whether the system is performing consistently as intended. Results are documented."
+  },
+  {
+   "id": "MEASURE 4.3",
+   "pdf": "Measurable performance improvements or declines based on consultations with relevant AI actors, including affected communities, and field data about context-relevant risks and trustworthiness characteristics are identified and documented.",
+   "playbook": "Measurable performance improvements or declines based on consultations with relevant AI actors including affected communities, and field data about context-relevant risks and trustworthiness characteristics, are identified and documented."
+  },
+  {
+   "id": "MANAGE 1.1",
+   "pdf": "A determination is made as to whether the AI system achieves its intended purposes and stated objectives and whether its development or deployment should proceed.",
+   "playbook": "A determination is made as to whether the AI system achieves its intended purpose and stated objectives and whether its development or deployment should proceed."
+  },
+  {
+   "id": "MANAGE 1.2",
+   "pdf": "Treatment of documented AI risks is prioritized based on impact, likelihood, and available resources or methods.",
+   "playbook": "Treatment of documented AI risks is prioritized based on impact, likelihood, or available resources or methods."
+  },
+  {
+   "id": "MANAGE 1.3",
+   "pdf": "Responses to the AI risks deemed high priority, as identified by the MAP function, are developed, planned, and documented. Risk response options can include mitigating, transferring, avoiding, or accepting.",
+   "playbook": "Responses to the AI risks deemed high priority as identified by the Map function, are developed, planned, and documented. Risk response options can include mitigating, transferring, avoiding, or accepting."
+  },
+  {
+   "id": "MANAGE 2.1",
+   "pdf": "Resources required to manage AI risks are taken into account – along with viable non-AI alternative systems, approaches, or methods – to reduce the magnitude or likelihood of potential impacts.",
+   "playbook": "Resources required to manage AI risks are taken into account, along with viable non-AI alternative systems, approaches, or methods – to reduce the magnitude or likelihood of potential impacts."
+  },
+  {
+   "id": "MANAGE 2.4",
+   "pdf": "Mechanisms are in place and applied, and responsibilities are assigned and understood, to supersede, disengage, or deactivate AI systems that demonstrate performance or outcomes inconsistent with intended use.",
+   "playbook": "Mechanisms are in place and applied, responsibilities are assigned and understood to supersede, disengage, or deactivate AI systems that demonstrate performance or outcomes inconsistent with intended use."
+  },
+  {
+   "id": "MANAGE 4.3",
+   "pdf": "Incidents and errors are communicated to relevant AI actors, including affected communities. Processes for tracking, responding to, and recovering from incidents and errors are followed and documented.",
+   "playbook": "Incidents and errors are communicated to relevant AI actors including affected communities. Processes for tracking, responding to, and recovering from incidents and errors are followed and documented."
+  }
+ ],
+ "hyphenation": [
+  {
+   "context": "GOVERN 1.2",
+   "left": "inte",
+   "right": "grated",
+   "decision": "join"
+  },
+  {
+   "context": "GOVERN 1.5",
+   "left": "or",
+   "right": "ganizational",
+   "decision": "join"
+  },
+  {
+   "context": "GOVERN 1.7",
+   "left": "decom",
+   "right": "missioning",
+   "decision": "join"
+  },
+  {
+   "context": "GOVERN 1.7",
+   "left": "man",
+   "right": "ner",
+   "decision": "join"
+  },
+  {
+   "context": "GOVERN 2.1",
+   "left": "communi",
+   "right": "cation",
+   "decision": "join"
+  },
+  {
+   "context": "GOVERN 2.2",
+   "left": "du",
+   "right": "ties",
+   "decision": "join"
+  },
+  {
+   "context": "GOVERN 2.2",
+   "left": "proce",
+   "right": "dures",
+   "decision": "join"
+  },
+  {
+   "context": "GOVERN 2.3",
+   "left": "re",
+   "right": "sponsibility",
+   "decision": "join"
+  },
+  {
+   "context": "GOVERN 3.1",
+   "left": "expe",
+   "right": "rience",
+   "decision": "join"
+  },
+  {
+   "context": "GOVERN 3.2",
+   "left": "configura",
+   "right": "tions",
+   "decision": "join"
+  },
+  {
+   "context": "GOVERN 4.2",
+   "left": "po",
+   "right": "tential",
+   "decision": "join"
+  },
+  {
+   "context": "GOVERN 6.1",
+   "left": "in",
+   "right": "fringement",
+   "decision": "join"
+  },
+  {
+   "context": "MAP 1.1",
+   "left": "context",
+   "right": "specific",
+   "decision": "keep"
+  },
+  {
+   "context": "MAP 1.1",
+   "left": "docu",
+   "right": "mented",
+   "decision": "join"
+  },
+  {
+   "context": "MAP 1.1",
+   "left": "im",
+   "right": "pacts",
+   "decision": "join"
+  },
+  {
+   "context": "MAP 1.2",
+   "left": "par",
+   "right": "ticipation",
+   "decision": "join"
+  },
+  {
+   "context": "MAP 1.2",
+   "left": "col",
+   "right": "laboration",
+   "decision": "join"
+  },
+  {
+   "context": "MAP 1.6",
+   "left": "rel",
+   "right": "evant",
+   "decision": "join"
+  },
+  {
+   "context": "MAP 1.6",
+   "left": "implica",
+   "right": "tions",
+   "decision": "join"
+  },
+  {
+   "context": "MAP 2.3",
+   "left": "iden",
+   "right": "tified",
+   "decision": "join"
+  },
+  {
+   "context": "MAP 2.3",
+   "left": "repre",
+   "right": "sentativeness",
+   "decision": "join"
+  },
+  {
+   "context": "MAP 3.2",
+   "left": "toler",
+   "right": "ance",
+   "decision": "join"
+  },
+  {
+   "context": "MAP 3.3",
+   "left": "docu",
+   "right": "mented",
+   "decision": "join"
+  },
+  {
+   "context": "MAP 4.1",
+   "left": "soft",
+   "right": "ware",
+   "decision": "join"
+  },
+  {
+   "context": "MAP 4.1",
+   "left": "in",
+   "right": "fringement",
+   "decision": "join"
+  },
+  {
+   "context": "MAP 4.2",
+   "left": "sys",
+   "right": "tem",
+   "decision": "join"
+  },
+  {
+   "context": "MAP 5.1",
+   "left": "re",
+   "right": "ports",
+   "decision": "join"
+  },
+  {
+   "context": "MAP 5.2",
+   "left": "en",
+   "right": "gagement",
+   "decision": "join"
+  },
+  {
+   "context": "MEASURE 1.1",
+   "left": "imple",
+   "right": "mentation",
+   "decision": "join"
+  },
+  {
+   "context": "MEASURE 1.3",
+   "left": "in",
+   "right": "volved",
+   "decision": "join"
+  },
+  {
+   "context": "MEASURE 2.2",
+   "left": "ap",
+   "right": "plicable",
+   "decision": "join"
+  },
+  {
+   "context": "MEASURE 2.4",
+   "left": "sys",
+   "right": "tem",
+   "decision": "join"
+  },
+  {
+   "context": "MEASURE 2.5",
+   "left": "be",
+   "right": "yond",
+   "decision": "join"
+  },
+  {
+   "context": "MEASURE 2.6",
+   "left": "de",
+   "right": "ployed",
+   "decision": "join"
+  },
+  {
+   "context": "MEASURE 2.6",
+   "left": "re",
+   "right": "flect",
+   "decision": "join"
+  },
+  {
+   "context": "MEASURE 2.8",
+   "left": "account",
+   "right": "ability",
+   "decision": "join"
+  },
+  {
+   "context": "MEASURE 2.9",
+   "left": "docu",
+   "right": "mented",
+   "decision": "join"
+  },
+  {
+   "context": "MEASURE 2.13",
+   "left": "met",
+   "right": "rics",
+   "decision": "join"
+  },
+  {
+   "context": "MEASURE 3.1",
+   "left": "ac",
+   "right": "tual",
+   "decision": "join"
+  },
+  {
+   "context": "MEASURE 4.1",
+   "left": "Ap",
+   "right": "proaches",
+   "decision": "join"
+  },
+  {
+   "context": "MEASURE 4.2",
+   "left": "trust",
+   "right": "worthiness",
+   "decision": "join"
+  },
+  {
+   "context": "MEASURE 4.2",
+   "left": "ac",
+   "right": "tors",
+   "decision": "join"
+  },
+  {
+   "context": "MEASURE 4.3",
+   "left": "de",
+   "right": "clines",
+   "decision": "join"
+  },
+  {
+   "context": "MEASURE 4.3",
+   "left": "in",
+   "right": "cluding",
+   "decision": "join"
+  },
+  {
+   "context": "MEASURE 4.3",
+   "left": "context",
+   "right": "relevant",
+   "decision": "keep"
+  },
+  {
+   "context": "MANAGE 1.3",
+   "left": "doc",
+   "right": "umented",
+   "decision": "join"
+  },
+  {
+   "context": "MANAGE 1.3",
+   "left": "transfer",
+   "right": "ring",
+   "decision": "join"
+  },
+  {
+   "context": "MANAGE 2.1",
+   "left": "ap",
+   "right": "proaches",
+   "decision": "join"
+  },
+  {
+   "context": "MANAGE 2.4",
+   "left": "respon",
+   "right": "sibilities",
+   "decision": "join"
+  },
+  {
+   "context": "MANAGE 3.2",
+   "left": "develop",
+   "right": "ment",
+   "decision": "join"
+  },
+  {
+   "context": "MANAGE 4.1",
+   "left": "eval",
+   "right": "uating",
+   "decision": "join"
+  },
+  {
+   "context": "MANAGE 4.2",
+   "left": "engage",
+   "right": "ment",
+   "decision": "join"
+  },
+  {
+   "context": "MANAGE 4.3",
+   "left": "track",
+   "right": "ing",
+   "decision": "join"
+  }
+ ],
+ "idSetMatchesCprt": true,
+ "notFoundInPdfColumn": []
+}

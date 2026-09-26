@@ -42,6 +42,9 @@ interface GenAiJson {
 
 const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, "utf8")) as T;
 const TITLE: Record<string, string> = { GOVERN: "Govern", MAP: "Map", MEASURE: "Measure", MANAGE: "Manage" };
+/** Two-letter function tags used by NIST AI 600-1 (GV, MP, MS, MG) — compact labels for dense 3D views. */
+const TAG: Record<string, string> = { GOVERN: "GV", MAP: "MP", MEASURE: "MS", MANAGE: "MG" };
+const shortLabel = (id: string) => id.replace(/^(GOVERN|MAP|MEASURE|MANAGE) /, (_, f: string) => `${TAG[f]}-`);
 
 /** Numeric-aware ordering for ids like "GOVERN 1.10" vs "GOVERN 1.2". */
 function byId(a: string, b: string): number {
@@ -97,6 +100,7 @@ export function ingestAiRmf(dir = resolve(CORPUS_DIR, "nist-ai-rmf")): Framework
           order: ci,
           title: "",
           text: c.text,
+          attributes: { label: shortLabel(c.id) },
           citation: { documentId: coreDoc, locator: `AI RMF Core — ${c.id}`, page: c.page },
           assessable: false,
         });
@@ -120,6 +124,7 @@ export function ingestAiRmf(dir = resolve(CORPUS_DIR, "nist-ai-rmf")): Framework
               title: "",
               text: s.text,
               attributes: {
+                label: shortLabel(s.id),
                 ...(pb?.suggestedActions?.length ? { suggestedActions: pb.suggestedActions } : {}),
                 ...(pb?.transparencyDocumentation?.length ? { transparency: pb.transparencyDocumentation } : {}),
                 ...(pb?.about ? { about: pb.about } : {}),

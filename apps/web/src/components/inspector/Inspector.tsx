@@ -168,7 +168,7 @@ function Overview({ data }: { data: NodeDetail }) {
           </div>
           <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.55 }}>
             {suggested.map((a) => (
-              <li key={a} style={{ marginBottom: 6 }}>
+              <li key={a} style={{ marginBottom: 6, whiteSpace: "pre-line" }}>
                 {a}
               </li>
             ))}

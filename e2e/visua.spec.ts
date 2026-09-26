@@ -96,7 +96,7 @@ test("AI governance: inventory, AI RMF functions and Generative AI Profile risks
   await page.goto(`${WS}/ai`);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("AI RMF readiness");
   await expect(page.getByText("AI system inventory")).toBeVisible();
-  await expect(page.getByText("Clinical note summarizer")).toBeVisible();
+  await expect(page.getByRole("row", { name: /Clinical note summarizer/ })).toBeVisible();
   for (const fn of ["GOVERN", "MAP", "MEASURE", "MANAGE"]) await expect(page.getByText(fn, { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Generative AI Profile (NIST AI 600-1)")).toBeVisible();
   await expect(page.getByText("Confabulation").first()).toBeVisible();
