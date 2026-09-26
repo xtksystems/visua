@@ -7,6 +7,8 @@ Visua is a pnpm monorepo (Node ≥ 22.18, native TypeScript, `node:sqlite`). Rea
 
 - `pnpm dev`: API on :8787 (seeds the demo) and web on :5173
 - `pnpm typecheck`, `pnpm test` (Vitest), `pnpm test:e2e` (Playwright against the production build)
+- `VISUA_TEST_DATABASE_URL=postgres://… pnpm test` runs the server suites on Postgres too
+  (each run uses its own schema and drops it afterwards)
 - `pnpm design:lint` after any change to `DESIGN.md`, then `pnpm design:tokens`
 - `pnpm ingest` after any change to `corpus/` or `packages/frameworks/src/ingest/*`
 - `pnpm corpus:verify` to hash-check the corpus
@@ -46,7 +48,9 @@ change the web app.
   anything verified, or make an authorization or audit decision.
 - **Integrity.**
   - Every state change goes through `VisuaService` so it lands in the hash-chained
-    audit trail.
+    audit trail, in the same transaction. Storage is async: `await` every store and
+    service call, never hold a transaction open across network calls, and don't
+    publish bus events directly from a mutation (the service publishes after commit).
   - "Not applicable" requires a rationale, and scope recomputation must preserve
     `userExclusion`.
 - **Claude API.** The default model is `claude-opus-5` (`VISUA_MODEL` overrides it).

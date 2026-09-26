@@ -47,14 +47,15 @@ function groupOf(svc: VisuaService, nodeId: string): string | null {
   return index.ancestors(nodeId).find((a) => a.depth === depth)?.id ?? null;
 }
 
-export function crosswalkOverview(svc: VisuaService, ws: Workspace) {
+export async function crosswalkOverview(svc: VisuaService, ws: Workspace) {
   const sets = svc.registry.crosswalk.sets;
   const ids = [...new Set(sets.flatMap((s) => [s.sourceFramework, s.targetFramework]))].filter((id) => svc.registry.framework(id));
   const enabled = new Set(ws.frameworks.filter((f) => f.enabled).map((f) => f.frameworkId));
-  const frameworks: NexusFramework[] = ids.map((id) => {
+  const scores = await Promise.all(ids.map((id) => (enabled.has(id) ? svc.score(ws.id, id) : null)));
+  const frameworks: NexusFramework[] = ids.map((id, i) => {
     const index = svc.registry.framework(id)!;
     const depth = BUNDLE_DEPTH[id] ?? 0;
-    const score = enabled.has(id) ? svc.score(ws.id, id) : null;
+    const score = scores[i];
     const groups = index.graph.nodes
       .filter((n) => n.depth === depth && !n.withdrawn)
       .map((n) => {
@@ -105,15 +106,17 @@ interface Side {
   status: Status | null;
 }
 
-export function crosswalkRows(svc: VisuaService, ws: Workspace, opts: { setId?: string; groupId?: string; nodeId?: string; limit?: number }) {
+export async function crosswalkRows(svc: VisuaService, ws: Workspace, opts: { setId?: string; groupId?: string; nodeId?: string; limit?: number }) {
   const sets = svc.registry.crosswalk.sets.filter((s) => !opts.setId || s.id === opts.setId);
-  const scores = new Map<string, ReturnType<VisuaService["score"]> | null>();
   const enabled = new Set(ws.frameworks.filter((f) => f.enabled).map((f) => f.frameworkId));
+  const involved = [...new Set(sets.flatMap((s) => [s.sourceFramework, s.targetFramework]))].filter((fw) => enabled.has(fw) && svc.registry.framework(fw));
+  const loaded = await Promise.all(involved.map(async (fw) => [fw, await svc.score(ws.id, fw), await svc.store.states.map(ws.id, fw)] as const));
+  const scores = new Map(loaded.map(([fw, score]) => [fw, score]));
+  const states = new Map(loaded.map(([fw, , map]) => [fw, map]));
   const side = (id: string): Side => {
     const fw = frameworkOf(id);
-    if (!scores.has(fw)) scores.set(fw, enabled.has(fw) && svc.registry.framework(fw) ? svc.score(ws.id, fw) : null);
     const node = svc.registry.node(id);
-    const st = enabled.has(fw) ? svc.store.states.get(ws.id, id) : undefined;
+    const st = states.get(fw)?.get(id);
     return {
       id,
       code: node?.code ?? codeOf(id),

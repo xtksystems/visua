@@ -266,7 +266,7 @@ export const proposeAssessment = defineTool({
     if (!node || !node.assessable) return { error: `'${input.nodeId}' is not an assessable requirement` };
     const family = familyOf(host, node.id);
     const prev = host.state(node.id);
-    const proposal = host.propose({
+    const proposal = await host.propose({
       type: "set-level",
       title: `${node.code}: ${levelLabel(family, prev?.current ?? 0)} → ${levelLabel(family, input.current)}`,
       rationale: input.rationale,
@@ -288,7 +288,7 @@ export const proposeTarget = defineTool({
     const node = resolveNode(host, input.nodeId);
     if (!node || !node.assessable) return { error: `'${input.nodeId}' is not an assessable requirement` };
     const family = familyOf(host, node.id);
-    const proposal = host.propose({
+    const proposal = await host.propose({
       type: "set-target",
       title: `${node.code}: target ${levelLabel(family, input.target)}`,
       rationale: input.rationale,
@@ -309,7 +309,7 @@ export const proposeApplicability = defineTool({
   async run(host, input) {
     const node = resolveNode(host, input.nodeId);
     if (!node || !node.assessable) return { error: `'${input.nodeId}' is not an assessable requirement` };
-    const proposal = host.propose({
+    const proposal = await host.propose({
       type: "set-applicability",
       title: `${node.code}: ${input.applicable ? "applicable" : "not applicable"}`,
       rationale: input.rationale,
@@ -339,7 +339,7 @@ export const proposeTask = defineTool({
   async run(host, input) {
     const nodes = input.requirementIds.map((id) => resolveNode(host, id)).filter((n): n is RequirementNode => !!n);
     if (!nodes.length) return { error: "None of the requirementIds are known" };
-    const proposal = host.propose({
+    const proposal = await host.propose({
       type: "create-task",
       title: input.title,
       rationale: input.description,
@@ -365,7 +365,7 @@ export const proposePolicy = defineTool({
   }),
   async run(host, input) {
     const nodes = input.requirementIds.map((id) => resolveNode(host, id)).filter((n): n is RequirementNode => !!n);
-    const proposal = host.propose({
+    const proposal = await host.propose({
       type: "create-policy",
       title: `Draft: ${input.title}`,
       rationale: `Policy draft covering ${nodes.map((n) => n.code).join(", ")}`,
@@ -392,7 +392,7 @@ export const proposeEvidence = defineTool({
   }),
   async run(host, input) {
     const nodes = input.requirementIds.map((id) => resolveNode(host, id)).filter((n): n is RequirementNode => !!n);
-    const proposal = host.propose({
+    const proposal = await host.propose({
       type: "create-evidence",
       title: input.title,
       rationale: `Evidence for ${nodes.map((n) => n.code).join(", ")}`,
@@ -418,7 +418,7 @@ export const updateTask = defineTool({
   async run(host, input) {
     const task = host.tasks().find((t) => t.id === input.taskId);
     if (!task) return { error: `Unknown task '${input.taskId}'` };
-    const proposal = host.propose({
+    const proposal = await host.propose({
       type: "update-task",
       title: `Update “${short(task.title, 60)}”${input.status ? ` → ${input.status}` : ""}`,
       rationale: input.note ?? "Task progress update",

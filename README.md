@@ -61,7 +61,8 @@ Production-style run: `pnpm build && pnpm start`. The API serves the built web a
 | `VISUA_AGENT_MODE` | `auto` | `auto`, `claude` or `offline` |
 | `VISUA_MODEL` | `claude-opus-5` | Model used by the agents |
 | `VISUA_AICPA_AI_USE` | — | Set to `permitted` only if your organization holds AICPA's written permission to send AICPA text to AI services (see below). |
-| `VISUA_PORT` / `VISUA_DB` / `VISUA_SEED` | `8787` / `data/visua.db` / on | Server port, SQLite path (`:memory:` works), demo seeding |
+| `VISUA_PORT` / `VISUA_SEED` | `8787` / on | Server port, demo seeding |
+| `VISUA_DATABASE_URL` | `data/visua.db` | `postgres://user:pass@host:5432/db` for PostgreSQL, or a SQLite file path (`:memory:` works). `VISUA_DB` is accepted as a SQLite path too. |
 
 > **Security note.** This version has no user authentication or tenant isolation. Run it
 > locally or behind your own SSO proxy. Do not expose it to the internet.
@@ -91,7 +92,7 @@ corpus/ (official PDFs, JSON, XLSX, OSCAL)
 packages/frameworks ── graphs · crosswalk mapping sets · BM25 corpus index (page-level citations)
 packages/core ──────── domain model · scoring · status · planner · crosswalk projection · CSF tiers · FIPS 199
 packages/agents ────── 8 agents · 16 tools · Claude runtime · offline playbooks · policy composer
-apps/server ────────── Hono API · SQLite store · SSE events · connectors · exports (CSV, Markdown, OSCAL)
+apps/server ────────── Hono API · SQLite or Postgres storage · SSE events · connectors · exports (CSV, Markdown, OSCAL)
 apps/web ───────────── React 19 · react-three-fiber Observatory & Nexus · TanStack Query · DESIGN.md tokens
 packages/design ────── DESIGN.md → CSS variables + typed tokens
 ```

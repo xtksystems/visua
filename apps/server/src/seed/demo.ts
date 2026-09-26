@@ -4,7 +4,7 @@
  * Moderate-style SP 800-53 program on top of a NIST CSF 2.0 foundation.
  * Everything is reproducible (seeded PRNG) so screenshots and tests are stable.
  */
-import { CrosswalkIndex, codeOf, projectLevels, type Task } from "@visua/core";
+import { CrosswalkIndex, codeOf, projectLevels, type RequirementNode, type RequirementState, type Task } from "@visua/core";
 import { REPO_ROOT } from "@visua/frameworks";
 import type { VisuaService } from "../services/visua.ts";
 
@@ -49,13 +49,14 @@ const CURRENT_BY_CATEGORY: Record<string, [number, number]> = {
 const daysFromNow = (d: number) => new Date(Date.now() + d * 86_400_000).toISOString();
 const dateFromNow = (d: number) => daysFromNow(d).slice(0, 10);
 
-export async function seedDemo(svc: VisuaService): Promise<string> {
-  const existing = svc.store.workspaces.get("northwind-health");
+export async function seedDemo(svc: VisuaService, tenantId?: string): Promise<string> {
+  const existing = await svc.store.workspaces.get("northwind-health");
   if (existing) return existing.id;
   const actor = "seed";
   const frameworks = ["nist-csf-2.0", "aicpa-tsc-2017", "nist-sp-800-53-r5", "nist-ai-rmf"].filter((id) => svc.registry.framework(id));
-  const ws = svc.createWorkspace(
+  const ws = await svc.createWorkspace(
     {
+      tenantId,
       name: "Northwind Health",
       description: "Digital-health SaaS for outpatient clinics (fictional demo workspace).",
       profile: {
@@ -73,47 +74,51 @@ export async function seedDemo(svc: VisuaService): Promise<string> {
     },
     actor,
   );
-  svc.updateWorkspace(ws.id, { autonomy: { "create-task": false }, trustCenter: { enabled: true, headline: "Northwind Health security & compliance", contactEmail: "security@northwind-health.example" } }, actor);
-  svc.recordTierAssessment(ws.id, { "risk-strategy": 2, prioritization: 2, "executive-oversight": 2, awareness: 2, consistency: 2, "information-sharing": 3, monitoring: 2, "supplier-risk": 1 }, actor);
+  await svc.updateWorkspace(ws.id, { autonomy: { "create-task": false }, trustCenter: { enabled: true, headline: "Northwind Health security & compliance", contactEmail: "security@northwind-health.example" } }, actor);
+  await svc.recordTierAssessment(ws.id, { "risk-strategy": 2, prioritization: 2, "executive-oversight": 2, awareness: 2, consistency: 2, "information-sharing": 3, monitoring: 2, "supplier-risk": 1 }, actor);
 
   // CSF 2.0 current profile.
-  const csf = svc.registry.framework("nist-csf-2.0")!;
-  svc.store.transaction(() => {
-    for (const node of csf.assessable) {
-      const [lo, hi] = CURRENT_BY_CATEGORY[node.code.slice(0, 5)] ?? [0, 2];
-      const current = Math.min(hi, lo + Math.floor(rand(`csf:${node.code}`) * (hi - lo + 1)));
-      const prev = svc.store.states.get(ws.id, node.id)!;
-      svc.store.states.put(ws.id, {
-        ...prev,
-        current,
-        owner: node.code.startsWith("GV") ? "CISO" : node.code.startsWith("PR.AA") ? "IT Lead" : node.code.startsWith("DE") || node.code.startsWith("RS") ? "Security Engineer" : "Platform Lead",
-        updatedAt: daysFromNow(-20),
-        updatedBy: actor,
-      });
+  // Historical assessment levels are seeded directly (bulk), then derived caches are invalidated.
+  const seedStates = async (frameworkId: string, level: (node: RequirementNode, prev: RequirementState) => Partial<RequirementState> | undefined) => {
+    const index = svc.registry.framework(frameworkId)!;
+    const states = await svc.store.states.map(ws.id, frameworkId);
+    const next: RequirementState[] = [];
+    for (const node of index.assessable) {
+      const prev = states.get(node.id);
+      const patch = prev ? level(node, prev) : undefined;
+      if (prev && patch) next.push({ ...prev, ...patch, updatedBy: actor });
     }
+    await svc.store.states.putMany(ws.id, next);
+    await svc.invalidate(ws.id);
+  };
+
+  const csf = svc.registry.framework("nist-csf-2.0")!;
+  await seedStates("nist-csf-2.0", (node) => {
+    const [lo, hi] = CURRENT_BY_CATEGORY[node.code.slice(0, 5)] ?? [0, 2];
+    return {
+      current: Math.min(hi, lo + Math.floor(rand(`csf:${node.code}`) * (hi - lo + 1))),
+      owner: node.code.startsWith("GV") ? "CISO" : node.code.startsWith("PR.AA") ? "IT Lead" : node.code.startsWith("DE") || node.code.startsWith("RS") ? "Security Engineer" : "Platform Lead",
+      updatedAt: daysFromNow(-20),
+    };
   });
 
   // Project CSF progress onto SP 800-53 and SOC 2 through the authoritative crosswalks.
-  const csfStates = new Map(svc.store.states.list(ws.id, "nist-csf-2.0").map((s) => [s.nodeId, s]));
+  const csfStates = await svc.store.states.map(ws.id, "nist-csf-2.0");
   for (const fw of frameworks.filter((f) => f !== "nist-csf-2.0")) {
     const index = svc.registry.framework(fw)!;
     const projected = projectLevels(svc.registry.crosswalk as CrosswalkIndex, index.assessable.map((n) => n.id), csfStates);
     const byId = new Map(projected.map((p) => [p.nodeId, p]));
-    svc.store.transaction(() => {
-      for (const node of index.assessable) {
-        const prev = svc.store.states.get(ws.id, node.id);
-        if (!prev || !prev.applicable) continue;
-        const p = byId.get(node.id);
-        const jitter = rand(`${fw}:${node.code}`);
-        const current = Math.max(0, Math.min(prev.target, (p?.suggested ?? 0) + (jitter > 0.7 ? 1 : 0) + (fw === "aicpa-tsc-2017" ? 1 : 0)));
-        svc.store.states.put(ws.id, { ...prev, current, updatedAt: daysFromNow(-15), updatedBy: actor });
-      }
+    await seedStates(fw, (node, prev) => {
+      if (!prev.applicable) return undefined;
+      const p = byId.get(node.id);
+      const jitter = rand(`${fw}:${node.code}`);
+      return { current: Math.max(0, Math.min(prev.target, (p?.suggested ?? 0) + (jitter > 0.7 ? 1 : 0) + (fw === "aicpa-tsc-2017" ? 1 : 0))), updatedAt: daysFromNow(-15) };
     });
   }
 
   // RMF Categorize (FIPS 199 via SP 800-60 information types): high-water mark → MODERATE baseline.
-  if (svc.frameworkSettings(svc.workspace(ws.id), "nist-sp-800-53-r5")) {
-    svc.categorizeSystem(
+  if (svc.frameworkSettings(await svc.workspace(ws.id), "nist-sp-800-53-r5")) {
+    await svc.categorizeSystem(
       ws.id,
       {
         systemName: "Northwind Clinic Cloud",
@@ -127,27 +132,27 @@ export async function seedDemo(svc: VisuaService): Promise<string> {
       },
       actor,
     );
-    svc.tailorControl(ws.id, "nist-sp-800-53-r5:PE-3", "remove", "Physical access control is inherited from the cloud provider's data centers (carve-out).", actor);
+    await svc.tailorControl(ws.id, "nist-sp-800-53-r5:PE-3", "remove", "Physical access control is inherited from the cloud provider's data centers (carve-out).", actor);
   }
 
   // RMF lifecycle: the demo system is prepared, categorized and has its baseline selected; implementation is under way.
   const rmf = svc.registry.framework("nist-rmf");
-  if (rmf && svc.frameworkSettings(svc.workspace(ws.id), "nist-rmf")) {
+  if (rmf && svc.frameworkSettings(await svc.workspace(ws.id), "nist-rmf")) {
     const stepLevel: Record<string, number> = { P: 3, C: 3, S: 3, I: 2, A: 1, R: 0, M: 1 };
-    svc.store.transaction(() => {
-      for (const node of rmf.assessable) {
-        const prev = svc.store.states.get(ws.id, node.id);
-        if (!prev || !prev.applicable) continue;
-        const level = stepLevel[node.code.split("-")[0]!] ?? 0;
-        const current = Math.max(0, Math.min(prev.target, level - (rand(`rmf:${node.code}`) > 0.8 ? 1 : 0)));
-        svc.store.states.put(ws.id, { ...prev, current, owner: node.code.startsWith("R-") ? "Authorizing Official" : "System Owner", updatedAt: daysFromNow(-10), updatedBy: actor });
-      }
+    await seedStates("nist-rmf", (node, prev) => {
+      if (!prev.applicable) return undefined;
+      const level = stepLevel[node.code.split("-")[0]!] ?? 0;
+      return {
+        current: Math.max(0, Math.min(prev.target, level - (rand(`rmf:${node.code}`) > 0.8 ? 1 : 0))),
+        owner: node.code.startsWith("R-") ? "Authorizing Official" : "System Owner",
+        updatedAt: daysFromNow(-10),
+      };
     });
   }
 
   // AI governance: an AI system inventory and a mid-maturity AI RMF profile (GOVERN ahead of MEASURE/MANAGE).
   const aiRmf = svc.registry.framework("nist-ai-rmf");
-  if (aiRmf && svc.frameworkSettings(svc.workspace(ws.id), "nist-ai-rmf")) {
+  if (aiRmf && svc.frameworkSettings(await svc.workspace(ws.id), "nist-ai-rmf")) {
     const systems: Parameters<typeof svc.upsertAiSystem>[1][] = [
       {
         name: "Clinical note summarizer",
@@ -186,27 +191,27 @@ export async function seedDemo(svc: VisuaService): Promise<string> {
         humanOversight: "Escalates to a person on clinical keywords, low confidence or on request.",
       },
     ];
-    for (const s of systems) svc.upsertAiSystem(ws.id, s, actor);
+    for (const s of systems) await svc.upsertAiSystem(ws.id, s, actor);
     const fnLevel: Record<string, number> = { GOVERN: 2, MAP: 2, MEASURE: 1, MANAGE: 1 };
-    svc.store.transaction(() => {
-      for (const node of aiRmf.assessable) {
-        const prev = svc.store.states.get(ws.id, node.id);
-        if (!prev || !prev.applicable) continue;
-        const fn = aiRmf.ancestors(node.id)[0]?.code ?? "";
-        const j = rand(`ai:${node.code}`);
-        const current = Math.max(0, Math.min(prev.target, (fnLevel[fn] ?? 1) + (j > 0.8 ? 1 : j < 0.2 ? -1 : 0)));
-        svc.store.states.put(ws.id, { ...prev, current, owner: fn === "GOVERN" ? "AI Governance Committee" : "Data Science Lead", updatedAt: daysFromNow(-8), updatedBy: actor });
-      }
+    await seedStates("nist-ai-rmf", (node, prev) => {
+      if (!prev.applicable) return undefined;
+      const fn = aiRmf.ancestors(node.id)[0]?.code ?? "";
+      const j = rand(`ai:${node.code}`);
+      return {
+        current: Math.max(0, Math.min(prev.target, (fnLevel[fn] ?? 1) + (j > 0.8 ? 1 : j < 0.2 ? -1 : 0))),
+        owner: fn === "GOVERN" ? "AI Governance Committee" : "Data Science Lead",
+        updatedAt: daysFromNow(-8),
+      };
     });
   }
 
   // Policies (approved ones become evidence automatically).
   const nodesUnder = (code: string) => csf.assessableUnder(csf.get(code)!.id).map((n) => n.id);
-  const isp = svc.createPolicy(ws.id, { title: "Information Security Policy", body: policyBody("Information Security Policy", "establish management direction for protecting Northwind Health information"), requirementIds: [...nodesUnder("GV.PO"), ...nodesUnder("GV.OC").slice(0, 2)], owner: "CISO" }, actor);
-  svc.updatePolicy(ws.id, isp.id, { status: "approved" }, "Dana Whitfield (CEO)");
-  const acp = svc.createPolicy(ws.id, { title: "Identity and Access Control Policy", body: policyBody("Identity and Access Control Policy", "limit access to authorized users with MFA and least privilege"), requirementIds: nodesUnder("PR.AA"), owner: "IT Lead" }, actor);
-  svc.updatePolicy(ws.id, acp.id, { status: "approved" }, "Dana Whitfield (CEO)");
-  svc.createPolicy(ws.id, { title: "Incident Response Plan", body: policyBody("Incident Response Plan", "detect, contain and recover from incidents and notify affected parties"), requirementIds: nodesUnder("RS.MA"), owner: "Security Engineer", status: "in-review" } as never, actor);
+  const isp = await svc.createPolicy(ws.id, { title: "Information Security Policy", body: policyBody("Information Security Policy", "establish management direction for protecting Northwind Health information"), requirementIds: [...nodesUnder("GV.PO"), ...nodesUnder("GV.OC").slice(0, 2)], owner: "CISO" }, actor);
+  await svc.updatePolicy(ws.id, isp.id, { status: "approved" }, "Dana Whitfield (CEO)");
+  const acp = await svc.createPolicy(ws.id, { title: "Identity and Access Control Policy", body: policyBody("Identity and Access Control Policy", "limit access to authorized users with MFA and least privilege"), requirementIds: nodesUnder("PR.AA"), owner: "IT Lead" }, actor);
+  await svc.updatePolicy(ws.id, acp.id, { status: "approved" }, "Dana Whitfield (CEO)");
+  await svc.createPolicy(ws.id, { title: "Incident Response Plan", body: policyBody("Incident Response Plan", "detect, contain and recover from incidents and notify affected parties"), requirementIds: nodesUnder("RS.MA"), owner: "Security Engineer", status: "in-review" } as never, actor);
 
   // Evidence on file (a few stale to exercise at-risk status).
   const evidenceSeeds: [string, string, number, "document" | "configuration" | "screenshot" | "report" | "attestation"][] = [
@@ -228,22 +233,19 @@ export async function seedDemo(svc: VisuaService): Promise<string> {
   for (const [code, title, validDays, kind] of evidenceSeeds) {
     const node = csf.get(code);
     if (!node) continue;
-    svc.createEvidence(
+    await svc.createEvidence(
       ws.id,
       { title, kind, source: "manual", requirementIds: [node.id], status: "accepted", reviewedBy: "CISO", reviewedAt: daysFromNow(-10), collectedAt: daysFromNow(-30), validUntil: daysFromNow(validDays), content: `${title} — collected for ${code}.` },
       actor,
     );
   }
-  for (const code of ["PR.AA-03", "PR.DS-01", "GV.RR-02"]) {
-    const node = csf.get(code)!;
-    const s = svc.store.states.get(ws.id, node.id)!;
-    svc.store.states.put(ws.id, { ...s, current: Math.max(s.current, s.target), verifiedAt: daysFromNow(-5) });
-  }
+  const verified = new Set(["PR.AA-03", "PR.DS-01", "GV.RR-02"]);
+  await seedStates("nist-csf-2.0", (node, s) => (verified.has(node.code) ? { current: Math.max(s.current, s.target), verifiedAt: daysFromNow(-5) } : undefined));
 
   // Action plan grounded in the official Implementation Examples.
-  const tasks = svc.planWith(ws.id, "nist-csf-2.0", 18, actor);
+  const tasks = await svc.planWith(ws.id, "nist-csf-2.0", 18, actor);
   const statuses: Task["status"][] = ["done", "done", "in-progress", "in-progress", "in-review", "in-progress", "todo", "todo", "blocked"];
-  tasks.forEach((t, i) => {
+  for (const [i, t] of tasks.entries()) {
     const status = statuses[i] ?? "todo";
     const patch: Partial<Task> = { status };
     if (i === 2) patch.dueDate = dateFromNow(-4); // overdue → at-risk signal
@@ -252,21 +254,21 @@ export async function seedDemo(svc: VisuaService): Promise<string> {
     if (i % 3 === 0) patch.assignee = { type: "person", id: "u-ciso", name: "Morgan Lee (CISO)" };
     else if (i % 3 === 1) patch.assignee = { type: "person", id: "u-it", name: "Sam Ortiz (IT Lead)" };
     else patch.assignee = { type: "agent", id: t.automation?.agent ?? "task-executor", name: "Visua agent" };
-    svc.updateTask(ws.id, t.id, patch, actor);
-  });
+    await svc.updateTask(ws.id, t.id, patch, actor);
+  }
 
   // Real, credential-free monitoring: scan this repository for secure-development signals.
-  const repo = svc.createConnector(ws.id, { kind: "repo-scan", name: "Platform repository", config: { path: REPO_ROOT } }, actor);
+  const repo = await svc.createConnector(ws.id, { kind: "repo-scan", name: "Platform repository", config: { path: REPO_ROOT } }, actor);
   await svc.runConnector(ws.id, repo.id, actor).catch(() => []);
-  svc.createConnector(ws.id, { kind: "web-posture", name: "Public website posture", config: { url: "https://www.nist.gov" } }, actor);
+  await svc.createConnector(ws.id, { kind: "web-posture", name: "Public website posture", config: { url: "https://www.nist.gov" } }, actor);
 
-  svc.upsertRisk(ws.id, { title: "Ransomware disrupting clinic scheduling", description: "Encryption of production data stores would halt appointment scheduling for clinics.", likelihood: 3, impact: 5, treatment: "mitigate", status: "treating", requirementIds: nodesUnder("RC.RP").concat(nodesUnder("PR.DS").slice(-1)), owner: "CISO" }, actor);
-  svc.upsertRisk(ws.id, { title: "Third-party EHR integration compromise", description: "A compromised EHR integration partner could exfiltrate PHI through API credentials.", likelihood: 2, impact: 5, treatment: "mitigate", status: "open", requirementIds: nodesUnder("GV.SC"), owner: "Platform Lead" }, actor);
+  await svc.upsertRisk(ws.id, { title: "Ransomware disrupting clinic scheduling", description: "Encryption of production data stores would halt appointment scheduling for clinics.", likelihood: 3, impact: 5, treatment: "mitigate", status: "treating", requirementIds: nodesUnder("RC.RP").concat(nodesUnder("PR.DS").slice(-1)), owner: "CISO" }, actor);
+  await svc.upsertRisk(ws.id, { title: "Third-party EHR integration compromise", description: "A compromised EHR integration partner could exfiltrate PHI through API credentials.", likelihood: 2, impact: 5, treatment: "mitigate", status: "open", requirementIds: nodesUnder("GV.SC"), owner: "Platform Lead" }, actor);
 
   // A glass-box agent run awaiting approval, so the flight recorder has history.
-  const run = svc.startRun(ws.id, { agent: "auditor-prep", goal: "Prepare a SOC 2 readiness brief and flag audit blockers", input: frameworks.includes("aicpa-tsc-2017") ? { framework: "aicpa-tsc-2017" } : {} }, "Morgan Lee (CISO)");
+  const run = await svc.startRun(ws.id, { agent: "auditor-prep", goal: "Prepare a SOC 2 readiness brief and flag audit blockers", input: frameworks.includes("aicpa-tsc-2017") ? { framework: "aicpa-tsc-2017" } : {} }, "Morgan Lee (CISO)");
   await svc.waitForRun(run.id);
-  const planner = svc.startRun(ws.id, { agent: "evidence-collector", goal: "Find implemented CSF outcomes without evidence and propose collection tasks", input: {} }, "Morgan Lee (CISO)");
+  const planner = await svc.startRun(ws.id, { agent: "evidence-collector", goal: "Find implemented CSF outcomes without evidence and propose collection tasks", input: {} }, "Morgan Lee (CISO)");
   await svc.waitForRun(planner.id);
 
   return ws.id;
@@ -290,7 +292,7 @@ function policyBody(title: string, purpose: string): string {
   ].join("\n");
 }
 
-export function describeSeed(svc: VisuaService, workspaceId: string): string {
-  const ws = svc.workspace(workspaceId);
+export async function describeSeed(svc: VisuaService, workspaceId: string): Promise<string> {
+  const ws = await svc.workspace(workspaceId);
   return `${ws.name}: ${ws.frameworks.map((f) => codeOf(`x:${f.frameworkId}`)).join(", ")}`;
 }

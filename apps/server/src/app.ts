@@ -3,6 +3,7 @@
  * validation with Zod, and a local file route that serves the official
  * corpus so every citation opens the source PDF at the right page.
  */
+import { createHash } from "node:crypto";
 import { createReadStream, existsSync, statSync } from "node:fs";
 import { extname, isAbsolute, relative, resolve, sep } from "node:path";
 import { Readable } from "node:stream";
@@ -308,190 +309,192 @@ export function createApp(svc: VisuaService): Hono {
   });
 
   // ---------------------------------------------------------------- workspaces
-  app.get("/api/workspaces", (c) => c.json(svc.store.workspaces.list().map((ws) => workspaceSummary(svc, ws))));
+  const workspaceOf = (c: Context) => svc.workspace(c.req.param("ws") ?? "");
+
+  app.get("/api/workspaces", async (c) => c.json(await Promise.all((await svc.store.workspaces.list()).map((ws) => workspaceSummary(svc, ws)))));
 
   app.post("/api/workspaces", async (c) => {
     const input = await body(c, Schemas.createWorkspace);
-    const ws = svc.createWorkspace(input, actorOf(c));
-    return c.json(workspaceSummary(svc, ws), 201);
+    const ws = await svc.createWorkspace(input, actorOf(c));
+    return c.json(await workspaceSummary(svc, ws), 201);
   });
 
-  app.get("/api/workspaces/:ws", (c) => c.json(workspaceSummary(svc, svc.workspace(c.req.param("ws")))));
+  app.get("/api/workspaces/:ws", async (c) => c.json(await workspaceSummary(svc, await workspaceOf(c))));
 
   app.patch("/api/workspaces/:ws", async (c) => {
     const input = await body(c, Schemas.updateWorkspace);
-    const ws = svc.updateWorkspace(c.req.param("ws"), input as never, actorOf(c));
-    return c.json(workspaceSummary(svc, ws));
+    const ws = await svc.updateWorkspace(c.req.param("ws"), input as never, actorOf(c));
+    return c.json(await workspaceSummary(svc, ws));
   });
 
-  app.delete("/api/workspaces/:ws", (c) => {
-    const ws = svc.workspace(c.req.param("ws"));
-    svc.store.deleteWorkspace(ws.id);
+  app.delete("/api/workspaces/:ws", async (c) => {
+    await svc.deleteWorkspace(c.req.param("ws"));
     return c.json({ ok: true });
   });
 
-  app.get("/api/workspaces/:ws/recommendation", (c) => c.json(recommend(svc.workspace(c.req.param("ws")).profile)));
+  app.get("/api/workspaces/:ws/recommendation", async (c) => c.json(recommend((await workspaceOf(c)).profile)));
 
   app.put("/api/workspaces/:ws/frameworks/:fw", async (c) => {
     const input = await body(c, Schemas.enableFramework);
-    const ws = svc.enableFramework(c.req.param("ws"), c.req.param("fw"), input as never, actorOf(c));
-    return c.json(workspaceSummary(svc, ws));
+    const ws = await svc.enableFramework(c.req.param("ws"), c.req.param("fw"), input as never, actorOf(c));
+    return c.json(await workspaceSummary(svc, ws));
   });
 
-  app.get("/api/workspaces/:ws/frameworks/:fw/state", (c) => {
-    const ws = svc.workspace(c.req.param("ws"));
+  app.get("/api/workspaces/:ws/frameworks/:fw/state", async (c) => {
+    const ws = await workspaceOf(c);
     if (!svc.registry.framework(c.req.param("fw"))) throw new NotFoundError("Framework not found");
-    return c.json(frameworkState(svc, ws, c.req.param("fw")));
+    return c.json(await frameworkState(svc, ws, c.req.param("fw")));
   });
 
-  app.get("/api/workspaces/:ws/requirements/:nodeId", (c) => {
-    const ws = svc.workspace(c.req.param("ws"));
+  app.get("/api/workspaces/:ws/requirements/:nodeId", async (c) => {
+    const ws = await workspaceOf(c);
     const node = svc.registry.node(decodeURIComponent(c.req.param("nodeId")));
     if (!node) throw new NotFoundError("Requirement not found");
-    return c.json(nodeDetail(svc, ws, node));
+    return c.json(await nodeDetail(svc, ws, node));
   });
 
   app.patch("/api/workspaces/:ws/requirements/:nodeId", async (c) => {
     const input = await body(c, Schemas.updateState);
-    const state = svc.updateState(c.req.param("ws"), decodeURIComponent(c.req.param("nodeId")), input as never, actorOf(c));
-    return c.json(state);
+    return c.json(await svc.updateState(c.req.param("ws"), decodeURIComponent(c.req.param("nodeId")), input as never, actorOf(c)));
   });
 
   app.post("/api/workspaces/:ws/tiers", async (c) => {
     const input = await body(c, Schemas.tiers);
-    return c.json(workspaceSummary(svc, svc.recordTierAssessment(c.req.param("ws"), input.answers, actorOf(c))));
+    return c.json(await workspaceSummary(svc, await svc.recordTierAssessment(c.req.param("ws"), input.answers, actorOf(c))));
   });
 
   // ---------------------------------------------------------------- RMF
   app.post("/api/workspaces/:ws/rmf/categorize", async (c) => {
     const input = await body(c, Schemas.categorize);
-    return c.json(workspaceSummary(svc, svc.categorizeSystem(c.req.param("ws"), input, actorOf(c))));
+    return c.json(await workspaceSummary(svc, await svc.categorizeSystem(c.req.param("ws"), input, actorOf(c))));
   });
   app.post("/api/workspaces/:ws/rmf/tailor", async (c) => {
     const input = await body(c, Schemas.tailor);
-    return c.json(workspaceSummary(svc, svc.tailorControl(c.req.param("ws"), input.nodeId, input.action, input.rationale, actorOf(c))));
+    return c.json(await workspaceSummary(svc, await svc.tailorControl(c.req.param("ws"), input.nodeId, input.action, input.rationale, actorOf(c))));
   });
   app.post("/api/workspaces/:ws/rmf/authorize", async (c) => {
     const input = await body(c, Schemas.authorize);
-    return c.json(workspaceSummary(svc, svc.setAuthorization(c.req.param("ws"), input, actorOf(c))));
+    return c.json(await workspaceSummary(svc, await svc.setAuthorization(c.req.param("ws"), input, actorOf(c))));
   });
 
   // ---------------------------------------------------------------- AI governance
-  app.get("/api/workspaces/:ws/ai", (c) => c.json(aiOverview(svc, svc.workspace(c.req.param("ws")))));
+  app.get("/api/workspaces/:ws/ai", async (c) => c.json(await aiOverview(svc, await workspaceOf(c))));
   app.post("/api/workspaces/:ws/ai/systems", async (c) => {
     const input = await body(c, AiSystemSchema);
-    return c.json(svc.upsertAiSystem(c.req.param("ws"), input, actorOf(c)), 201);
+    return c.json(await svc.upsertAiSystem(c.req.param("ws"), input, actorOf(c)), 201);
   });
   app.patch("/api/workspaces/:ws/ai/systems/:id", async (c) => {
     const input = await body(c, AiSystemSchema.partial());
-    return c.json(svc.upsertAiSystem(c.req.param("ws"), { ...input, id: c.req.param("id") }, actorOf(c)));
+    return c.json(await svc.upsertAiSystem(c.req.param("ws"), { ...input, id: c.req.param("id") }, actorOf(c)));
   });
-  app.delete("/api/workspaces/:ws/ai/systems/:id", (c) => {
-    svc.removeAiSystem(c.req.param("ws"), c.req.param("id"), actorOf(c));
+  app.delete("/api/workspaces/:ws/ai/systems/:id", async (c) => {
+    await svc.removeAiSystem(c.req.param("ws"), c.req.param("id"), actorOf(c));
     return c.body(null, 204);
   });
 
   // ---------------------------------------------------------------- tasks
-  app.get("/api/workspaces/:ws/tasks", (c) => c.json(svc.store.tasks.list(svc.workspace(c.req.param("ws")).id)));
+  app.get("/api/workspaces/:ws/tasks", async (c) => c.json(await svc.store.tasks.list((await workspaceOf(c)).id)));
   app.post("/api/workspaces/:ws/tasks", async (c) => {
     const input = await body(c, Schemas.createTask);
     const checklist = input.checklist?.map((i) => ({ id: "", text: i.text, done: !!i.done }));
-    return c.json(svc.createTask(svc.workspace(c.req.param("ws")).id, { ...input, checklist } as never, actorOf(c)), 201);
+    return c.json(await svc.createTask(c.req.param("ws"), { ...input, checklist } as never, actorOf(c)), 201);
   });
   app.patch("/api/workspaces/:ws/tasks/:id", async (c) => {
     const input = await body(c, Schemas.updateTask);
     const clean = Object.fromEntries(Object.entries(input).map(([k, v]) => [k, v === null ? undefined : v]));
-    return c.json(svc.updateTask(svc.workspace(c.req.param("ws")).id, c.req.param("id"), clean as never, actorOf(c)));
+    return c.json(await svc.updateTask(c.req.param("ws"), c.req.param("id"), clean as never, actorOf(c)));
   });
-  app.delete("/api/workspaces/:ws/tasks/:id", (c) => {
-    svc.deleteTask(svc.workspace(c.req.param("ws")).id, c.req.param("id"), actorOf(c));
+  app.delete("/api/workspaces/:ws/tasks/:id", async (c) => {
+    await svc.deleteTask(c.req.param("ws"), c.req.param("id"), actorOf(c));
     return c.json({ ok: true });
   });
   app.post("/api/workspaces/:ws/plan", async (c) => {
     const input = await body(c, Schemas.plan);
-    const ws = svc.workspace(c.req.param("ws"));
-    return c.json(svc.planWith(ws.id, input.framework, input.maxTasks, actorOf(c)), 201);
+    return c.json(await svc.planWith(c.req.param("ws"), input.framework, input.maxTasks, actorOf(c)), 201);
   });
 
   // ---------------------------------------------------------------- evidence
-  app.get("/api/workspaces/:ws/evidence", (c) => c.json(svc.store.evidence.list(svc.workspace(c.req.param("ws")).id)));
+  app.get("/api/workspaces/:ws/evidence", async (c) => c.json(await svc.store.evidence.list((await workspaceOf(c)).id)));
   app.post("/api/workspaces/:ws/evidence", async (c) => {
     const input = await body(c, Schemas.createEvidence);
-    const { createHash } = await import("node:crypto");
     const sha256 = input.content ? createHash("sha256").update(input.content).digest("hex") : undefined;
-    return c.json(svc.createEvidence(svc.workspace(c.req.param("ws")).id, { ...input, source: "upload", sha256 }, actorOf(c)), 201);
+    return c.json(await svc.createEvidence(c.req.param("ws"), { ...input, source: "upload", sha256 }, actorOf(c)), 201);
   });
   app.patch("/api/workspaces/:ws/evidence/:id", async (c) => {
     const input = await body(c, Schemas.updateEvidence);
-    const wsId = svc.workspace(c.req.param("ws")).id;
-    if (input.decision) return c.json(svc.reviewEvidence(wsId, c.req.param("id"), input.decision, actorOf(c), input.note));
-    return c.json(svc.updateEvidence(wsId, c.req.param("id"), { title: input.title, requirementIds: input.requirementIds, validUntil: input.validUntil } as never, actorOf(c)));
+    if (input.decision) return c.json(await svc.reviewEvidence(c.req.param("ws"), c.req.param("id"), input.decision, actorOf(c), input.note));
+    return c.json(await svc.updateEvidence(c.req.param("ws"), c.req.param("id"), { title: input.title, requirementIds: input.requirementIds, validUntil: input.validUntil } as never, actorOf(c)));
   });
 
   // ---------------------------------------------------------------- policies & risks
-  app.get("/api/workspaces/:ws/policies", (c) => c.json(svc.store.policies.list(svc.workspace(c.req.param("ws")).id)));
+  app.get("/api/workspaces/:ws/policies", async (c) => c.json(await svc.store.policies.list((await workspaceOf(c)).id)));
   app.post("/api/workspaces/:ws/policies", async (c) => {
     const input = await body(c, Schemas.createPolicy);
-    return c.json(svc.createPolicy(svc.workspace(c.req.param("ws")).id, input, actorOf(c)), 201);
+    return c.json(await svc.createPolicy(c.req.param("ws"), input, actorOf(c)), 201);
   });
   app.patch("/api/workspaces/:ws/policies/:id", async (c) => {
     const input = await body(c, Schemas.updatePolicy);
-    return c.json(svc.updatePolicy(svc.workspace(c.req.param("ws")).id, c.req.param("id"), input, actorOf(c)));
+    return c.json(await svc.updatePolicy(c.req.param("ws"), c.req.param("id"), input, actorOf(c)));
   });
-  app.get("/api/workspaces/:ws/risks", (c) => c.json(svc.store.risks.list(svc.workspace(c.req.param("ws")).id)));
+  app.get("/api/workspaces/:ws/risks", async (c) => c.json(await svc.store.risks.list((await workspaceOf(c)).id)));
   app.post("/api/workspaces/:ws/risks", async (c) => {
     const input = await body(c, Schemas.risk);
-    return c.json(svc.upsertRisk(svc.workspace(c.req.param("ws")).id, input as never, actorOf(c)), 201);
+    return c.json(await svc.upsertRisk(c.req.param("ws"), input as never, actorOf(c)), 201);
   });
 
   // ---------------------------------------------------------------- connectors
-  app.get("/api/workspaces/:ws/connectors", (c) => c.json(svc.store.connectors.list(svc.workspace(c.req.param("ws")).id)));
+  app.get("/api/workspaces/:ws/connectors", async (c) => c.json(await svc.store.connectors.list((await workspaceOf(c)).id)));
   app.post("/api/workspaces/:ws/connectors", async (c) => {
     const input = await body(c, Schemas.connector);
-    return c.json(svc.createConnector(svc.workspace(c.req.param("ws")).id, input, actorOf(c)), 201);
+    return c.json(await svc.createConnector(c.req.param("ws"), input, actorOf(c)), 201);
   });
-  app.post("/api/workspaces/:ws/connectors/:id/run", async (c) => c.json(await svc.runConnector(svc.workspace(c.req.param("ws")).id, c.req.param("id"), actorOf(c))));
-  app.get("/api/workspaces/:ws/checks", (c) => c.json(svc.store.checks.recent(svc.workspace(c.req.param("ws")).id, 200)));
+  app.post("/api/workspaces/:ws/connectors/:id/run", async (c) => c.json(await svc.runConnector(c.req.param("ws"), c.req.param("id"), actorOf(c))));
+  app.get("/api/workspaces/:ws/checks", async (c) => c.json(await svc.store.checks.recent((await workspaceOf(c)).id, 200)));
 
   // ---------------------------------------------------------------- agents
-  app.get("/api/workspaces/:ws/runs", (c) =>
-    c.json(svc.store.runs.recent(svc.workspace(c.req.param("ws")).id, Number(c.req.query("limit") ?? 50)).map((r) => ({ ...r, steps: undefined, stepCount: r.steps.length }))),
+  app.get("/api/workspaces/:ws/runs", async (c) =>
+    c.json(
+      (await svc.store.runs.recent((await workspaceOf(c)).id, Number(c.req.query("limit") ?? 50))).map((r) => ({ ...r, steps: undefined, stepCount: r.steps.length })),
+    ),
   );
   app.post("/api/workspaces/:ws/runs", async (c) => {
     const input = await body(c, Schemas.run);
-    const run = svc.startRun(svc.workspace(c.req.param("ws")).id, { agent: input.agent as AgentKind, goal: input.goal, input: input.input }, actorOf(c));
+    const run = await svc.startRun(c.req.param("ws"), { agent: input.agent as AgentKind, goal: input.goal, input: input.input }, actorOf(c));
     if (c.req.query("wait") === "1") {
       const done = await svc.waitForRun(run.id);
-      return c.json({ ...done, proposals: svc.store.proposals.list(done.workspaceId).filter((p) => p.runId === done.id) }, 201);
+      return c.json({ ...done, proposals: (await svc.store.proposals.list(done.workspaceId)).filter((p) => p.runId === done.id) }, 201);
     }
     return c.json(run, 202);
   });
-  app.get("/api/workspaces/:ws/runs/:id", (c) => {
-    const run = svc.store.runs.get(c.req.param("id"));
-    if (!run || run.workspaceId !== svc.workspace(c.req.param("ws")).id) throw new NotFoundError("Run not found");
-    const proposals = svc.store.proposals.list(run.workspaceId).filter((p) => p.runId === run.id);
+  app.get("/api/workspaces/:ws/runs/:id", async (c) => {
+    const ws = await workspaceOf(c);
+    const run = await svc.store.runs.get(c.req.param("id"));
+    if (!run || run.workspaceId !== ws.id) throw new NotFoundError("Run not found");
+    const proposals = (await svc.store.proposals.list(run.workspaceId)).filter((p) => p.runId === run.id);
     return c.json({ ...run, proposals });
   });
-  app.post("/api/workspaces/:ws/runs/:id/cancel", (c) => c.json(svc.cancelRun(svc.workspace(c.req.param("ws")).id, c.req.param("id"), actorOf(c))));
-  app.post("/api/workspaces/:ws/runs/:id/approve-all", (c) => {
-    const wsId = svc.workspace(c.req.param("ws")).id;
-    const pending = svc.store.proposals.list(wsId).filter((p) => p.runId === c.req.param("id") && p.status === "pending");
-    return c.json(pending.map((p) => svc.decideProposal(wsId, p.id, "approved", actorOf(c))));
+  app.post("/api/workspaces/:ws/runs/:id/cancel", async (c) => c.json(await svc.cancelRun(c.req.param("ws"), c.req.param("id"), actorOf(c))));
+  app.post("/api/workspaces/:ws/runs/:id/approve-all", async (c) => {
+    const ws = await workspaceOf(c);
+    const pending = (await svc.store.proposals.list(ws.id)).filter((p) => p.runId === c.req.param("id") && p.status === "pending");
+    const decided = [];
+    for (const p of pending) decided.push(await svc.decideProposal(ws.id, p.id, "approved", actorOf(c)));
+    return c.json(decided);
   });
-  app.get("/api/workspaces/:ws/proposals", (c) => {
+  app.get("/api/workspaces/:ws/proposals", async (c) => {
     const status = c.req.query("status");
-    return c.json(svc.store.proposals.list(svc.workspace(c.req.param("ws")).id).filter((p) => !status || p.status === status));
+    return c.json((await svc.store.proposals.list((await workspaceOf(c)).id)).filter((p) => !status || p.status === status));
   });
   app.post("/api/workspaces/:ws/proposals/:id/decision", async (c) => {
     const input = await body(c, Schemas.decision);
-    return c.json(svc.decideProposal(svc.workspace(c.req.param("ws")).id, c.req.param("id"), input.decision, actorOf(c), input.edits));
+    return c.json(await svc.decideProposal(c.req.param("ws"), c.req.param("id"), input.decision, actorOf(c), input.edits));
   });
 
-  // ---------------------------------------------------------------- activity & events
-  app.get("/api/workspaces/:ws/crosswalk", (c) => c.json(crosswalkOverview(svc, svc.workspace(c.req.param("ws")))));
-  app.get("/api/workspaces/:ws/crosswalk/rows", (c) =>
+  // ---------------------------------------------------------------- crosswalk, SOC 2 description, activity & events
+  app.get("/api/workspaces/:ws/crosswalk", async (c) => c.json(await crosswalkOverview(svc, await workspaceOf(c))));
+  app.get("/api/workspaces/:ws/crosswalk/rows", async (c) =>
     c.json(
-      crosswalkRows(svc, svc.workspace(c.req.param("ws")), {
+      await crosswalkRows(svc, await workspaceOf(c), {
         setId: c.req.query("set") || undefined,
         groupId: c.req.query("group") || undefined,
         nodeId: c.req.query("node") || undefined,
@@ -499,13 +502,13 @@ export function createApp(svc: VisuaService): Hono {
       }),
     ),
   );
-  app.get("/api/workspaces/:ws/soc2/description", (c) => c.json(soc2Description(svc, svc.workspace(c.req.param("ws")))));
+  app.get("/api/workspaces/:ws/soc2/description", async (c) => c.json(await soc2Description(svc, await workspaceOf(c))));
 
-  app.get("/api/workspaces/:ws/activity", (c) => c.json(svc.store.activity.recent(svc.workspace(c.req.param("ws")).id, Number(c.req.query("limit") ?? 100))));
-  app.get("/api/workspaces/:ws/activity/verify", (c) => c.json(svc.verifyAuditTrail(svc.workspace(c.req.param("ws")).id)));
+  app.get("/api/workspaces/:ws/activity", async (c) => c.json(await svc.store.activity.recent((await workspaceOf(c)).id, Number(c.req.query("limit") ?? 100))));
+  app.get("/api/workspaces/:ws/activity/verify", async (c) => c.json(await svc.verifyAuditTrail((await workspaceOf(c)).id)));
 
-  app.get("/api/workspaces/:ws/events", (c) => {
-    const ws = svc.workspace(c.req.param("ws"));
+  app.get("/api/workspaces/:ws/events", async (c) => {
+    const ws = await workspaceOf(c);
     return streamSSE(c, async (stream) => {
       const queue: string[] = [];
       let wake: (() => void) | undefined;
@@ -536,45 +539,44 @@ export function createApp(svc: VisuaService): Hono {
   });
 
   // ---------------------------------------------------------------- exports & trust
-  app.get("/api/workspaces/:ws/exports/:kind", (c) => {
-    const ws = svc.workspace(c.req.param("ws"));
+  app.get("/api/workspaces/:ws/exports/:kind", async (c) => {
+    const ws = await workspaceOf(c);
     const kind = c.req.param("kind");
     const file = (content: string, type: string, name: string) =>
       new Response(content, { headers: { "content-type": type, "content-disposition": `attachment; filename="${ws.slug}-${name}"` } });
     switch (kind) {
       case "csf-profile.csv":
-        return file(csfProfileCsv(svc, ws), "text/csv; charset=utf-8", "csf-2.0-organizational-profile.csv");
+        return file(await csfProfileCsv(svc, ws), "text/csv; charset=utf-8", "csf-2.0-organizational-profile.csv");
       case "action-plan.csv":
-        return file(actionPlanCsv(svc, ws), "text/csv; charset=utf-8", "action-plan.csv");
+        return file(await actionPlanCsv(svc, ws), "text/csv; charset=utf-8", "action-plan.csv");
       case "evidence-index.csv":
-        return file(evidenceIndexCsv(svc, ws), "text/csv; charset=utf-8", "evidence-index.csv");
+        return file(await evidenceIndexCsv(svc, ws), "text/csv; charset=utf-8", "evidence-index.csv");
       case "ai-rmf-profile.csv":
-        return file(aiRmfProfileCsv(svc, ws), "text/csv; charset=utf-8", "nist-ai-rmf-profile.csv");
+        return file(await aiRmfProfileCsv(svc, ws), "text/csv; charset=utf-8", "nist-ai-rmf-profile.csv");
       case "soc2-pbc.csv":
-        return file(soc2PbcCsv(svc, ws), "text/csv; charset=utf-8", "soc2-pbc-request-list.csv");
+        return file(await soc2PbcCsv(svc, ws), "text/csv; charset=utf-8", "soc2-pbc-request-list.csv");
       case "readiness.md":
-        return file(readinessMarkdown(svc, ws), "text/markdown; charset=utf-8", "readiness-report.md");
+        return file(await readinessMarkdown(svc, ws), "text/markdown; charset=utf-8", "readiness-report.md");
       case "oscal-ssp.json":
-        return file(JSON.stringify(oscalSsp(svc, ws), null, 2), "application/json", "oscal-ssp.json");
+        return file(JSON.stringify(await oscalSsp(svc, ws), null, 2), "application/json", "oscal-ssp.json");
       case "oscal-poam.json":
-        return file(JSON.stringify(oscalPoam(svc, ws), null, 2), "application/json", "oscal-poam.json");
+        return file(JSON.stringify(await oscalPoam(svc, ws), null, 2), "application/json", "oscal-poam.json");
       default:
         throw new NotFoundError(`Unknown export '${kind}'`);
     }
   });
 
-  app.get("/api/trust/:slug", (c) => {
-    const ws = svc.store.workspaces.get(c.req.param("slug"));
-    if (!ws || !ws.trustCenter.enabled) throw new NotFoundError("Trust center not found");
-    const summary = workspaceSummary(svc, ws);
+  app.get("/api/trust/:slug", async (c) => {
+    const ws = await svc.store.workspaces.get(c.req.param("slug"));
+    if (!ws || ws.slug !== c.req.param("slug") || !ws.trustCenter.enabled) throw new NotFoundError("Trust center not found");
+    const [summary, checks] = await Promise.all([workspaceSummary(svc, ws), svc.store.checks.recent(ws.id, 100)]);
     return c.json({
       name: ws.name,
       headline: ws.trustCenter.headline ?? `${ws.name} security & compliance`,
       contactEmail: ws.trustCenter.contactEmail,
       frameworks: summary.frameworks.map((f) => ({ id: f.id, name: f.shortName, readiness: Math.round(f.readiness * 100), evidenceCoverage: Math.round(f.evidenceCoverage * 100) })),
       policies: summary.policies.filter((p) => p.status === "approved" || p.status === "published").map((p) => ({ title: p.title, version: p.version })),
-      monitoring: svc.store.checks
-        .recent(ws.id, 100)
+      monitoring: checks
         .filter((ch, i, all) => all.findIndex((x) => x.checkId === ch.checkId) === i)
         .map((ch) => ({ title: ch.title, outcome: ch.outcome, observedAt: ch.observedAt })),
       updatedAt: ws.updatedAt,

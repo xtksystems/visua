@@ -11,16 +11,21 @@ import { NotFoundError, type VisuaService } from "./visua.ts";
 
 export type DescriptionStatus = "drafted" | "needs-input" | "not-applicable";
 
-export function soc2Description(svc: VisuaService, ws: Workspace) {
+export async function soc2Description(svc: VisuaService, ws: Workspace) {
   const settings = svc.frameworkSettings(ws, TSC_ID)?.soc2;
   const index = svc.registry.framework(TSC_ID);
   if (!settings || !index) throw new NotFoundError("SOC 2 is not enabled for this workspace");
-  const states = svc.store.states.list(ws.id, TSC_ID);
-  const tasks = svc.store.tasks.list(ws.id);
-  const evidence = svc.store.evidence.list(ws.id).filter((e) => isEvidenceValid(e));
-  const policies = svc.store.policies.list(ws.id).filter((p) => p.status === "approved" || p.status === "published");
-  const connectors = svc.store.connectors.list(ws.id);
-  const risks = svc.store.risks.list(ws.id);
+  const [states, tasks, allEvidence, allPolicies, connectors, risks, activity] = await Promise.all([
+    svc.store.states.list(ws.id, TSC_ID),
+    svc.store.tasks.list(ws.id),
+    svc.store.evidence.list(ws.id),
+    svc.store.policies.list(ws.id),
+    svc.store.connectors.list(ws.id),
+    svc.store.risks.list(ws.id),
+    svc.store.activity.list(ws.id),
+  ]);
+  const evidence = allEvidence.filter((e) => isEvidenceValid(e));
+  const policies = allPolicies.filter((p) => p.status === "approved" || p.status === "published");
   const inCategories = index.assessable.filter((n) => settings.categories.includes(String(n.attributes?.["category"]) as never));
   const applicable = inCategories.filter((n) => states.find((s) => s.nodeId === n.id)?.applicable !== false);
   const excluded = inCategories
@@ -30,8 +35,7 @@ export function soc2Description(svc: VisuaService, ws: Workspace) {
   const withEvidence = applicable.filter((n) => evidence.some((e) => e.requirementIds.includes(n.id))).length;
   const start = settings.observationStart ? new Date(settings.observationStart).getTime() : 0;
   const end = settings.observationEnd ? new Date(settings.observationEnd).getTime() : Date.now();
-  const changes = svc.store.activity
-    .list(ws.id)
+  const changes = activity
     .filter((a) => {
       const t = new Date(a.at).getTime();
       return t >= start && t <= end && ["framework", "policy", "connector"].includes(a.entity) && a.actor !== "system";

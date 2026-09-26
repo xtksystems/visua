@@ -9,13 +9,13 @@ import { NotFoundError, type VisuaService } from "./visua.ts";
 
 export const AI_RMF = "nist-ai-rmf";
 
-export function aiOverview(svc: VisuaService, ws: Workspace) {
+export async function aiOverview(svc: VisuaService, ws: Workspace) {
   const index = svc.registry.framework(AI_RMF);
   if (!index) throw new NotFoundError("The NIST AI RMF is not ingested — run `pnpm ingest`");
   const settings = svc.frameworkSettings(ws, AI_RMF);
   const enabled = !!settings?.enabled;
   const systems = settings?.ai?.systems ?? [];
-  const score = enabled ? svc.score(ws.id, AI_RMF) : null;
+  const [score, states] = enabled ? await Promise.all([svc.score(ws.id, AI_RMF), svc.store.states.map(ws.id, AI_RMF)]) : [null, new Map()];
 
   const functions = index.roots().map((f) => {
     const s = score?.scores.get(f.id);
@@ -40,7 +40,7 @@ export function aiOverview(svc: VisuaService, ws: Workspace) {
     let weighted = 0;
     let gaps = 0;
     for (const n of nodes) {
-      const st = enabled ? svc.store.states.get(ws.id, n.id) : undefined;
+      const st = states.get(n.id);
       if (!st || !st.applicable) continue;
       weighted += st.target > 0 ? Math.min(st.current / st.target, 1) : 0;
       if (st.target > st.current) gaps++;

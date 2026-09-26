@@ -44,8 +44,8 @@ export interface AgentHost {
   policies(): Policy[];
   connectors(): Connector[];
   runConnector(connectorId: string): Promise<CheckResult[]>;
-  /** Stage a change. Returns the stored proposal (possibly already applied). */
-  propose(input: ProposalInput): Proposal;
+  /** Stage a change. Resolves to the stored proposal (possibly already applied). */
+  propose(input: ProposalInput): Promise<Proposal>;
   /** Append a step to the run's flight recorder (persisted + streamed). */
   step(step: Omit<AgentStep, "id" | "at">): AgentStep;
 }

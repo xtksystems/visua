@@ -16,9 +16,12 @@
     "@visua/core": "workspace:*",
     "@visua/frameworks": "workspace:*",
     "hono": "^4.13.9",
+    "openid-client": "^6.8.8",
+    "pg": "^8.23.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@types/node": "^22.19.0"
+    "@types/node": "^22.19.0",
+    "@types/pg": "^8.23.1"
   }
 }

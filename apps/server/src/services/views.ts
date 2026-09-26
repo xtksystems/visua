@@ -49,19 +49,28 @@ export function leanGraph(graph: FrameworkGraph): { framework: FrameworkGraph["f
 }
 
 /** Everything the inspector needs for one requirement. */
-export function nodeDetail(svc: VisuaService, ws: Workspace, node: RequirementNode) {
+export async function nodeDetail(svc: VisuaService, ws: Workspace, node: RequirementNode) {
   const index = svc.registry.framework(node.frameworkId)!;
-  const score = svc.score(ws.id, node.frameworkId);
-  const state = node.assessable ? svc.store.states.get(ws.id, node.id) : undefined;
+  const related = svc.registry.crosswalk.related(node.id);
   const under = new Set(index.assessableUnder(node.id).map((n) => n.id));
-  const tasks = svc.store.tasks.list(ws.id).filter((t) => t.requirementIds.some((id) => id === node.id || under.has(id)));
-  const evidence = svc.store.evidence.list(ws.id).filter((e) => e.requirementIds.some((id) => id === node.id || under.has(id)));
-  const checks = svc.store.checks.list(ws.id).filter((c) => c.requirementIds.includes(node.id)).slice(-20);
-  const proposals = svc.store.proposals.list(ws.id).filter((p) => p.nodeIds.includes(node.id)).slice(-20);
-  const activity = svc.store.activity.recent(ws.id, 400).filter((a) => a.entityId === node.id).slice(0, 20);
-  const mappings = svc.registry.crosswalk.related(node.id).map((e) => {
+  const [score, states, allTasks, allEvidence, allChecks, allProposals, recentActivity] = await Promise.all([
+    svc.score(ws.id, node.frameworkId),
+    svc.store.states.getMany(ws.id, [node.id, ...related.map((e) => e.to)]),
+    svc.store.tasks.list(ws.id),
+    svc.store.evidence.list(ws.id),
+    svc.store.checks.list(ws.id),
+    svc.store.proposals.list(ws.id),
+    svc.store.activity.recent(ws.id, 400),
+  ]);
+  const state = node.assessable ? states.get(node.id) : undefined;
+  const tasks = allTasks.filter((t) => t.requirementIds.some((id) => id === node.id || under.has(id)));
+  const evidence = allEvidence.filter((e) => e.requirementIds.some((id) => id === node.id || under.has(id)));
+  const checks = allChecks.filter((c) => c.requirementIds.includes(node.id)).slice(-20);
+  const proposals = allProposals.filter((p) => p.nodeIds.includes(node.id)).slice(-20);
+  const activity = recentActivity.filter((a) => a.entityId === node.id).slice(0, 20);
+  const mappings = related.map((e) => {
     const target = svc.registry.node(e.to);
-    const s = svc.store.states.get(ws.id, e.to);
+    const s = states.get(e.to);
     return {
       id: e.to,
       code: codeOf(e.to),
@@ -98,11 +107,13 @@ export function nodeDetail(svc: VisuaService, ws: Workspace, node: RequirementNo
 }
 
 /** Per-framework state bundle driving the 3D colors, heights and HUD. */
-export function frameworkState(svc: VisuaService, ws: Workspace, frameworkId: string) {
-  const score = svc.score(ws.id, frameworkId);
-  const states = svc.store.states.list(ws.id, frameworkId);
-  const tasks = svc.store.tasks.list(ws.id);
-  const evidence = svc.store.evidence.list(ws.id);
+export async function frameworkState(svc: VisuaService, ws: Workspace, frameworkId: string) {
+  const [score, states, tasks, evidence] = await Promise.all([
+    svc.score(ws.id, frameworkId),
+    svc.store.states.list(ws.id, frameworkId),
+    svc.store.tasks.list(ws.id),
+    svc.store.evidence.list(ws.id),
+  ]);
   const openTasks = new Map<string, number>();
   for (const t of tasks) if (t.status !== "done") for (const id of t.requirementIds) openTasks.set(id, (openTasks.get(id) ?? 0) + 1);
   const evidenceCount = new Map<string, number>();
@@ -131,31 +142,34 @@ export function frameworkState(svc: VisuaService, ws: Workspace, frameworkId: st
   };
 }
 
-export function workspaceSummary(svc: VisuaService, ws: Workspace) {
+export async function workspaceSummary(svc: VisuaService, ws: Workspace) {
   const rank = (id: string) => (FRAMEWORK_ORDER.indexOf(id) === -1 ? 99 : FRAMEWORK_ORDER.indexOf(id));
-  const frameworks = ws.frameworks
-    .filter((f) => f.enabled && svc.registry.framework(f.frameworkId))
-    .sort((a, b) => rank(a.frameworkId) - rank(b.frameworkId))
-    .map((f) => {
-      const index = svc.registry.framework(f.frameworkId)!;
-      const s = svc.score(ws.id, f.frameworkId).overall;
-      return {
-        id: f.frameworkId,
-        shortName: index.graph.framework.shortName,
-        family: index.graph.framework.family,
-        settings: f,
-        readiness: s.readiness,
-        gaps: s.gaps,
-        total: s.total,
-        evidenceCoverage: s.evidenceCoverage,
-        verifiedShare: s.verifiedShare,
-        counts: s.counts,
-      };
-    });
-  const tasks = svc.store.tasks.list(ws.id);
+  const enabled = ws.frameworks.filter((f) => f.enabled && svc.registry.framework(f.frameworkId)).sort((a, b) => rank(a.frameworkId) - rank(b.frameworkId));
+  const scores = await Promise.all(enabled.map((f) => svc.score(ws.id, f.frameworkId)));
+  const frameworks = enabled.map((f, i) => {
+    const index = svc.registry.framework(f.frameworkId)!;
+    const s = scores[i]!.overall;
+    return {
+      id: f.frameworkId,
+      shortName: index.graph.framework.shortName,
+      family: index.graph.framework.family,
+      settings: f,
+      readiness: s.readiness,
+      gaps: s.gaps,
+      total: s.total,
+      evidenceCoverage: s.evidenceCoverage,
+      verifiedShare: s.verifiedShare,
+      counts: s.counts,
+    };
+  });
+  const [tasks, proposals, runs, evidenceTotal, policies] = await Promise.all([
+    svc.store.tasks.list(ws.id),
+    svc.store.proposals.list(ws.id),
+    svc.store.runs.recent(ws.id, 50),
+    svc.store.evidence.count(ws.id),
+    svc.store.policies.list(ws.id),
+  ]);
   const today = new Date().toISOString().slice(0, 10);
-  const proposals = svc.store.proposals.list(ws.id);
-  const runs = svc.store.runs.recent(ws.id, 50);
   return {
     workspace: ws,
     frameworks,
@@ -166,8 +180,8 @@ export function workspaceSummary(svc: VisuaService, ws: Workspace) {
       overdue: tasks.filter((t) => t.status !== "done" && t.dueDate && t.dueDate < today).length,
       byStatus: tasks.reduce<Record<string, number>>((acc, t) => ((acc[t.status] = (acc[t.status] ?? 0) + 1), acc), {}),
     },
-    evidence: { total: svc.store.evidence.count(ws.id) },
-    policies: svc.store.policies.list(ws.id).map((p) => ({ id: p.id, title: p.title, status: p.status, version: p.version })),
+    evidence: { total: evidenceTotal },
+    policies: policies.map((p) => ({ id: p.id, title: p.title, status: p.status, version: p.version })),
     approvals: proposals.filter((p) => p.status === "pending").length,
     agents: { running: runs.filter((r) => r.status === "running" || r.status === "queued").length, recent: runs.length },
   };

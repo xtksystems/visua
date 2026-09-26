@@ -2,11 +2,11 @@
 import { createService } from "../context.ts";
 import { seedDemo } from "./demo.ts";
 
-const svc = createService();
+const svc = await createService();
 if (process.argv.includes("--reset")) {
-  const ws = svc.store.workspaces.get("northwind-health");
-  if (ws) svc.store.deleteWorkspace(ws.id);
+  const ws = await svc.store.workspaces.get("northwind-health");
+  if (ws) await svc.deleteWorkspace(ws.id);
 }
 const id = await seedDemo(svc);
 console.log(`[visua] Demo workspace ready: ${id}`);
-svc.store.close();
+await svc.store.close();

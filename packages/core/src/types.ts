@@ -270,6 +270,8 @@ export interface WorkspaceFramework {
 
 export interface Workspace {
   id: string;
+  /** Owning organization (tenant). */
+  tenantId?: string;
   name: string;
   slug: string;
   description?: string;
@@ -569,6 +571,8 @@ export interface AgentRun {
   taskId?: string;
   usage?: { inputTokens: number; outputTokens: number };
   error?: string;
+  /** User id of the person (or token) that started the run. */
+  startedBy?: string;
   createdAt: string;
   startedAt?: string;
   finishedAt?: string;
@@ -583,6 +587,8 @@ export interface ActivityEvent {
   workspaceId: string;
   at: string;
   actor: string;
+  /** Authenticated principal behind the actor (user or API token id), when there is one. */
+  actorId?: string;
   action: string;
   entity: string;
   entityId: string;

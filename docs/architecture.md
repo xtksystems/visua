@@ -14,7 +14,7 @@ packages/frameworks/data/   <framework>.json graphs · mappings/*.json · chunks
   ▼
 packages/core               FrameworkIndex · scoring · status · planner · crosswalk · tiers · FIPS 199
 packages/agents             AgentHost contract · 16 tools · Claude runtime · offline playbooks
-apps/server                 VisuaService (SQLite) · Hono API · SSE · connectors · exports
+apps/server                 VisuaService · storage (SQLite or Postgres) · Hono API · SSE · connectors · exports
 apps/web                    React 19 · react-three-fiber scenes · TanStack Query · DESIGN.md tokens
 packages/design             DESIGN.md → CSS variables + typed tokens (shared by web and scenes)
 ```
@@ -167,12 +167,34 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 4. Server (`apps/server`)
 
-- **Store.** `node:sqlite`, with JSON documents per collection (workspaces, states,
-  tasks, evidence, policies, risks, connectors, checks, runs, proposals, activity). It
-  runs as a single process, and SQLite transactions wrap the bulk operations.
+- **Storage** (`src/storage/`). One async driver interface with two backends, chosen by
+  `VISUA_DATABASE_URL`: embedded SQLite (`node:sqlite`, the default, for local use,
+  demos and tests) and PostgreSQL (`pg`, for production and several server instances).
+  - Entities are JSON documents with indexed columns (TEXT in SQLite, JSONB in
+    Postgres): workspaces, requirement states, tasks, evidence, policies, risks,
+    connectors, checks, agent runs, proposals and activity, plus the tenancy and
+    identity tables.
+  - Versioned migrations run at startup under a lock, so several instances can start
+    together. Version 1 also upgrades SQLite databases written before migrations
+    existed (their workspaces move to a default organization).
+  - Repositories resolve their connection through an `AsyncLocalStorage` transaction
+    context: a service method and everything it calls commit or roll back together.
+    Nested `store.transaction()` calls use savepoints.
+- **Consistency.** Every service mutation runs in one transaction, holds a per-workspace
+  lock (a Postgres advisory lock; SQLite serializes writers) and re-reads the workspace
+  after taking it, so concurrent requests on different instances never lose updates.
+  Bus events are published only after the transaction commits.
 - **Audit trail.** Every change is an `ActivityEvent` with `seq`, `prevHash` and
-  `hash = SHA-256(prevHash ‖ canonical(event))`, chained from a zero genesis.
-  `GET /activity/verify` recomputes the chain and reports the first broken link.
+  `hash = SHA-256(prevHash ‖ canonical(event))`, chained from a zero genesis. The
+  event is written in the same transaction as the change it records, under the
+  workspace lock, and a unique `(workspace_id, seq)` index means the chain can never
+  fork. `GET /activity/verify` recomputes the chain and reports the first broken link.
+- **Derived caches.** Each audited change bumps the workspace's revision counter;
+  readiness scores are cached per revision, so every instance sees fresh scores.
+- **Agent host.** Agents read from a snapshot of the workspace taken when the run starts
+  and refreshed after every change their own actions apply. `propose()` is async and
+  goes through the service; run steps stream to the bus at once and are persisted in
+  order through a queue, outside the caller's transaction.
 - **API.** A Hono app with about 55 routes. They cover:
   - metadata, the recommendation engine and framework graphs
   - corpus search and corpus files (path-traversal safe; `.local/` never served)
@@ -252,7 +274,6 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 - There is no authentication, authorization or tenant isolation yet. Run it locally or
   behind an SSO proxy.
-- It runs as a single process on SQLite.
 - Connectors cover web posture and repository hygiene only. Cloud, IdP, HRIS and MDM
   integrations are on the roadmap.
 - The SOC 2 structured extraction tooling is not in the repository. Installations

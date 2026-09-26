@@ -1,14 +1,21 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { FrameworkRegistry, REPO_ROOT } from "@visua/frameworks";
 import { createApp } from "../src/app.ts";
 import { createService } from "../src/context.ts";
 import { seedDemo } from "../src/seed/demo.ts";
+import { testDatabase } from "./db.ts";
 
 process.env["VISUA_AGENT_MODE"] = "offline";
 
 const registry = FrameworkRegistry.load();
-const svc = createService({ database: ":memory:", registry });
+const db = await testDatabase("api");
+const svc = await createService({ database: db.url, registry });
 const app = createApp(svc);
+
+afterAll(async () => {
+  await svc.store.close();
+  await db.cleanup();
+});
 
 async function api<T = unknown>(method: string, path: string, body?: unknown): Promise<{ status: number; json: T; text: string }> {
   const res = await app.request(path, { method, headers: body ? { "content-type": "application/json" } : {}, body: body ? JSON.stringify(body) : undefined });
@@ -319,13 +326,13 @@ describe("integrity guardrails", () => {
     expect(verified.json.valid).toBe(true);
     expect(verified.json.events).toBeGreaterThan(10);
     // Tamper with one historical event directly in storage: verification must fail.
-    const events = svc.store.activity.list(wsId).sort((a, b) => (a.seq ?? 0) - (b.seq ?? 0));
+    const events = await svc.store.activity.chain(wsId);
     const victim = events[3]!;
-    svc.store.activity.put({ ...victim, summary: `${victim.summary} (edited)` }, `${victim.at}#${String(victim.seq).padStart(9, "0")}`);
+    await svc.store.activity.put({ ...victim, summary: `${victim.summary} (edited)` }, `${victim.at}#${String(victim.seq).padStart(9, "0")}`);
     const tampered = await api<{ valid: boolean; brokenAt: number }>("GET", `/api/workspaces/${wsId}/activity/verify`);
     expect(tampered.json.valid).toBe(false);
     expect(tampered.json.brokenAt).toBe(victim.seq);
-    svc.store.activity.put(victim, `${victim.at}#${String(victim.seq).padStart(9, "0")}`);
+    await svc.store.activity.put(victim, `${victim.at}#${String(victim.seq).padStart(9, "0")}`);
     expect((await api<{ valid: boolean }>("GET", `/api/workspaces/${wsId}/activity/verify`)).json.valid).toBe(true);
   });
 

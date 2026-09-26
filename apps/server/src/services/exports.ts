@@ -13,10 +13,8 @@ const csvCell = (v: unknown) => {
 };
 export const toCsv = (rows: unknown[][]) => rows.map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
 
-function context(svc: VisuaService, ws: Workspace) {
-  const evidence = svc.store.evidence.list(ws.id);
-  const tasks = svc.store.tasks.list(ws.id);
-  const policies = svc.store.policies.list(ws.id);
+async function context(svc: VisuaService, ws: Workspace) {
+  const [evidence, tasks, policies] = await Promise.all([svc.store.evidence.list(ws.id), svc.store.tasks.list(ws.id), svc.store.policies.list(ws.id)]);
   return {
     evidenceFor: (id: string) => evidence.filter((e) => e.requirementIds.includes(id)),
     tasksFor: (id: string) => tasks.filter((t) => t.requirementIds.includes(id)),
@@ -28,11 +26,10 @@ function context(svc: VisuaService, ws: Workspace) {
 }
 
 /** NIST CSF 2.0 Organizational Profile, using the official template's columns. */
-export function csfProfileCsv(svc: VisuaService, ws: Workspace): string {
+export async function csfProfileCsv(svc: VisuaService, ws: Workspace): Promise<string> {
   const index = svc.registry.framework("nist-csf-2.0");
   if (!index) throw new Error("CSF 2.0 is not loaded");
-  const score = svc.score(ws.id, index.id);
-  const ctx = context(svc, ws);
+  const [score, ctx, states] = await Promise.all([svc.score(ws.id, index.id), context(svc, ws), svc.store.states.map(ws.id, index.id)]);
   const header = [
     "CSF Outcome (Function, Category, or Subcategory)",
     "CSF Outcome Description",
@@ -82,7 +79,7 @@ export function csfProfileCsv(svc: VisuaService, ws: Workspace): string {
       ]);
       return;
     }
-    const st = svc.store.states.get(ws.id, node.id);
+    const st = states.get(node.id);
     const status = score.statuses.get(node.id);
     const approved = ctx.policiesFor(node.id).filter((p) => p.status === "approved" || p.status === "published");
     const openPolicyWork = ctx.tasksFor(node.id).filter((t) => t.status !== "done" && (t.kind === "policy" || t.kind === "procedure"));
@@ -113,9 +110,9 @@ export function csfProfileCsv(svc: VisuaService, ws: Workspace): string {
   return toCsv(rows);
 }
 
-export function actionPlanCsv(svc: VisuaService, ws: Workspace): string {
+export async function actionPlanCsv(svc: VisuaService, ws: Workspace): Promise<string> {
   const rows: unknown[][] = [["Task", "Status", "Priority", "Kind", "Requirements", "Start", "Due", "Effort (h)", "Assignee", "Checklist done", "Basis", "Origin"]];
-  for (const t of svc.store.tasks.list(ws.id).sort((a, b) => (a.dueDate ?? "").localeCompare(b.dueDate ?? ""))) {
+  for (const t of (await svc.store.tasks.list(ws.id)).sort((a, b) => (a.dueDate ?? "").localeCompare(b.dueDate ?? ""))) {
     rows.push([
       t.title,
       t.status,
@@ -134,9 +131,9 @@ export function actionPlanCsv(svc: VisuaService, ws: Workspace): string {
   return toCsv(rows);
 }
 
-export function evidenceIndexCsv(svc: VisuaService, ws: Workspace): string {
+export async function evidenceIndexCsv(svc: VisuaService, ws: Workspace): Promise<string> {
   const rows: unknown[][] = [["Evidence", "Kind", "Source", "Status", "Requirements", "Collected", "Valid until", "Reviewed by", "SHA-256"]];
-  for (const e of svc.store.evidence.list(ws.id)) {
+  for (const e of await svc.store.evidence.list(ws.id)) {
     rows.push([e.title, e.kind, e.source, e.status, e.requirementIds.map((id) => `${codeOf(id)} (${frameworkOf(id)})`).join("; "), e.collectedAt, e.validUntil ?? "", e.reviewedBy ?? "", e.sha256 ?? ""]);
   }
   return toCsv(rows);
@@ -146,16 +143,15 @@ export function evidenceIndexCsv(svc: VisuaService, ws: Workspace): string {
  * NIST AI RMF profile: current and target state for every outcome, with the Playbook
  * suggested actions and (for generative systems) Generative AI Profile actions in scope.
  */
-export function aiRmfProfileCsv(svc: VisuaService, ws: Workspace): string {
+export async function aiRmfProfileCsv(svc: VisuaService, ws: Workspace): Promise<string> {
   const index = svc.registry.framework("nist-ai-rmf");
   if (!index) throw new Error("The NIST AI RMF is not loaded");
-  const score = svc.score(ws.id, index.id);
-  const ctx = context(svc, ws);
+  const [score, ctx, states] = await Promise.all([svc.score(ws.id, index.id), context(svc, ws), svc.store.states.map(ws.id, index.id)]);
   const generative = (svc.frameworkSettings(ws, "nist-ai-rmf")?.ai?.systems ?? []).some((s) => s.generative);
   const rows: unknown[][] = [["Function", "Category", "Outcome", "Outcome description", "In scope", "Current", "Target", "Status", "Owner", "Playbook suggested actions", "Generative AI Profile actions", "Open tasks", "Evidence on file", "Source"]];
   for (const node of index.assessable) {
     const [fn, cat] = index.ancestors(node.id);
-    const st = svc.store.states.get(ws.id, node.id);
+    const st = states.get(node.id);
     const actions = (node.attributes?.["suggestedActions"] as string[] | undefined) ?? [];
     const gai = (node.attributes?.["profileActions"] as { id: string }[] | undefined) ?? [];
     rows.push([
@@ -179,14 +175,13 @@ export function aiRmfProfileCsv(svc: VisuaService, ws: Workspace): string {
 }
 
 /** SOC 2 PBC list: what an auditor will request per criterion, and what is already on file. */
-export function soc2PbcCsv(svc: VisuaService, ws: Workspace): string {
+export async function soc2PbcCsv(svc: VisuaService, ws: Workspace): Promise<string> {
   const index = svc.registry.framework("aicpa-tsc-2017");
   if (!index) throw new Error("SOC 2 (TSC) is not loaded");
-  const ctx = context(svc, ws);
-  const score = svc.score(ws.id, index.id);
+  const [score, ctx, states] = await Promise.all([svc.score(ws.id, index.id), context(svc, ws), svc.store.states.map(ws.id, index.id)]);
   const rows: unknown[][] = [["Criterion", "Criterion text", "In scope", "Points of focus", "Evidence requested", "Evidence on file", "Status", "Owner"]];
   for (const node of index.assessable) {
-    const st = svc.store.states.get(ws.id, node.id);
+    const st = states.get(node.id);
     const pof = (node.attributes?.["pointsOfFocus"] as { title: string }[] | undefined) ?? [];
     const onFile = ctx.evidenceFor(node.id).filter((e) => isEvidenceValid(e));
     rows.push([
@@ -203,12 +198,12 @@ export function soc2PbcCsv(svc: VisuaService, ws: Workspace): string {
   return toCsv(rows);
 }
 
-export function readinessMarkdown(svc: VisuaService, ws: Workspace): string {
+export async function readinessMarkdown(svc: VisuaService, ws: Workspace): Promise<string> {
   const lines = [`# ${ws.name} — Compliance readiness report`, "", `Generated ${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC by Visua.`, ""];
   for (const f of ws.frameworks.filter((x) => x.enabled)) {
     const index = svc.registry.framework(f.frameworkId);
     if (!index) continue;
-    const score = svc.score(ws.id, f.frameworkId);
+    const [score, states] = await Promise.all([svc.score(ws.id, f.frameworkId), svc.store.states.map(ws.id, f.frameworkId)]);
     const fw = index.graph.framework;
     lines.push(`## ${fw.shortName}`, "");
     lines.push(`- Readiness: **${Math.round(score.overall.readiness * 100)}%** across ${score.overall.total} in-scope ${fw.unitLabelPlural}`);
@@ -222,7 +217,7 @@ export function readinessMarkdown(svc: VisuaService, ws: Workspace): string {
       lines.push(`| ${root.code} ${root.title} | ${Math.round(s.readiness * 100)}% | ${s.gaps} | ${Math.round(s.evidenceCoverage * 100)}% |`);
     }
     const gaps = index.assessable
-      .map((n) => ({ n, s: svc.store.states.get(ws.id, n.id) }))
+      .map((n) => ({ n, s: states.get(n.id) }))
       .filter((x) => x.s?.applicable && x.s.target > x.s.current)
       .sort((a, b) => b.s!.target - b.s!.current - (a.s!.target - a.s!.current))
       .slice(0, 10);
@@ -250,7 +245,7 @@ function implementationStatus(current: number, applicable: boolean): string {
   return "planned";
 }
 
-export function oscalSsp(svc: VisuaService, ws: Workspace): Record<string, unknown> {
+export async function oscalSsp(svc: VisuaService, ws: Workspace): Promise<Record<string, unknown>> {
   const index = svc.registry.framework("nist-sp-800-53-r5");
   const settings = ws.frameworks.find((f) => f.frameworkId === "nist-sp-800-53-r5")?.rmf;
   if (!index || !settings) throw new Error("Enable NIST RMF / SP 800-53 for this workspace to export an SSP");
@@ -259,7 +254,8 @@ export function oscalSsp(svc: VisuaService, ws: Workspace): Record<string, unkno
   const level = cat?.overall ?? settings.baseline ?? "moderate";
   const ownerParty = randomUUID();
   const thisSystem = randomUUID();
-  const inScope = index.assessable.filter((n) => svc.store.states.get(ws.id, n.id)?.applicable);
+  const states = await svc.store.states.map(ws.id, index.id);
+  const inScope = index.assessable.filter((n) => states.get(n.id)?.applicable);
   return {
     "system-security-plan": {
       uuid: randomUUID(),
@@ -304,7 +300,7 @@ export function oscalSsp(svc: VisuaService, ws: Workspace): Record<string, unkno
       "control-implementation": {
         description: `Control implementation for the ${level.toUpperCase()} baseline${settings.tailoring.length ? " with tailoring" : ""}.`,
         "implemented-requirements": inScope.map((n) => {
-          const st = svc.store.states.get(ws.id, n.id);
+          const st = states.get(n.id);
           return {
             uuid: randomUUID(),
             "control-id": String(n.attributes?.["oscalId"] ?? n.code.toLowerCase()),
@@ -324,15 +320,16 @@ export function oscalSsp(svc: VisuaService, ws: Workspace): Record<string, unkno
   };
 }
 
-export function oscalPoam(svc: VisuaService, ws: Workspace): Record<string, unknown> {
+export async function oscalPoam(svc: VisuaService, ws: Workspace): Promise<Record<string, unknown>> {
   const now = new Date().toISOString();
   const items: Record<string, unknown>[] = [];
-  const tasks = svc.store.tasks.list(ws.id);
+  const tasks = await svc.store.tasks.list(ws.id);
   for (const f of ws.frameworks.filter((x) => x.enabled)) {
     const index = svc.registry.framework(f.frameworkId);
     if (!index) continue;
+    const states = await svc.store.states.map(ws.id, f.frameworkId);
     for (const n of index.assessable) {
-      const st = svc.store.states.get(ws.id, n.id);
+      const st = states.get(n.id);
       if (!st?.applicable || st.current >= st.target) continue;
       const related = tasks.filter((t) => t.requirementIds.includes(n.id) && t.status !== "done");
       items.push({
