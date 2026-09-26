@@ -92,11 +92,11 @@ export function statusOf(host: AgentHost, nodeId: string) {
 export const searchCorpus = defineTool({
   name: "search_corpus",
   description:
-    "Search the local official documentation corpus (NIST CSF 2.0, NIST RMF / SP 800-53 family, AICPA SOC 2) and return citable passages with document id, title and page. Use it before making any claim about what a framework requires.",
+    "Search the local official documentation corpus (NIST CSF 2.0, NIST RMF / SP 800-53 family, AICPA SOC 2, NIST AI RMF with the Generative AI Profile) and return citable passages with document id, title and page. Use it before making any claim about what a framework requires.",
   schema: z.object({
     query: z.string().min(2).describe("Keywords or a question, e.g. 'backups tested restore' or 'GV.SC-07 supplier risk'"),
     framework: z
-      .enum(["nist-csf-2.0", "nist-rmf", "aicpa-soc2"])
+      .enum(["nist-csf-2.0", "nist-rmf", "aicpa-soc2", "nist-ai-rmf"])
       .optional()
       .describe("Restrict to one corpus"),
     limit: z.number().int().min(1).max(8).optional(),
@@ -169,7 +169,7 @@ export const listRequirements = defineTool({
   description:
     "List units of work (assessable requirements) in a framework with their status, current/target level and priority. Filter by parent (function/category/family code), status, priority or minimum gap.",
   schema: z.object({
-    framework: z.string().describe("Framework id, e.g. 'nist-csf-2.0', 'aicpa-tsc-2017', 'nist-sp-800-53-r5'"),
+    framework: z.string().describe("Framework id, e.g. 'nist-csf-2.0', 'aicpa-tsc-2017', 'nist-sp-800-53-r5', 'nist-ai-rmf'"),
     parent: z.string().optional().describe("Restrict to descendants of this code, e.g. 'PR' or 'PR.AA' or 'AC'"),
     status: z.array(z.enum(STATUSES)).optional(),
     priority: z.array(z.enum(["critical", "high", "medium", "low"])).optional(),

@@ -44,6 +44,8 @@
   --color-framework-soc2-container: #3A1531;
   --color-framework-rmf: #C5E86C;
   --color-framework-rmf-container: #27310F;
+  --color-framework-ai: #B47825;
+  --color-framework-ai-container: #211608;
   --radius-none: 0px;
   --radius-xs: 2px;
   --radius-sm: 4px;
@@ -230,6 +232,9 @@
   --badge-framework-rmf-bg: #27310F;
   --badge-framework-rmf-fg: #C5E86C;
   --badge-framework-rmf-radius: 4px;
+  --badge-framework-ai-bg: #211608;
+  --badge-framework-ai-fg: #B47825;
+  --badge-framework-ai-radius: 4px;
   --requirement-code-bg: #121927;
   --requirement-code-fg: #7AA2FF;
   --requirement-code-radius: 2px;

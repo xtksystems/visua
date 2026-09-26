@@ -136,6 +136,67 @@ describe("SOC 2 and the crosswalk", () => {
   });
 });
 
+// Runs whenever the AI RMF corpus has been ingested (packages/frameworks/data/nist-ai-rmf.json).
+describe.skipIf(!registry.framework("nist-ai-rmf"))("AI governance (NIST AI RMF)", () => {
+  let systemId = "";
+  it("enables the AI RMF with its four functions and 72 outcomes", async () => {
+    const res = await api<{ frameworks: { id: string; total: number }[] }>("PUT", `/api/workspaces/${wsId}/frameworks/nist-ai-rmf`, { enabled: true });
+    expect(res.status).toBe(200);
+    expect(res.json.frameworks.find((f) => f.id === "nist-ai-rmf")?.total).toBe(72);
+    const overview = await api<{ functions: { code: string; total: number }[]; genAi: { active: boolean } | null }>("GET", `/api/workspaces/${wsId}/ai`);
+    expect(overview.json.functions.map((f) => [f.code, f.total])).toEqual([
+      ["GOVERN", 19],
+      ["MAP", 18],
+      ["MEASURE", 22],
+      ["MANAGE", 13],
+    ]);
+    expect(overview.json.genAi?.active).toBe(false);
+  });
+
+  it("keeps an AI system inventory, validated and recorded in the audit trail", async () => {
+    const missingPurpose = await api("POST", `/api/workspaces/${wsId}/ai/systems`, { name: "Underwriting model" });
+    expect(missingPurpose.status).toBe(400);
+    const created = await api<{ id: string; generative: boolean }>("POST", `/api/workspaces/${wsId}/ai/systems`, {
+      name: "Support copilot",
+      purpose: "Answers customer billing questions and hands off to staff",
+      generative: true,
+      riskTier: "moderate",
+      dataTypes: ["pii"],
+    });
+    expect(created.status).toBe(201);
+    systemId = created.json.id;
+    const overview = await api<{ systems: { name: string }[]; genAi: { active: boolean; risks: { id: string; actions: number; outcomes: string[] }[] } }>("GET", `/api/workspaces/${wsId}/ai`);
+    expect(overview.json.systems.map((s) => s.name)).toContain("Support copilot");
+    // A generative system brings the NIST AI 600-1 Generative AI Profile into scope: 12 GAI risks, each addressed by actions.
+    expect(overview.json.genAi.active).toBe(true);
+    expect(overview.json.genAi.risks).toHaveLength(12);
+    expect(overview.json.genAi.risks.every((r) => r.actions > 0 && r.outcomes.length > 0)).toBe(true);
+    const updated = await api<{ riskTier: string; name: string }>("PATCH", `/api/workspaces/${wsId}/ai/systems/${systemId}`, { riskTier: "high" });
+    expect(updated.json).toMatchObject({ riskTier: "high", name: "Support copilot" });
+    const activity = await api<{ summary: string }[]>("GET", `/api/workspaces/${wsId}/activity?limit=20`);
+    expect(activity.json.some((a) => a.summary.includes("AI system added to the inventory: Support copilot"))).toBe(true);
+  });
+
+  it("plans AI RMF work from the Playbook and exports the AI RMF profile", async () => {
+    const run = await api<{ status: string; proposals: { type: string; payload: { requirementIds: string[] } }[] }>("POST", `/api/workspaces/${wsId}/runs?wait=1`, { agent: "planner", goal: "Plan AI RMF work", input: { framework: "nist-ai-rmf", maxTasks: 3 } });
+    expect(run.json.status).toBe("completed");
+    const tasks = run.json.proposals.filter((p) => p.type === "create-task");
+    expect(tasks.length).toBeGreaterThan(0);
+    expect(tasks.every((t) => t.payload.requirementIds.every((id) => id.startsWith("nist-ai-rmf:")))).toBe(true);
+    const csv = await api("GET", `/api/workspaces/${wsId}/exports/ai-rmf-profile.csv`);
+    expect(csv.status).toBe(200);
+    expect(csv.text.split("\n")[0]).toContain("Playbook suggested actions");
+    expect(csv.text).toContain("GOVERN 1.1");
+  });
+
+  it("removes a system from the inventory", async () => {
+    const del = await api("DELETE", `/api/workspaces/${wsId}/ai/systems/${systemId}`);
+    expect(del.status).toBe(204);
+    const overview = await api<{ systems: unknown[] }>("GET", `/api/workspaces/${wsId}/ai`);
+    expect(overview.json.systems).toHaveLength(0);
+  });
+});
+
 describe("agents (offline playbooks) with human-in-the-loop proposals", () => {
   const run = async (agent: string, goal: string, input: Record<string, unknown> = {}) =>
     (await api<{ status: string; mode: string; summary: string; steps: { type: string }[]; proposals: { id: string; type: string; status: string }[] }>("POST", `/api/workspaces/${wsId}/runs?wait=1`, { agent, goal, input })).json;

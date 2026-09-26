@@ -310,7 +310,7 @@ function Sectors({ layout, state, selectedId, onSelect }: SceneProps) {
                   onSelect(s.id);
                 }}
               >
-                {`${s.code}${s.title && s.title !== s.code ? ` · ${(many && s.title.length > 26 ? `${s.title.slice(0, 25)}…` : s.title).toUpperCase()}` : ""}`}
+                {`${s.code}${s.title && s.title.toUpperCase() !== s.code.toUpperCase() ? ` · ${(many && s.title.length > 26 ? `${s.title.slice(0, 25)}…` : s.title).toUpperCase()}` : ""}`}
               </Text>
               {g && (
                 <Text

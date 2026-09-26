@@ -19,6 +19,22 @@ export interface PolicyTemplate {
 
 export const POLICY_TEMPLATES: PolicyTemplate[] = [
   {
+    id: "ai-governance-policy",
+    title: "Artificial Intelligence Governance and Risk Management Policy",
+    purpose:
+      "set how {org} governs, maps, measures and manages the risks of the AI systems it develops, procures or deploys, so that they remain trustworthy, lawful and aligned with {org}'s values and risk tolerance",
+    scope: "every AI system {org} develops, fine-tunes, procures or deploys — including third-party models and generative AI services — and everyone who designs, operates, oversees or uses them",
+    roles: [
+      ["Executive leadership", "Sets AI risk tolerance, approves this policy and is accountable for AI risk decisions."],
+      ["AI governance committee", "Maintains the AI system inventory, reviews high-risk systems before deployment and tracks AI incidents."],
+      ["System owners", "Document each AI system's intended purpose, context of use, limitations and human oversight, and keep its risk assessment current."],
+      ["Test, evaluation, verification and validation (TEVV) roles", "Measure performance, robustness, bias and other trustworthiness characteristics before and after deployment."],
+      ["All workforce members", "Use AI systems only as approved and report unexpected or harmful behavior."],
+    ],
+    matches: ["GOVERN", "MAP", "MEASURE", "MANAGE"],
+    reviewCadenceDays: 365,
+  },
+  {
     id: "information-security-policy",
     title: "Information Security Policy",
     purpose:
@@ -257,12 +273,14 @@ export function composePolicy(input: ComposeInput): string {
     lines.push(outcomeToShall(node.text, org));
     const examples = node.examples ?? [];
     const pof = (node.attributes?.["pointsOfFocus"] as { title: string; text?: string }[] | undefined) ?? [];
-    if (examples.length || pof.length) {
+    const suggested = (node.attributes?.["suggestedActions"] as string[] | undefined) ?? [];
+    if (examples.length || pof.length || suggested.length) {
       lines.push("");
       lines.push("To achieve this:");
       lines.push("");
       for (const ex of examples) lines.push(`- ${toShall(ex.text, org)}`);
       for (const p of pof.slice(0, 8)) lines.push(`- ${org} shall address *${p.title}*${p.text ? ` — ${p.text.replace(/\.$/, "")}` : ""}.`);
+      for (const a of suggested.slice(0, 5)) lines.push(`- ${toShall(a, org)}`);
     }
     lines.push("");
   }
@@ -314,6 +332,8 @@ export function frameworkLabel(frameworkId: string): string {
       return "SP 800-53 Rev. 5";
     case "nist-rmf":
       return "NIST RMF";
+    case "nist-ai-rmf":
+      return "NIST AI RMF";
     default:
       return frameworkId;
   }

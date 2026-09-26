@@ -76,6 +76,7 @@ const DRIVER_EMPHASIS: Partial<Record<Driver, { categories: string[]; reason: st
   "board-mandate": { categories: ["GV.OV", "GV.RM", "GV.RR"], reason: "boards need oversight, risk strategy and accountable roles" },
   "investor-due-diligence": { categories: ["GV.RM", "GV.PO", "ID.RA"], reason: "diligence reviews focus on governance maturity and known risks" },
   regulator: { categories: ["GV.OC", "GV.PO", "GV.OV"], reason: "regulators examine legal/regulatory context, policy and oversight" },
+  "ai-systems": { categories: ["GV.SC", "GV.RM", "ID.RA", "PR.DS"], reason: "AI systems add model and data supply-chain risk that governance, risk assessment and data protection must cover" },
 };
 
 function bump(p: Priority | undefined, to: Priority): Priority {
@@ -156,7 +157,17 @@ export function recommend(profile: OrganizationProfile): Recommendation {
     profile.drivers.includes("federal-customers") ||
     ["public-sector", "defense-contractor"].includes(profile.industry) ||
     profile.dataTypes.includes("cui");
+  const wantsAi = profile.drivers.includes("ai-systems");
   let order = 2;
+  if (wantsAi) {
+    frameworks.push({
+      frameworkId: "nist-ai-rmf",
+      name: "NIST AI RMF (with the Generative AI Profile)",
+      order: order++,
+      availability: "available",
+      reason: "You build or deploy AI systems: the AI RMF governs, maps, measures and manages their risks, and its GOVERN function builds on your CSF governance.",
+    });
+  }
   if (wantsSoc2) {
     frameworks.push({
       frameworkId: "aicpa-tsc-2017",
@@ -198,6 +209,8 @@ export function recommend(profile: OrganizationProfile): Recommendation {
     [profile.dataTypes.includes("cardholder"), "pci-dss-4", "PCI DSS v4.0.1", "cardholder data is in scope"],
     [profile.dataTypes.includes("cui"), "nist-sp-800-171-r3", "NIST SP 800-171 Rev. 3 / CMMC", "CUI is in scope"],
     [true, "iso-27001-2022", "ISO/IEC 27001:2022", "international customers often require certification"],
+    [wantsAi, "iso-iec-42001-2023", "ISO/IEC 42001:2023 (AI management system)", "the certifiable AI management system standard customers increasingly ask for"],
+    [wantsAi, "eu-ai-act", "EU AI Act (Regulation (EU) 2024/1689)", "binding obligations apply if you place AI systems on the EU market"],
   ];
   for (const [applies, id, name, why] of roadmap) {
     if (!applies) continue;

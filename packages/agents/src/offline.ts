@@ -60,6 +60,7 @@ function corpusForFramework(frameworkId: string): string | undefined {
   if (frameworkId === "nist-csf-2.0") return "nist-csf-2.0";
   if (frameworkId === "aicpa-tsc-2017") return "aicpa-soc2";
   if (frameworkId === "nist-sp-800-53-r5" || frameworkId === "nist-rmf") return "nist-rmf";
+  if (frameworkId === "nist-ai-rmf") return "nist-ai-rmf";
   return undefined;
 }
 

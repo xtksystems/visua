@@ -40,6 +40,7 @@ export const DRIVERS: [OrganizationProfile["drivers"][number], string][] = [
   ["investor-due-diligence", "Investor due diligence"],
   ["incident-recovery", "Recovering from an incident"],
   ["build-program", "Building a security program"],
+  ["ai-systems", "We build or deploy AI systems"],
 ];
 
 const AUTONOMY: [ProposalType, string, string][] = [

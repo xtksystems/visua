@@ -27,7 +27,7 @@ export interface NexusGroup {
 export interface NexusFramework {
   id: string;
   shortName: string;
-  family: "csf" | "soc2" | "rmf";
+  family: "csf" | "soc2" | "rmf" | "ai";
   enabled: boolean;
   groups: NexusGroup[];
 }
@@ -45,7 +45,7 @@ export interface NexusData {
 
 const RADIUS = 30;
 const FRAMEWORK_GAP = 0.16;
-const ORDER = ["nist-csf-2.0", "aicpa-tsc-2017", "nist-sp-800-53-r5", "nist-rmf"];
+const ORDER = ["nist-csf-2.0", "aicpa-tsc-2017", "nist-sp-800-53-r5", "nist-rmf", "nist-ai-rmf"];
 
 const c = designSystem.colors;
 export const FRAMEWORK_COLORS: Record<string, string> = {
@@ -54,6 +54,7 @@ export const FRAMEWORK_COLORS: Record<string, string> = {
   "nist-sp-800-53-r5": c["framework-rmf"],
   // RMF tasks share the RMF family hue, lifted toward white to separate them from the control catalog.
   "nist-rmf": `#${new Color(c["framework-rmf"]).lerp(new Color("#ffffff"), 0.45).getHexString()}`,
+  "nist-ai-rmf": c["framework-ai"],
 };
 
 export interface NexusLayout {

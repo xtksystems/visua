@@ -70,6 +70,27 @@ describe("ingested framework graphs match the official sources", () => {
     expect(pof).toBe(330);
   });
 
+  // Runs whenever the AI RMF corpus has been ingested (packages/frameworks/data/nist-ai-rmf.json).
+  it.skipIf(!registry.framework("nist-ai-rmf"))("NIST AI RMF 1.0: 4 functions, 19 categories, 72 subcategories, Playbook actions and the Generative AI Profile", () => {
+    const ai = registry.framework("nist-ai-rmf")!;
+    const byKind = (k: string) => ai.graph.nodes.filter((n) => n.kind === k);
+    expect(byKind("function").map((n) => n.code)).toEqual(["GOVERN", "MAP", "MEASURE", "MANAGE"]);
+    expect(byKind("category")).toHaveLength(19);
+    expect(byKind("subcategory")).toHaveLength(72);
+    const perFunction = (f: string) => byKind("subcategory").filter((n) => n.code.startsWith(`${f} `)).length;
+    expect(["GOVERN", "MAP", "MEASURE", "MANAGE"].map(perFunction)).toEqual([19, 18, 22, 13]);
+    expect(ai.graph.nodes.every((n) => n.citation.page && n.citation.page > 0)).toBe(true);
+    // The Playbook gives suggested actions for every outcome.
+    expect(byKind("subcategory").every((n) => ((n.attributes?.["suggestedActions"] as unknown[]) ?? []).length > 0)).toBe(true);
+    // NIST AI 600-1: 12 GAI risks; every action is tied to an existing outcome and to known risks.
+    const profile = ai.graph.profiles?.find((p) => p.id === "nist-ai-600-1");
+    expect(profile?.risks).toHaveLength(12);
+    const riskIds = new Set(profile!.risks.map((r) => r.id));
+    const actions = byKind("subcategory").flatMap((n) => (n.attributes?.["profileActions"] as { id: string; risks: string[] }[] | undefined) ?? []);
+    expect(actions.length).toBeGreaterThan(150);
+    expect(actions.every((a) => /^(GV|MP|MS|MG)-\d+\.\d+-\d{3}$/.test(a.id) && a.risks.every((r) => riskIds.has(r)))).toBe(true);
+  });
+
   it("every mapping endpoint exists", () => {
     for (const set of loadMappingSets()) {
       expect(set.mappings.length).toBeGreaterThan(0);

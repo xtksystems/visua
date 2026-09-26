@@ -39,7 +39,7 @@ export interface CorpusManifest {
 }
 
 /** Order in which frameworks are presented (increasing complexity). */
-export const FRAMEWORK_ORDER = ["nist-csf-2.0", "aicpa-tsc-2017", "nist-sp-800-53-r5", "nist-rmf"];
+export const FRAMEWORK_ORDER = ["nist-csf-2.0", "aicpa-tsc-2017", "nist-sp-800-53-r5", "nist-rmf", "nist-ai-rmf"];
 
 function readJson<T>(path: string): T {
   return JSON.parse(readFileSync(path, "utf8")) as T;

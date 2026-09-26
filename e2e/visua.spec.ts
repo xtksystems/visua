@@ -88,3 +88,17 @@ test("public trust center shows only computed facts", async ({ page }) => {
   await expect(page.getByText("Trust center · powered by Visua")).toBeVisible();
   await expect(page.getByText(/Readiness is not an audit opinion/)).toBeVisible();
 });
+
+test("AI governance: inventory, AI RMF functions and Generative AI Profile risks", async ({ page, request }) => {
+  const meta = (await (await request.get("/api/meta")).json()) as { frameworks: { id: string }[] };
+  test.skip(!meta.frameworks.some((f) => f.id === "nist-ai-rmf"), "NIST AI RMF corpus not ingested");
+  const errors = watchErrors(page);
+  await page.goto(`${WS}/ai`);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("AI RMF readiness");
+  await expect(page.getByText("AI system inventory")).toBeVisible();
+  await expect(page.getByText("Clinical note summarizer")).toBeVisible();
+  for (const fn of ["GOVERN", "MAP", "MEASURE", "MANAGE"]) await expect(page.getByText(fn, { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Generative AI Profile (NIST AI 600-1)")).toBeVisible();
+  await expect(page.getByText("Confabulation").first()).toBeVisible();
+  expect(errors).toEqual([]);
+});

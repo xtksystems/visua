@@ -46,7 +46,9 @@ export const designSystem = {
     "framework-soc2": "#F28FD0",
     "framework-soc2-container": "#3A1531",
     "framework-rmf": "#C5E86C",
-    "framework-rmf-container": "#27310F"
+    "framework-rmf-container": "#27310F",
+    "framework-ai": "#B47825",
+    "framework-ai-container": "#211608"
   },
   "typography": {
     "display-lg": {
@@ -453,6 +455,17 @@ export const designSystem = {
     "badge-framework-rmf": {
       "backgroundColor": "#27310F",
       "textColor": "#C5E86C",
+      "typography": {
+        "fontFamily": "IBM Plex Mono",
+        "fontSize": "11px",
+        "fontWeight": 500,
+        "lineHeight": 1.3
+      },
+      "rounded": "4px"
+    },
+    "badge-framework-ai": {
+      "backgroundColor": "#211608",
+      "textColor": "#B47825",
       "typography": {
         "fontFamily": "IBM Plex Mono",
         "fontSize": "11px",

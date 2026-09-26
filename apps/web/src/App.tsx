@@ -13,6 +13,7 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage.tsx").then((m) => ({ 
 const CrosswalkPage = lazy(() => import("./pages/CrosswalkPage.tsx").then((m) => ({ default: m.CrosswalkPage })));
 const Soc2Page = lazy(() => import("./pages/Soc2Page.tsx").then((m) => ({ default: m.Soc2Page })));
 const RmfPage = lazy(() => import("./pages/RmfPage.tsx").then((m) => ({ default: m.RmfPage })));
+const AiPage = lazy(() => import("./pages/AiPage.tsx").then((m) => ({ default: m.AiPage })));
 const ReportsPage = lazy(() => import("./pages/ReportsPage.tsx").then((m) => ({ default: m.ReportsPage })));
 const SettingsPage = lazy(() => import("./pages/SettingsPage.tsx").then((m) => ({ default: m.SettingsPage })));
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage.tsx").then((m) => ({ default: m.OnboardingPage })));
@@ -51,6 +52,7 @@ export function App() {
             <Route path="crosswalk" element={<CrosswalkPage />} />
             <Route path="soc2" element={<Soc2Page />} />
             <Route path="rmf" element={<RmfPage />} />
+            <Route path="ai" element={<AiPage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>

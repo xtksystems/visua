@@ -94,10 +94,43 @@ export const RMF_SCALE: LevelScale = {
   ],
 };
 
+/**
+ * NIST AI RMF 1.0 defines outcomes (functions, categories, subcategories) but no
+ * implementation tiers or maturity levels. Visua tracks each outcome on its own
+ * scale, from not addressed to measured and continually improved.
+ */
+export const AI_SCALE: LevelScale = {
+  family: "ai",
+  name: "AI RMF outcome implementation",
+  basis:
+    "Visua convention. The AI RMF (NIST AI 100-1) sets outcomes without tiers or maturity levels; this scale records " +
+    "how far each outcome is achieved across the organization's AI systems, from not addressed to measured and improved.",
+  levels: [
+    { level: 0, label: "Not addressed", description: "No practice addresses the outcome for in-scope AI systems." },
+    { level: 1, label: "Initial", description: "Ad hoc practices exist for some AI systems; not documented or consistently applied." },
+    {
+      level: 2,
+      label: "Defined",
+      description: "Policies, roles and procedures for the outcome are documented and applied to the highest-risk AI systems.",
+    },
+    {
+      level: 3,
+      label: "Implemented",
+      description: "Applied consistently across the AI portfolio and lifecycle, with accountable owners and documentation.",
+    },
+    {
+      level: 4,
+      label: "Measured and improving",
+      description: "Effectiveness is measured (testing, evaluation, monitoring) and practices improve from incidents, feedback and metrics.",
+    },
+  ],
+};
+
 export const LEVEL_SCALES: Record<FrameworkFamily, LevelScale> = {
   csf: CSF_SCALE,
   soc2: SOC2_SCALE,
   rmf: RMF_SCALE,
+  ai: AI_SCALE,
 };
 
 export const MAX_LEVEL = 4;

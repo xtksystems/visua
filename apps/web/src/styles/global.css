@@ -521,6 +521,10 @@ p {
   background: var(--badge-framework-rmf-bg);
   color: var(--badge-framework-rmf-fg);
 }
+.badge-fw--ai {
+  background: var(--badge-framework-ai-bg);
+  color: var(--badge-framework-ai-fg);
+}
 
 .code {
   display: inline-flex;

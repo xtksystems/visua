@@ -53,7 +53,7 @@ export async function seedDemo(svc: VisuaService): Promise<string> {
   const existing = svc.store.workspaces.get("northwind-health");
   if (existing) return existing.id;
   const actor = "seed";
-  const frameworks = ["nist-csf-2.0", "aicpa-tsc-2017", "nist-sp-800-53-r5"].filter((id) => svc.registry.framework(id));
+  const frameworks = ["nist-csf-2.0", "aicpa-tsc-2017", "nist-sp-800-53-r5", "nist-ai-rmf"].filter((id) => svc.registry.framework(id));
   const ws = svc.createWorkspace(
     {
       name: "Northwind Health",
@@ -62,7 +62,7 @@ export async function seedDemo(svc: VisuaService): Promise<string> {
         industry: "healthcare",
         size: "51-200",
         dataTypes: ["phi", "pii"],
-        drivers: ["enterprise-customers", "cyber-insurance", "federal-customers"],
+        drivers: ["enterprise-customers", "cyber-insurance", "federal-customers", "ai-systems"],
         environments: ["cloud"],
         maturityTier: 2,
         guidance: "guided",
@@ -141,6 +141,61 @@ export async function seedDemo(svc: VisuaService): Promise<string> {
         const level = stepLevel[node.code.split("-")[0]!] ?? 0;
         const current = Math.max(0, Math.min(prev.target, level - (rand(`rmf:${node.code}`) > 0.8 ? 1 : 0)));
         svc.store.states.put(ws.id, { ...prev, current, owner: node.code.startsWith("R-") ? "Authorizing Official" : "System Owner", updatedAt: daysFromNow(-10), updatedBy: actor });
+      }
+    });
+  }
+
+  // AI governance: an AI system inventory and a mid-maturity AI RMF profile (GOVERN ahead of MEASURE/MANAGE).
+  const aiRmf = svc.registry.framework("nist-ai-rmf");
+  if (aiRmf && svc.frameworkSettings(svc.workspace(ws.id), "nist-ai-rmf")) {
+    const systems: Parameters<typeof svc.upsertAiSystem>[1][] = [
+      {
+        name: "Clinical note summarizer",
+        purpose: "Drafts visit summaries from clinician dictation for clinician review; never used for diagnosis or treatment decisions.",
+        role: "deployer",
+        lifecycle: "deploy-use",
+        generative: true,
+        provider: "Third-party LLM API under a business associate agreement (fictional)",
+        riskTier: "high",
+        owner: "Chief Medical Information Officer",
+        dataTypes: ["phi", "pii"],
+        humanOversight: "A clinician reviews, edits and signs every summary before it enters the record.",
+      },
+      {
+        name: "Appointment no-show predictor",
+        purpose: "Scores upcoming appointments for no-show likelihood so staff can send reminders; never blocks or reorders booking.",
+        role: "developer-deployer",
+        lifecycle: "operate-monitor",
+        generative: false,
+        provider: "In-house gradient-boosted model",
+        riskTier: "moderate",
+        owner: "Data Science Lead",
+        dataTypes: ["pii"],
+        humanOversight: "Front-desk staff decide whether to act on a score; monthly bias review across patient groups.",
+      },
+      {
+        name: "Patient support assistant",
+        purpose: "Answers scheduling and billing questions in the patient portal; hands off to staff for anything clinical.",
+        role: "deployer",
+        lifecycle: "verify-validate",
+        generative: true,
+        provider: "Third-party LLM API (fictional)",
+        riskTier: "moderate",
+        owner: "Patient Experience Manager",
+        dataTypes: ["pii"],
+        humanOversight: "Escalates to a person on clinical keywords, low confidence or on request.",
+      },
+    ];
+    for (const s of systems) svc.upsertAiSystem(ws.id, s, actor);
+    const fnLevel: Record<string, number> = { GOVERN: 2, MAP: 2, MEASURE: 1, MANAGE: 1 };
+    svc.store.transaction(() => {
+      for (const node of aiRmf.assessable) {
+        const prev = svc.store.states.get(ws.id, node.id);
+        if (!prev || !prev.applicable) continue;
+        const fn = aiRmf.ancestors(node.id)[0]?.code ?? "";
+        const j = rand(`ai:${node.code}`);
+        const current = Math.max(0, Math.min(prev.target, (fnLevel[fn] ?? 1) + (j > 0.8 ? 1 : j < 0.2 ? -1 : 0)));
+        svc.store.states.put(ws.id, { ...prev, current, owner: fn === "GOVERN" ? "AI Governance Committee" : "Data Science Lead", updatedAt: daysFromNow(-8), updatedBy: actor });
       }
     });
   }

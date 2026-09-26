@@ -142,6 +142,42 @@ export function evidenceIndexCsv(svc: VisuaService, ws: Workspace): string {
   return toCsv(rows);
 }
 
+/**
+ * NIST AI RMF profile: current and target state for every outcome, with the Playbook
+ * suggested actions and (for generative systems) Generative AI Profile actions in scope.
+ */
+export function aiRmfProfileCsv(svc: VisuaService, ws: Workspace): string {
+  const index = svc.registry.framework("nist-ai-rmf");
+  if (!index) throw new Error("The NIST AI RMF is not loaded");
+  const score = svc.score(ws.id, index.id);
+  const ctx = context(svc, ws);
+  const generative = (svc.frameworkSettings(ws, "nist-ai-rmf")?.ai?.systems ?? []).some((s) => s.generative);
+  const rows: unknown[][] = [["Function", "Category", "Outcome", "Outcome description", "In scope", "Current", "Target", "Status", "Owner", "Playbook suggested actions", "Generative AI Profile actions", "Open tasks", "Evidence on file", "Source"]];
+  for (const node of index.assessable) {
+    const [fn, cat] = index.ancestors(node.id);
+    const st = svc.store.states.get(ws.id, node.id);
+    const actions = (node.attributes?.["suggestedActions"] as string[] | undefined) ?? [];
+    const gai = (node.attributes?.["profileActions"] as { id: string }[] | undefined) ?? [];
+    rows.push([
+      fn?.code ?? "",
+      cat?.code ?? "",
+      node.code,
+      node.text,
+      st?.applicable === false ? "No" : "Yes",
+      levelLabel("ai", st?.current ?? 0),
+      levelLabel("ai", st?.target ?? 0),
+      score.statuses.get(node.id)?.status ?? "",
+      st?.owner ?? "",
+      actions.length,
+      generative ? gai.map((a) => a.id).join("; ") : "",
+      ctx.tasksFor(node.id).filter((t) => t.status !== "done").length,
+      ctx.evidenceFor(node.id).filter((e) => isEvidenceValid(e)).map((e) => e.title).join("; "),
+      `${node.citation.locator ?? node.code}${node.citation.page ? `, p. ${node.citation.page}` : ""}`,
+    ]);
+  }
+  return toCsv(rows);
+}
+
 /** SOC 2 PBC list: what an auditor will request per criterion, and what is already on file. */
 export function soc2PbcCsv(svc: VisuaService, ws: Workspace): string {
   const index = svc.registry.framework("aicpa-tsc-2017");

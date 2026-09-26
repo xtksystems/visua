@@ -18,6 +18,7 @@ import { csfMappingSets, ingestCsf } from "../src/ingest/csf.ts";
 import { chunkPages, pdfPages } from "../src/ingest/pdf.ts";
 import { ingestRmf, rmfToControls } from "../src/ingest/rmf.ts";
 import { ingest80053 } from "../src/ingest/sp80053.ts";
+import { ingestAiRmf } from "../src/ingest/ai-rmf.ts";
 import { buildTscGraph } from "../src/ingest/tsc.ts";
 import { aicpaTscMappingSets } from "../src/ingest/tsc-mappings.ts";
 
@@ -38,6 +39,15 @@ log(`SP 800-53 Rev. 5: ${sp80053.nodes.length} nodes (${sp80053.nodes.filter((n)
 const rmf = ingestRmf();
 graphs.push(rmf.graph);
 log(`NIST RMF: ${rmf.graph.nodes.length} nodes (${rmf.graph.nodes.filter((n) => n.assessable).length} tasks)`);
+
+const aiRmf = ingestAiRmf();
+if (aiRmf) {
+  graphs.push(aiRmf);
+  const actions = aiRmf.nodes.reduce((n, x) => n + ((x.attributes?.["profileActions"] as unknown[]) ?? []).length, 0);
+  log(`NIST AI RMF: ${aiRmf.nodes.length} nodes (${aiRmf.nodes.filter((n) => n.assessable).length} outcomes; ${aiRmf.profiles?.[0]?.risks.length ?? 0} GAI risks, ${actions} Generative AI Profile actions)`);
+} else {
+  log("NIST AI RMF: corpus not available — skipped");
+}
 
 const tsc = buildTscGraph();
 graphs.push(tsc);
@@ -77,12 +87,16 @@ function nodeChunk(n: RequirementNode): CorpusChunk {
   if (n.examples?.length) parts.push(`Implementation examples: ${n.examples.map((e) => e.text).join(" ")}`);
   const pof = n.attributes?.["pointsOfFocus"] as { title: string; text?: string }[] | undefined;
   if (pof?.length) parts.push(`Points of focus: ${pof.map((p) => `${p.title}. ${p.text ?? ""}`).join(" ")}`);
+  const suggested = n.attributes?.["suggestedActions"] as string[] | undefined;
+  if (suggested?.length) parts.push(`Suggested actions (AI RMF Playbook): ${suggested.join(" ")}`);
+  const profileActions = n.attributes?.["profileActions"] as { id: string; text: string }[] | undefined;
+  if (profileActions?.length) parts.push(`Generative AI Profile actions: ${profileActions.map((a) => `${a.id} ${a.text}`).join(" ")}`);
   if (n.guidance) parts.push(`Discussion: ${n.guidance.slice(0, 1600)}`);
   return {
     id: `node:${n.id}`,
     documentId: n.citation.documentId,
     documentTitle: doc?.title ?? n.citation.documentId,
-    framework: doc?.framework ?? (n.frameworkId === "aicpa-tsc-2017" ? "aicpa-soc2" : n.frameworkId === "nist-csf-2.0" ? "nist-csf-2.0" : "nist-rmf"),
+    framework: doc?.framework ?? (n.frameworkId === "aicpa-tsc-2017" ? "aicpa-soc2" : n.frameworkId === "nist-csf-2.0" ? "nist-csf-2.0" : n.frameworkId === "nist-ai-rmf" ? "nist-ai-rmf" : "nist-rmf"),
     page: n.citation.page,
     locator: n.citation.locator ?? n.code,
     text: parts.join("\n"),

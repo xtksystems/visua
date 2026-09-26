@@ -106,6 +106,7 @@ export function ReportsPage() {
     { kind: "readiness.md", title: "Readiness report", description: "Readiness, evidence coverage and largest gaps for every enabled framework.", icon: <FileText size={18} /> },
     { kind: "action-plan.csv", title: "Action plan", description: "Tasks with dates, effort, checklist progress and their official basis.", icon: <FileSpreadsheet size={18} /> },
     { kind: "evidence-index.csv", title: "Evidence index", description: "Every evidence item with provenance, validity, reviewer and SHA-256.", icon: <FileSpreadsheet size={18} /> },
+    { kind: "ai-rmf-profile.csv", title: "NIST AI RMF profile", description: "Current and target state per AI RMF outcome, with Playbook and Generative AI Profile actions.", icon: <FileSpreadsheet size={18} />, when: enabled.includes("nist-ai-rmf") },
     { kind: "soc2-pbc.csv", title: "SOC 2 PBC request list", description: "What an auditor will request per criterion and what is on file.", icon: <FileSpreadsheet size={18} />, when: enabled.includes("aicpa-tsc-2017") },
     { kind: "oscal-ssp.json", title: "OSCAL System Security Plan", description: "OSCAL 1.1.2 SSP with categorization and control implementation status.", icon: <FileJson size={18} />, when: enabled.includes("nist-sp-800-53-r5") },
     { kind: "oscal-poam.json", title: "OSCAL POA&M", description: "Plan of Action and Milestones for every requirement below target.", icon: <FileJson size={18} /> },

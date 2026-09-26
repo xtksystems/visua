@@ -11,9 +11,10 @@ export const STATUS_LABEL: Record<Status, string> = {
 
 export const pct = (v: number | undefined, digits = 0) => `${((v ?? 0) * 100).toFixed(digits)}%`;
 
-export function familyOf(frameworkId: string): "csf" | "soc2" | "rmf" {
+export function familyOf(frameworkId: string): "csf" | "soc2" | "rmf" | "ai" {
   if (frameworkId.startsWith("aicpa")) return "soc2";
   if (frameworkId.startsWith("nist-csf")) return "csf";
+  if (frameworkId.startsWith("nist-ai")) return "ai";
   return "rmf";
 }
 
@@ -22,6 +23,7 @@ export const FRAMEWORK_SHORT: Record<string, string> = {
   "aicpa-tsc-2017": "SOC 2",
   "nist-sp-800-53-r5": "SP 800-53",
   "nist-rmf": "RMF",
+  "nist-ai-rmf": "AI RMF",
 };
 
 export function codeOf(id: string): string {

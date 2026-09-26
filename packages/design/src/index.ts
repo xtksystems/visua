@@ -22,7 +22,7 @@ export function statusColor(status: StatusToken): string {
 }
 
 /** Framework identity color from DESIGN.md `framework-*` tokens. */
-export function frameworkColor(framework: "csf" | "soc2" | "rmf"): string {
+export function frameworkColor(framework: "csf" | "soc2" | "rmf" | "ai"): string {
   return designSystem.colors[`framework-${framework}` as keyof typeof designSystem.colors];
 }
 

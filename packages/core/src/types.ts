@@ -12,7 +12,7 @@ import type { TierAssessment } from "./tiers.ts";
 // Frameworks
 // ---------------------------------------------------------------------------
 
-export type FrameworkFamily = "csf" | "soc2" | "rmf";
+export type FrameworkFamily = "csf" | "soc2" | "rmf" | "ai";
 
 export interface CorpusCitation {
   /** `id` of a document in corpus/<framework>/manifest.json */
@@ -91,9 +91,42 @@ export interface RequirementNode {
   withdrawn?: boolean;
 }
 
+/** A risk defined by a framework profile (e.g. the 12 GAI risks of NIST AI 600-1). */
+export interface ProfileRisk {
+  id: string;
+  title: string;
+  description: string;
+  citation: CorpusCitation;
+}
+
+/**
+ * A profile layered on a framework (e.g. the NIST AI 600-1 Generative AI Profile on
+ * the AI RMF). Its actions live on the framework's nodes (`attributes.profileActions`).
+ */
+export interface FrameworkProfile {
+  id: string;
+  title: string;
+  documentId: string;
+  /** When the profile applies, e.g. "generative" for systems that use generative AI. */
+  appliesWhen: string;
+  risks: ProfileRisk[];
+}
+
+/** One profile action attached to a requirement node. */
+export interface ProfileAction {
+  profileId: string;
+  /** Verbatim action id, e.g. "GV-1.1-001". */
+  id: string;
+  text: string;
+  /** Ids of the profile risks this action addresses. */
+  risks: string[];
+  citation: CorpusCitation;
+}
+
 export interface FrameworkGraph {
   framework: FrameworkDescriptor;
   nodes: RequirementNode[];
+  profiles?: FrameworkProfile[];
 }
 
 export type MappingRelationship =
@@ -150,7 +183,8 @@ export type Driver =
   | "cyber-insurance"
   | "investor-due-diligence"
   | "incident-recovery"
-  | "build-program";
+  | "build-program"
+  | "ai-systems";
 
 export type GuidanceMode = "guided" | "expert";
 
@@ -194,6 +228,36 @@ export interface RmfSettings {
   };
 }
 
+/** AI lifecycle stages (NIST AI 100-1, AI lifecycle and key dimensions). */
+export type AiLifecycleStage = "plan-design" | "collect-process-data" | "build-use-model" | "verify-validate" | "deploy-use" | "operate-monitor" | "retired";
+
+/** One AI system in the organization's inventory (AI RMF GOVERN / MAP work starts here). */
+export interface AiSystem {
+  id: string;
+  name: string;
+  /** Intended purpose and context of use. */
+  purpose: string;
+  /** The organization's role for this system. */
+  role: "developer" | "deployer" | "developer-deployer";
+  lifecycle: AiLifecycleStage;
+  /** Generative AI: the NIST AI 600-1 Generative AI Profile applies. */
+  generative: boolean;
+  /** Third-party model, API or platform the system depends on (value chain). */
+  provider?: string;
+  /** The organization's own risk tier for the system (AI RMF leaves tiering to the organization). */
+  riskTier: "low" | "moderate" | "high";
+  owner?: string;
+  dataTypes: DataType[];
+  /** How people oversee or can override the system's outputs. */
+  humanOversight?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AiRmfSettings {
+  systems: AiSystem[];
+}
+
 export interface WorkspaceFramework {
   frameworkId: string;
   enabled: boolean;
@@ -201,6 +265,7 @@ export interface WorkspaceFramework {
   defaultTarget: number;
   soc2?: Soc2Settings;
   rmf?: RmfSettings;
+  ai?: AiRmfSettings;
 }
 
 export interface Workspace {

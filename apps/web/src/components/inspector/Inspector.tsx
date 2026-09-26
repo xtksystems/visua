@@ -5,10 +5,10 @@
 import { Bot, ExternalLink, FileText, ListChecks, Plus, Sparkles, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { levelLabel, type FrameworkFamily } from "@visua/core";
+import { levelLabel, type FrameworkFamily, type ProfileAction } from "@visua/core";
 import { api, corpusFileUrl } from "../../lib/api.ts";
 import { FRAMEWORK_SHORT, STATUS_LABEL, TASK_STATUS_LABEL, familyOf, relativeTime, shortDate, truncate } from "../../lib/format.ts";
-import { useMeta, useNodeDetail, useWsMutation } from "../../lib/queries.ts";
+import { useGraph, useMeta, useNodeDetail, useWsMutation } from "../../lib/queries.ts";
 import type { NodeDetail } from "../../lib/types.ts";
 import { useUi } from "../../state/ui.ts";
 import { AgentBadge, CodeTag, Dialog, Empty, FrameworkBadge, LevelPips, StatusBar, StatusChip, Tabs, toast } from "../ui/index.tsx";
@@ -80,6 +80,12 @@ function Overview({ data }: { data: NodeDetail }) {
   const objectives = (node.attributes?.["objectives"] as string[] | undefined) ?? [];
   const baselines = (node.attributes?.["baselines"] as string[] | undefined) ?? [];
   const rmf = node.frameworkId === "nist-rmf" ? (node.attributes as Record<string, unknown>) : undefined;
+  const suggested = (node.attributes?.["suggestedActions"] as string[] | undefined) ?? [];
+  const transparency = (node.attributes?.["transparency"] as string[] | undefined) ?? [];
+  const about = node.attributes?.["about"] as string | undefined;
+  const profileActions = (node.attributes?.["profileActions"] as ProfileAction[] | undefined) ?? [];
+  const graph = useGraph(profileActions.length ? node.frameworkId : undefined);
+  const riskTitle = (id: string) => graph.data?.profiles?.flatMap((p) => p.risks).find((r) => r.id === id)?.title ?? id;
   return (
     <div className="stack" style={{ gap: 16 }}>
       <p style={{ whiteSpace: "pre-line", lineHeight: 1.6 }}>{node.text}</p>
@@ -154,6 +160,68 @@ function Overview({ data }: { data: NodeDetail }) {
             ))}
           </ul>
         </section>
+      )}
+      {suggested.length > 0 && (
+        <section>
+          <div className="eyebrow" style={{ marginBottom: 8 }}>
+            Suggested actions (AI RMF Playbook)
+          </div>
+          <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.55 }}>
+            {suggested.map((a) => (
+              <li key={a} style={{ marginBottom: 6 }}>
+                {a}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {transparency.length > 0 && (
+        <details>
+          <summary className="eyebrow" style={{ cursor: "pointer" }}>
+            Transparency and documentation ({transparency.length})
+          </summary>
+          <ul style={{ margin: "8px 0 0", paddingLeft: 18, lineHeight: 1.5, fontSize: 13 }}>
+            {transparency.map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ul>
+        </details>
+      )}
+      {about && (
+        <details>
+          <summary className="eyebrow" style={{ cursor: "pointer" }}>
+            About this outcome (AI RMF Playbook)
+          </summary>
+          <p className="muted" style={{ marginTop: 8, lineHeight: 1.6, fontSize: 13, whiteSpace: "pre-line" }}>
+            {about}
+          </p>
+        </details>
+      )}
+      {profileActions.length > 0 && (
+        <details>
+          <summary className="eyebrow" style={{ cursor: "pointer" }}>
+            Generative AI Profile actions — NIST AI 600-1 ({profileActions.length})
+          </summary>
+          <div className="stack" style={{ gap: 8, marginTop: 8 }}>
+            {profileActions.map((a) => (
+              <div key={a.id} style={{ fontSize: 13 }}>
+                <span className="mono" style={{ color: "var(--color-framework-ai)", marginRight: 6 }}>
+                  {a.id}
+                </span>
+                {a.text}
+                {a.risks.length > 0 && (
+                  <div className="row row--wrap" style={{ gap: 4, marginTop: 4 }}>
+                    {a.risks.map((r) => (
+                      <span key={r} className="chip" style={{ cursor: "default", fontSize: 11 }}>
+                        {riskTitle(r)}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </details>
       )}
       {rmf && (
         <section className="stack">

@@ -24,9 +24,10 @@ export interface LeanNode {
 
 const LEAN_ATTRIBUTE_KEYS = ["baselines", "category", "cosoPrinciple", "level", "party"];
 
-export function leanGraph(graph: FrameworkGraph): { framework: FrameworkGraph["framework"]; nodes: LeanNode[] } {
+export function leanGraph(graph: FrameworkGraph): { framework: FrameworkGraph["framework"]; nodes: LeanNode[]; profiles?: FrameworkGraph["profiles"] } {
   return {
     framework: graph.framework,
+    profiles: graph.profiles,
     nodes: graph.nodes.map((n) => {
       const meta: Record<string, unknown> = {};
       for (const k of LEAN_ATTRIBUTE_KEYS) if (n.attributes?.[k] !== undefined) meta[k] = n.attributes[k];

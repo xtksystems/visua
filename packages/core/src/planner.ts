@@ -75,6 +75,8 @@ export function shortStatement(text: string, max = 88): string {
 export function checklistFor(node: RequirementNode, idFactory: () => string): ChecklistItem[] {
   const items: string[] = [];
   if (node.examples?.length) items.push(...node.examples.map((e) => e.text));
+  const actions = node.attributes?.["suggestedActions"];
+  if (!items.length && Array.isArray(actions)) items.push(...(actions as string[]).slice(0, 8));
   const pof = node.attributes?.["pointsOfFocus"];
   if (Array.isArray(pof)) {
     // Point-of-focus titles only: concise checklist items (the full text stays on the requirement).
@@ -91,6 +93,7 @@ export function checklistFor(node: RequirementNode, idFactory: () => string): Ch
 
 function basisFor(node: RequirementNode): string {
   if (node.examples?.length) return "Official Implementation Examples";
+  if (node.attributes?.["suggestedActions"]) return "AI RMF Playbook suggested actions";
   if (node.attributes?.["pointsOfFocus"]) return "AICPA points of focus";
   if (node.attributes?.["objectives"]) return "SP 800-53A assessment objectives";
   if (node.attributes?.["statementItems"]) return "SP 800-53 control statement";

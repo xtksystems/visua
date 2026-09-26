@@ -54,6 +54,8 @@ colors:
   framework-soc2-container: "#3A1531"
   framework-rmf: "#C5E86C"
   framework-rmf-container: "#27310F"
+  framework-ai: "#B47825"
+  framework-ai-container: "#211608"
 typography:
   display-lg:
     fontFamily: Space Grotesk
@@ -309,6 +311,11 @@ components:
     textColor: "{colors.framework-rmf}"
     typography: "{typography.code-sm}"
     rounded: "{rounded.sm}"
+  badge-framework-ai:
+    backgroundColor: "{colors.framework-ai-container}"
+    textColor: "{colors.framework-ai}"
+    typography: "{typography.code-sm}"
+    rounded: "{rounded.sm}"
   requirement-code:
     backgroundColor: "{colors.surface-raised}"
     textColor: "{colors.primary}"
@@ -498,8 +505,14 @@ Violet) and framework identity (used only when frameworks share a view).
   Each status has a `-container` tint for chips; chip text uses the status
   color itself (or `on-surface-muted` for Not applicable).
 - **Framework identity:** NIST CSF (#7AA2FF), SOC 2 (#F28FD0), NIST RMF /
-  SP 800-53 (#C5E86C). Used for framework badges and for the planes of the
-  Crosswalk Nexus — never for status.
+  SP 800-53 (#C5E86C), AI governance — NIST AI RMF (Circuit Copper, #B47825).
+  Used for framework badges and for the planes of the Crosswalk Nexus — never
+  for status. AI governance frameworks are copper, not violet: violet means an
+  agent is acting, copper means a framework about AI. Circuit Copper was chosen
+  by measurement: it sits at least ΔE 16 (OKLab) from every status, framework and
+  agent color and keeps 5:1 contrast on `surface`. Framework hues always travel
+  with a text label, so the one close pair under protanopia (CSF and SOC 2) never
+  carries meaning alone.
 
 ## Typography
 
@@ -630,7 +643,7 @@ drift is disabled.
   facet filters in the HUD and outline.
 - **Requirement code:** `requirement-code` renders IDs (`PR.AA-05`) in mono on a
   raised surface; clicking one always flies the camera to that requirement.
-- **Framework badges:** `badge-framework-csf|soc2|rmf` appear wherever items
+- **Framework badges:** `badge-framework-csf|soc2|rmf|ai` appear wherever items
   from multiple frameworks are listed together.
 - **Agent components:** `badge-agent` marks agent-authored content until a
   human approves it; `agent-step` renders a reasoning step in the flight

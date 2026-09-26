@@ -2,6 +2,7 @@
 import {
   Activity,
   BookCheck,
+  BrainCircuit,
   Bot,
   ClipboardList,
   FileText,
@@ -63,6 +64,7 @@ function NavRail({ ws, approvals }: { ws: string; approvals: number }) {
       <RailItem to={`${base}/crosswalk`} icon={<GitCompareArrows size={s} />} label="Crosswalk nexus" />
       <RailItem to={`${base}/soc2`} icon={<ShieldCheck size={s} />} label="SOC 2 program" />
       <RailItem to={`${base}/rmf`} icon={<Network size={s} />} label="RMF program" />
+      <RailItem to={`${base}/ai`} icon={<BrainCircuit size={s} />} label="AI governance (AI RMF)" />
       <RailItem to={`${base}/reports`} icon={<Activity size={s} />} label="Reports, audit trail & trust" />
       <span className="rail__spacer" />
       <RailItem to={`${base}/settings`} icon={<Settings size={s} />} label="Settings" />
@@ -217,6 +219,7 @@ function CommandPalette({ ws }: { ws: string }) {
       ["Observatory — SOC 2", `${base}/observatory/aicpa-tsc-2017`],
       ["Observatory — SP 800-53", `${base}/observatory/nist-sp-800-53-r5`],
       ["Observatory — RMF steps", `${base}/observatory/nist-rmf`],
+      ["Observatory — NIST AI RMF", `${base}/observatory/nist-ai-rmf`],
       ["Plan & tasks", `${base}/plan`],
       ["Evidence & monitoring", `${base}/evidence`],
       ["Agents & approvals", `${base}/agents`],
@@ -225,6 +228,7 @@ function CommandPalette({ ws }: { ws: string }) {
       ["Crosswalk nexus", `${base}/crosswalk`],
       ["SOC 2 program", `${base}/soc2`],
       ["RMF program", `${base}/rmf`],
+      ["AI governance (AI RMF)", `${base}/ai`],
       ["Reports & trust center", `${base}/reports`],
       ["New workspace", "/onboarding"],
     ];

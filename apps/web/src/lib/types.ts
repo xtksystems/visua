@@ -18,6 +18,7 @@ import type {
   Workspace,
   WorkspaceFramework,
   RmfSettings,
+  FrameworkProfile,
 } from "@visua/core";
 
 export type { ActivityEvent, AgentRun, CheckResult, Connector, Evidence, Policy, Proposal, RequirementNode, RequirementState, Risk, Status, Task, Workspace };
@@ -38,7 +39,7 @@ export interface Meta {
 export interface FrameworkSummary {
   id: string;
   shortName: string;
-  family: "csf" | "soc2" | "rmf";
+  family: "csf" | "soc2" | "rmf" | "ai";
   settings: WorkspaceFramework;
   readiness: number;
   gaps: number;
@@ -74,6 +75,7 @@ export interface LeanNode {
 export interface LeanGraph {
   framework: FrameworkDescriptor;
   nodes: LeanNode[];
+  profiles?: FrameworkProfile[];
 }
 
 export interface UnitState {

@@ -21,7 +21,8 @@ import {
 import { AGENTS, claudeEnabled, configuredModel } from "@visua/agents";
 import { CORPUS_DIR } from "@visua/frameworks";
 import { CONNECTOR_KINDS } from "./connectors/index.ts";
-import { actionPlanCsv, csfProfileCsv, evidenceIndexCsv, oscalPoam, oscalSsp, readinessMarkdown, soc2PbcCsv } from "./services/exports.ts";
+import { actionPlanCsv, aiRmfProfileCsv, csfProfileCsv, evidenceIndexCsv, oscalPoam, oscalSsp, readinessMarkdown, soc2PbcCsv } from "./services/exports.ts";
+import { aiOverview } from "./services/ai.ts";
 import { crosswalkOverview, crosswalkRows } from "./services/crosswalk.ts";
 import { soc2Description } from "./services/soc2.ts";
 import { frameworkState, leanGraph, nodeDetail, workspaceSummary } from "./services/views.ts";
@@ -43,6 +44,19 @@ const ProfileSchema = z.object({
   maturityTier: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]).default(1),
   guidance: z.enum(["guided", "expert"]).default("guided"),
   securityTeamSize: z.number().int().min(0).max(10_000).default(1),
+});
+
+const AiSystemSchema = z.object({
+  name: z.string().min(1).max(160),
+  purpose: z.string().min(1).max(2000),
+  role: z.enum(["developer", "deployer", "developer-deployer"]).optional(),
+  lifecycle: z.enum(["plan-design", "collect-process-data", "build-use-model", "verify-validate", "deploy-use", "operate-monitor", "retired"]).optional(),
+  generative: z.boolean().optional(),
+  provider: z.string().max(200).optional(),
+  riskTier: z.enum(["low", "moderate", "high"]).optional(),
+  owner: z.string().max(120).optional(),
+  dataTypes: z.array(z.enum(["pii", "phi", "cardholder", "cui", "financial", "intellectual-property", "children", "biometric"])).optional(),
+  humanOversight: z.string().max(2000).optional(),
 });
 
 const InfoTypeSchema = z.object({ id: z.string().min(1), name: z.string().min(1), confidentiality: ImpactLevel, integrity: ImpactLevel, availability: ImpactLevel });
@@ -362,6 +376,21 @@ export function createApp(svc: VisuaService): Hono {
     return c.json(workspaceSummary(svc, svc.setAuthorization(c.req.param("ws"), input, actorOf(c))));
   });
 
+  // ---------------------------------------------------------------- AI governance
+  app.get("/api/workspaces/:ws/ai", (c) => c.json(aiOverview(svc, svc.workspace(c.req.param("ws")))));
+  app.post("/api/workspaces/:ws/ai/systems", async (c) => {
+    const input = await body(c, AiSystemSchema);
+    return c.json(svc.upsertAiSystem(c.req.param("ws"), input, actorOf(c)), 201);
+  });
+  app.patch("/api/workspaces/:ws/ai/systems/:id", async (c) => {
+    const input = await body(c, AiSystemSchema.partial());
+    return c.json(svc.upsertAiSystem(c.req.param("ws"), { ...input, id: c.req.param("id") }, actorOf(c)));
+  });
+  app.delete("/api/workspaces/:ws/ai/systems/:id", (c) => {
+    svc.removeAiSystem(c.req.param("ws"), c.req.param("id"), actorOf(c));
+    return c.body(null, 204);
+  });
+
   // ---------------------------------------------------------------- tasks
   app.get("/api/workspaces/:ws/tasks", (c) => c.json(svc.store.tasks.list(svc.workspace(c.req.param("ws")).id)));
   app.post("/api/workspaces/:ws/tasks", async (c) => {
@@ -519,6 +548,8 @@ export function createApp(svc: VisuaService): Hono {
         return file(actionPlanCsv(svc, ws), "text/csv; charset=utf-8", "action-plan.csv");
       case "evidence-index.csv":
         return file(evidenceIndexCsv(svc, ws), "text/csv; charset=utf-8", "evidence-index.csv");
+      case "ai-rmf-profile.csv":
+        return file(aiRmfProfileCsv(svc, ws), "text/csv; charset=utf-8", "nist-ai-rmf-profile.csv");
       case "soc2-pbc.csv":
         return file(soc2PbcCsv(svc, ws), "text/csv; charset=utf-8", "soc2-pbc-request-list.csv");
       case "readiness.md":

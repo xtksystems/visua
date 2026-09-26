@@ -120,7 +120,7 @@ export function HomePage() {
                   <Link className="btn btn--sm" to={`/w/${ws}/observatory/${f.id}`}>
                     <Telescope size={13} /> 3D
                   </Link>
-                  <Link className="btn btn--quiet btn--sm" to={`/w/${ws}/${f.id === "aicpa-tsc-2017" ? "soc2" : f.id === "nist-sp-800-53-r5" || f.id === "nist-rmf" ? "rmf" : "profile"}`}>
+                  <Link className="btn btn--quiet btn--sm" to={`/w/${ws}/${f.id === "aicpa-tsc-2017" ? "soc2" : f.id === "nist-sp-800-53-r5" || f.id === "nist-rmf" ? "rmf" : f.id === "nist-ai-rmf" ? "ai" : "profile"}`}>
                     Program <ArrowRight size={13} />
                   </Link>
                 </div>

@@ -18,6 +18,8 @@ import {
   targetFor,
   type ActivityEvent,
   type AgentKind,
+  type AiRmfSettings,
+  type AiSystem,
   type AgentRun,
   type AgentStep,
   type CheckResult,
@@ -205,6 +207,9 @@ export class VisuaService {
         auditFirm: input?.soc2?.auditFirm,
       };
     }
+    if (frameworkId === "nist-ai-rmf") {
+      settings.ai = { systems: [] };
+    }
     if (frameworkId === "nist-sp-800-53-r5") {
       settings.defaultTarget = 3;
       settings.rmf = {
@@ -319,6 +324,7 @@ export class VisuaService {
       enabled: settings.enabled ?? true,
       soc2: settings.soc2 ? { ...base.soc2!, ...settings.soc2 } : base.soc2,
       rmf: settings.rmf ? { ...base.rmf!, ...settings.rmf } : base.rmf,
+      ai: settings.ai ? { ...(base.ai ?? { systems: [] }), ...settings.ai } : base.ai,
     };
     const next: Workspace = {
       ...ws,
@@ -380,6 +386,54 @@ export class VisuaService {
     const tailoring = settings.rmf.tailoring.filter((t) => t.nodeId !== node.id);
     if (action !== "reset") tailoring.push({ nodeId: node.id, action, rationale });
     return this.enableFramework(id, "nist-sp-800-53-r5", { rmf: { ...settings.rmf, tailoring } }, actor);
+  }
+
+  // -------------------------------------------------------------------------
+  // AI governance (NIST AI RMF): the AI system inventory
+  // -------------------------------------------------------------------------
+
+  private aiSettings(ws: Workspace): AiRmfSettings {
+    const settings = this.frameworkSettings(ws, "nist-ai-rmf");
+    if (!settings?.enabled) throw new ValidationError("Enable the NIST AI RMF for this workspace first");
+    return settings.ai ?? { systems: [] };
+  }
+
+  upsertAiSystem(id: string, input: Partial<Omit<AiSystem, "createdAt" | "updatedAt">> & { id?: string }, actor = "user"): AiSystem {
+    const ws = this.workspace(id);
+    const ai = this.aiSettings(ws);
+    const existing = input.id ? ai.systems.find((s) => s.id === input.id) : undefined;
+    if (input.id && !existing) throw new NotFoundError(`AI system '${input.id}' not found`);
+    const ts = now();
+    const system: AiSystem = {
+      id: existing?.id ?? newId("ai"),
+      name: (input.name ?? existing?.name ?? "").trim(),
+      purpose: (input.purpose ?? existing?.purpose ?? "").trim(),
+      role: input.role ?? existing?.role ?? "deployer",
+      lifecycle: input.lifecycle ?? existing?.lifecycle ?? "plan-design",
+      generative: input.generative ?? existing?.generative ?? false,
+      provider: input.provider ?? existing?.provider,
+      riskTier: input.riskTier ?? existing?.riskTier ?? "moderate",
+      owner: input.owner ?? existing?.owner,
+      dataTypes: input.dataTypes ?? existing?.dataTypes ?? [],
+      humanOversight: input.humanOversight ?? existing?.humanOversight,
+      createdAt: existing?.createdAt ?? ts,
+      updatedAt: ts,
+    };
+    if (!system.name) throw new ValidationError("An AI system needs a name");
+    if (!system.purpose) throw new ValidationError("Describe the AI system's intended purpose and context of use");
+    const systems = existing ? ai.systems.map((s) => (s.id === system.id ? system : s)) : [...ai.systems, system];
+    this.enableFramework(id, "nist-ai-rmf", { ai: { ...ai, systems } }, actor);
+    this.log(ws.id, actor, existing ? "updated" : "created", "ai-system", system.id, `AI system ${existing ? "updated" : "added to the inventory"}: ${system.name} (${system.riskTier} risk${system.generative ? ", generative" : ""})`);
+    return system;
+  }
+
+  removeAiSystem(id: string, systemId: string, actor = "user"): void {
+    const ws = this.workspace(id);
+    const ai = this.aiSettings(ws);
+    const system = ai.systems.find((s) => s.id === systemId);
+    if (!system) throw new NotFoundError(`AI system '${systemId}' not found`);
+    this.enableFramework(id, "nist-ai-rmf", { ai: { ...ai, systems: ai.systems.filter((s) => s.id !== systemId) } }, actor);
+    this.log(ws.id, actor, "deleted", "ai-system", systemId, `AI system removed from the inventory: ${system.name}`);
   }
 
   setAuthorization(id: string, input: NonNullable<RmfSettings["authorization"]>, actor = "user"): Workspace {
