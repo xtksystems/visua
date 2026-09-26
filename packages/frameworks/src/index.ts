@@ -17,6 +17,7 @@ export { CYBER_AI_PROFILE_ID, COSAIS_PREDICTIVE_ID } from "./ingest/ai-overlays.
 export { STATE_LAWS_ID } from "./ingest/state-laws.ts";
 export { ATLAS_ID, ATLAS_MITIGATIONS, OWASP_LLM_ID, OWASP_AGENTIC_ID, AI_100_2_ID, THREAT_CATALOG_IDS, EXTERNAL_SCHEMES } from "./ingest/threats.ts";
 export { ThreatLinkIndex, type ThreatLink } from "./threat-links.ts";
+export { STATUS_RANK, coverageGroup, linkView, threatPaths, weakest, type LinkView, type PathKind, type ThreatPath, type ThreatPathGraph } from "./threat-paths.ts";
 
 export interface CorpusDocument {
   id: string;

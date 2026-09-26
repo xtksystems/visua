@@ -164,18 +164,28 @@ stay local.
   own definitions (`LawSettings.applicability`, a decision reserved for approvers and
   recorded in the audit trail). `scopeOf()` then scopes exactly the obligations of
   those roles, and an obligation whose `until` date has passed drops out.
-- **Threat coverage** (`apps/server/src/services/threats.ts`). Threat catalogs are
-  never enabled or assessed. A threat's coverage is derived from the requirements linked
-  to it, reached three ways: directly; through an ATLAS mitigation of it (CSF 2.0 →
-  mitigation, from the Cyber AI Profile draft; mitigation → technique, from MITRE);
-  or through the same OWASP entry in the other edition. A link to a group (an AI RMF
-  category) stands for that group's units. A path is only as strong as its weakest
-  link's status, and views choose the weakest status they count (final, final and
-  draft, or all published links). Coverage on the 0–4 threat scale is the mean
-  progress toward target of the linked requirements in the workspace's frameworks
-  (4 when all are at target); a threat is *unmapped* without links at the chosen
-  status and *out of scope* when its links lead only to frameworks the workspace does
-  not follow. Tactics, editions and objectives pool their threats' coverage.
+- **Threat coverage** (paths in `packages/frameworks/src/threat-paths.ts`, coverage in
+  `apps/server/src/services/threats.ts`). Threat catalogs are never enabled or assessed.
+  A threat's coverage is derived from the requirements linked to it, reached three ways:
+  directly; through an ATLAS mitigation of it (CSF 2.0 → mitigation, from the Cyber AI
+  Profile draft; mitigation → technique, from MITRE); or through the same OWASP entry in
+  the other edition (OWASP's own 2025 → 2026 rank migration, Figure 1 of the 2026
+  edition). A link to a group (an AI RMF category) stands for that group's units. A path
+  is only as strong as its weakest link's status, and views choose the weakest status
+  they count (final, final and draft, or all published links).
+  - Coverage weighs publications, not requirement counts. The linked requirements are
+    grouped by the publication that links them and, within it, by route: an ATLAS
+    mitigation, the other edition's entry, a group such as an AI RMF category, or the
+    requirement itself. A route's progress is the mean progress toward target of its
+    requirements in scope; a publication's is the mean over its routes; a threat's is the
+    mean over its publications. So NIST's draft profile citing the 2025 Supply Chain entry
+    on 67 CSF outcomes counts as one view of LLM04:2026, next to OWASP's own five
+    AI RMF category links and the community crosswalk, and an AI RMF category counts
+    once however many outcomes it holds. Every view is listed with its status.
+  - On the 0–4 threat scale, 4 means every linked requirement in scope is at target; a
+    threat is *unmapped* without links at the chosen status and *out of scope* when its
+    links lead only to frameworks the workspace does not follow. Tactics, editions and
+    objectives pool their threats' coverage.
 - **AI governance.** The NIST AI RMF defines no maturity tiers, so outcomes use a
   Visua-authored scale (Not addressed → Measured and improving). The AI system inventory
   lives in the AI RMF framework settings: purpose and context of use, the

@@ -231,6 +231,9 @@ describe("AI threat catalogs", () => {
     }
     // Threat links never enter the requirement crosswalk.
     expect(registry.crosswalk.sets.some((s) => s.id.startsWith("threat--"))).toBe(false);
+    const threat = new Set(registry.frameworks.filter((f) => f.family === "threat").map((f) => f.id));
+    const fw = (id: string) => id.slice(0, id.lastIndexOf(":"));
+    expect(registry.crosswalk.sets.flatMap((s) => s.mappings).filter((m) => threat.has(fw(m.source)) || threat.has(fw(m.target)))).toEqual([]);
     const gvoc = registry.threatLinks.of("nist-csf-2.0:GV.OC-01");
     expect(gvoc.some((l) => l.nodeId === "mitre-atlas:AML.M0020" && l.status === "draft")).toBe(true);
     // Catalogs Visua does not model are kept as references on the threat.

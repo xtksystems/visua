@@ -361,6 +361,33 @@ describe.skipIf(!registry.framework("mitre-atlas"))("threat views: MITRE ATLAS, 
     expect(gvoc.json.threats.some((t) => t.code === "AML.T0051" && t.paths.some((p) => p.kind === "mitigation"))).toBe(true);
   });
 
+  it("weighs each publication once, and each mitigation, edition or category once within it", async () => {
+    type View = { publication: string; status: string; routes: number; linked: number; progress: number | null };
+    type Req = { id: string; paths: { kind: string; group?: string; via?: { code: string }; links: { authority: string; status: string; citation: { page?: number } }[] }[] };
+    const detail = await api<{ threat: { coverage: Coverage & { views: View[] }; requirements: Req[] } }>("GET", `/api/workspaces/${wsId}/requirements/${encodeURIComponent("owasp-llm-top10:LLM04")}`);
+    const { coverage, requirements } = detail.json.threat;
+    const views = new Map(coverage.views.map((v) => [v.publication, v]));
+    // OWASP 2026 links LLM04 to five AI RMF categories: five routes, however many outcomes they hold.
+    const owasp = views.get("OWASP LLM Top 10 2026, Appendix A")!;
+    expect(owasp).toMatchObject({ status: "final", routes: 5 });
+    expect(owasp.linked).toBeGreaterThan(5);
+    // NIST's draft profile cites the 2025 edition's Supply Chain entry on 67 CSF outcomes: one route, through the other edition.
+    const nist = views.get("NIST IR 8596 (Cyber AI Profile, draft)")!;
+    expect(nist).toMatchObject({ status: "draft", routes: 1, linked: 67 });
+    const edition = requirements.flatMap((r) => r.paths).find((p) => p.kind === "edition")!;
+    expect(edition.via?.code).toBe("LLM03-2025");
+    // The edition link is OWASP's own rank migration chart, labeled with its source.
+    expect(edition.links[0]).toMatchObject({ authority: "OWASP LLM Top 10 2026, Figure 1", status: "final", citation: { page: 6 } });
+    // Each publication counts once: coverage is the mean of the views that reach requirements in scope.
+    const counted = coverage.views.filter((v) => v.progress !== null).map((v) => v.progress!);
+    expect(coverage.progress).toBeCloseTo(counted.reduce((a, b) => a + b, 0) / counted.length, 2);
+    expect(coverage.linked).toBe(requirements.length);
+    // An entry of the superseded edition is no group: it shows the links published for it.
+    const previous = await api<{ threat: { coverage: Coverage; requirements: Req[] } }>("GET", `/api/workspaces/${wsId}/requirements/${encodeURIComponent("owasp-llm-top10:LLM03-2025")}`);
+    expect(previous.json.threat.coverage.state).not.toBe("unmapped");
+    expect(previous.json.threat.requirements.some((r) => r.paths.some((p) => p.kind === "direct" && p.links[0]!.authority === "NIST IR 8596 (Cyber AI Profile, draft)"))).toBe(true);
+  });
+
   it("bundles threat links onto requirement groups for the Nexus threat ring", async () => {
     const ring = await api<{ catalogs: { id: string; groups: { id: string; units: number }[] }[]; bundles: { a: string; b: string; count: number; best: string }[] }>("GET", `/api/workspaces/${wsId}/crosswalk/threats`);
     expect(ring.status).toBe(200);

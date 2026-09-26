@@ -159,6 +159,17 @@ export type LinkStatus = "final" | "draft" | "unreviewed" | "superseded";
 export type MinStatus = "final" | "draft" | "unreviewed";
 export type CoverageState = "covered" | "partial" | "open" | "out-of-scope" | "unmapped";
 
+/** One publication's view of a threat: its routes (mitigations, editions, groups, requirements) count once each. */
+export interface CoverageView {
+  publication: string;
+  status: LinkStatus;
+  routes: number;
+  linked: number;
+  inScope: number;
+  met: number;
+  progress: number | null;
+}
+
 export interface ThreatCoverage {
   state: CoverageState;
   level: number | null;
@@ -166,9 +177,11 @@ export interface ThreatCoverage {
   inScope: number;
   met: number;
   atRisk: number;
+  /** Mean over the publications that reach requirements in scope. */
   progress: number;
   best: LinkStatus | null;
   frameworks: string[];
+  views: CoverageView[];
 }
 
 export interface BriefNode {

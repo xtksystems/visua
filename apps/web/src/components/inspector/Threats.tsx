@@ -261,7 +261,7 @@ export function ThreatInspector({ data, onClose }: { data: NodeDetail; onClose: 
                   ? "No publisher links this threat to a requirement at the chosen link status."
                   : c.state === "out-of-scope"
                     ? `${c.linked} linked requirement${c.linked === 1 ? "" : "s"}, all in frameworks this workspace does not follow (${c.frameworks.map(badgeOf).join(", ")}).`
-                    : `${c.met} of ${c.inScope} linked requirement${c.inScope === 1 ? "" : "s"} in scope ${c.met === 1 ? "is" : "are"} at target · ${Math.round(c.progress * 100)}% of the way overall${c.atRisk ? ` · ${c.atRisk} at risk` : ""}.`}
+                    : `${c.met} of ${c.inScope} linked requirement${c.inScope === 1 ? "" : "s"} in scope ${c.met === 1 ? "is" : "are"} at target · ${Math.round(c.progress * 100)}% of the way, each publication counted once${c.atRisk ? ` · ${c.atRisk} at risk` : ""}.`}
               </div>
               {c.best && (
                 <div className="row row--wrap" style={{ gap: 6, fontSize: 12 }}>

@@ -3,23 +3,22 @@
  * the requirements a workspace implements.
  *
  * Threat catalogs are never assessed. A threat's coverage is derived from the
- * requirements that a publisher linked to it:
+ * requirements that a publisher linked to it, along the published paths of
+ * @visua/frameworks (threat-paths.ts): directly, through an ATLAS mitigation, or
+ * through the same entry in the other OWASP LLM Top 10 edition. Every path keeps
+ * its links, and a path is only as strong as its weakest link's status.
  *
- *   - directly (e.g. OWASP LLM Top 10 2026 → AI RMF categories, COSAiS SP 800-53
- *     controls → NIST AI 100-2 attacks, the OWASP community crosswalk);
- *   - through an ATLAS mitigation (CSF subcategory → mitigation, NIST IR 8596
- *     draft; mitigation → technique, MITRE);
- *   - through the same entry in the other OWASP LLM Top 10 edition.
- *
- * Every path keeps its links, and a path is only as strong as its weakest
- * link's status (final > draft > unreviewed > superseded).
+ * Coverage weighs publications, not requirement counts: the linked requirements
+ * are grouped by the publication that links them and, within it, by route (an ATLAS
+ * mitigation, the other edition's entry, a group such as an AI RMF category, or the
+ * requirement itself). Each route counts once within its publication, and each
+ * publication counts once for the threat, however many requirements it names.
  */
 import { groupStatus, LEVEL_SCALES, type MappingStatus, type RequirementNode, type RequirementState, type Status, type Workspace } from "@visua/core";
-import { AI_100_2_ID, ATLAS_ID, FRAMEWORK_ORDER, OWASP_AGENTIC_ID, OWASP_LLM_ID, type FrameworkRegistry, type ThreatLink } from "@visua/frameworks";
+import { AI_100_2_ID, ATLAS_ID, FRAMEWORK_ORDER, OWASP_AGENTIC_ID, OWASP_LLM_ID, STATUS_RANK, coverageGroup, linkView, threatPaths, type FrameworkRegistry, type ThreatPath } from "@visua/frameworks";
 import { groupOf } from "./crosswalk.ts";
 import { NotFoundError, ValidationError, type VisuaService } from "./visua.ts";
 
-export const STATUS_RANK: Record<MappingStatus, number> = { final: 3, draft: 2, unreviewed: 1, superseded: 0 };
 const MIN_STATUSES = ["final", "draft", "unreviewed"] as const;
 export type MinStatus = (typeof MIN_STATUSES)[number];
 
@@ -29,28 +28,22 @@ export function parseMinStatus(value: string | undefined): MinStatus {
   return value as MinStatus;
 }
 
-export type PathKind = "direct" | "mitigation" | "edition";
-
-export interface LinkView {
-  label: string;
-  status: MappingStatus;
-  authority: string;
-  strength?: string;
-  note?: string;
-  citation: ThreatLink["citation"];
-}
-
-export interface ThreatPath {
-  kind: PathKind;
-  /** The intermediate threat-catalog node (an ATLAS mitigation, or the other OWASP edition). */
-  via?: string;
-  /** Set when the link names a group (e.g. an AI RMF category) and the requirement is one of its units. */
-  group?: string;
-  links: LinkView[];
-  status: MappingStatus;
-}
-
 export type CoverageState = "covered" | "partial" | "open" | "out-of-scope" | "unmapped";
+
+/** One publication's view of a threat: its links, grouped into routes that count once each. */
+export interface CoverageView {
+  /** The publisher of the requirement-side links, e.g. "NIST IR 8596 (Cyber AI Profile, draft)". */
+  publication: string;
+  /** Weakest link status on this publication's paths. */
+  status: MappingStatus;
+  /** Mitigations, editions, groups or single requirements, each counted once. */
+  routes: number;
+  linked: number;
+  inScope: number;
+  met: number;
+  /** Mean over routes of their in-scope requirements' progress toward target (null when none is in scope). */
+  progress: number | null;
+}
 
 export interface ThreatCoverage {
   state: CoverageState;
@@ -62,85 +55,18 @@ export interface ThreatCoverage {
   inScope: number;
   met: number;
   atRisk: number;
-  /** Mean progress toward target of the in-scope linked requirements (0–1). */
+  /** Mean progress over the publications that link in-scope requirements (0–1); see CoverageView. */
   progress: number;
   /** Strongest link status among the paths. */
   best: MappingStatus | null;
   /** Frameworks the linked requirements belong to. */
   frameworks: string[];
+  /** Each publication's view, strongest status first. */
+  views: CoverageView[];
 }
 
-const weakest = (links: { status: MappingStatus }[]): MappingStatus => links.reduce<MappingStatus>((w, l) => (STATUS_RANK[l.status] < STATUS_RANK[w] ? l.status : w), "final");
-const view = (l: ThreatLink): LinkView => ({ label: l.label, status: l.status, authority: l.authority, ...(l.strength ? { strength: l.strength } : {}), ...(l.note ? { note: l.note } : {}), citation: l.citation });
-
-/** Static link structure, computed once per registry. */
-interface ThreatGraph {
-  isThreat: (nodeId: string) => boolean;
-  /** Threat node → requirement node → paths. */
-  forward: Map<string, Map<string, ThreatPath[]>>;
-  /** Requirement node → threat node → paths. */
-  reverse: Map<string, Map<string, ThreatPath[]>>;
-}
-
-const graphs = new WeakMap<FrameworkRegistry, ThreatGraph>();
-
-function threatGraph(registry: FrameworkRegistry): ThreatGraph {
-  const cached = graphs.get(registry);
-  if (cached) return cached;
-  const threatFrameworks = new Set(registry.frameworks.filter((f) => f.family === "threat").map((f) => f.id));
-  const fwOf = (id: string) => id.slice(0, id.indexOf(":"));
-  const isThreat = (id: string) => threatFrameworks.has(fwOf(id));
-  const node = (id: string) => registry.framework(fwOf(id))?.byId.get(id);
-  // A link to a group (an AI RMF category, a CSF category) stands for its units.
-  const units = (id: string): { id: string; group?: string }[] => {
-    const n = node(id);
-    if (!n) return [];
-    if (n.assessable) return [{ id }];
-    return registry
-      .framework(n.frameworkId)!
-      .assessableUnder(id)
-      .map((u) => ({ id: u.id, group: n.code }));
-  };
-  const forward = new Map<string, Map<string, ThreatPath[]>>();
-  const add = (threatId: string, reqId: string, path: ThreatPath) => {
-    const byReq = forward.get(threatId) ?? new Map<string, ThreatPath[]>();
-    byReq.set(reqId, [...(byReq.get(reqId) ?? []), path]);
-    forward.set(threatId, byReq);
-  };
-  const direct = (threatId: string, kind: PathKind, via: string | undefined, first: LinkView[]) => {
-    for (const l of registry.threatLinks.of(via ?? threatId)) {
-      if (isThreat(l.nodeId)) continue;
-      const links = [...first, view(l)];
-      for (const u of units(l.nodeId)) add(threatId, u.id, { kind, ...(via ? { via } : {}), ...(u.group ? { group: u.group } : {}), links, status: weakest(links) });
-    }
-  };
-  for (const fw of threatFrameworks) {
-    for (const t of registry.framework(fw)!.graph.nodes) {
-      direct(t.id, "direct", undefined, []);
-      for (const l of registry.threatLinks.of(t.id)) {
-        // Through an ATLAS mitigation of this technique, or an ATLAS mitigation a publication cites for this attack.
-        const other = node(l.nodeId);
-        if (other && other.frameworkId === ATLAS_ID && other.kind === "mitigation" && t.kind !== "mitigation") direct(t.id, "mitigation", other.id, [view(l)]);
-      }
-      // Through the same entry in the other OWASP LLM Top 10 edition.
-      for (const key of ["previousEdition", "nextEdition"]) {
-        const edition = t.attributes?.[key] as { nodeId: string } | undefined;
-        if (edition && node(edition.nodeId)) direct(t.id, "edition", edition.nodeId, []);
-      }
-    }
-  }
-  const reverse = new Map<string, Map<string, ThreatPath[]>>();
-  for (const [threatId, byReq] of forward) {
-    for (const [reqId, paths] of byReq) {
-      const byThreat = reverse.get(reqId) ?? new Map<string, ThreatPath[]>();
-      byThreat.set(threatId, paths);
-      reverse.set(reqId, byThreat);
-    }
-  }
-  const g = { isThreat, forward, reverse };
-  graphs.set(registry, g);
-  return g;
-}
+const threatGraph = (registry: FrameworkRegistry) => threatPaths(registry);
+const view = linkView;
 
 /** Paths that pass the status filter. */
 const passing = (paths: ThreatPath[], min: MinStatus) => paths.filter((p) => STATUS_RANK[p.status] >= STATUS_RANK[min]);
@@ -166,34 +92,62 @@ async function signals(svc: VisuaService, ws: Workspace, frameworks: Iterable<st
 }
 
 const fwOf = (id: string) => id.slice(0, id.indexOf(":"));
+const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+const round = (x: number) => Math.round(x * 1000) / 1000;
 
 function coverageOf(byReq: Map<string, ThreatPath[]> | undefined, min: MinStatus, sig: WorkspaceSignals): ThreatCoverage {
   const linked: string[] = [];
   let best: MappingStatus | null = null;
+  const publications = new Map<string, { status: MappingStatus; requirements: Set<string>; routes: Map<string, Set<string>> }>();
   for (const [reqId, paths] of byReq ?? []) {
     const ok = passing(paths, min);
     if (!ok.length) continue;
     linked.push(reqId);
-    for (const p of ok) if (!best || STATUS_RANK[p.status] > STATUS_RANK[best]) best = p.status;
+    for (const p of ok) {
+      if (!best || STATUS_RANK[p.status] > STATUS_RANK[best]) best = p.status;
+      const { publication, route } = coverageGroup(p, reqId);
+      const pub = publications.get(publication) ?? { status: p.status, requirements: new Set<string>(), routes: new Map<string, Set<string>>() };
+      if (STATUS_RANK[p.status] < STATUS_RANK[pub.status]) pub.status = p.status;
+      pub.requirements.add(reqId);
+      pub.routes.set(route, (pub.routes.get(route) ?? new Set<string>()).add(reqId));
+      publications.set(publication, pub);
+    }
   }
   const frameworks = [...new Set(linked.map(fwOf))].sort((a, b) => FRAMEWORK_ORDER.indexOf(a) - FRAMEWORK_ORDER.indexOf(b));
-  const inScope = linked.filter((id) => sig.enabled.has(fwOf(id)) && sig.states.get(id)?.applicable !== false && sig.states.has(id));
-  if (!linked.length) return { state: "unmapped", level: null, linked: 0, inScope: 0, met: 0, atRisk: 0, progress: 0, best, frameworks };
-  if (!inScope.length) return { state: "out-of-scope", level: null, linked: linked.length, inScope: 0, met: 0, atRisk: 0, progress: 0, best, frameworks };
-  let sum = 0;
-  let met = 0;
-  let atRisk = 0;
-  for (const id of inScope) {
+  const isInScope = (id: string) => sig.enabled.has(fwOf(id)) && sig.states.has(id) && sig.states.get(id)!.applicable !== false;
+  const progressOf = (id: string) => {
     const s = sig.states.get(id)!;
-    const p = s.target > 0 ? Math.min(s.current / s.target, 1) : s.current > 0 ? 1 : 0;
-    sum += p;
-    if (s.current >= s.target && s.target > 0) met++;
-    if (sig.statuses.get(id) === "at-risk") atRisk++;
-  }
-  const progress = sum / inScope.length;
+    return s.target > 0 ? Math.min(s.current / s.target, 1) : s.current > 0 ? 1 : 0;
+  };
+  const isMet = (id: string) => {
+    const s = sig.states.get(id)!;
+    return s.target > 0 && s.current >= s.target;
+  };
+  const inScope = linked.filter(isInScope);
+  const views: CoverageView[] = [...publications]
+    .map(([publication, pub]) => {
+      const routeProgress = [...pub.routes.values()].map((reqs) => [...reqs].filter(isInScope)).filter((reqs) => reqs.length).map((reqs) => mean(reqs.map(progressOf)));
+      const reqsInScope = [...pub.requirements].filter(isInScope);
+      return {
+        publication,
+        status: pub.status,
+        routes: pub.routes.size,
+        linked: pub.requirements.size,
+        inScope: reqsInScope.length,
+        met: reqsInScope.filter(isMet).length,
+        progress: routeProgress.length ? round(mean(routeProgress)) : null,
+      };
+    })
+    .sort((a, b) => STATUS_RANK[b.status] - STATUS_RANK[a.status] || b.linked - a.linked);
+  if (!linked.length) return { state: "unmapped", level: null, linked: 0, inScope: 0, met: 0, atRisk: 0, progress: 0, best, frameworks, views };
+  if (!inScope.length) return { state: "out-of-scope", level: null, linked: linked.length, inScope: 0, met: 0, atRisk: 0, progress: 0, best, frameworks, views };
+  const met = inScope.filter(isMet).length;
+  const atRisk = inScope.filter((id) => sig.statuses.get(id) === "at-risk").length;
+  // Each publication's view counts once (see the module comment).
+  const progress = mean(views.filter((v) => v.progress !== null).map((v) => v.progress!));
   const level = met === inScope.length ? 4 : progress >= 2 / 3 ? 3 : progress >= 1 / 3 ? 2 : progress > 0 ? 1 : 0;
   const state: CoverageState = level === 4 ? "covered" : level === 0 ? "open" : "partial";
-  return { state, level, linked: linked.length, inScope: inScope.length, met, atRisk, progress: Math.round(progress * 1000) / 1000, best, frameworks };
+  return { state, level, linked: linked.length, inScope: inScope.length, met, atRisk, progress: round(progress), best, frameworks, views };
 }
 
 function catalogIndex(svc: VisuaService, catalogId: string) {
@@ -322,7 +276,7 @@ function pooled(coverages: ThreatCoverage[]): { coverage: ThreatCoverage; byStat
   const mean = counted ? progress / counted : 0;
   const state: CoverageState = !counted ? (byState["out-of-scope"] ? "out-of-scope" : "unmapped") : byState.covered === counted ? "covered" : mean > 0 ? "partial" : "open";
   const level = !counted ? null : state === "covered" ? 4 : mean >= 2 / 3 ? 3 : mean >= 1 / 3 ? 2 : mean > 0 ? 1 : 0;
-  return { coverage: { state, level, ...sum, progress: Math.round(mean * 1000) / 1000, best, frameworks: [...frameworks] }, byState };
+  return { coverage: { state, level, ...sum, progress: Math.round(mean * 1000) / 1000, best, frameworks: [...frameworks], views: [] }, byState };
 }
 
 /** Inspector section for a threat node: its coverage and the requirements and threats linked to it. */
@@ -333,9 +287,10 @@ export async function threatDetail(svc: VisuaService, ws: Workspace, node: Requi
     .filter((l) => g.isThreat(l.nodeId))
     .map((l) => ({ ...briefOf(svc, l.nodeId), direction: l.direction, ...view(l) }));
   const externalRefs = (node.attributes?.["externalRefs"] as unknown[] | undefined) ?? [];
-  // A tactic, edition or objective: pooled coverage of its threats.
-  if (!node.assessable && node.kind !== "mitigation") {
-    const units = ringGroups(svc.registry, node.frameworkId).find((x) => x.group.id === node.id)?.units ?? svc.registry.framework(node.frameworkId)!.assessableUnder(node.id);
+  // A tactic, edition or objective: pooled coverage of its threats. (An entry of the superseded
+  // OWASP edition is not a group: it has links of its own, below.)
+  const units = node.assessable || node.kind === "mitigation" ? [] : (ringGroups(svc.registry, node.frameworkId).find((x) => x.group.id === node.id)?.units ?? svc.registry.framework(node.frameworkId)!.assessableUnder(node.id));
+  if (units.length) {
     const reached = new Set<string>();
     for (const u of units) for (const id of g.forward.get(u.id)?.keys() ?? []) reached.add(fwOf(id));
     const sig = await signals(svc, ws, reached);
@@ -385,14 +340,6 @@ export function threatsAddressedBy(svc: VisuaService, nodeId: string) {
     })
     .filter((t) => svc.registry.framework(t.framework)?.byId.get(t.id)?.assessable || t.kind === "mitigation")
     .sort((a, b) => FRAMEWORK_ORDER.indexOf(a.framework) - FRAMEWORK_ORDER.indexOf(b.framework) || STATUS_RANK[b.best] - STATUS_RANK[a.best] || a.code.localeCompare(b.code, undefined, { numeric: true }));
-}
-
-/** For tests and the crosswalk view: how many requirements each threat reaches, by path kind. */
-export function threatPathCounts(registry: FrameworkRegistry) {
-  const g = threatGraph(registry);
-  const counts: Record<PathKind, number> = { direct: 0, mitigation: 0, edition: 0 };
-  for (const byReq of g.forward.values()) for (const paths of byReq.values()) for (const p of paths) counts[p.kind]++;
-  return counts;
 }
 
 // ---------------------------------------------------------------------------
