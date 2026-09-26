@@ -46,6 +46,10 @@ change the web app.
 - **Agents propose, people approve.** Agents change state only through
   `host.propose()`. Never let an agent file a plan, guide or template as evidence, mark
   anything verified, or make an authorization or audit decision.
+- **Tenancy and access.** Every workspace route must go through `workspaceAccess`
+  (404 across organizations) and declare any capability above its floor with `need()` or
+  `requireCapability()`. Never trust a client-supplied actor: the actor is the signed-in
+  principal. Developer sign-in must stay refused in production.
 - **Integrity.**
   - Every state change goes through `VisuaService` so it lands in the hash-chained
     audit trail, in the same transaction. Storage is async: `await` every store and

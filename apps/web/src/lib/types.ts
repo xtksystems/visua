@@ -1,6 +1,8 @@
 import type {
   ActivityEvent,
   AgentRun,
+  Capability,
+  Role,
   CheckResult,
   Connector,
   Evidence,
@@ -57,6 +59,8 @@ export interface WorkspaceSummary {
   policies: { id: string; title: string; status: string; version: number }[];
   approvals: number;
   agents: { running: number; recent: number };
+  /** The signed-in principal's role in the workspace's organization. */
+  access: { role: Role; capabilities: Capability[] } | null;
 }
 
 export interface LeanNode {

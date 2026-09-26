@@ -9,6 +9,7 @@ import { Link, useParams } from "react-router-dom";
 import { categorize, type ImpactLevel, type RmfSettings } from "@visua/core";
 import { CodeTag, Empty, StatusBar, StatusChip, toast } from "../components/ui/index.tsx";
 import { api, exportUrl } from "../lib/api.ts";
+import { useCan } from "../lib/auth.ts";
 import { shortDate } from "../lib/format.ts";
 import { useFrameworkState, useGraph, useMeta, useWorkspace, useWsMutation } from "../lib/queries.ts";
 
@@ -80,6 +81,7 @@ function Categorize({ ws, rmf }: { ws: string; rmf: RmfSettings }) {
   }, [rmf]);
   const result = categorize(types);
   const apply = useWsMutation(ws, () => api.post(`/workspaces/${encodeURIComponent(ws)}/rmf/categorize`, { systemName, informationTypes: types, privacyBaseline: privacy }));
+  const canDecide = useCan("work.approve");
   const set = (i: number, patch: Partial<RmfSettings["informationTypes"][number]>) => setTypes(types.map((t, ti) => (ti === i ? { ...t, ...patch } : t)));
   return (
     <div className="panel">
@@ -152,7 +154,7 @@ function Categorize({ ws, rmf }: { ws: string; rmf: RmfSettings }) {
         <label className="row" style={{ gap: 6, fontSize: 13 }}>
           <input type="checkbox" checked={privacy} onChange={(e) => setPrivacy(e.target.checked)} /> Include the PRIVACY baseline (PII processed)
         </label>
-        <button className="btn btn--primary" disabled={!types.length} onClick={() => apply.mutate(undefined, { onSuccess: () => toast(`Categorized ${result.overall.toUpperCase()} — baseline applied`) })}>
+        <button className="btn btn--primary" disabled={!types.length || !canDecide} title={canDecide ? undefined : "Categorization is an approver decision"} onClick={() => apply.mutate(undefined, { onSuccess: () => toast(`Categorized ${result.overall.toUpperCase()} — baseline applied`) })}>
           Apply {result.overall.toUpperCase()} baseline
         </button>
       </div>
@@ -165,6 +167,7 @@ function Tailoring({ ws, rmf }: { ws: string; rmf: RmfSettings }) {
   const [action, setAction] = useState<"add" | "remove">("remove");
   const [rationale, setRationale] = useState("");
   const tailor = useWsMutation(ws, (v: { nodeId: string; action: "add" | "remove" | "reset"; rationale: string }) => api.post(`/workspaces/${encodeURIComponent(ws)}/rmf/tailor`, v));
+  const canDecide = useCan("work.approve");
   return (
     <div className="panel">
       <div className="panel__head">
@@ -204,7 +207,7 @@ function Tailoring({ ws, rmf }: { ws: string; rmf: RmfSettings }) {
           <option value="add">Add</option>
         </select>
         <input className="input" style={{ flex: 1, minWidth: 200 }} placeholder="Rationale (required, visible to assessors)" value={rationale} onChange={(e) => setRationale(e.target.value)} />
-        <button className="btn" disabled={!code.trim() || rationale.trim().length < 8}>
+        <button className="btn" disabled={!canDecide || !code.trim() || rationale.trim().length < 8} title={canDecide ? undefined : "Tailoring is an approver decision"}>
           Record
         </button>
       </form>
@@ -218,6 +221,7 @@ function Authorize({ ws, rmf }: { ws: string; rmf: RmfSettings }) {
   const [ao, setAo] = useState(auth.authorizingOfficial ?? "");
   const [expires, setExpires] = useState(auth.expiresAt?.slice(0, 10) ?? "");
   const [rationale, setRationale] = useState(auth.rationale ?? "");
+  const canDecide = useCan("work.approve");
   const save = useWsMutation(ws, () => api.post(`/workspaces/${encodeURIComponent(ws)}/rmf/authorize`, { decision, authorizingOfficial: ao || undefined, expiresAt: expires || undefined, rationale: rationale || undefined }));
   const labels: Record<string, string> = { pending: "Pending", ato: "Authorization to Operate (ATO)", iatt: "Interim Authorization to Test (IATT)", dato: "Denial of Authorization (DATO)" };
   return (
@@ -258,7 +262,7 @@ function Authorize({ ws, rmf }: { ws: string; rmf: RmfSettings }) {
         </div>
       </div>
       <div className="row" style={{ justifyContent: "flex-end", marginTop: 12 }}>
-        <button className="btn btn--primary" onClick={() => save.mutate(undefined, { onSuccess: () => toast("Authorization decision recorded in the audit trail") })}>
+        <button className="btn btn--primary" disabled={!canDecide} title={canDecide ? undefined : "Only approvers record the authorizing official's decision"} onClick={() => save.mutate(undefined, { onSuccess: () => toast("Authorization decision recorded in the audit trail") })}>
           Record decision
         </button>
       </div>

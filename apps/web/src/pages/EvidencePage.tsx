@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom";
 import { useRunAgent } from "../components/inspector/Inspector.tsx";
 import { CodeTag, Dialog, Empty, Metric, Segmented, toast } from "../components/ui/index.tsx";
 import { api } from "../lib/api.ts";
+import { useCan } from "../lib/auth.ts";
 import { relativeTime, shortDate, truncate } from "../lib/format.ts";
 import { useChecks, useConnectors, useEvidence, useMeta, useWsMutation } from "../lib/queries.ts";
 import type { CheckResult, Evidence } from "../lib/types.ts";
@@ -95,6 +96,7 @@ export function EvidencePage() {
   const [adding, setAdding] = useState(false);
   const [viewing, setViewing] = useState<Evidence | null>(null);
   const review = useWsMutation(ws, (v: { id: string; decision: "accepted" | "rejected" }) => api.patch(`/workspaces/${encodeURIComponent(ws)}/evidence/${v.id}`, { decision: v.decision }));
+  const canReview = useCan("work.approve");
   const runConnector = useWsMutation(ws, (id: string) => api.post<CheckResult[]>(`/workspaces/${encodeURIComponent(ws)}/connectors/${id}/run`));
   const list = useMemo(() => {
     const now = Date.now();
@@ -201,7 +203,7 @@ export function EvidencePage() {
                       </td>
                       <td style={{ color: f.color, fontSize: 12.5, whiteSpace: "nowrap" }}>{f.label}</td>
                       <td style={{ whiteSpace: "nowrap" }}>
-                        {e.status === "pending-review" && (
+                        {e.status === "pending-review" && canReview && (
                           <>
                             <button className="btn btn--sm btn--icon" title="Accept" onClick={() => review.mutate({ id: e.id, decision: "accepted" })}>
                               <Check size={13} />

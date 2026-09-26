@@ -47,8 +47,11 @@ pnpm install
 pnpm dev            # API on :8787 (seeds the Northwind Health demo), web on :5173
 ```
 
-Open <http://localhost:5173>. The framework data is pre-built in
-`packages/frameworks/data/`. To rebuild it from the local corpus, run `pnpm ingest`.
+Open <http://localhost:5173> and pick a demo persona on the sign-in screen (developer
+mode). Each persona has a different role in the fictional Northwind Health organization;
+Taylor Brooks belongs to a second organization, Contoso Bank, and cannot see Northwind's
+data. The framework data is pre-built in `packages/frameworks/data/`. To rebuild it from
+the local corpus, run `pnpm ingest`.
 
 Production-style run: `pnpm build && pnpm start`. The API serves the built web app on
 :8787.
@@ -64,8 +67,54 @@ Production-style run: `pnpm build && pnpm start`. The API serves the built web a
 | `VISUA_PORT` / `VISUA_SEED` | `8787` / on | Server port, demo seeding |
 | `VISUA_DATABASE_URL` | `data/visua.db` | `postgres://user:pass@host:5432/db` for PostgreSQL, or a SQLite file path (`:memory:` works). `VISUA_DB` is accepted as a SQLite path too. |
 
-> **Security note.** This version has no user authentication or tenant isolation. Run it
-> locally or behind your own SSO proxy. Do not expose it to the internet.
+### Sign-in, roles and organizations
+
+Every workspace belongs to an **organization** (tenant). People reach an organization's
+workspaces only through a membership, and their **role** decides what they can do:
+
+| Role | Can |
+|---|---|
+| Owner | everything, including owners and the "Require SSO" setting |
+| Admin | workspaces, frameworks, scope, agent autonomy, connectors, members, API tokens, SSO |
+| Approver | decide agent proposals, approve policies, accept evidence, categorize, tailor and record authorization decisions |
+| Contributor | assess requirements, manage tasks, upload evidence, draft policies, run agents and connectors |
+| Auditor | read everything, export reports and verify the audit trail |
+| Viewer | read dashboards and the 3D views |
+
+- **Single sign-on.** Each organization can connect its own OpenID Connect provider
+  (Okta, Microsoft Entra ID, Google Workspace, Keycloak…): authorization code flow with
+  PKCE, state and nonce. People are routed to it by email domain, can be provisioned on
+  first sign-in with a default role, and their sessions reach that organization only. An
+  owner can require the organization's SSO for every session. A platform-wide provider
+  (`VISUA_OIDC_*`) can be configured too.
+- **API tokens** act in one organization with a chosen role (never owner), are shown
+  once and stored as SHA-256 hashes, and can expire or be revoked.
+- **Sessions** are random tokens in an HttpOnly, SameSite=Lax cookie (`__Host-` and
+  Secure over HTTPS), stored hashed, with absolute and idle timeouts. State-changing
+  requests carry a per-session CSRF token and, in production, must come from Visua's
+  own origin. Security headers include a Content-Security-Policy.
+- **Audit.** Every change records the authenticated person (`actorId`) in the
+  hash-chained audit trail. Membership, token and SSO changes go to the organization's
+  own chained trail.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `VISUA_AUTH_MODE` | `dev` (`oidc` when `NODE_ENV=production`) | `dev` adds password-less developer sign-in with demo personas. It is refused in production. |
+| `VISUA_PUBLIC_URL` | `http://localhost:8787` | External URL: OIDC redirect URI (`/api/auth/oidc/callback`), secure cookies over HTTPS, allowed origin |
+| `VISUA_SECRET` | — | At least 32 characters. Encrypts SSO client secrets at rest (AES-256-GCM). Required in production before storing a client secret. |
+| `VISUA_OIDC_ISSUER`, `VISUA_OIDC_CLIENT_ID`, `VISUA_OIDC_CLIENT_SECRET`, `VISUA_OIDC_NAME` | — | Optional platform identity provider |
+| `VISUA_BOOTSTRAP_OWNER_EMAIL`, `VISUA_BOOTSTRAP_ORG_NAME` | — | First owner of a new installation (or of an unowned upgraded one) |
+| `VISUA_SESSION_HOURS`, `VISUA_SESSION_IDLE_MINUTES` | `12`, `120` | Session lifetime and idle timeout |
+| `VISUA_ALLOWED_ORIGINS` | — | Extra origins allowed to send state-changing requests (comma-separated) |
+
+A production start looks like:
+
+```sh
+NODE_ENV=production VISUA_PUBLIC_URL=https://visua.example.com VISUA_SECRET=… \
+VISUA_DATABASE_URL=postgres://visua:…@db:5432/visua \
+VISUA_OIDC_ISSUER=https://login.example.com VISUA_OIDC_CLIENT_ID=visua VISUA_OIDC_CLIENT_SECRET=… \
+VISUA_BOOTSTRAP_OWNER_EMAIL=ciso@example.com pnpm start
+```
 
 ## Official documentation corpus and licensing
 
@@ -106,8 +155,8 @@ Details: [`docs/architecture.md`](docs/architecture.md). Design system:
 
 ```sh
 pnpm typecheck       # all packages (TypeScript 7)
-pnpm test            # 53 unit and API integration tests (Vitest)
-pnpm test:e2e        # 8 Playwright end-to-end tests against the production build (WebGL via SwiftShader)
+pnpm test            # 78 unit, API, storage and auth tests (Vitest; add VISUA_TEST_DATABASE_URL=postgres://… for Postgres)
+pnpm test:e2e        # 12 Playwright end-to-end tests against the production build (WebGL via SwiftShader)
 pnpm design:lint     # DESIGN.md lint
 pnpm design:tokens   # regenerate tokens from DESIGN.md
 pnpm corpus:verify   # SHA-256 check of the local corpus
@@ -118,6 +167,7 @@ pnpm ingest          # rebuild framework data from the corpus
 
 Version 0.1: a working foundation across CSF 2.0, SOC 2, NIST RMF / SP 800-53 and the
 NIST AI RMF. It includes the 3D Observatory and Nexus, eight agents, an evidence engine,
-exports and a trust center. It is not yet a hosted multi-tenant service. See the
+exports and a trust center, with organizations, roles, SSO and PostgreSQL storage for
+multi-tenant hosting. See the
 roadmap, and [`docs/research/ai-governance-landscape.md`](docs/research/ai-governance-landscape.md)
 for the AI governance options that come next.

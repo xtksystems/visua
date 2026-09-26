@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { afterAll, describe, expect, it } from "vitest";
-import type { ActivityEvent, Workspace } from "@visua/core";
+import type { ActivityEvent, OrganizationProfile, Workspace } from "@visua/core";
 import { FrameworkRegistry } from "@visua/frameworks";
 import { createService } from "../src/context.ts";
 import { chainHash } from "../src/services/visua.ts";
@@ -14,7 +14,7 @@ import { TEST_PG_URL, testDatabase } from "./db.ts";
 const registry = FrameworkRegistry.load();
 const db = await testDatabase("store");
 const svc = await createService({ database: db.url, registry });
-const profile = { industry: "saas", size: "11-50", dataTypes: [], drivers: [], environments: ["cloud"], maturityTier: 1, guidance: "guided", securityTeamSize: 1 } as const;
+const profile: OrganizationProfile = { industry: "saas", size: "11-50", dataTypes: [], drivers: [], environments: ["cloud"], maturityTier: 1, guidance: "guided", securityTeamSize: 1 };
 
 afterAll(async () => {
   await svc.store.close();
@@ -119,7 +119,7 @@ describe("upgrading a SQLite database written before migrations", () => {
       CREATE TABLE activity (id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, data TEXT NOT NULL, updated_at TEXT NOT NULL);
       CREATE INDEX activity_ws ON activity(workspace_id, updated_at);`);
     const ts = new Date().toISOString();
-    const ws: Workspace = { id: "ws_legacy", name: "Legacy", slug: "legacy", profile: { ...profile, dataTypes: [], drivers: [], environments: ["cloud"] }, frameworks: [], autonomy: {}, trustCenter: { enabled: false }, createdAt: ts, updatedAt: ts };
+    const ws: Workspace = { id: "ws_legacy", name: "Legacy", slug: "legacy", profile, frameworks: [], autonomy: {}, trustCenter: { enabled: false }, createdAt: ts, updatedAt: ts };
     legacy.prepare(`INSERT INTO workspaces VALUES (?, ?, ?, ?)`).run(ws.id, ws.slug, JSON.stringify(ws), ts);
     let prev = "0".repeat(64);
     for (let seq = 1; seq <= 3; seq++) {

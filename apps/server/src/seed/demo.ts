@@ -4,8 +4,9 @@
  * Moderate-style SP 800-53 program on top of a NIST CSF 2.0 foundation.
  * Everything is reproducible (seeded PRNG) so screenshots and tests are stable.
  */
-import { CrosswalkIndex, codeOf, projectLevels, type RequirementNode, type RequirementState, type Task } from "@visua/core";
+import { CrosswalkIndex, codeOf, projectLevels, type RequirementNode, type RequirementState, type Role, type Task } from "@visua/core";
 import { REPO_ROOT } from "@visua/frameworks";
+import type { AuthService } from "../auth/service.ts";
 import type { VisuaService } from "../services/visua.ts";
 
 function hash(s: string): number {
@@ -46,12 +47,45 @@ const CURRENT_BY_CATEGORY: Record<string, [number, number]> = {
   "RC.CO": [0, 1],
 };
 
+/** Fictional people for the developer sign-in screen: one per role, plus a consultant who works for two organizations. */
+export const DEMO_PERSONAS: { email: string; name: string; title: string; orgs: Partial<Record<"northwind-health" | "contoso-bank", Role>> }[] = [
+  { email: "morgan.lee@northwind-health.example", name: "Morgan Lee", title: "CISO", orgs: { "northwind-health": "owner" } },
+  { email: "casey.nguyen@northwind-health.example", name: "Casey Nguyen", title: "IT director", orgs: { "northwind-health": "admin" } },
+  { email: "priya.shah@northwind-health.example", name: "Priya Shah", title: "Compliance lead", orgs: { "northwind-health": "approver" } },
+  { email: "sam.ortiz@northwind-health.example", name: "Sam Ortiz", title: "IT lead", orgs: { "northwind-health": "contributor" } },
+  { email: "alex.kim@audit-partners.example", name: "Alex Kim", title: "External auditor", orgs: { "northwind-health": "auditor" } },
+  { email: "jordan.park@northwind-health.example", name: "Jordan Park", title: "Board observer", orgs: { "northwind-health": "viewer" } },
+  { email: "riley.chen@visua-partners.example", name: "Riley Chen", title: "vCISO consultant", orgs: { "northwind-health": "admin", "contoso-bank": "admin" } },
+  { email: "taylor.brooks@contoso-bank.example", name: "Taylor Brooks", title: "Security lead, Contoso Bank", orgs: { "contoso-bank": "owner" } },
+];
+
+/** Demo organizations: Northwind Health (the demo workspace) and Contoso Bank (to show tenant separation). */
+export async function seedDemoOrganizations(auth: AuthService): Promise<string> {
+  const ids = auth.svc.store.identity;
+  const existing = await ids.tenants.getBySlug("northwind-health");
+  if (existing) return existing.id;
+  const users = new Map<string, Awaited<ReturnType<AuthService["ensureUser"]>>>();
+  for (const p of DEMO_PERSONAS) users.set(p.email, await auth.ensureUser(p.email, p.name));
+  const tenants: Record<string, string> = {};
+  for (const [slug, name] of [["northwind-health", "Northwind Health"], ["contoso-bank", "Contoso Bank"]] as const) {
+    const owner = DEMO_PERSONAS.find((p) => p.orgs[slug] === "owner")!;
+    const tenant = await auth.createTenant(name, users.get(owner.email)!, "seed", slug);
+    tenants[slug] = tenant.id;
+    for (const p of DEMO_PERSONAS) {
+      const role = p.orgs[slug];
+      if (role && role !== "owner") await auth.grantMembership(tenant.id, users.get(p.email)!, role, "seed");
+    }
+  }
+  return tenants["northwind-health"]!;
+}
+
 const daysFromNow = (d: number) => new Date(Date.now() + d * 86_400_000).toISOString();
 const dateFromNow = (d: number) => daysFromNow(d).slice(0, 10);
 
-export async function seedDemo(svc: VisuaService, tenantId?: string): Promise<string> {
+export async function seedDemo(svc: VisuaService, auth?: AuthService): Promise<string> {
   const existing = await svc.store.workspaces.get("northwind-health");
   if (existing) return existing.id;
+  const tenantId = auth ? await seedDemoOrganizations(auth) : undefined;
   const actor = "seed";
   const frameworks = ["nist-csf-2.0", "aicpa-tsc-2017", "nist-sp-800-53-r5", "nist-ai-rmf"].filter((id) => svc.registry.framework(id));
   const ws = await svc.createWorkspace(
@@ -266,9 +300,9 @@ export async function seedDemo(svc: VisuaService, tenantId?: string): Promise<st
   await svc.upsertRisk(ws.id, { title: "Third-party EHR integration compromise", description: "A compromised EHR integration partner could exfiltrate PHI through API credentials.", likelihood: 2, impact: 5, treatment: "mitigate", status: "open", requirementIds: nodesUnder("GV.SC"), owner: "Platform Lead" }, actor);
 
   // A glass-box agent run awaiting approval, so the flight recorder has history.
-  const run = await svc.startRun(ws.id, { agent: "auditor-prep", goal: "Prepare a SOC 2 readiness brief and flag audit blockers", input: frameworks.includes("aicpa-tsc-2017") ? { framework: "aicpa-tsc-2017" } : {} }, "Morgan Lee (CISO)");
+  const run = await svc.startRun(ws.id, { agent: "auditor-prep", goal: "Prepare a SOC 2 readiness brief and flag audit blockers", input: frameworks.includes("aicpa-tsc-2017") ? { framework: "aicpa-tsc-2017" } : {} }, "Morgan Lee <morgan.lee@northwind-health.example>");
   await svc.waitForRun(run.id);
-  const planner = await svc.startRun(ws.id, { agent: "evidence-collector", goal: "Find implemented CSF outcomes without evidence and propose collection tasks", input: {} }, "Morgan Lee (CISO)");
+  const planner = await svc.startRun(ws.id, { agent: "evidence-collector", goal: "Find implemented CSF outcomes without evidence and propose collection tasks", input: {} }, "Morgan Lee <morgan.lee@northwind-health.example>");
   await svc.waitForRun(planner.id);
 
   return ws.id;

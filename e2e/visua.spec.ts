@@ -1,6 +1,14 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const WS = "/w/northwind-health";
+const MORGAN = "morgan.lee@northwind-health.example";
+
+/** Developer sign-in (the e2e server runs in developer mode); returns the session's CSRF token. */
+async function signIn(page: Page, email = MORGAN): Promise<string> {
+  const res = await page.request.post("/api/auth/dev/login", { data: { email } });
+  expect(res.ok(), await res.text()).toBe(true);
+  return ((await res.json()) as { csrf: string }).csrf;
+}
 
 /** Collect console errors and uncaught exceptions for the duration of a test. */
 function watchErrors(page: Page): string[] {
@@ -13,6 +21,7 @@ function watchErrors(page: Page): string[] {
 }
 
 test("home shows the workspace, its frameworks and next best actions", async ({ page }) => {
+  await signIn(page);
   const errors = watchErrors(page);
   await page.goto(WS);
   await expect(page.getByRole("heading", { level: 1, name: "Northwind Health" })).toBeVisible();
@@ -22,6 +31,7 @@ test("home shows the workspace, its frameworks and next best actions", async ({ 
 });
 
 test("Observatory renders the 3D scene with its keyboard-accessible 2D twin", async ({ page }) => {
+  await signIn(page);
   const errors = watchErrors(page);
   await page.goto(`${WS}/observatory/nist-csf-2.0`);
   await expect(page.locator(".observatory__canvas canvas")).toBeVisible();
@@ -38,6 +48,7 @@ test("Observatory renders the 3D scene with its keyboard-accessible 2D twin", as
 });
 
 test("Crosswalk Nexus selects a group and lists authoritative mappings", async ({ page }) => {
+  await signIn(page);
   const errors = watchErrors(page);
   await page.goto(`${WS}/crosswalk`);
   await expect(page.locator(".observatory__canvas canvas")).toBeVisible();
@@ -51,6 +62,7 @@ test("Crosswalk Nexus selects a group and lists authoritative mappings", async (
 });
 
 test("RMF program: lifecycle, FIPS 199 categorization and authorization record", async ({ page }) => {
+  await signIn(page);
   const errors = watchErrors(page);
   await page.goto(`${WS}/rmf`);
   await expect(page.getByRole("tablist", { name: "RMF steps" }).getByRole("tab")).toHaveCount(7);
@@ -61,6 +73,7 @@ test("RMF program: lifecycle, FIPS 199 categorization and authorization record",
 });
 
 test("SOC 2 program: scope, observation window and DC 200 checklist", async ({ page }) => {
+  await signIn(page);
   const errors = watchErrors(page);
   await page.goto(`${WS}/soc2`);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Type 2 readiness");
@@ -70,8 +83,10 @@ test("SOC 2 program: scope, observation window and DC 200 checklist", async ({ p
   expect(errors).toEqual([]);
 });
 
-test("agents propose, people approve: an offline Copilot run completes with citations", async ({ page, request }) => {
-  const run = await request.post("/api/workspaces/northwind-health/runs?wait=1", { data: { agent: "copilot", goal: "What does GV.SC-07 require?", input: {} } });
+test("agents propose, people approve: an offline Copilot run completes with citations", async ({ page }) => {
+  const csrf = await signIn(page);
+  const request = page.request;
+  const run = await request.post("/api/workspaces/northwind-health/runs?wait=1", { data: { agent: "copilot", goal: "What does GV.SC-07 require?", input: {} }, headers: { "x-visua-csrf": csrf } });
   expect(run.ok()).toBe(true);
   const body = (await run.json()) as { id: string; status: string };
   expect(body.status).toBe("completed");
@@ -89,8 +104,9 @@ test("public trust center shows only computed facts", async ({ page }) => {
   await expect(page.getByText(/Readiness is not an audit opinion/)).toBeVisible();
 });
 
-test("AI governance: inventory, AI RMF functions and Generative AI Profile risks", async ({ page, request }) => {
-  const meta = (await (await request.get("/api/meta")).json()) as { frameworks: { id: string }[] };
+test("AI governance: inventory, AI RMF functions and Generative AI Profile risks", async ({ page }) => {
+  await signIn(page);
+  const meta = (await (await page.request.get("/api/meta")).json()) as { frameworks: { id: string }[] };
   test.skip(!meta.frameworks.some((f) => f.id === "nist-ai-rmf"), "NIST AI RMF corpus not ingested");
   const errors = watchErrors(page);
   await page.goto(`${WS}/ai`);
@@ -100,5 +116,58 @@ test("AI governance: inventory, AI RMF functions and Generative AI Profile risks
   for (const fn of ["GOVERN", "MAP", "MEASURE", "MANAGE"]) await expect(page.getByText(fn, { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Generative AI Profile (NIST AI 600-1)")).toBeVisible();
   await expect(page.getByText("Confabulation").first()).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test("sign-in: developer personas open the workspace with their organization role", async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto(`${WS}/agents`);
+  await expect(page).toHaveURL(/\/login\?returnTo=/);
+  await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
+  await page.getByRole("list", { name: "Demo personas" }).getByRole("button", { name: /Priya Shah/ }).click();
+  await expect(page).toHaveURL(new RegExp(`${WS}/agents$`));
+  await expect(page.locator(".topbar .role-badge")).toHaveText("Approver");
+  expect(errors).toEqual([]);
+});
+
+test("roles: a viewer sees everything read-only and cannot decide or export", async ({ page }) => {
+  await signIn(page, "jordan.park@northwind-health.example");
+  await page.goto(`${WS}/agents`);
+  await expect(page.locator(".topbar .role-badge")).toHaveText("Viewer · read-only");
+  await expect(page.getByRole("heading", { name: "Launch an agent" })).toHaveCount(0);
+  await page.getByRole("tab", { name: /Approvals inbox/ }).click();
+  await expect(page.getByText("Awaiting an approver").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Approve/ })).toHaveCount(0);
+  await page.goto(`${WS}/reports`);
+  await expect(page.getByRole("note").filter({ hasText: "Exports are available" })).toBeVisible();
+  const res = await page.request.get("/api/workspaces/northwind-health/exports/readiness.md");
+  expect(res.status()).toBe(403);
+});
+
+test("tenant separation: another organization cannot see Northwind Health", async ({ page }) => {
+  await signIn(page, "taylor.brooks@contoso-bank.example");
+  expect((await page.request.get("/api/workspaces/northwind-health")).status()).toBe(404);
+  const list = (await (await page.request.get("/api/workspaces")).json()) as unknown[];
+  expect(list).toHaveLength(0);
+  await page.goto(WS);
+  // Contoso Bank has no workspace yet: its owner is sent to onboarding, never into Northwind.
+  await expect(page).toHaveURL(/\/onboarding$/);
+});
+
+test("organization admin: members, roles and a one-time API token", async ({ page }) => {
+  const errors = watchErrors(page);
+  await signIn(page);
+  await page.goto(`${WS}/organization`);
+  await expect(page.getByRole("heading", { level: 1, name: "Northwind Health" })).toBeVisible();
+  await expect(page.getByRole("row").filter({ hasText: "priya.shah@northwind-health.example" })).toContainText("Approver");
+  await page.getByLabel("Email").fill("new.analyst@northwind-health.example");
+  await page.getByRole("button", { name: "Add member" }).click();
+  await expect(page.getByRole("row").filter({ hasText: "new.analyst@northwind-health.example" })).toBeVisible();
+  await page.getByRole("tab", { name: "API tokens" }).click();
+  await page.getByLabel("Token name").fill("CI evidence upload");
+  await page.getByRole("button", { name: "Create token" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "will not be shown again" })).toContainText("vsa_");
+  await page.getByRole("tab", { name: "Audit trail" }).click();
+  await expect(page.getByText("Chain intact")).toBeVisible();
   expect(errors).toEqual([]);
 });

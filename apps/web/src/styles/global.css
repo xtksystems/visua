@@ -1481,3 +1481,144 @@ p {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ------------------------------------------------------------------ sign-in, account and organization */
+.login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-xl) var(--space-md);
+  background: radial-gradient(circle at 50% 0%, var(--color-primary-container), var(--color-neutral) 60%);
+  overflow: auto;
+}
+.login__card {
+  width: min(520px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-xl);
+}
+.login__error {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-error);
+  color: var(--color-on-surface);
+  background: var(--color-surface-raised);
+}
+.login__error svg {
+  color: var(--color-error);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.login__dev {
+  border-top: 1px solid var(--color-outline);
+  padding-top: var(--space-md);
+}
+.login__personas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  max-height: 320px;
+  overflow: auto;
+}
+.login__persona {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-outline);
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+  cursor: pointer;
+}
+.login__persona:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+.login__avatar,
+.account__avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font: var(--font-label-md-weight) 12px var(--font-label-md-family);
+  background: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+}
+.account {
+  position: relative;
+}
+.account__button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 8px 2px 2px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-outline);
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+  cursor: pointer;
+}
+.account__menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  width: 300px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-outline-strong);
+  background: var(--color-surface-raised);
+  box-shadow: 0 12px 40px var(--color-neutral);
+}
+.account__menu a,
+.account__menu button.account__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  color: var(--color-on-surface);
+  background: transparent;
+  border: 0;
+  text-decoration: none;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+.account__menu a:hover,
+.account__menu button.account__item:hover {
+  background: var(--color-surface-raised);
+}
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-outline-strong);
+  color: var(--color-on-surface-muted);
+  font: var(--font-label-md-weight) 11px var(--font-label-md-family);
+  white-space: nowrap;
+}
+.secret {
+  font-family: var(--font-code-md-family);
+  font-size: 12px;
+  word-break: break-all;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--color-status-verified);
+  background: var(--color-surface-raised);
+}

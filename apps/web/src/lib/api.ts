@@ -1,4 +1,4 @@
-/** Minimal typed API client. */
+/** Minimal typed API client: same-origin session cookie, CSRF header on writes, sign-in prompt on 401. */
 export class ApiError extends Error {
   readonly status: number;
   constructor(status: number, message: string) {
@@ -7,15 +7,33 @@ export class ApiError extends Error {
   }
 }
 
+let csrfToken = "";
+/** The session's CSRF token (from /api/auth/me); sent with every state-changing request. */
+export const setCsrfToken = (token: string | undefined) => {
+  csrfToken = token ?? "";
+};
+
+const unauthorizedListeners = new Set<() => void>();
+/** Called when the server says the session is gone (expired, signed out elsewhere). */
+export const onUnauthorized = (fn: () => void) => {
+  unauthorizedListeners.add(fn);
+  return () => void unauthorizedListeners.delete(fn);
+};
+
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const res = await fetch(`/api${path}`, {
-    method,
-    headers: body !== undefined ? { "content-type": "application/json" } : undefined,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  const headers: Record<string, string> = {};
+  if (body !== undefined) headers["content-type"] = "application/json";
+  if (method !== "GET" && csrfToken) headers["x-visua-csrf"] = csrfToken;
+  const res = await fetch(`/api${path}`, { method, headers, body: body !== undefined ? JSON.stringify(body) : undefined, credentials: "same-origin" });
   const text = await res.text();
-  const data = text ? (JSON.parse(text) as unknown) : undefined;
+  let data: unknown;
+  try {
+    data = text ? (JSON.parse(text) as unknown) : undefined;
+  } catch {
+    data = undefined;
+  }
   if (!res.ok) {
+    if (res.status === 401 && !path.startsWith("/auth/")) for (const fn of unauthorizedListeners) fn();
     const message = (data as { error?: string } | undefined)?.error ?? `${res.status} ${res.statusText}`;
     throw new ApiError(res.status, message);
   }

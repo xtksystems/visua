@@ -16,11 +16,16 @@ import {
   TIER_DIMENSIONS,
   TIER_NAMES,
   TIER_SOURCE,
+  ROLE_CAPABILITIES,
   recommend,
   type AgentKind,
+  type Workspace,
 } from "@visua/core";
 import { AGENTS, claudeEnabled, configuredModel } from "@visua/agents";
 import { CORPUS_DIR } from "@visua/frameworks";
+import { loadAuthConfig } from "./auth/config.ts";
+import { actorOf, authenticate, authRoutes, csrfProtection, need, principalOf, requireCapability, requireSignIn, securityHeaders, workspaceAccess, type AppEnv } from "./auth/http.ts";
+import { AuthService, ForbiddenError, UnauthorizedError } from "./auth/service.ts";
 import { CONNECTOR_KINDS } from "./connectors/index.ts";
 import { actionPlanCsv, aiRmfProfileCsv, csfProfileCsv, evidenceIndexCsv, oscalPoam, oscalSsp, readinessMarkdown, soc2PbcCsv } from "./services/exports.ts";
 import { aiOverview } from "./services/ai.ts";
@@ -204,9 +209,6 @@ async function body<T extends z.ZodType>(c: Context, schema: T): Promise<z.infer
   return parsed.data;
 }
 
-const ACTOR_HEADER = "x-visua-actor";
-const actorOf = (c: Context) => (c.req.header(ACTOR_HEADER) ?? "user").slice(0, 80);
-
 const MIME: Record<string, string> = {
   ".pdf": "application/pdf",
   ".json": "application/json",
@@ -216,15 +218,24 @@ const MIME: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
 };
 
-export function createApp(svc: VisuaService): Hono {
-  const app = new Hono();
+export function createApp(svc: VisuaService, auth: AuthService = new AuthService(svc, loadAuthConfig())): Hono<AppEnv> {
+  const app = new Hono<AppEnv>();
 
   app.onError((err, c) => {
     if (err instanceof NotFoundError) return c.json({ error: err.message }, 404);
     if (err instanceof ValidationError) return c.json({ error: err.message }, 400);
+    if (err instanceof UnauthorizedError) return c.json({ error: err.message }, 401);
+    if (err instanceof ForbiddenError) return c.json({ error: err.message }, 403);
     console.error("[visua] unhandled error", err);
-    return c.json({ error: "Internal error", detail: err instanceof Error ? err.message : String(err) }, 500);
+    return c.json({ error: "Internal error" }, 500);
   });
+
+  // ---------------------------------------------------------------- security & identity
+  app.use("*", securityHeaders(auth));
+  app.use("*", authenticate(auth));
+  app.use("/api/*", requireSignIn());
+  app.use("/api/*", csrfProtection(auth));
+  authRoutes(app, auth);
 
   // ---------------------------------------------------------------- meta
   app.get("/api/health", (c) => c.json({ ok: true, frameworks: svc.registry.indexes.size, corpusChunks: svc.registry.search.size }));
@@ -250,7 +261,7 @@ export function createApp(svc: VisuaService): Hono {
   app.get("/api/frameworks/:id", (c) => {
     const index = svc.registry.framework(c.req.param("id"));
     if (!index) throw new NotFoundError(`Framework '${c.req.param("id")}' not found`);
-    c.header("Cache-Control", "public, max-age=300");
+    c.header("Cache-Control", "private, max-age=300");
     return c.json(leanGraph(index.graph));
   });
 
@@ -303,163 +314,185 @@ export function createApp(svc: VisuaService): Hono {
       headers: {
         "content-type": MIME[extname(full).toLowerCase()] ?? "application/octet-stream",
         "content-length": String(statSync(full).size),
-        "cache-control": "public, max-age=86400",
+        "cache-control": "private, max-age=86400",
       },
     });
   });
 
   // ---------------------------------------------------------------- workspaces
-  const workspaceOf = (c: Context) => svc.workspace(c.req.param("ws") ?? "");
+  const summary = async (c: Context<AppEnv>, ws: Workspace) => {
+    const role = c.get("role") ?? (await auth.roleIn(c.get("principal"), ws.tenantId));
+    return { ...(await workspaceSummary(svc, ws)), access: role ? { role, capabilities: ROLE_CAPABILITIES[role] } : null };
+  };
 
-  app.get("/api/workspaces", async (c) => c.json(await Promise.all((await svc.store.workspaces.list()).map((ws) => workspaceSummary(svc, ws)))));
+  app.get("/api/workspaces", async (c) => {
+    const active = await auth.activeTenant(principalOf(c));
+    if (!active) return c.json([]);
+    const list = await svc.store.workspaces.list(active.tenant.id);
+    return c.json(await Promise.all(list.map(async (ws) => ({ ...(await workspaceSummary(svc, ws)), access: { role: active.role, capabilities: ROLE_CAPABILITIES[active.role] } }))));
+  });
 
   app.post("/api/workspaces", async (c) => {
+    const active = await auth.activeTenant(principalOf(c));
+    if (!active) throw new ForbiddenError("Join or create an organization first");
+    c.set("role", active.role);
+    requireCapability(c, "workspace.configure");
     const input = await body(c, Schemas.createWorkspace);
-    const ws = await svc.createWorkspace(input, actorOf(c));
-    return c.json(await workspaceSummary(svc, ws), 201);
+    const ws = await svc.createWorkspace({ ...input, tenantId: active.tenant.id }, actorOf(c));
+    return c.json(await summary(c, ws), 201);
   });
 
-  app.get("/api/workspaces/:ws", async (c) => c.json(await workspaceSummary(svc, await workspaceOf(c))));
+  // Every /api/workspaces/:ws route: the workspace's organization must be one the principal can access.
+  app.use("/api/workspaces/:ws", workspaceAccess(auth));
+  app.use("/api/workspaces/:ws/*", workspaceAccess(auth));
+  const wsOf = (c: Context<AppEnv>) => c.get("workspace");
+  const wsId = (c: Context<AppEnv>) => c.get("workspace").id;
 
-  app.patch("/api/workspaces/:ws", async (c) => {
+  app.get("/api/workspaces/:ws", async (c) => c.json(await summary(c, wsOf(c))));
+
+  app.patch("/api/workspaces/:ws", need("workspace.configure"), async (c) => {
     const input = await body(c, Schemas.updateWorkspace);
-    const ws = await svc.updateWorkspace(c.req.param("ws"), input as never, actorOf(c));
-    return c.json(await workspaceSummary(svc, ws));
+    const ws = await svc.updateWorkspace(wsId(c), input as never, actorOf(c));
+    return c.json(await summary(c, ws));
   });
 
-  app.delete("/api/workspaces/:ws", async (c) => {
-    await svc.deleteWorkspace(c.req.param("ws"));
+  app.delete("/api/workspaces/:ws", need("workspace.configure"), async (c) => {
+    const ws = await svc.deleteWorkspace(wsId(c));
+    await svc.log(ws.tenantId!, actorOf(c), "deleted", "workspace", ws.id, `Workspace “${ws.name}” and its data deleted`);
     return c.json({ ok: true });
   });
 
-  app.get("/api/workspaces/:ws/recommendation", async (c) => c.json(recommend((await workspaceOf(c)).profile)));
+  app.get("/api/workspaces/:ws/recommendation", async (c) => c.json(recommend(wsOf(c).profile)));
 
-  app.put("/api/workspaces/:ws/frameworks/:fw", async (c) => {
+  app.put("/api/workspaces/:ws/frameworks/:fw", need("workspace.configure"), async (c) => {
     const input = await body(c, Schemas.enableFramework);
-    const ws = await svc.enableFramework(c.req.param("ws"), c.req.param("fw"), input as never, actorOf(c));
-    return c.json(await workspaceSummary(svc, ws));
+    const ws = await svc.enableFramework(wsId(c), c.req.param("fw"), input as never, actorOf(c));
+    return c.json(await summary(c, ws));
   });
 
   app.get("/api/workspaces/:ws/frameworks/:fw/state", async (c) => {
-    const ws = await workspaceOf(c);
     if (!svc.registry.framework(c.req.param("fw"))) throw new NotFoundError("Framework not found");
-    return c.json(await frameworkState(svc, ws, c.req.param("fw")));
+    return c.json(await frameworkState(svc, wsOf(c), c.req.param("fw")));
   });
 
   app.get("/api/workspaces/:ws/requirements/:nodeId", async (c) => {
-    const ws = await workspaceOf(c);
     const node = svc.registry.node(decodeURIComponent(c.req.param("nodeId")));
     if (!node) throw new NotFoundError("Requirement not found");
-    return c.json(await nodeDetail(svc, ws, node));
+    return c.json(await nodeDetail(svc, wsOf(c), node));
   });
 
   app.patch("/api/workspaces/:ws/requirements/:nodeId", async (c) => {
     const input = await body(c, Schemas.updateState);
-    return c.json(await svc.updateState(c.req.param("ws"), decodeURIComponent(c.req.param("nodeId")), input as never, actorOf(c)));
+    return c.json(await svc.updateState(wsId(c), decodeURIComponent(c.req.param("nodeId")), input as never, actorOf(c)));
   });
 
   app.post("/api/workspaces/:ws/tiers", async (c) => {
     const input = await body(c, Schemas.tiers);
-    return c.json(await workspaceSummary(svc, await svc.recordTierAssessment(c.req.param("ws"), input.answers, actorOf(c))));
+    return c.json(await summary(c, await svc.recordTierAssessment(wsId(c), input.answers, actorOf(c))));
   });
 
   // ---------------------------------------------------------------- RMF
-  app.post("/api/workspaces/:ws/rmf/categorize", async (c) => {
+  app.post("/api/workspaces/:ws/rmf/categorize", need("work.approve"), async (c) => {
     const input = await body(c, Schemas.categorize);
-    return c.json(await workspaceSummary(svc, await svc.categorizeSystem(c.req.param("ws"), input, actorOf(c))));
+    return c.json(await summary(c, await svc.categorizeSystem(wsId(c), input, actorOf(c))));
   });
-  app.post("/api/workspaces/:ws/rmf/tailor", async (c) => {
+  app.post("/api/workspaces/:ws/rmf/tailor", need("work.approve"), async (c) => {
     const input = await body(c, Schemas.tailor);
-    return c.json(await workspaceSummary(svc, await svc.tailorControl(c.req.param("ws"), input.nodeId, input.action, input.rationale, actorOf(c))));
+    return c.json(await summary(c, await svc.tailorControl(wsId(c), input.nodeId, input.action, input.rationale, actorOf(c))));
   });
-  app.post("/api/workspaces/:ws/rmf/authorize", async (c) => {
+  app.post("/api/workspaces/:ws/rmf/authorize", need("work.approve"), async (c) => {
     const input = await body(c, Schemas.authorize);
-    return c.json(await workspaceSummary(svc, await svc.setAuthorization(c.req.param("ws"), input, actorOf(c))));
+    return c.json(await summary(c, await svc.setAuthorization(wsId(c), input, actorOf(c))));
   });
 
   // ---------------------------------------------------------------- AI governance
-  app.get("/api/workspaces/:ws/ai", async (c) => c.json(await aiOverview(svc, await workspaceOf(c))));
+  app.get("/api/workspaces/:ws/ai", async (c) => c.json(await aiOverview(svc, wsOf(c))));
   app.post("/api/workspaces/:ws/ai/systems", async (c) => {
     const input = await body(c, AiSystemSchema);
-    return c.json(await svc.upsertAiSystem(c.req.param("ws"), input, actorOf(c)), 201);
+    return c.json(await svc.upsertAiSystem(wsId(c), input, actorOf(c)), 201);
   });
   app.patch("/api/workspaces/:ws/ai/systems/:id", async (c) => {
     const input = await body(c, AiSystemSchema.partial());
-    return c.json(await svc.upsertAiSystem(c.req.param("ws"), { ...input, id: c.req.param("id") }, actorOf(c)));
+    return c.json(await svc.upsertAiSystem(wsId(c), { ...input, id: c.req.param("id") }, actorOf(c)));
   });
   app.delete("/api/workspaces/:ws/ai/systems/:id", async (c) => {
-    await svc.removeAiSystem(c.req.param("ws"), c.req.param("id"), actorOf(c));
+    await svc.removeAiSystem(wsId(c), c.req.param("id"), actorOf(c));
     return c.body(null, 204);
   });
 
   // ---------------------------------------------------------------- tasks
-  app.get("/api/workspaces/:ws/tasks", async (c) => c.json(await svc.store.tasks.list((await workspaceOf(c)).id)));
+  app.get("/api/workspaces/:ws/tasks", async (c) => c.json(await svc.store.tasks.list(wsId(c))));
   app.post("/api/workspaces/:ws/tasks", async (c) => {
     const input = await body(c, Schemas.createTask);
     const checklist = input.checklist?.map((i) => ({ id: "", text: i.text, done: !!i.done }));
-    return c.json(await svc.createTask(c.req.param("ws"), { ...input, checklist } as never, actorOf(c)), 201);
+    return c.json(await svc.createTask(wsId(c), { ...input, checklist } as never, actorOf(c)), 201);
   });
   app.patch("/api/workspaces/:ws/tasks/:id", async (c) => {
     const input = await body(c, Schemas.updateTask);
     const clean = Object.fromEntries(Object.entries(input).map(([k, v]) => [k, v === null ? undefined : v]));
-    return c.json(await svc.updateTask(c.req.param("ws"), c.req.param("id"), clean as never, actorOf(c)));
+    return c.json(await svc.updateTask(wsId(c), c.req.param("id"), clean as never, actorOf(c)));
   });
   app.delete("/api/workspaces/:ws/tasks/:id", async (c) => {
-    await svc.deleteTask(c.req.param("ws"), c.req.param("id"), actorOf(c));
+    await svc.deleteTask(wsId(c), c.req.param("id"), actorOf(c));
     return c.json({ ok: true });
   });
   app.post("/api/workspaces/:ws/plan", async (c) => {
     const input = await body(c, Schemas.plan);
-    return c.json(await svc.planWith(c.req.param("ws"), input.framework, input.maxTasks, actorOf(c)), 201);
+    return c.json(await svc.planWith(wsId(c), input.framework, input.maxTasks, actorOf(c)), 201);
   });
 
   // ---------------------------------------------------------------- evidence
-  app.get("/api/workspaces/:ws/evidence", async (c) => c.json(await svc.store.evidence.list((await workspaceOf(c)).id)));
+  app.get("/api/workspaces/:ws/evidence", async (c) => c.json(await svc.store.evidence.list(wsId(c))));
   app.post("/api/workspaces/:ws/evidence", async (c) => {
     const input = await body(c, Schemas.createEvidence);
     const sha256 = input.content ? createHash("sha256").update(input.content).digest("hex") : undefined;
-    return c.json(await svc.createEvidence(c.req.param("ws"), { ...input, source: "upload", sha256 }, actorOf(c)), 201);
+    return c.json(await svc.createEvidence(wsId(c), { ...input, source: "upload", sha256 }, actorOf(c)), 201);
   });
   app.patch("/api/workspaces/:ws/evidence/:id", async (c) => {
     const input = await body(c, Schemas.updateEvidence);
-    if (input.decision) return c.json(await svc.reviewEvidence(c.req.param("ws"), c.req.param("id"), input.decision, actorOf(c), input.note));
-    return c.json(await svc.updateEvidence(c.req.param("ws"), c.req.param("id"), { title: input.title, requirementIds: input.requirementIds, validUntil: input.validUntil } as never, actorOf(c)));
+    if (input.decision) {
+      // Accepting or rejecting evidence is a review decision.
+      requireCapability(c, "work.approve");
+      return c.json(await svc.reviewEvidence(wsId(c), c.req.param("id"), input.decision, actorOf(c), input.note));
+    }
+    return c.json(await svc.updateEvidence(wsId(c), c.req.param("id"), { title: input.title, requirementIds: input.requirementIds, validUntil: input.validUntil } as never, actorOf(c)));
   });
 
   // ---------------------------------------------------------------- policies & risks
-  app.get("/api/workspaces/:ws/policies", async (c) => c.json(await svc.store.policies.list((await workspaceOf(c)).id)));
+  app.get("/api/workspaces/:ws/policies", async (c) => c.json(await svc.store.policies.list(wsId(c))));
   app.post("/api/workspaces/:ws/policies", async (c) => {
     const input = await body(c, Schemas.createPolicy);
-    return c.json(await svc.createPolicy(c.req.param("ws"), input, actorOf(c)), 201);
+    return c.json(await svc.createPolicy(wsId(c), input, actorOf(c)), 201);
   });
   app.patch("/api/workspaces/:ws/policies/:id", async (c) => {
     const input = await body(c, Schemas.updatePolicy);
-    return c.json(await svc.updatePolicy(c.req.param("ws"), c.req.param("id"), input, actorOf(c)));
+    // Approving, publishing or retiring a policy is a management decision.
+    if (input.status === "approved" || input.status === "published" || input.status === "retired") requireCapability(c, "work.approve");
+    return c.json(await svc.updatePolicy(wsId(c), c.req.param("id"), input, actorOf(c)));
   });
-  app.get("/api/workspaces/:ws/risks", async (c) => c.json(await svc.store.risks.list((await workspaceOf(c)).id)));
+  app.get("/api/workspaces/:ws/risks", async (c) => c.json(await svc.store.risks.list(wsId(c))));
   app.post("/api/workspaces/:ws/risks", async (c) => {
     const input = await body(c, Schemas.risk);
-    return c.json(await svc.upsertRisk(c.req.param("ws"), input as never, actorOf(c)), 201);
+    return c.json(await svc.upsertRisk(wsId(c), input as never, actorOf(c)), 201);
   });
 
   // ---------------------------------------------------------------- connectors
-  app.get("/api/workspaces/:ws/connectors", async (c) => c.json(await svc.store.connectors.list((await workspaceOf(c)).id)));
-  app.post("/api/workspaces/:ws/connectors", async (c) => {
+  app.get("/api/workspaces/:ws/connectors", async (c) => c.json(await svc.store.connectors.list(wsId(c))));
+  // Connectors reach systems and paths from the server, so configuring them is an admin action.
+  app.post("/api/workspaces/:ws/connectors", need("workspace.configure"), async (c) => {
     const input = await body(c, Schemas.connector);
-    return c.json(await svc.createConnector(c.req.param("ws"), input, actorOf(c)), 201);
+    return c.json(await svc.createConnector(wsId(c), input, actorOf(c)), 201);
   });
-  app.post("/api/workspaces/:ws/connectors/:id/run", async (c) => c.json(await svc.runConnector(c.req.param("ws"), c.req.param("id"), actorOf(c))));
-  app.get("/api/workspaces/:ws/checks", async (c) => c.json(await svc.store.checks.recent((await workspaceOf(c)).id, 200)));
+  app.post("/api/workspaces/:ws/connectors/:id/run", async (c) => c.json(await svc.runConnector(wsId(c), c.req.param("id"), actorOf(c))));
+  app.get("/api/workspaces/:ws/checks", async (c) => c.json(await svc.store.checks.recent(wsId(c), 200)));
 
   // ---------------------------------------------------------------- agents
   app.get("/api/workspaces/:ws/runs", async (c) =>
-    c.json(
-      (await svc.store.runs.recent((await workspaceOf(c)).id, Number(c.req.query("limit") ?? 50))).map((r) => ({ ...r, steps: undefined, stepCount: r.steps.length })),
-    ),
+    c.json((await svc.store.runs.recent(wsId(c), Number(c.req.query("limit") ?? 50))).map((r) => ({ ...r, steps: undefined, stepCount: r.steps.length }))),
   );
   app.post("/api/workspaces/:ws/runs", async (c) => {
     const input = await body(c, Schemas.run);
-    const run = await svc.startRun(c.req.param("ws"), { agent: input.agent as AgentKind, goal: input.goal, input: input.input }, actorOf(c));
+    const run = await svc.startRun(wsId(c), { agent: input.agent as AgentKind, goal: input.goal, input: input.input }, actorOf(c));
     if (c.req.query("wait") === "1") {
       const done = await svc.waitForRun(run.id);
       return c.json({ ...done, proposals: (await svc.store.proposals.list(done.workspaceId)).filter((p) => p.runId === done.id) }, 201);
@@ -467,34 +500,32 @@ export function createApp(svc: VisuaService): Hono {
     return c.json(run, 202);
   });
   app.get("/api/workspaces/:ws/runs/:id", async (c) => {
-    const ws = await workspaceOf(c);
     const run = await svc.store.runs.get(c.req.param("id"));
-    if (!run || run.workspaceId !== ws.id) throw new NotFoundError("Run not found");
+    if (!run || run.workspaceId !== wsId(c)) throw new NotFoundError("Run not found");
     const proposals = (await svc.store.proposals.list(run.workspaceId)).filter((p) => p.runId === run.id);
     return c.json({ ...run, proposals });
   });
-  app.post("/api/workspaces/:ws/runs/:id/cancel", async (c) => c.json(await svc.cancelRun(c.req.param("ws"), c.req.param("id"), actorOf(c))));
-  app.post("/api/workspaces/:ws/runs/:id/approve-all", async (c) => {
-    const ws = await workspaceOf(c);
-    const pending = (await svc.store.proposals.list(ws.id)).filter((p) => p.runId === c.req.param("id") && p.status === "pending");
+  app.post("/api/workspaces/:ws/runs/:id/cancel", async (c) => c.json(await svc.cancelRun(wsId(c), c.req.param("id"), actorOf(c))));
+  app.post("/api/workspaces/:ws/runs/:id/approve-all", need("work.approve"), async (c) => {
+    const pending = (await svc.store.proposals.list(wsId(c))).filter((p) => p.runId === c.req.param("id") && p.status === "pending");
     const decided = [];
-    for (const p of pending) decided.push(await svc.decideProposal(ws.id, p.id, "approved", actorOf(c)));
+    for (const p of pending) decided.push(await svc.decideProposal(wsId(c), p.id, "approved", actorOf(c)));
     return c.json(decided);
   });
   app.get("/api/workspaces/:ws/proposals", async (c) => {
     const status = c.req.query("status");
-    return c.json((await svc.store.proposals.list((await workspaceOf(c)).id)).filter((p) => !status || p.status === status));
+    return c.json((await svc.store.proposals.list(wsId(c))).filter((p) => !status || p.status === status));
   });
-  app.post("/api/workspaces/:ws/proposals/:id/decision", async (c) => {
+  app.post("/api/workspaces/:ws/proposals/:id/decision", need("work.approve"), async (c) => {
     const input = await body(c, Schemas.decision);
-    return c.json(await svc.decideProposal(c.req.param("ws"), c.req.param("id"), input.decision, actorOf(c), input.edits));
+    return c.json(await svc.decideProposal(wsId(c), c.req.param("id"), input.decision, actorOf(c), input.edits));
   });
 
   // ---------------------------------------------------------------- crosswalk, SOC 2 description, activity & events
-  app.get("/api/workspaces/:ws/crosswalk", async (c) => c.json(await crosswalkOverview(svc, await workspaceOf(c))));
+  app.get("/api/workspaces/:ws/crosswalk", async (c) => c.json(await crosswalkOverview(svc, wsOf(c))));
   app.get("/api/workspaces/:ws/crosswalk/rows", async (c) =>
     c.json(
-      await crosswalkRows(svc, await workspaceOf(c), {
+      await crosswalkRows(svc, wsOf(c), {
         setId: c.req.query("set") || undefined,
         groupId: c.req.query("group") || undefined,
         nodeId: c.req.query("node") || undefined,
@@ -502,13 +533,13 @@ export function createApp(svc: VisuaService): Hono {
       }),
     ),
   );
-  app.get("/api/workspaces/:ws/soc2/description", async (c) => c.json(await soc2Description(svc, await workspaceOf(c))));
+  app.get("/api/workspaces/:ws/soc2/description", async (c) => c.json(await soc2Description(svc, wsOf(c))));
 
-  app.get("/api/workspaces/:ws/activity", async (c) => c.json(await svc.store.activity.recent((await workspaceOf(c)).id, Number(c.req.query("limit") ?? 100))));
-  app.get("/api/workspaces/:ws/activity/verify", async (c) => c.json(await svc.verifyAuditTrail((await workspaceOf(c)).id)));
+  app.get("/api/workspaces/:ws/activity", async (c) => c.json(await svc.store.activity.recent(wsId(c), Math.min(1000, Number(c.req.query("limit") ?? 100)))));
+  app.get("/api/workspaces/:ws/activity/verify", async (c) => c.json(await svc.verifyAuditTrail(wsId(c))));
 
   app.get("/api/workspaces/:ws/events", async (c) => {
-    const ws = await workspaceOf(c);
+    const ws = wsOf(c);
     return streamSSE(c, async (stream) => {
       const queue: string[] = [];
       let wake: (() => void) | undefined;
@@ -539,8 +570,8 @@ export function createApp(svc: VisuaService): Hono {
   });
 
   // ---------------------------------------------------------------- exports & trust
-  app.get("/api/workspaces/:ws/exports/:kind", async (c) => {
-    const ws = await workspaceOf(c);
+  app.get("/api/workspaces/:ws/exports/:kind", need("workspace.export"), async (c) => {
+    const ws = wsOf(c);
     const kind = c.req.param("kind");
     const file = (content: string, type: string, name: string) =>
       new Response(content, { headers: { "content-type": type, "content-disposition": `attachment; filename="${ws.slug}-${name}"` } });

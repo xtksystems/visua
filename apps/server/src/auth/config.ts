@@ -1,0 +1,68 @@
+/**
+ * Authentication settings, from the environment.
+ *
+ *   VISUA_AUTH_MODE             dev | oidc (default: oidc when NODE_ENV=production, else dev)
+ *   VISUA_PUBLIC_URL            external base URL, e.g. https://visua.example.com (OIDC redirects, secure cookies)
+ *   VISUA_SECRET                server secret (≥ 32 chars) that seals SSO client secrets at rest
+ *   VISUA_OIDC_ISSUER           platform identity provider (optional): issuer URL
+ *   VISUA_OIDC_CLIENT_ID        … client id
+ *   VISUA_OIDC_CLIENT_SECRET    … client secret (omit for a public client; PKCE is always used)
+ *   VISUA_OIDC_NAME             … button label (default "Single sign-on")
+ *   VISUA_OIDC_ALLOW_HTTP=1     allow http:// issuers (local test IdPs only)
+ *   VISUA_BOOTSTRAP_OWNER_EMAIL first owner, pre-provisioned when no organization has one
+ *   VISUA_BOOTSTRAP_ORG_NAME    name of the organization created for that owner
+ *   VISUA_SESSION_HOURS         absolute session lifetime (default 12)
+ *   VISUA_SESSION_IDLE_MINUTES  idle timeout (default 120)
+ */
+export type AuthMode = "dev" | "oidc";
+
+export interface PlatformIdp {
+  issuer: string;
+  clientId: string;
+  clientSecret?: string;
+  name: string;
+}
+
+export interface AuthConfig {
+  mode: AuthMode;
+  publicUrl: string;
+  secureCookies: boolean;
+  secret: string;
+  secretIsDefault: boolean;
+  platform?: PlatformIdp;
+  allowHttpIssuers: boolean;
+  bootstrapOwnerEmail?: string;
+  bootstrapOrgName: string;
+  sessionHours: number;
+  sessionIdleMinutes: number;
+}
+
+const DEV_SECRET = "visua-development-secret-do-not-use-in-production";
+
+export function loadAuthConfig(env: NodeJS.ProcessEnv = process.env): AuthConfig {
+  const production = env["NODE_ENV"] === "production";
+  const mode: AuthMode = env["VISUA_AUTH_MODE"] === "dev" ? "dev" : env["VISUA_AUTH_MODE"] === "oidc" || production ? "oidc" : "dev";
+  if (production && mode === "dev") throw new Error("VISUA_AUTH_MODE=dev is refused when NODE_ENV=production: developer sign-in has no password.");
+  const publicUrl = (env["VISUA_PUBLIC_URL"] ?? `http://localhost:${env["VISUA_PORT"] ?? 8787}`).replace(/\/+$/, "");
+  const secret = env["VISUA_SECRET"] ?? "";
+  if (mode === "oidc" && secret && secret.length < 32) throw new Error("VISUA_SECRET must be at least 32 characters.");
+  const issuer = env["VISUA_OIDC_ISSUER"]?.trim();
+  const clientId = env["VISUA_OIDC_CLIENT_ID"]?.trim();
+  const number = (key: string, fallback: number) => {
+    const v = Number(env[key]);
+    return Number.isFinite(v) && v > 0 ? v : fallback;
+  };
+  return {
+    mode,
+    publicUrl,
+    secureCookies: publicUrl.startsWith("https://"),
+    secret: secret || DEV_SECRET,
+    secretIsDefault: !secret,
+    platform: issuer && clientId ? { issuer, clientId, clientSecret: env["VISUA_OIDC_CLIENT_SECRET"] || undefined, name: env["VISUA_OIDC_NAME"] || "Single sign-on" } : undefined,
+    allowHttpIssuers: env["VISUA_OIDC_ALLOW_HTTP"] === "1",
+    bootstrapOwnerEmail: env["VISUA_BOOTSTRAP_OWNER_EMAIL"]?.trim().toLowerCase() || undefined,
+    bootstrapOrgName: env["VISUA_BOOTSTRAP_ORG_NAME"]?.trim() || "My organization",
+    sessionHours: number("VISUA_SESSION_HOURS", 12),
+    sessionIdleMinutes: number("VISUA_SESSION_IDLE_MINUTES", 120),
+  };
+}

@@ -184,6 +184,23 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   lock (a Postgres advisory lock; SQLite serializes writers) and re-reads the workspace
   after taking it, so concurrent requests on different instances never lose updates.
   Bus events are published only after the transaction commits.
+- **Identity and access** (`src/auth/`). Organizations (tenants), users, memberships
+  with one role each, federated identities keyed by issuer and subject, sessions, API
+  tokens and per-organization SSO connections.
+  - Middleware resolves the principal (bearer API token or session cookie), requires
+    one for every `/api` route except health, sign-in and public trust centers, checks
+    the CSRF token and origin on writes, and sets security headers.
+  - Every `/api/workspaces/:ws` route resolves the workspace, then the principal's role
+    in the workspace's organization. No role means 404, so other tenants' workspaces do
+    not exist for you. Reads need `workspace.read`, writes at least `work.write`, and
+    routes that need more (`work.approve`, `workspace.configure`, `workspace.export`)
+    declare it. Roles map to capabilities in `packages/core/src/access.ts`.
+  - OpenID Connect uses `openid-client` (authorization code + PKCE, state, nonce; the
+    flow state is single-use and stored hashed). A session created through an
+    organization's own SSO connection is scoped to that organization, so one tenant's
+    identity provider can never grant access to another tenant.
+  - The request principal travels in `AsyncLocalStorage`, so the service records it as
+    `actorId` on every audit event without changing method signatures.
 - **Audit trail.** Every change is an `ActivityEvent` with `seq`, `prevHash` and
   `hash = SHA-256(prevHash ‖ canonical(event))`, chained from a zero genesis. The
   event is written in the same transaction as the change it records, under the
@@ -265,15 +282,28 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     detection, and no plan-as-evidence
   - AI governance: AI RMF official counts, the Generative AI Profile's risks and actions,
     the AI system inventory API, Playbook-based planning and the AI RMF profile export
-- `e2e/` (Playwright, 8 tests) runs against the production bundle served by the API,
+  - storage (`storage.test.ts`): rollback and savepoints, a linear audit chain and no
+    lost updates under two concurrent server instances, cross-instance cache
+    invalidation, and the in-place upgrade of a pre-migration SQLite database
+  - identity and access (`auth.test.ts`): sign-in requirements, tenant separation (404
+    across organizations), every role's limits, CSRF, API tokens, the organization audit
+    trail, and OpenID Connect against a mock provider (PKCE, replay, JIT provisioning,
+    domain checks, tenant-scoped sessions, Require SSO)
+  - `VISUA_TEST_DATABASE_URL=postgres://…` runs the server suites on Postgres, each run
+    in its own schema
+- `e2e/` (Playwright, 12 tests) runs against the production bundle served by the API,
   with an in-memory seeded database and WebGL on SwiftShader. It covers Home, the
   Observatory and its 2D twin, the Nexus, RMF, SOC 2, AI governance, an agent run with
-  citations, and the trust center.
+  citations, the trust center, persona sign-in, a viewer's read-only view, tenant
+  separation, and organization administration.
 
 ## 7. Known limitations
 
-- There is no authentication, authorization or tenant isolation yet. Run it locally or
-  behind an SSO proxy.
+- Email domains of SSO connections are asserted by organization admins, not verified by
+  DNS. Sessions from a connection are scoped to its organization, so a false claim cannot
+  reach other tenants, but first come holds a domain until an operator intervenes.
+- SAML and SCIM provisioning are not implemented; OpenID Connect covers the major
+  identity providers.
 - Connectors cover web posture and repository hygiene only. Cloud, IdP, HRIS and MDM
   integrations are on the roadmap.
 - The SOC 2 structured extraction tooling is not in the repository. Installations

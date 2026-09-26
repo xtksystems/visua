@@ -5,6 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import type { OrganizationProfile, ProposalType } from "@visua/core";
 import { AgentBadge, FrameworkBadge, toast } from "../components/ui/index.tsx";
 import { api } from "../lib/api.ts";
+import { useCan } from "../lib/auth.ts";
 import { useMeta, useWorkspace, useWsMutation } from "../lib/queries.ts";
 
 export const INDUSTRIES: [OrganizationProfile["industry"], string][] = [
@@ -76,6 +77,7 @@ export function SettingsPage() {
   }, [data]);
   const save = useWsMutation(ws, (body: Record<string, unknown>) => api.patch(`/workspaces/${encodeURIComponent(ws)}`, body));
   const enable = useWsMutation(ws, (v: { fw: string; enabled: boolean }) => api.put(`/workspaces/${encodeURIComponent(ws)}/frameworks/${v.fw}`, { enabled: v.enabled }));
+  const canConfigure = useCan("workspace.configure");
   if (!data || !profile) return <div className="page muted">Loading…</div>;
   const autonomy = data.workspace.autonomy;
   const toggleList = <T extends string>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
@@ -88,6 +90,12 @@ export function SettingsPage() {
           <p>Visua adapts priorities, targets and guidance to your niche and maturity. Changing the profile re-weights recommendations; it never rewrites your assessments.</p>
         </div>
       </header>
+      {!canConfigure && (
+        <div className="panel muted" role="note" style={{ marginBottom: 16 }}>
+          Only admins and owners change workspace settings. You can review them here.
+        </div>
+      )}
+      <fieldset disabled={!canConfigure} style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}>
       <div className="grid grid--2" style={{ alignItems: "start" }}>
         <div className="panel stack" style={{ gap: 14 }}>
           <h2 className="section-title" style={{ margin: 0 }}>
@@ -227,6 +235,7 @@ export function SettingsPage() {
           </div>
         </div>
       </div>
+      </fieldset>
     </div>
   );
 }

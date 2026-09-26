@@ -1,8 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { FrameworkRegistry, REPO_ROOT } from "@visua/frameworks";
 import { createApp } from "../src/app.ts";
+import { loadAuthConfig } from "../src/auth/config.ts";
+import { AuthService } from "../src/auth/service.ts";
 import { createService } from "../src/context.ts";
 import { seedDemo } from "../src/seed/demo.ts";
+import { TestClient } from "./client.ts";
 import { testDatabase } from "./db.ts";
 
 process.env["VISUA_AGENT_MODE"] = "offline";
@@ -10,24 +13,18 @@ process.env["VISUA_AGENT_MODE"] = "offline";
 const registry = FrameworkRegistry.load();
 const db = await testDatabase("api");
 const svc = await createService({ database: db.url, registry });
-const app = createApp(svc);
+const auth = new AuthService(svc, { ...loadAuthConfig({}), mode: "dev" });
+const app = createApp(svc, auth);
 
 afterAll(async () => {
   await svc.store.close();
   await db.cleanup();
 });
 
-async function api<T = unknown>(method: string, path: string, body?: unknown): Promise<{ status: number; json: T; text: string }> {
-  const res = await app.request(path, { method, headers: body ? { "content-type": "application/json" } : {}, body: body ? JSON.stringify(body) : undefined });
-  const text = await res.text();
-  let json: T;
-  try {
-    json = JSON.parse(text) as T;
-  } catch {
-    json = undefined as T;
-  }
-  return { status: res.status, json, text };
-}
+// The owner of a fresh organization: every capability.
+const client = new TestClient(app);
+await client.devLogin("owner@acme-fintech.example", "Ada Owner");
+const api = <T = unknown>(method: string, path: string, body?: unknown) => client.request<T>(method, path, body ?? (method === "GET" ? undefined : {}));
 
 let wsId = "";
 
@@ -284,10 +281,10 @@ describe("evidence, monitoring and exports", () => {
   });
 
   it("serves official corpus files but blocks traversal", async () => {
-    const ok = await app.request("/api/corpus/file/nist-csf-2.0/core/NIST.CSWP.29.pdf");
+    const ok = await client.get("/api/corpus/file/nist-csf-2.0/core/NIST.CSWP.29.pdf");
     expect(ok.status).toBe(200);
     expect(ok.headers.get("content-type")).toBe("application/pdf");
-    const bad = await app.request("/api/corpus/file/..%2F..%2Fpackage.json");
+    const bad = await client.get("/api/corpus/file/..%2F..%2Fpackage.json");
     expect(bad.status).toBe(400);
   });
 });
@@ -347,17 +344,20 @@ describe("integrity guardrails", () => {
 });
 
 describe("demo seed", () => {
+  const morgan = new TestClient(app);
   beforeAll(async () => {
-    await seedDemo(svc);
+    await seedDemo(svc, auth);
+    await morgan.devLogin("morgan.lee@northwind-health.example");
   });
   it("creates a realistic, deterministic demo workspace", async () => {
-    const res = await api<{ workspace: { name: string }; frameworks: { id: string; readiness: number }[]; approvals: number }>("GET", "/api/workspaces/northwind-health");
+    const res = await morgan.get<{ workspace: { name: string }; frameworks: { id: string; readiness: number }[]; approvals: number; access: { role: string } }>("/api/workspaces/northwind-health");
+    expect(res.json.access.role).toBe("owner");
     expect(res.json.workspace.name).toBe("Northwind Health");
     const csf = res.json.frameworks.find((f) => f.id === "nist-csf-2.0")!;
     expect(csf.readiness).toBeGreaterThan(0.3);
     expect(csf.readiness).toBeLessThan(0.9);
     expect(res.json.approvals).toBeGreaterThan(0);
-    const trust = await api<{ name: string; frameworks: unknown[] }>("GET", "/api/trust/northwind-health");
+    const trust = await new TestClient(app).get<{ name: string; frameworks: unknown[] }>("/api/trust/northwind-health");
     expect(trust.json.frameworks.length).toBeGreaterThan(0);
   });
 });

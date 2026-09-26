@@ -1,7 +1,11 @@
-import { lazy, Suspense, useEffect } from "react";
-import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { lazy, Suspense, useEffect, type ReactNode } from "react";
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { Shell } from "./components/shell/Shell.tsx";
+import { onUnauthorized } from "./lib/api.ts";
+import { meKey, useMe } from "./lib/auth.ts";
 import { useWorkspaces } from "./lib/queries.ts";
+import { LoginPage } from "./pages/LoginPage.tsx";
 import { ObservatoryPage } from "./pages/ObservatoryPage.tsx";
 
 const HomePage = lazy(() => import("./pages/HomePage.tsx").then((m) => ({ default: m.HomePage })));
@@ -18,15 +22,40 @@ const ReportsPage = lazy(() => import("./pages/ReportsPage.tsx").then((m) => ({ 
 const SettingsPage = lazy(() => import("./pages/SettingsPage.tsx").then((m) => ({ default: m.SettingsPage })));
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage.tsx").then((m) => ({ default: m.OnboardingPage })));
 const TrustPage = lazy(() => import("./pages/TrustPage.tsx").then((m) => ({ default: m.TrustPage })));
+const OrganizationPage = lazy(() => import("./pages/OrganizationPage.tsx").then((m) => ({ default: m.OrganizationPage })));
 
 function Landing() {
   const { data, isLoading } = useWorkspaces();
+  const me = useMe();
   const navigate = useNavigate();
+  const canCreate = !!me.data?.activeTenant?.capabilities.includes("workspace.configure");
   useEffect(() => {
     if (isLoading || !data) return;
-    navigate(data.length ? `/w/${data[0]!.workspace.slug}` : "/onboarding", { replace: true });
-  }, [data, isLoading, navigate]);
+    if (data.length) navigate(`/w/${data[0]!.workspace.slug}`, { replace: true });
+    else if (canCreate) navigate("/onboarding", { replace: true });
+  }, [data, isLoading, navigate, canCreate]);
+  if (data && !data.length && !canCreate) {
+    return (
+      <div className="login">
+        <div className="login__card panel">
+          <h1 style={{ margin: 0 }}>No workspaces yet</h1>
+          <p className="muted">{me.data?.activeTenant ? `${me.data.activeTenant.name} has no workspace you can see. An admin creates workspaces and invites people.` : "You are not a member of any organization yet. Ask an administrator to add you."}</p>
+        </div>
+      </div>
+    );
+  }
   return <div className="page muted">Loading Visua…</div>;
+}
+
+/** Everything except sign-in and public trust centers needs a signed-in principal. */
+function RequireSignIn({ children }: { children: ReactNode }) {
+  const me = useMe();
+  const qc = useQueryClient();
+  const location = useLocation();
+  useEffect(() => onUnauthorized(() => qc.setQueryData(meKey, null)), [qc]);
+  if (me.isLoading) return <div className="page muted">Loading Visua…</div>;
+  if (!me.data) return <Navigate to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`} replace />;
+  return <>{children}</>;
 }
 
 const Fallback = () => <div className="page muted">Loading…</div>;
@@ -36,10 +65,11 @@ export function App() {
     <BrowserRouter>
       <Suspense fallback={<Fallback />}>
         <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/onboarding" element={<OnboardingPage />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/trust/:slug" element={<TrustPage />} />
-          <Route path="/w/:ws" element={<Shell />}>
+          <Route path="/" element={<RequireSignIn><Landing /></RequireSignIn>} />
+          <Route path="/onboarding" element={<RequireSignIn><OnboardingPage /></RequireSignIn>} />
+          <Route path="/w/:ws" element={<RequireSignIn><Shell /></RequireSignIn>}>
             <Route index element={<HomePage />} />
             <Route path="observatory" element={<ObservatoryPage />} />
             <Route path="observatory/:fw" element={<ObservatoryPage />} />
@@ -55,6 +85,7 @@ export function App() {
             <Route path="ai" element={<AiPage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="organization" element={<OrganizationPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

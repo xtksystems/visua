@@ -8,6 +8,7 @@ import type { AgentStep } from "@visua/core";
 import { ProposalCard } from "../components/agents/Proposals.tsx";
 import { AgentBadge, CitationBlock, CodeTag, Empty, toast } from "../components/ui/index.tsx";
 import { api } from "../lib/api.ts";
+import { useCan } from "../lib/auth.ts";
 import { relativeTime, truncate } from "../lib/format.ts";
 import { Markdown } from "../lib/markdown.tsx";
 import { useMeta, useProposals, useRun, useRuns, useWorkspace, useWsMutation } from "../lib/queries.ts";
@@ -100,6 +101,7 @@ function FlightRecorder({ runId }: { runId: string }) {
   const { data: run } = useRun(ws, runId);
   const cancel = useWsMutation(ws, () => api.post(`/workspaces/${encodeURIComponent(ws)}/runs/${runId}/cancel`));
   const approveAll = useWsMutation(ws, () => api.post(`/workspaces/${encodeURIComponent(ws)}/runs/${runId}/approve-all`));
+  const canDecide = useCan("work.approve");
   if (!run) return <div className="muted">Loading run…</div>;
   const pending = run.proposals.filter((p) => p.status === "pending");
   const duration = run.startedAt && run.finishedAt ? Math.max(0, (new Date(run.finishedAt).getTime() - new Date(run.startedAt).getTime()) / 1000) : undefined;
@@ -126,7 +128,7 @@ function FlightRecorder({ runId }: { runId: string }) {
               <Square size={12} /> Stop
             </button>
           )}
-          {pending.length > 1 && (
+          {pending.length > 1 && canDecide && (
             <button className="btn btn--agent btn--sm" onClick={() => approveAll.mutate(undefined, { onSuccess: () => toast(`Approved ${pending.length} proposals`) })}>
               <CheckCheck size={13} /> Approve all {pending.length}
             </button>
@@ -180,6 +182,8 @@ function Launcher() {
   const [goal, setGoal] = useState(PRESETS["copilot"]!);
   const [framework, setFramework] = useState("");
   const start = useWsMutation(ws, () => api.post<RunWithProposals>(`/workspaces/${encodeURIComponent(ws)}/runs`, { agent, goal, input: framework ? { framework } : {} }));
+  const canWrite = useCan("work.write");
+  if (!canWrite) return null;
   return (
     <div className="panel">
       <div className="panel__head">

@@ -7,6 +7,7 @@ import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { levelLabel, type FrameworkFamily, type ProfileAction } from "@visua/core";
 import { api, corpusFileUrl } from "../../lib/api.ts";
+import { useCan } from "../../lib/auth.ts";
 import { FRAMEWORK_SHORT, STATUS_LABEL, TASK_STATUS_LABEL, familyOf, relativeTime, shortDate, truncate } from "../../lib/format.ts";
 import { useGraph, useMeta, useNodeDetail, useWsMutation } from "../../lib/queries.ts";
 import type { NodeDetail } from "../../lib/types.ts";
@@ -293,8 +294,9 @@ function Assessment({ data, family }: { data: NodeDetail; family: FrameworkFamil
       onError: (e) => toast((e as Error).message, "error"),
     });
   const levels = scale?.levels ?? [0, 1, 2, 3, 4].map((l) => ({ level: l, label: levelLabel(family, l), description: "" }));
+  const canWrite = useCan("work.write");
   return (
-    <div className="panel panel--raised stack" style={{ gap: 12 }}>
+    <fieldset disabled={!canWrite} className="panel panel--raised stack" style={{ gap: 12, margin: 0, minWidth: 0 }} aria-label="Assessment">
       <div className="row">
         <span className="eyebrow">{scale?.name ?? "Implementation level"}</span>
         <span style={{ flex: 1 }} />
@@ -370,7 +372,7 @@ function Assessment({ data, family }: { data: NodeDetail; family: FrameworkFamil
           </div>
         </Dialog>
       )}
-    </div>
+    </fieldset>
   );
 }
 
@@ -595,9 +597,11 @@ export function useRunAgent() {
 
 function AgentFooter({ data }: { data: NodeDetail }) {
   const run = useRunAgent();
+  const canWrite = useCan("work.write");
   const { node } = data;
   const input = { nodeIds: [node.id], framework: node.frameworkId, nodeId: node.id };
   const label = node.code;
+  if (!canWrite) return null;
   return (
     <footer className="inspector__foot">
       <div className="eyebrow" style={{ marginBottom: 8 }}>

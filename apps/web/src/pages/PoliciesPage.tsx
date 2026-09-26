@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom";
 import { useRunAgent } from "../components/inspector/Inspector.tsx";
 import { AgentBadge, CodeTag, Dialog, Empty, toast } from "../components/ui/index.tsx";
 import { api } from "../lib/api.ts";
+import { useCan } from "../lib/auth.ts";
 import { relativeTime } from "../lib/format.ts";
 import { Markdown } from "../lib/markdown.tsx";
 import { useGraph, usePolicies, useWorkspace, useWsMutation } from "../lib/queries.ts";
@@ -71,6 +72,7 @@ export function PoliciesPage() {
   useEffect(() => {
     setEditing(false);
   }, [policy?.id]);
+  const canApprove = useCan("work.approve");
   const act = (patch: Partial<Policy>, msg: string) => update.mutate(patch, { onSuccess: () => toast(msg), onError: (e) => toast((e as Error).message, "error") });
   return (
     <div className="page" style={{ padding: 0, display: "grid", gridTemplateColumns: "380px 1fr", height: "100%", overflow: "hidden" }}>
@@ -128,12 +130,12 @@ export function PoliciesPage() {
                   <Send size={14} /> Submit for review
                 </button>
               )}
-              {(policy.status === "draft" || policy.status === "in-review") && (
+              {(policy.status === "draft" || policy.status === "in-review") && canApprove && (
                 <button className="btn btn--primary" onClick={() => act({ status: "approved" }, "Policy approved — recorded as evidence for its requirements")}>
                   <CheckCircle2 size={14} /> Approve
                 </button>
               )}
-              {policy.status === "approved" && (
+              {policy.status === "approved" && canApprove && (
                 <button className="btn btn--primary" onClick={() => act({ status: "published" }, "Policy published")}>
                   Publish
                 </button>

@@ -4,6 +4,10 @@ import {
   BookCheck,
   BrainCircuit,
   Bot,
+  Building2,
+  Check,
+  LogOut,
+  Users,
   ClipboardList,
   FileText,
   GitCompareArrows,
@@ -19,23 +23,15 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, NavLink, Outlet, useNavigate, useParams } from "react-router-dom";
-import { api } from "../../lib/api.ts";
+import { api, setCsrfToken } from "../../lib/api.ts";
+import { ROLE_NAMES, useMe, useResetSession } from "../../lib/auth.ts";
+import { initials } from "../../pages/LoginPage.tsx";
 import { useWorkspaceEvents } from "../../lib/events.ts";
 import { FRAMEWORK_SHORT, truncate } from "../../lib/format.ts";
 import { useMeta, useSearch, useWorkspace, useWorkspaces } from "../../lib/queries.ts";
 import { useAgentActivity } from "../../state/agentActivity.ts";
 import { useUi } from "../../state/ui.ts";
-import { AgentBadge, FrameworkBadge, toast, Toasts } from "../ui/index.tsx";
-
-function Logo() {
-  return (
-    <svg width="30" height="30" viewBox="0 0 64 64" aria-label="Visua">
-      <path d="M14 18 L32 48 L50 18" fill="none" stroke="var(--color-primary)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="32" cy="27" r="5" fill="var(--color-tertiary)" />
-      <path d="M20 18 A 16 16 0 0 1 44 18" fill="none" stroke="var(--color-status-verified)" strokeWidth="2.5" strokeLinecap="round" opacity=".85" />
-    </svg>
-  );
-}
+import { AgentBadge, FrameworkBadge, Logo, toast, Toasts } from "../ui/index.tsx";
 
 function RailItem({ to, icon, label, badge, end }: { to: string; icon: ReactNode; label: string; badge?: number; end?: boolean }) {
   return (
@@ -67,6 +63,7 @@ function NavRail({ ws, approvals }: { ws: string; approvals: number }) {
       <RailItem to={`${base}/ai`} icon={<BrainCircuit size={s} />} label="AI governance (AI RMF)" />
       <RailItem to={`${base}/reports`} icon={<Activity size={s} />} label="Reports, audit trail & trust" />
       <span className="rail__spacer" />
+      <RailItem to={`${base}/organization`} icon={<Building2 size={s} />} label="Organization: members, SSO & API tokens" />
       <RailItem to={`${base}/settings`} icon={<Settings size={s} />} label="Settings" />
     </nav>
   );
@@ -89,12 +86,92 @@ function AgentPulse({ ws }: { ws: string }) {
   );
 }
 
+const methodLabel = (m: string) => (m === "dev" ? "developer sign-in" : m === "token" ? "an API token" : m === "oidc:platform" ? "single sign-on" : "your organization's SSO");
+
+function AccountMenu({ ws }: { ws: string }) {
+  const me = useMe();
+  const summary = useWorkspace(ws);
+  const reset = useResetSession();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("mousedown", onDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("mousedown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+  if (!me.data) return null;
+  const { user, organizations, activeTenant, method } = me.data;
+  const signOut = async () => {
+    await api.post("/auth/logout").catch(() => undefined);
+    setCsrfToken(undefined);
+    await reset();
+    navigate("/login", { replace: true });
+  };
+  const switchTo = async (tenantId: string) => {
+    try {
+      await api.post("/auth/tenant", { tenantId });
+      setOpen(false);
+      await reset();
+      navigate("/", { replace: true });
+    } catch (err) {
+      toast((err as Error).message, "error");
+    }
+  };
+  const tenantName = organizations.find((o) => o.id === summary.data?.workspace.tenantId)?.name;
+  return (
+    <div className="account" ref={ref}>
+      <button className="account__button" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)} aria-label={`Account menu for ${user.name}`}>
+        <span className="account__avatar" aria-hidden>
+          {initials(user.name)}
+        </span>
+        <span style={{ fontSize: 13, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tenantName ?? user.name}</span>
+      </button>
+      {open && (
+        <div className="account__menu" role="menu" aria-label="Account">
+          <div className="stack" style={{ gap: 2, padding: "4px 8px 8px" }}>
+            <strong>{user.name}</strong>
+            {user.email && <span className="muted" style={{ fontSize: 12 }}>{user.email}</span>}
+            <span className="muted" style={{ fontSize: 12 }}>Signed in with {methodLabel(method)}</span>
+          </div>
+          <div className="eyebrow" style={{ padding: "4px 8px" }}>
+            Organizations
+          </div>
+          {organizations.map((o) => (
+            <button key={o.id} role="menuitemradio" aria-checked={o.id === activeTenant?.id} className="account__item" onClick={() => (o.id === activeTenant?.id ? setOpen(false) : void switchTo(o.id))}>
+              <Building2 size={14} aria-hidden />
+              <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>{o.name}</span>
+              <span className="role-badge">{ROLE_NAMES[o.role]}</span>
+              {o.id === activeTenant?.id ? <Check size={14} aria-label="Active" /> : <span style={{ width: 14 }} />}
+            </button>
+          ))}
+          <Link role="menuitem" to={`/w/${ws}/organization`} onClick={() => setOpen(false)}>
+            <Users size={14} aria-hidden /> Members, SSO and API tokens
+          </Link>
+          <button role="menuitem" className="account__item" onClick={() => void signOut()}>
+            <LogOut size={14} aria-hidden /> Sign out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TopBar({ ws }: { ws: string }) {
   const { data } = useWorkspace(ws);
   const { data: all } = useWorkspaces();
   const meta = useMeta();
   const openPalette = useUi((s) => s.openPalette);
   const navigate = useNavigate();
+  const role = data?.access?.role;
+  const readOnly = !!data?.access && !data.access.capabilities.includes("work.write");
+  const canCreate = !!data?.access?.capabilities.includes("workspace.configure");
   return (
     <header className="topbar">
       <div className="topbar__title">
@@ -105,12 +182,13 @@ function TopBar({ ws }: { ws: string }) {
           onChange={(e) => (e.target.value === "__new" ? navigate("/onboarding") : navigate(`/w/${e.target.value}`))}
           style={{ width: 220, minHeight: 32, height: 32, padding: "0 8px", fontWeight: 600 }}
         >
+          {data && !(all ?? []).some((w) => w.workspace.id === data.workspace.id) && <option value={data.workspace.slug}>{data.workspace.name}</option>}
           {(all ?? []).map((w) => (
             <option key={w.workspace.id} value={w.workspace.slug}>
               {w.workspace.name}
             </option>
           ))}
-          <option value="__new">+ New workspace…</option>
+          {canCreate && <option value="__new">+ New workspace…</option>}
         </select>
         <span className="row" style={{ gap: 6 }}>
           {data?.frameworks.map((f) => <FrameworkBadge key={f.id} frameworkId={f.id} />)}
@@ -126,6 +204,13 @@ function TopBar({ ws }: { ws: string }) {
         <Sparkles size={11} />
         {meta.data?.ai.mode === "claude" ? meta.data.ai.model : "offline agents"}
       </span>
+      {role && (
+        <span className="role-badge" title={readOnly ? "Your role can view this workspace but not change it" : `Your role in this organization`}>
+          {ROLE_NAMES[role]}
+          {readOnly ? " · read-only" : ""}
+        </span>
+      )}
+      <AccountMenu ws={ws} />
     </header>
   );
 }

@@ -3,6 +3,7 @@ import { Check, Eye, X } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../../lib/api.ts";
+import { useCan } from "../../lib/auth.ts";
 import { truncate } from "../../lib/format.ts";
 import { Markdown } from "../../lib/markdown.tsx";
 import { useWsMutation } from "../../lib/queries.ts";
@@ -25,6 +26,7 @@ const TYPE_LABEL: Record<string, string> = {
 export function ProposalCard({ proposal, compact }: { proposal: Proposal; compact?: boolean }) {
   const { ws = "" } = useParams();
   const [open, setOpen] = useState(false);
+  const canDecide = useCan("work.approve");
   const decide = useWsMutation(ws, (decision: "approved" | "rejected") => api.post<Proposal>(`/workspaces/${encodeURIComponent(ws)}/proposals/${proposal.id}/decision`, { decision }));
   const act = (decision: "approved" | "rejected") =>
     decide.mutate(decision, {
@@ -68,7 +70,12 @@ export function ProposalCard({ proposal, compact }: { proposal: Proposal; compac
               <Eye size={13} /> Review
             </button>
           ) : null}
-          {pending && (
+          {pending && !canDecide && (
+            <span className="muted" style={{ fontSize: 12 }} title="Approvers, admins and owners decide proposals">
+              Awaiting an approver
+            </span>
+          )}
+          {pending && canDecide && (
             <>
               <button className="btn btn--agent btn--sm" onClick={() => act("approved")} disabled={decide.isPending}>
                 <Check size={13} /> Approve
@@ -86,7 +93,7 @@ export function ProposalCard({ proposal, compact }: { proposal: Proposal; compac
           title={proposal.title}
           onClose={() => setOpen(false)}
           footer={
-            pending ? (
+            pending && canDecide ? (
               <>
                 <button className="btn" onClick={() => (act("rejected"), setOpen(false))}>
                   Reject

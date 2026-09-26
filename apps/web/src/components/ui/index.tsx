@@ -327,3 +327,14 @@ export function frameworkLabel(id: string) {
 }
 
 export { pct };
+
+/** The Visua mark: a V with the agent's violet core and a verified arc. */
+export function Logo({ size = 30 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" aria-label="Visua" role="img">
+      <path d="M14 18 L32 48 L50 18" fill="none" stroke="var(--color-primary)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="32" cy="27" r="5" fill="var(--color-tertiary)" />
+      <path d="M20 18 A 16 16 0 0 1 44 18" fill="none" stroke="var(--color-status-verified)" strokeWidth="2.5" strokeLinecap="round" opacity=".85" />
+    </svg>
+  );
+}

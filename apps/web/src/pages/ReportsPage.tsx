@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Segmented, toast } from "../components/ui/index.tsx";
 import { api, corpusFileUrl, exportUrl } from "../lib/api.ts";
+import { useCan } from "../lib/auth.ts";
 import { relativeTime, truncate } from "../lib/format.ts";
 import { useActivity, useAuditVerification, useWorkspace, useWsMutation } from "../lib/queries.ts";
 
@@ -92,6 +93,7 @@ function Library() {
 }
 
 export function ReportsPage() {
+  const canExport = useCan("workspace.export");
   const { ws = "" } = useParams();
   const workspace = useWorkspace(ws);
   const audit = useAuditVerification(ws);
@@ -121,8 +123,13 @@ export function ReportsPage() {
         </div>
       </header>
       <div className="grid grid--3" style={{ marginBottom: 20 }}>
+        {!canExport && (
+          <div className="panel muted" role="note" style={{ gridColumn: "1 / -1" }}>
+            Exports are available to auditors, contributors and above. Ask an admin if you need a report.
+          </div>
+        )}
         {exports
-          .filter((e) => e.when !== false)
+          .filter((e) => e.when !== false && canExport)
           .map((e) => (
             <a key={e.kind} className="panel" href={exportUrl(ws, e.kind)} style={{ color: "inherit", textDecoration: "none" }}>
               <div className="row" style={{ gap: 10 }}>
