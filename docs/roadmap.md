@@ -62,9 +62,32 @@ generated from the product, not written by marketing.
 9. **Auditor workspace.** Read-only, logged access. OSCAL assessment-plan and
    assessment-results import and export. Visua never drafts auditor conclusions.
 
-## Next frameworks (in order)
+## Next frameworks
 
-Each framework comes with its own local corpus, graph, crosswalks and tests.
+Each framework comes with its own local corpus, graph, crosswalks and tests. There
+are two tracks. The AI governance track was pulled forward in September 2026 when the
+NIST AI RMF became a requirement.
+
+### AI governance track (after the NIST AI RMF and the Generative AI Profile)
+
+Order and reasoning come from `docs/research/ai-governance-landscape.md` (status as of
+2026-09-26, with sources).
+
+| # | Framework | Model it as | Why | Corpus and licensing |
+|---|---|---|---|---|
+| 1 | ISO/IEC 42001:2023 (AI management system), with ISO/IEC 42005 and 23894 as references | Certifiable framework: clauses 4–10 plus 38 Annex A controls, Statement of Applicability | The strongest buyer pull: accredited certification, required by some large buyers of AI services and by CSA STAR for AI Level 2. A crosswalk to the AI RMF is published on NIST's site. Shares its structure with ISO 27001. | © ISO: Visua skeleton with its own titles; verbatim text only from the customer's licensed copy, withheld from language models by default (the SOC 2 pattern) |
+| 2 | EU AI Act, as amended by Regulation (EU) 2026/1744 | Regulatory obligations with deadlines, by role (provider, deployer…) and risk class | Binding law. Upcoming dates: 2 Dec 2026, 2 Aug 2027, 2 Dec 2027 (Annex III high-risk) and 2 Aug 2028 (Annex I) | EUR-Lex (reusable with attribution) |
+| 3 | NIST Cyber AI Profile (NIST IR 8596) and the SP 800-53 control overlays for AI (COSAiS) | Profiles and overlays on the CSF 2.0 and SP 800-53 graphs Visua already ships, labeled as drafts | Brings AI into the flagship frameworks at no licensing cost; the federal path | NIST (public domain), drafts only so far |
+| 4 | U.S. state AI obligations (Texas, California, Colorado, New York, NYC, Illinois) | A light obligations pack with deadlines | Texas TRAIGA makes substantial compliance with the NIST AI RMF Generative AI Profile an affirmative defense; the California and Colorado dates fall in 2026–2028. Volatile under federal preemption efforts. | Public legislative texts |
+| 5 | MITRE ATLAS and the OWASP Top 10 for LLM and agentic applications (CSA AI Controls Matrix optional) | Threat lenses mapped to controls, not frameworks | Open licenses and machine-readable data; demand for agentic AI security | Apache-2.0 / CC licenses; CSA AICM needs a CSA license |
+
+All of these reuse the same primitives, which the AI RMF work puts in place: the AI
+system inventory, the organization's role, the system's risk tier, impact assessments,
+and lifecycle evidence (evaluations, red-team results, human-oversight records,
+incidents). Next platform work for this track: AI impact assessments (AI RMF MAP,
+ISO/IEC 42005) and an obligation model with deadlines.
+
+### Security and privacy track
 
 | Framework | Why next | Corpus and licensing |
 |---|---|---|
@@ -74,7 +97,6 @@ Each framework comes with its own local corpus, graph, crosswalks and tests.
 | ISO/IEC 27001:2022 / 27002 | International certification | © ISO: IDs and short titles only; full text from the customer's licensed copy |
 | PCI DSS v4.0.1 | Payments | © PCI SSC: IDs only; licensed text overlay |
 | NIST Privacy Framework, GDPR | Privacy programs | NIST (public domain); EUR-Lex (reusable) |
-| NIST AI RMF, ISO/IEC 42001, EU AI Act | AI products | NIST (public domain); © ISO (IDs only); EUR-Lex |
 
 ## Research-driven principles (from the Delve analysis)
 
