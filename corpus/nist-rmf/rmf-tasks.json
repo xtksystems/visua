@@ -1,0 +1,2427 @@
+[
+  {
+    "step": "prepare",
+    "level": "organization",
+    "id": "P-1",
+    "title": "Risk Management Roles",
+    "task": "Identify and assign individuals to specific roles associated with security and privacy risk management.",
+    "outcome": "Individuals are identified and assigned key roles for executing the Risk Management Framework.",
+    "outcomes": [
+      {
+        "text": "Individuals are identified and assigned key roles for executing the Risk Management Framework.",
+        "cybersecurityFramework": [
+          "ID.AM-6",
+          "ID.GV-2"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Organizational security and privacy policies and procedures",
+      "organizational charts"
+    ],
+    "expectedOutputs": [
+      "Documented Risk Management Framework role assignments"
+    ],
+    "primaryResponsibility": [
+      "Head of Agency",
+      "Chief Information Officer",
+      "Senior Agency Official for Privacy"
+    ],
+    "supportingRoles": [
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)",
+      "Senior Agency Information Security Officer"
+    ],
+    "sdlcPhase": null,
+    "discussionExcerpt": "The roles and responsibilities of key participants in risk management processes are described in Appendix D. The roles and responsibilities may include personnel that are internal or external to the organization, as appropriate.",
+    "references": "[SP 800-160 v1] (Human Resource Management Process); [SP 800-181]; [NIST CSF] (Core [Identify Function]).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.1",
+      "pdfPage": 48,
+      "printedPage": 29
+    }
+  },
+  {
+    "step": "prepare",
+    "level": "organization",
+    "id": "P-2",
+    "title": "Risk Management Strategy",
+    "task": "Establish a risk management strategy for the organization that includes a determination of risk tolerance.",
+    "outcome": "A risk management strategy for the organization that includes a determination and expression of organizational risk tolerance is established.",
+    "outcomes": [
+      {
+        "text": "A risk management strategy for the organization that includes a determination and expression of organizational risk tolerance is established.",
+        "cybersecurityFramework": [
+          "ID.RM",
+          "ID.SC"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Organizational mission statement",
+      "organizational policies",
+      "organizational risk assumptions, constraints, priorities and trade-offs"
+    ],
+    "expectedOutputs": [
+      "Risk management strategy and statement of risk tolerance inclusive of information security and privacy risk"
+    ],
+    "primaryResponsibility": [
+      "Head of Agency"
+    ],
+    "supportingRoles": [
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)",
+      "Chief Information Officer",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy"
+    ],
+    "sdlcPhase": null,
+    "discussionExcerpt": "Risk tolerance is the degree of risk or uncertainty that is acceptable to an organization. Risk tolerance affects all parts of the organization’s risk management process, having a direct impact on the risk management decisions made by senior leaders or executives throughout the organization and providing important constraints on those decisions.",
+    "references": "[SP 800-30]; [SP 800-39] (Organization Level); [SP 800-160 v1] (Risk Management, Decision Management, Quality Assurance, Quality Management, Project Assessment and Control Processes); [SP 800-161]; [IR 8062]; [IR 8179] (Criticality Analysis Process B); [NIST CSF] (Core [Identify Function]).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.1",
+      "pdfPage": 48,
+      "printedPage": 29
+    }
+  },
+  {
+    "step": "prepare",
+    "level": "organization",
+    "id": "P-3",
+    "title": "Risk Assessment—Organization",
+    "task": "Assess organization-wide security and privacy risk and update the risk assessment results on an ongoing basis.",
+    "outcome": "An organization-wide risk assessment is completed or an existing risk assessment is updated.",
+    "outcomes": [
+      {
+        "text": "An organization-wide risk assessment is completed or an existing risk assessment is updated.",
+        "cybersecurityFramework": [
+          "ID.RA",
+          "ID.SC-2"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Risk management strategy",
+      "mission or business objectives",
+      "current threat information",
+      "system-level security and privacy risk assessment results",
+      "supply chain risk assessment results",
+      "previous organization-level security and privacy risk assessment results",
+      "information sharing agreements or memoranda of understanding",
+      "security and privacy information from continuous monitoring"
+    ],
+    "expectedOutputs": [
+      "Organization-level risk assessment results"
+    ],
+    "primaryResponsibility": [
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy"
+    ],
+    "supportingRoles": [
+      "Chief Information Officer",
+      "Mission or Business Owner",
+      "Authorizing Official or Authorizing Official Designated Representative"
+    ],
+    "sdlcPhase": null,
+    "discussionExcerpt": "Risk assessment at the organizational level leverages aggregated information from system-level risk assessment results, continuous monitoring, and any strategic risk considerations relevant to the organization. The organization considers the totality of risk from the operation and use of its information systems, from information exchange and connections with other internally and externally owned systems, and from the use of external providers.",
+    "references": "[SP 800-30]; [SP 800-39] (Organization Level, Mission/Business Process Level); [SP 800-161]; [IR 8062].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.1",
+      "pdfPage": 49,
+      "printedPage": 30
+    }
+  },
+  {
+    "step": "prepare",
+    "level": "organization",
+    "id": "P-4",
+    "title": "Organizationally-Tailored Control Baselines and Cybersecurity Framework Profiles (Optional)",
+    "task": "Establish, document, and publish organizationally-tailored control baselines and/or Cybersecurity Framework Profiles.",
+    "outcome": "Organizationally-tailored control baselines and/or Cybersecurity Framework Profiles are established and made available.",
+    "outcomes": [
+      {
+        "text": "Organizationally-tailored control baselines and/or Cybersecurity Framework Profiles are established and made available.",
+        "cybersecurityFramework": [
+          "Profile"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Documented security and privacy requirements directing the use of organizationally-tailored control baselines",
+      "mission or business objectives",
+      "enterprise architecture",
+      "security architecture",
+      "privacy architecture",
+      "organization- and system-level risk assessment results",
+      "list of common control providers and common controls available for inheritance",
+      "NIST Special Publication 800-53B control baselines"
+    ],
+    "expectedOutputs": [
+      "List of approved or directed organizationally-tailored control baselines",
+      "[NIST CSF] Profiles"
+    ],
+    "primaryResponsibility": [
+      "Mission or Business Owner",
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)"
+    ],
+    "supportingRoles": [
+      "Chief Information Officer",
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy"
+    ],
+    "sdlcPhase": null,
+    "discussionExcerpt": "To address the organizational mission or business need for specialized sets of controls to reduce risk, organizationally-tailored control baselines may be developed for organization-wide use. An organizationally-tailored baseline provides a fully specified set of controls, control enhancements, and supplemental guidance derived from established control baselines described in [SP 800-53B].",
+    "references": "[SP 800-53]; [SP 800-53B]; [SP 800-160 v1] (Business or Mission Analysis and Stakeholder Needs and Requirements Definition Processes); [NIST CSF] (Core, Profiles).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.1",
+      "pdfPage": 50,
+      "printedPage": 31
+    }
+  },
+  {
+    "step": "prepare",
+    "level": "organization",
+    "id": "P-5",
+    "title": "Common Control Identification",
+    "task": "Identify, document, and publish organization-wide common controls that are available for inheritance by organizational systems.",
+    "outcome": "Common controls that are available for inheritance by organizational systems are identified, documented, and published.",
+    "outcomes": [
+      {
+        "text": "Common controls that are available for inheritance by organizational systems are identified, documented, and published.",
+        "cybersecurityFramework": []
+      }
+    ],
+    "potentialInputs": [
+      "Documented security and privacy requirements",
+      "existing common control providers and associated security and privacy plans",
+      "information security and privacy program plans",
+      "organization- and system-level security and privacy risk assessment results"
+    ],
+    "expectedOutputs": [
+      "List of common control providers and common controls available for inheritance",
+      "security and privacy plans (or equivalent documents) providing a description of the common control implementation (including inputs, expected behavior, and expected outputs)"
+    ],
+    "primaryResponsibility": [
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy"
+    ],
+    "supportingRoles": [
+      "Mission or Business Owner",
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)",
+      "Chief Information Officer",
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Common Control Provider",
+      "System Owner"
+    ],
+    "sdlcPhase": null,
+    "discussionExcerpt": "Common controls are controls that can be inherited by one or more information systems. Common controls can include controls from any [SP 800-53] control family, for example, physical and environmental protection controls, system boundary and monitoring controls, personnel security controls, policies and procedures, acquisition controls, account and identity management controls, audit log and accountability controls, or complaint management controls for receiving privacy inquiries from the public.",
+    "references": "[SP 800-53].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.1",
+      "pdfPage": 51,
+      "printedPage": 32
+    }
+  },
+  {
+    "step": "prepare",
+    "level": "organization",
+    "id": "P-6",
+    "title": "Impact-Level Prioritization (Optional)",
+    "task": "Prioritize organizational systems with the same impact level.",
+    "outcome": "A prioritization of organizational systems with the same impact level is conducted.",
+    "outcomes": [
+      {
+        "text": "A prioritization of organizational systems with the same impact level is conducted.",
+        "cybersecurityFramework": [
+          "ID.AM-5"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Security categorization information for organizational systems",
+      "system descriptions",
+      "organization- and system-level risk assessment results",
+      "mission or business objectives",
+      "Cybersecurity Framework Profiles"
+    ],
+    "expectedOutputs": [
+      "Organizational systems prioritized into low-, moderate-, and high-impact sub-categories"
+    ],
+    "primaryResponsibility": [
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)"
+    ],
+    "supportingRoles": [
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy",
+      "Mission or Business Owner",
+      "System Owner",
+      "Chief Information Officer",
+      "Authorizing Official or Authorizing Official Designated Representative"
+    ],
+    "sdlcPhase": null,
+    "discussionExcerpt": "This task is carried out only after organizational systems have been categorized (see Task C1). This task requires organizations to first apply the high-water mark concept to each of their information systems categorized in accordance with [FIPS 199] and [FIPS 200].",
+    "references": "[FIPS 199]; [FIPS 200]; [SP 800-30]; [SP 800-39] (Organization and System Levels); [SP 800-59]; [SP 800-60 v1]; [SP 800-60 v2]; [SP 800-160 v1] (System Requirements Definition Process); [IR 8179] (Criticality Analysis Process B); [CNSSI 1253]; [NIST CSF] (Core [Identify Function]; Profiles).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.1",
+      "pdfPage": 52,
+      "printedPage": 33
+    }
+  },
+  {
+    "step": "prepare",
+    "level": "organization",
+    "id": "P-7",
+    "title": "Continuous Monitoring Strategy—Organization",
+    "task": "Develop and implement an organization-wide strategy for continuously monitoring control effectiveness.",
+    "outcome": "An organization-wide strategy for monitoring control effectiveness is developed and implemented.",
+    "outcomes": [
+      {
+        "text": "An organization-wide strategy for monitoring control effectiveness is developed and implemented.",
+        "cybersecurityFramework": [
+          "DE.CM",
+          "ID.SC-4"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Risk management strategy",
+      "organization- and system-level risk assessment results",
+      "organizational security and privacy policies"
+    ],
+    "expectedOutputs": [
+      "An implemented organizational continuous monitoring strategy"
+    ],
+    "primaryResponsibility": [
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)"
+    ],
+    "supportingRoles": [
+      "Chief Information Officer",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy",
+      "Mission or Business Owner",
+      "System Owner",
+      "Authorizing Official or Authorizing Official Designated Representative"
+    ],
+    "sdlcPhase": null,
+    "discussionExcerpt": "An important aspect of risk management is the ability to monitor the security and privacy posture across the organization and the effectiveness of controls implemented within or inherited by organizational systems on an ongoing basis. An effective organization-wide continuous monitoring strategy is essential to efficiently and cost-effectively carry out such monitoring.",
+    "references": "[SP 800-30]; [SP 800-39] (Organization, Mission or Business Process, System Levels); [SP 800-53]; [SP 800-53A]; [SP 800-137]; [SP 800-161]; [IR 8011 v1]; [IR 8062]; [NIST CSF] (Core [Identify, Detect Functions]); [CNSSI 1253].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.1",
+      "pdfPage": 53,
+      "printedPage": 34
+    }
+  },
+  {
+    "step": "prepare",
+    "level": "system",
+    "id": "P-8",
+    "title": "Mission or Business Focus",
+    "task": "Identify the missions, business functions, and mission/business processes that the system is intended to support.",
+    "outcome": "Missions, business functions, and mission/business processes that the system is intended to support are identified.",
+    "outcomes": [
+      {
+        "text": "Missions, business functions, and mission/business processes that the system is intended to support are identified.",
+        "cybersecurityFramework": [
+          "Profile",
+          "Implementation Tiers",
+          "ID.BE"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Organizational mission statement",
+      "organizational policies",
+      "mission/business process information",
+      "system stakeholder information",
+      "Cybersecurity Framework Profiles",
+      "requests for proposal or other acquisition documents",
+      "concept of operations"
+    ],
+    "expectedOutputs": [
+      "Missions, business functions, and mission/business processes that the system will support"
+    ],
+    "primaryResponsibility": [
+      "Mission or Business Owner"
+    ],
+    "supportingRoles": [
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "System Owner",
+      "Information Owner or Steward",
+      "Chief Information Officer",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy"
+    ],
+    "sdlcPhase": {
+      "new": "Initiation (concept/requirements definition)",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Organizational missions and business functions influence the design and development of the mission or business processes that are created to carry out those missions and business functions. The prioritization of missions and business functions drives investment strategies, funding decisions, resource prioritization, and risk decisions—and thus affects the existing enterprise architecture and development of the associated security and privacy architectures.",
+    "references": "[SP 800-39] (Organization and Mission/Business Process Levels); [SP 800-64]; [SP 800-160 v1] (Business or Mission Analysis, Portfolio Management, and Project Planning Processes); [NIST CSF] (Core [Identify Function]); [IR 8179] (Criticality Analysis Process B).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.1",
+      "pdfPage": 55,
+      "printedPage": 36
+    }
+  },
+  {
+    "step": "prepare",
+    "level": "system",
+    "id": "P-9",
+    "title": "System Stakeholders",
+    "task": "Identify stakeholders who have an interest in the design, development, implementation, assessment, operation, maintenance, or disposal of the system.",
+    "outcome": "The stakeholders having an interest in the system are identified.",
+    "outcomes": [
+      {
+        "text": "The stakeholders having an interest in the system are identified.",
+        "cybersecurityFramework": [
+          "ID.AM",
+          "ID.BE"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Organizational mission statement",
+      "mission or business objectives",
+      "missions, business functions, and mission/business processes that the system will support",
+      "other mission/business process information",
+      "organizational security and privacy policies and procedures",
+      "organizational charts",
+      "information about individuals or groups (internal and external) that have an interest in and decision-making responsibility for the system"
+    ],
+    "expectedOutputs": [
+      "List of system stakeholders"
+    ],
+    "primaryResponsibility": [
+      "Mission or Business Owner",
+      "System Owner"
+    ],
+    "supportingRoles": [
+      "Chief Information Officer",
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Information Owner or Steward",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy",
+      "Chief Acquisition Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Initiation (concept/requirements definition)",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Stakeholders include individuals, organizations, or representatives that have an interest in the system throughout the system life cycle—for design, development, implementation, delivery, operation, and sustainment of the system. It also includes all aspects of the supply chain.",
+    "references": "[SP 800-39] (Organization Level); [SP 800-64]; [SP 800-160 v1] (Stakeholder Needs and Requirements Definition and Portfolio Management Processes); [SP 800-161]; [NIST CSF] (Core [Identify Function]).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.1",
+      "pdfPage": 56,
+      "printedPage": 37
+    }
+  },
+  {
+    "step": "prepare",
+    "level": "system",
+    "id": "P-10",
+    "title": "Asset Identification",
+    "task": "Identify assets that require protection.",
+    "outcome": "Stakeholder assets are identified and prioritized.",
+    "outcomes": [
+      {
+        "text": "Stakeholder assets are identified and prioritized.",
+        "cybersecurityFramework": [
+          "ID.AM"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Missions, business functions, and mission/business processes the information system will support",
+      "business impact analyses",
+      "internal stakeholders",
+      "system stakeholder information",
+      "system information",
+      "information about other systems that interact with the system"
+    ],
+    "expectedOutputs": [
+      "Set of assets to be protected"
+    ],
+    "primaryResponsibility": [
+      "System Owner"
+    ],
+    "supportingRoles": [
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Mission or Business Owner",
+      "Information Owner or Steward",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy",
+      "System Administrator"
+    ],
+    "sdlcPhase": {
+      "new": "Initiation (concept/requirements definition)",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Assets are tangible and intangible items that are of value to achievement of mission or business objectives. Tangible assets are physical in nature and include physical/environmental elements (e.g., non-digital information, structures, facilities), human elements, and technology/machine elements (e.g., hardware elements, mechanisms, and networks).",
+    "references": "[SP 800-39] (Organization Level); [SP 800-64]; [SP 800-160 v1] (Stakeholder Needs and Requirements Definition Process); [IR 8179] (Criticality Analysis Process C); [NIST CSF] (Core [Identify Function]); [NARA CUI].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.1",
+      "pdfPage": 57,
+      "printedPage": 38
+    }
+  },
+  {
+    "step": "prepare",
+    "level": "system",
+    "id": "P-11",
+    "title": "Authorization Boundary",
+    "task": "Determine the authorization boundary of the system.",
+    "outcome": "The authorization boundary (i.e., system) is determined.",
+    "outcomes": [
+      {
+        "text": "The authorization boundary (i.e., system) is determined.",
+        "cybersecurityFramework": []
+      }
+    ],
+    "potentialInputs": [
+      "System design documentation",
+      "network diagrams",
+      "system stakeholder information",
+      "asset information",
+      "network and/or enterprise architecture diagrams",
+      "organizational structure (charts, information)"
+    ],
+    "expectedOutputs": [
+      "Documented authorization boundary"
+    ],
+    "primaryResponsibility": [
+      "Authorizing Official"
+    ],
+    "supportingRoles": [
+      "Chief Information Officer",
+      "System Owner",
+      "Mission or Business Owner",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy",
+      "Enterprise Architect"
+    ],
+    "sdlcPhase": {
+      "new": "Initiation (concept/requirements definition)",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Authorization boundaries establish the scope of protection for information systems (i.e., what the organization agrees to protect under its management control or within the scope of its responsibilities). Authorization boundaries are determined by authorizing officials with input from the system owner based on mission, management, or budgetary responsibility (see Appendix F).",
+    "references": "[SP 800-18]; [SP 800-39] (System Level); [SP 800-47]; [SP 800-64]; [SP 800-160 v1] (System Requirements Definition Process); [NIST CSF] (Core [Identify Function]).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.1",
+      "pdfPage": 57,
+      "printedPage": 38
+    }
+  },
+  {
+    "step": "prepare",
+    "level": "system",
+    "id": "P-12",
+    "title": "Information Types",
+    "task": "Identify the types of information to be processed, stored, and transmitted by the system.",
+    "outcome": "The types of information processed, stored, and transmitted by the system are identified.",
+    "outcomes": [
+      {
+        "text": "The types of information processed, stored, and transmitted by the system are identified.",
+        "cybersecurityFramework": [
+          "ID.AM-5"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "System design documentation",
+      "assets to be protected",
+      "mission/business process information",
+      "system design documentation"
+    ],
+    "expectedOutputs": [
+      "A list of information types for the system"
+    ],
+    "primaryResponsibility": [
+      "System Owner",
+      "Information Owner or Steward"
+    ],
+    "supportingRoles": [
+      "Mission or Business Owner",
+      "System Security Officer",
+      "System Privacy Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Initiation (concept/requirements definition)",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Identifying the types of information needed to support organizational missions, business functions, and mission/business processes is an important step in developing security and privacy plans for the system and a precondition for determining the security categorization. [NARA CUI] defines the information types that require protection as part of its Controlled Unclassified Information (CUI) program, in accordance with laws, regulations, or governmentwide policies.",
+    "references": "[OMB A-130]; [NARA CUI]; [SP 800-39] (System Level); [SP 800-60 v1]; [SP 800-60 v2]; [NIST CSF] (Core [Identify Function]).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.1",
+      "pdfPage": 58,
+      "printedPage": 39
+    }
+  },
+  {
+    "step": "prepare",
+    "level": "system",
+    "id": "P-13",
+    "title": "Information Life Cycle",
+    "task": "Identify and understand all stages of the information life cycle for each information type processed, stored, or transmitted by the system.",
+    "outcome": "All stages of the information life cycle are identified and understood for each information type processed, stored, or transmitted by the system.",
+    "outcomes": [
+      {
+        "text": "All stages of the information life cycle are identified and understood for each information type processed, stored, or transmitted by the system.",
+        "cybersecurityFramework": [
+          "ID.AM-3",
+          "ID.AM-4"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Missions, business functions, and mission/business processes the system will support",
+      "system stakeholder information",
+      "authorization boundary information",
+      "information about other systems that interact with the system (e.g., information exchange/connection agreements)",
+      "system design documentation",
+      "system element information",
+      "list of system information types"
+    ],
+    "expectedOutputs": [
+      "Documentation of the stages through which information passes in the system, such as a data map or model illustrating how information is structured or is processed by the system throughout its life cycle. Such documentation includes, for example, data flow diagrams, entity relationship diagrams, database schemas, and data dictionaries"
+    ],
+    "primaryResponsibility": [
+      "Senior Agency Official for Privacy",
+      "System Owner",
+      "Information Owner or Steward"
+    ],
+    "supportingRoles": [
+      "Chief Information Officer",
+      "Mission or Business Owner",
+      "Security Architect",
+      "Privacy Architect",
+      "Enterprise Architect",
+      "Systems Security Engineer",
+      "Privacy Engineer"
+    ],
+    "sdlcPhase": {
+      "new": "Initiation (concept/requirements definition)",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "The information life cycle describes the stages through which information passes, typically characterized as creation or collection, processing, dissemination, use, storage, and disposition, to include destruction and deletion [OMB A-130]. Identifying and understanding how each information type is processed during all stages of the life cycle helps organizations identify considerations for protecting the information, informs the organization’s security and privacy risk assessments, and informs the selection and implementation of controls.",
+    "references": "[OMB A-130]; [OMB M-13-13]; [NARA RECM]; [NIST CSF] (Core [Identify Function]); [IR 8062].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.1",
+      "pdfPage": 59,
+      "printedPage": 40
+    }
+  },
+  {
+    "step": "prepare",
+    "level": "system",
+    "id": "P-14",
+    "title": "Risk Assessment—System",
+    "task": "Conduct a system-level risk assessment and update the risk assessment results on an ongoing basis.",
+    "outcome": "A system-level risk assessment is completed or an existing risk assessment is updated.",
+    "outcomes": [
+      {
+        "text": "A system-level risk assessment is completed or an existing risk assessment is updated.",
+        "cybersecurityFramework": [
+          "ID.RA",
+          "ID.SC-2"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Assets to be protected",
+      "missions, business functions, and mission/business processes the system will support",
+      "business impact analyses or criticality analyses",
+      "system stakeholder information",
+      "information about other systems that interact with the system",
+      "provider information",
+      "threat information",
+      "data map",
+      "system design documentation",
+      "Cybersecurity Framework Profiles",
+      "risk management strategy",
+      "organization-level risk assessment results"
+    ],
+    "expectedOutputs": [
+      "Security and privacy risk assessment reports"
+    ],
+    "primaryResponsibility": [
+      "System Owner",
+      "System Security Officer",
+      "System Privacy Officer"
+    ],
+    "supportingRoles": [
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)",
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Mission or Business Owner",
+      "Information Owner or Steward",
+      "Control Assessor"
+    ],
+    "sdlcPhase": {
+      "new": "Initiation (concept/requirements definition)",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "This task may require that organizations conduct security and privacy risk assessments to ensure that each type of risk is fully assessed. Assessment of security risk includes identification of threat sources and threat events affecting assets, whether and how the assets are vulnerable to the threats, the likelihood that an asset vulnerability will be exploited by a threat, and the impact (or consequence) of loss of the assets.",
+    "references": "[FIPS 199]; [FIPS 200]; [SP 800-30]; [SP 800-39] (Organization Level); [SP 800-59]; [SP 800-60 v1]; [SP 800-60 v2]; [SP 800-64]; [SP 800-160 v1] (Stakeholder Needs and Requirements Definition and Risk Management Processes); [SP 800-161] (Assess); [IR 8062]; [IR 8179]; [NIST CSF] (Core [Identify Function]); [CNSSI 1253].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.1",
+      "pdfPage": 60,
+      "printedPage": 41
+    }
+  },
+  {
+    "step": "prepare",
+    "level": "system",
+    "id": "P-15",
+    "title": "Requirements Definition",
+    "task": "Define the security and privacy requirements for the system and the environment of operation.",
+    "outcome": "Security and privacy requirements are defined and prioritized.",
+    "outcomes": [
+      {
+        "text": "Security and privacy requirements are defined and prioritized.",
+        "cybersecurityFramework": [
+          "ID.GV",
+          "PR.IP"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "System design documentation",
+      "organization- and system-level risk assessment results",
+      "known set of stakeholder assets to be protected",
+      "missions, business functions, and mission/business processes the system will support",
+      "business impact analyses or criticality analyses",
+      "system stakeholder information",
+      "data map of the information life cycle for PII",
+      "Cybersecurity Framework Profiles",
+      "information about other systems that interact with the system",
+      "supply chain information",
+      "threat information",
+      "laws, executive orders, directives, regulations, or policies that apply to the system",
+      "risk management strategy"
+    ],
+    "expectedOutputs": [
+      "Documented security and privacy requirements"
+    ],
+    "primaryResponsibility": [
+      "Mission or Business Owner",
+      "System Owner",
+      "Information Owner or Steward",
+      "System Privacy Officer"
+    ],
+    "supportingRoles": [
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "System Security Officer",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy",
+      "Chief Acquisition Officer",
+      "Security Architect",
+      "Privacy Architect",
+      "Enterprise Architect"
+    ],
+    "sdlcPhase": {
+      "new": "Initiation (concept/requirements definition)",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Protection needs are an expression of the protection capability required for the system in order to reduce security and privacy risk to an acceptable level while supporting mission or business needs. Protection needs include the security characteristics of the system and the security behavior of the system in its intended operational environment and across all system life cycle phases.",
+    "references": "[SP 800-39] (Organization Level); [SP 800-64]; [SP 800-160 v1] (Stakeholder Needs and Requirements Definition Process); [SP 800-161] (Multi-Tiered Risk Management); [IR 8179]; [NIST CSF] (Core [Protect, Detect, Respond, Recover Functions]; Profiles).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.1",
+      "pdfPage": 61,
+      "printedPage": 42
+    }
+  },
+  {
+    "step": "prepare",
+    "level": "system",
+    "id": "P-16",
+    "title": "Enterprise Architecture",
+    "task": "Determine the placement of the system within the enterprise architecture.",
+    "outcome": "The placement of the system within the enterprise architecture is determined.",
+    "outcomes": [
+      {
+        "text": "The placement of the system within the enterprise architecture is determined.",
+        "cybersecurityFramework": []
+      }
+    ],
+    "potentialInputs": [
+      "Security and privacy requirements",
+      "organization- and system-level risk assessment results",
+      "enterprise architecture information",
+      "security architecture information",
+      "privacy architecture information",
+      "asset information"
+    ],
+    "expectedOutputs": [
+      "Updated enterprise architecture",
+      "updated security architecture",
+      "updated privacy architecture",
+      "plans to use cloud-based systems and shared systems, services, or applications"
+    ],
+    "primaryResponsibility": [
+      "Mission or Business Owner",
+      "Enterprise Architect",
+      "Security Architect",
+      "Privacy Architect"
+    ],
+    "supportingRoles": [
+      "Chief Information Officer",
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy",
+      "System Owner",
+      "Information Owner or Steward"
+    ],
+    "sdlcPhase": {
+      "new": "Initiation (concept/requirements definition)",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Enterprise architecture is a management practice used to maximize the effectiveness of mission/business processes and information resources and to achieve mission and business success. An enterprise architecture can provide greater understanding of information and operational technologies included in the initial design and development of information systems and is a prerequisite for achieving resilience and survivability of those systems in an environment of increasingly sophisticated threats.",
+    "references": "[SP 800-39] (Mission/Business Process Level); [SP 800-64]; [SP 800-160 v1] (System Requirements Definition Process); [NIST CSF] (Core [Identify Function]; Profiles); [OMB FEA].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.1",
+      "pdfPage": 62,
+      "printedPage": 43
+    }
+  },
+  {
+    "step": "prepare",
+    "level": "system",
+    "id": "P-17",
+    "title": "Requirements Allocation",
+    "task": "Allocate security and privacy requirements to the system and to the environment of operation.",
+    "outcome": "Security and privacy requirements are allocated to the system and to the environment in which the system operates.",
+    "outcomes": [
+      {
+        "text": "Security and privacy requirements are allocated to the system and to the environment in which the system operates.",
+        "cybersecurityFramework": [
+          "ID.GV"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Organization- and system-level risk assessment results",
+      "documented security and privacy requirements",
+      "organization- and system-level risk assessment results",
+      "list of common control providers and common controls available for inheritance",
+      "system description",
+      "system element information",
+      "system component inventory",
+      "relevant laws, executive orders, directives, regulations, and policies"
+    ],
+    "expectedOutputs": [
+      "List of security and privacy requirements allocated to the system, system elements, and the environment of operation"
+    ],
+    "primaryResponsibility": [
+      "Security Architect",
+      "Privacy Architect",
+      "System Security Officer",
+      "System Privacy Officer"
+    ],
+    "supportingRoles": [
+      "Chief Information Officer",
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Mission or Business Owner",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy",
+      "System Owner"
+    ],
+    "sdlcPhase": {
+      "new": "Initiation (concept/requirements definition)",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Security and privacy requirements are allocated to guide and inform control selection and implementation for the organization, system, system elements, and/or environment of operation. Requirements allocation identifies where controls will be implemented.",
+    "references": "[SP 800-39] (Organization, Mission/Business Process, and System Levels); [SP 800-64]; [SP 800-160 v1] (System Requirements Definition Process); [NIST CSF] (Core [Identify Function]; Profiles); [OMB FEA].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.1",
+      "pdfPage": 63,
+      "printedPage": 44
+    }
+  },
+  {
+    "step": "prepare",
+    "level": "system",
+    "id": "P-18",
+    "title": "System Registration",
+    "task": "Register the system with organizational program or management offices.",
+    "outcome": "The system is registered for purposes of management, accountability, coordination, and oversight.",
+    "outcomes": [
+      {
+        "text": "The system is registered for purposes of management, accountability, coordination, and oversight.",
+        "cybersecurityFramework": [
+          "ID.GV"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Organizational policy on system registration",
+      "system information"
+    ],
+    "expectedOutputs": [
+      "Registered system in accordance with organizational policy"
+    ],
+    "primaryResponsibility": [
+      "System Owner"
+    ],
+    "supportingRoles": [
+      "Mission or Business Owner",
+      "Chief Information Officer",
+      "System Security Officer",
+      "System Privacy Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Initiation (concept/requirements definition)",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "System registration, in accordance with organizational policy, serves to inform the governing organization of plans to develop the system or the existence of the system; the key characteristics of the system; and the expected security and privacy implications for the organization due to the operation and use of the system. System registration provides organizations with a management and tracking tool to facilitate bringing the system into the enterprise architecture, implementation of protections that are commensurate with risk, and security and privacy posture reporting in accordance with applicable laws, executive orders, directives, regulations, policies, or standards.",
+    "references": "None.",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.1",
+      "pdfPage": 64,
+      "printedPage": 45
+    }
+  },
+  {
+    "step": "categorize",
+    "level": "system",
+    "id": "C-1",
+    "title": "System Description",
+    "task": "Document the characteristics of the system.",
+    "outcome": "The characteristics of the system are described and documented.",
+    "outcomes": [
+      {
+        "text": "The characteristics of the system are described and documented.",
+        "cybersecurityFramework": [
+          "Profile"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "System design and requirements documentation",
+      "authorization boundary information",
+      "list of security and privacy requirements allocated to the system, system elements, and the environment of operation",
+      "physical or other processes controlled by system elements",
+      "system element information",
+      "system component inventory",
+      "system element supply chain information, including inventory and supplier information",
+      "security categorization",
+      "data map of the information life cycle for information types processed, stored, and transmitted by the system",
+      "information on system use, users, and roles"
+    ],
+    "expectedOutputs": [
+      "Documented system description"
+    ],
+    "primaryResponsibility": [
+      "System Owner"
+    ],
+    "supportingRoles": [
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Information Owner or Steward",
+      "System Security Officer",
+      "System Privacy Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Initiation (concept/requirements definition)",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "A description of the system characteristics is documented in the security and privacy plans, included in attachments to the plans, or referenced in other standard sources for the information generated as part of the SDLC. Duplication of information is avoided, whenever possible.",
+    "references": "[SP 800-18]; [NIST CSF] (Core [Identify Function]).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.2",
+      "pdfPage": 65,
+      "printedPage": 46
+    }
+  },
+  {
+    "step": "categorize",
+    "level": "system",
+    "id": "C-2",
+    "title": "Security Categorization",
+    "task": "Categorize the system and document the security categorization results.",
+    "outcome": "A security categorization of the system, including the information processed by the system represented by the organization-identified information types, is completed. Security categorization results are documented in the security, privacy, and SCRM plans. Security categorization results are consistent with the enterprise architecture and commitment to protecting organizational missions, business functions, and mission/business processes. Security categorization results reflect the organization’s risk management strategy.",
+    "outcomes": [
+      {
+        "text": "A security categorization of the system, including the information processed by the system represented by the organization-identified information types, is completed.",
+        "cybersecurityFramework": [
+          "ID.AM-1",
+          "ID.AM-2",
+          "ID.AM-3",
+          "ID.AM-4",
+          "ID.AM-5"
+        ]
+      },
+      {
+        "text": "Security categorization results are documented in the security, privacy, and SCRM plans.",
+        "cybersecurityFramework": [
+          "Profile"
+        ]
+      },
+      {
+        "text": "Security categorization results are consistent with the enterprise architecture and commitment to protecting organizational missions, business functions, and mission/business processes.",
+        "cybersecurityFramework": [
+          "Profile"
+        ]
+      },
+      {
+        "text": "Security categorization results reflect the organization’s risk management strategy.",
+        "cybersecurityFramework": []
+      }
+    ],
+    "potentialInputs": [
+      "Risk management strategy",
+      "organizational risk tolerance",
+      "authorization boundary (i.e., system) information",
+      "organization- and system-level risk assessment results",
+      "information types processed, stored, or transmitted by the system",
+      "list of security and privacy requirements allocated to the system, system elements, and environment of operation",
+      "organizational authority or purpose for operating the system",
+      "business impact analyses or criticality analyses",
+      "information about missions, business functions, and mission/business processes supported by the system"
+    ],
+    "expectedOutputs": [
+      "Impact levels determined for each information type and for each security objective (confidentiality, integrity, availability)",
+      "security categorization based on high-water mark of information type impact levels"
+    ],
+    "primaryResponsibility": [
+      "System Owner",
+      "Information Owner or Steward"
+    ],
+    "supportingRoles": [
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)",
+      "Chief Information Officer",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy",
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "System Security Officer",
+      "System Privacy Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Initiation (concept/requirements definition)",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Security categorization determinations consider potential adverse impacts to organizational operations, organizational assets, individuals, other organizations, and the Nation resulting from the loss of confidentiality, integrity, or availability of information. Organizations have flexibility in conducting a security categorization using either [FIPS 200] to establish a single impact level for a system based on the high-water mark concept (for other than national security systems), or [CNSSI 1253] to establish three impact values that may vary for each of the security objectives of confidentiality, integrity, and availability (for national security systems).",
+    "references": "[FIPS 199]; [FIPS 200]; [SP 800-30]; [SP 800-39] (System Level); [SP 800-59]; [SP 800-60 v1]; [SP 800-60 v2]; [SP 800-160 v1] (Stakeholder Needs and Requirements Definition and System Requirements Definition Processes); [IR 8179]; [CNSSI 1253]; [NIST CSF] (Core [Identify Function]).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.2",
+      "pdfPage": 66,
+      "printedPage": 47
+    }
+  },
+  {
+    "step": "categorize",
+    "level": "system",
+    "id": "C-3",
+    "title": "Security Categorization Review and Approval",
+    "task": "Review and approve the security categorization results and decision.",
+    "outcome": "The security categorization results are reviewed and the categorization decision is approved by senior leaders in the organization.",
+    "outcomes": [
+      {
+        "text": "The security categorization results are reviewed and the categorization decision is approved by senior leaders in the organization.",
+        "cybersecurityFramework": []
+      }
+    ],
+    "potentialInputs": [
+      "Impact levels determined for each information type and for each security objective (confidentiality, integrity, availability)",
+      "security categorization based on high-water mark of information type impact levels",
+      "list of high value assets for the organization"
+    ],
+    "expectedOutputs": [
+      "Approval of security categorization for the system"
+    ],
+    "primaryResponsibility": [
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Senior Agency Official for Privacy"
+    ],
+    "supportingRoles": [
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)",
+      "Chief Information Officer",
+      "Senior Agency Information Security Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Initiation (concept/requirements definition)",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "For information systems that process PII, the senior agency official for privacy reviews and approves the security categorization results and decision prior to the authorizing official’s review. Security categorization results and decisions are reviewed by the authorizing official or a designated representative to ensure that the security category selected for the information system is consistent with the mission and business functions of the organization and the need to adequately protect those missions and functions.",
+    "references": "[FIPS 199]; [SP 800-30]; [SP 800-39] (Organization Level); [SP 800-160 v1] (Stakeholder Needs and Requirements Definition Process); [CNSSI 1253]; [NIST CSF] (Core [Identify Function]).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.2",
+      "pdfPage": 67,
+      "printedPage": 48
+    }
+  },
+  {
+    "step": "select",
+    "level": "system",
+    "id": "S-1",
+    "title": "Control Selection",
+    "task": "Select the controls for the system and the environment of operation.",
+    "outcome": "Control baselines necessary to protect the system commensurate with risk are selected.",
+    "outcomes": [
+      {
+        "text": "Control baselines necessary to protect the system commensurate with risk are selected.",
+        "cybersecurityFramework": [
+          "Profile"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Security categorization",
+      "organization- and system-level risk assessment results",
+      "system element information",
+      "system component inventory",
+      "list of security and privacy requirements allocated to the system, system elements, and environment of operation",
+      "list of contractual requirements allocated to external providers of the system or system element",
+      "business impact analysis or criticality analysis",
+      "risk management strategy",
+      "organizational security and privacy policy",
+      "federal or organization-approved or mandated baselines or overlays",
+      "Cybersecurity Framework Profiles"
+    ],
+    "expectedOutputs": [
+      "Controls selected for the system and the environment of operation"
+    ],
+    "primaryResponsibility": [
+      "System Owner",
+      "Common Control Provider"
+    ],
+    "supportingRoles": [
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Information Owner or Steward",
+      "Systems Security Engineer",
+      "Privacy Engineer",
+      "System Security Officer",
+      "System Privacy Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Development/Acquisition",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "There are two approaches that can be used for the initial selection of controls: a baseline control selection approach, or an organization-generated control selection approach. The baseline control selection approach uses control baselines, which are pre-defined sets of controls specifically assembled to address the protection needs of a group, organization, or community of interest.",
+    "references": "[FIPS 199]; [FIPS 200]; [SP 800-30]; [SP 800-53]; [SP 800-53B]; [SP 800-160 v1] (System Requirements Definition, Architecture Definition, and Design Definition Processes); [SP 800-161] (Respond and Chapter 3); [IR 8062]; [IR 8179]; [CNSSI 1253]; [NIST CSF] (Core [Identify, Protect, Detect, Respond, Recover Functions]; Profiles).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.3",
+      "pdfPage": 69,
+      "printedPage": 50
+    }
+  },
+  {
+    "step": "select",
+    "level": "system",
+    "id": "S-2",
+    "title": "Control Tailoring",
+    "task": "Tailor the controls selected for the system and the environment of operation.",
+    "outcome": "Controls are tailored producing tailored control baselines.",
+    "outcomes": [
+      {
+        "text": "Controls are tailored producing tailored control baselines.",
+        "cybersecurityFramework": [
+          "Profile"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Initial control baselines",
+      "organization- and system-level risk assessment results",
+      "system element information",
+      "system component inventory",
+      "list of security and privacy requirements allocated to the system, system elements, and environment of operation",
+      "business impact analysis or criticality analysis",
+      "risk management strategy",
+      "organizational security and privacy policies",
+      "federal or organization-approved or mandated overlays"
+    ],
+    "expectedOutputs": [
+      "List of tailored controls for the system and environment of operation (i.e., tailored control baselines)"
+    ],
+    "primaryResponsibility": [
+      "System Owner",
+      "Common Control Provider"
+    ],
+    "supportingRoles": [
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Information Owner or Steward",
+      "Systems Security Engineer",
+      "Privacy Engineer",
+      "System Security Officer",
+      "System Privacy Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Development/Acquisition",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "After selecting the applicable control baselines, organizations tailor the controls based on various factors (e.g., missions or business functions, threats, security and privacy risks (including supply chain risks), type of system, or risk tolerance). The tailoring process includes identifying and designating common controls in the control baselines (see Task P-5); applying scoping considerations to the remaining baseline controls; selecting compensating controls, if needed; assigning values to organization-defined control parameters using either assignment or selection statements; supplementing baselines with additional controls; and providing specification information for control implementation.",
+    "references": "[FIPS 199]; [FIPS 200]; [SP 800-30]; [SP 800-53]; [SP 800-53B]; [SP 800-160 v1] (System Requirements Definition, Architecture Definition, and Design Definition Processes); [SP 800-161] (Respond and Chapter 3); [IR 8179]; [CNSSI 1253]; [NIST CSF] (Core [Identify, Protect, Detect, Respond, Recover Functions]; Profiles).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.3",
+      "pdfPage": 70,
+      "printedPage": 51
+    }
+  },
+  {
+    "step": "select",
+    "level": "system",
+    "id": "S-3",
+    "title": "Control Allocation",
+    "task": "Allocate security and privacy controls to the system and to the environment of operation.",
+    "outcome": "Controls are designated as system-specific, hybrid, or common controls. Controls are allocated to the specific system elements (i.e., machine, physical, or human elements).",
+    "outcomes": [
+      {
+        "text": "Controls are designated as system-specific, hybrid, or common controls.",
+        "cybersecurityFramework": []
+      },
+      {
+        "text": "Controls are allocated to the specific system elements (i.e., machine, physical, or human elements).",
+        "cybersecurityFramework": [
+          "Profile",
+          "PR.IP"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Security categorization",
+      "organization- and system-level risk assessment results",
+      "organizational policy on system registration",
+      "enterprise architecture",
+      "security and privacy architectures",
+      "security and privacy requirements",
+      "list of security and privacy requirements allocated to the system, system elements, and the environment of operation",
+      "list of common control providers and common controls available for inheritance",
+      "system description",
+      "system element information",
+      "system component inventory",
+      "relevant laws, executive orders, directives, regulations, and policies"
+    ],
+    "expectedOutputs": [
+      "List of security and privacy controls allocated to the system, system elements, and the environment of operation"
+    ],
+    "primaryResponsibility": [
+      "Security Architect",
+      "Privacy Architect",
+      "System Security Officer",
+      "System Privacy Officer"
+    ],
+    "supportingRoles": [
+      "Chief Information Officer",
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Mission or Business Owner",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy",
+      "System Owner"
+    ],
+    "sdlcPhase": {
+      "new": "Initiation (concept/requirements definition)",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "The organization designates controls as system-specific, hybrid, or common, and allocates the controls to the system elements (i.e, machine, physical, or human elements) responsible for providing a security or privacy capability. Controls are allocated to a system or an organization consistent with the organization’s enterprise architecture and security or privacy architecture and the allocated security and privacy requirements.",
+    "references": "[SP 800-39] (Organization, Mission/Business Process, and System Levels); [SP 800-64]; [SP 800-160 v1] (System Requirements Definition, Architecture Definition, and Design Definition Processes); [NIST CSF] (Core [Identify Function]; Profiles); [OMB FEA].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.3",
+      "pdfPage": 72,
+      "printedPage": 53
+    }
+  },
+  {
+    "step": "select",
+    "level": "system",
+    "id": "S-4",
+    "title": "Documentation of Planned Control Implementations",
+    "task": "Document the controls for the system and environment of operation in security and privacy plans.",
+    "outcome": "Controls and associated tailoring actions are documented in security and privacy plans or equivalent documents.",
+    "outcomes": [
+      {
+        "text": "Controls and associated tailoring actions are documented in security and privacy plans or equivalent documents.",
+        "cybersecurityFramework": [
+          "Profile"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Security categorization",
+      "organization- and system-level risk assessment results (security, privacy, and/or supply chain)",
+      "system element information",
+      "system component inventory",
+      "business impact or criticality analysis",
+      "list of security and privacy requirements allocated to the system, system elements, and environment of operation",
+      "risk management strategy",
+      "list of selected controls for the system and environment of operation",
+      "organizational security, privacy, and SCRM policies"
+    ],
+    "expectedOutputs": [
+      "Security and privacy plans for the system"
+    ],
+    "primaryResponsibility": [
+      "System Owner",
+      "Common Control Provider"
+    ],
+    "supportingRoles": [
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Information Owner or Steward",
+      "Systems Security Engineer",
+      "Privacy Engineer",
+      "System Security Officer",
+      "System Privacy Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Development/Acquisition",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Security and privacy plans contain an overview of the security and privacy requirements for the system and the controls selected to satisfy the requirements. The plans describe the intended application of each selected control in the context of the system with a sufficient level of detail to correctly implement the control and to subsequently assess the effectiveness of the control.",
+    "references": "[FIPS 199]; [FIPS 200]; [SP 800-18]; [SP 800-30]; [SP 800-53]; [SP 800-64]; [SP 800-160 v1] (System Requirements Definition, Architecture Definition, and Design Definition Processes); [SP 800-161] (Respond and Chapter 3); [IR 8179]; [CNSSI 1253]; [NIST CSF] (Core [Identify, Protect, Detect, Respond, Recover Functions]; Profiles).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.3",
+      "pdfPage": 73,
+      "printedPage": 54
+    }
+  },
+  {
+    "step": "select",
+    "level": "system",
+    "id": "S-5",
+    "title": "Continuous Monitoring Strategy—System",
+    "task": "Develop and implement a system-level strategy for monitoring control effectiveness that is consistent with and supplements the organizational continuous monitoring strategy.",
+    "outcome": "A continuous monitoring strategy for the system that reflects the organizational risk management strategy is developed.",
+    "outcomes": [
+      {
+        "text": "A continuous monitoring strategy for the system that reflects the organizational risk management strategy is developed.",
+        "cybersecurityFramework": [
+          "ID.GV",
+          "DE.CM"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Organizational risk management strategy",
+      "organizational continuous monitoring strategy",
+      "organization- and system-level risk assessment results",
+      "security and privacy plans",
+      "organizational security and privacy policies"
+    ],
+    "expectedOutputs": [
+      "Continuous monitoring strategy for the system including time-based trigger for ongoing authorization"
+    ],
+    "primaryResponsibility": [
+      "System Owner",
+      "Common Control Provider"
+    ],
+    "supportingRoles": [
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)",
+      "Chief Information Officer",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy",
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Information Owner or Steward",
+      "Security Architect",
+      "Privacy Architect",
+      "Systems Security Engineer",
+      "Privacy Engineer",
+      "System Security Officer",
+      "System Privacy Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Development/Acquisition",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "An important aspect of risk management is the ongoing monitoring of controls implemented within or inherited by an information system. An effective continuous monitoring strategy at the system level is developed and implemented in coordination with the organizational continuous monitoring strategy early in the SDLC (i.e., during initial system design or procurement decision).",
+    "references": "[SP 800-30]; [SP 800-39] (Organization, Mission or Business Process, System Levels); [SP 800-53]; [SP 800-53A]; [SP 800-137]; [SP 800-161]; [IR 8011 v1]; [CNSSI 1253]; [NIST CSF] (Core [Detect Function]).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.3",
+      "pdfPage": 74,
+      "printedPage": 55
+    }
+  },
+  {
+    "step": "select",
+    "level": "system",
+    "id": "S-6",
+    "title": "Plan Review and Approval",
+    "task": "Review and approve the security and privacy plans for the system and the environment of operation.",
+    "outcome": "Security and privacy plans reflecting the selection of controls necessary to protect the system and the environment of operation commensurate with risk are reviewed and approved by the authorizing official.",
+    "outcomes": [
+      {
+        "text": "Security and privacy plans reflecting the selection of controls necessary to protect the system and the environment of operation commensurate with risk are reviewed and approved by the authorizing official.",
+        "cybersecurityFramework": []
+      }
+    ],
+    "potentialInputs": [
+      "Security and privacy plans",
+      "organization- and system-level risk assessment results"
+    ],
+    "expectedOutputs": [
+      "Security and privacy plans approved by the authorizing official"
+    ],
+    "primaryResponsibility": [
+      "Authorizing Official or Authorizing Official Designated Representative"
+    ],
+    "supportingRoles": [
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)",
+      "Chief Information Officer",
+      "Chief Acquisition Officer",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy"
+    ],
+    "sdlcPhase": {
+      "new": "Development/Acquisition",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "The security and privacy plan review by the authorizing official or designated representative with support from the senior accountable official for risk management or risk executive (function), chief information officer, senior agency information security officer, and senior agency official for privacy, determines if the plans are complete, consistent, and satisfy the stated security and privacy requirements for the system. Based on the results from this review, the authorizing official or designated representative may recommend changes to the security and privacy plans.",
+    "references": "[SP 800-30]; [SP 800-53]; [SP 800-160 v1] (System Requirements Definition, Architecture Definition, and Design Definition Processes).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.3",
+      "pdfPage": 75,
+      "printedPage": 56
+    }
+  },
+  {
+    "step": "implement",
+    "level": "system",
+    "id": "I-1",
+    "title": "Control Implementation",
+    "task": "Implement the controls in the security and privacy plans.",
+    "outcome": "Controls specified in the security and privacy plans are implemented. Systems security and privacy engineering methodologies are used to implement the controls in the system security and privacy plans.",
+    "outcomes": [
+      {
+        "text": "Controls specified in the security and privacy plans are implemented.",
+        "cybersecurityFramework": [
+          "PR.IP-1"
+        ]
+      },
+      {
+        "text": "Systems security and privacy engineering methodologies are used to implement the controls in the system security and privacy plans.",
+        "cybersecurityFramework": [
+          "PR.IP-2"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Approved security and privacy plans",
+      "system design documents",
+      "organizational security and privacy policies and procedures",
+      "business impact or criticality analyses",
+      "enterprise architecture information",
+      "security architecture information",
+      "privacy architecture information",
+      "list of security and privacy requirements allocated to the system, system elements",
+      "and environment of operation",
+      "system element information",
+      "system component inventory",
+      "organization- and system-level risk assessment results"
+    ],
+    "expectedOutputs": [
+      "Implemented controls"
+    ],
+    "primaryResponsibility": [
+      "System Owner",
+      "Common Control Provider"
+    ],
+    "supportingRoles": [
+      "Information Owner or Steward",
+      "Security Architect",
+      "Privacy Architect",
+      "Systems Security Engineer",
+      "Privacy Engineer",
+      "System Security Officer",
+      "System Privacy Officer",
+      "Enterprise Architect",
+      "System Administrator"
+    ],
+    "sdlcPhase": {
+      "new": "Development/Acquisition; Implementation/Assessment",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Organizations implement the controls as described in the security and privacy plans. The control implementation is consistent with the organization’s enterprise architecture and associated security and privacy architectures.",
+    "references": "[FIPS 200]; [SP 800-30]; [SP 800-53]; [SP 800-53A]; [SP 800-160 v1] (Implementation, Integration, Verification, and Transition Processes); [SP 800-161]; [IR 8062]; [IR 8179].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.4",
+      "pdfPage": 77,
+      "printedPage": 58
+    }
+  },
+  {
+    "step": "implement",
+    "level": "system",
+    "id": "I-2",
+    "title": "Update Control Implementation Information",
+    "task": "Document changes to planned control implementations based on the “as-implemented” state of controls.",
+    "outcome": "Changes to the planned implementation of controls are documented. The security and privacy plans are updated based on information obtained during the implementation of the controls.",
+    "outcomes": [
+      {
+        "text": "Changes to the planned implementation of controls are documented.",
+        "cybersecurityFramework": [
+          "PR.IP-1"
+        ]
+      },
+      {
+        "text": "The security and privacy plans are updated based on information obtained during the implementation of the controls.",
+        "cybersecurityFramework": [
+          "Profile"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Security and privacy plans",
+      "information from control implementation efforts"
+    ],
+    "expectedOutputs": [
+      "Security and privacy plans updated with implementation detail sufficient for use by assessors",
+      "system configuration baseline"
+    ],
+    "primaryResponsibility": [
+      "System Owner",
+      "Common Control Provider"
+    ],
+    "supportingRoles": [
+      "Information Owner or Steward",
+      "Security Architect",
+      "Privacy Architect",
+      "Systems Security Engineer",
+      "Privacy Engineer",
+      "System Security Officer",
+      "System Privacy Officer",
+      "Enterprise Architect",
+      "System Administrator"
+    ],
+    "sdlcPhase": {
+      "new": "Development/Acquisition; Implementation/Assessment",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Despite the control implementation details in the security and privacy plans and the system design documents, it is not always feasible to implement controls as planned. Therefore, as control implementations are carried out, the security and privacy plans are updated with as-implemented control implementation details.",
+    "references": "[SP 800-53]; [SP 800-128]; [SP 800-160 v1] (Implementation, Integration, Verification, and Transition, Configuration Management Processes).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.4",
+      "pdfPage": 79,
+      "printedPage": 60
+    }
+  },
+  {
+    "step": "assess",
+    "level": "system",
+    "id": "A-1",
+    "title": "Assessor Selection",
+    "task": "Select the appropriate assessor or assessment team for the type of control assessment to be conducted.",
+    "outcome": "An assessor or assessment team is selected to conduct the control assessments. The appropriate level of independence is achieved for the assessor or assessment team selected.",
+    "outcomes": [
+      {
+        "text": "An assessor or assessment team is selected to conduct the control assessments.",
+        "cybersecurityFramework": []
+      },
+      {
+        "text": "The appropriate level of independence is achieved for the assessor or assessment team selected.",
+        "cybersecurityFramework": []
+      }
+    ],
+    "potentialInputs": [
+      "Security, privacy, and SCRM plans",
+      "program management control information",
+      "common control documentation",
+      "organizational security and privacy program plans",
+      "SCRM strategy",
+      "system design documentation",
+      "enterprise, security, and privacy architecture information",
+      "security, privacy, and SCRM policies and procedures applicable to the system"
+    ],
+    "expectedOutputs": [
+      "Selection of assessor or assessment team responsible for conducting the control assessment"
+    ],
+    "primaryResponsibility": [
+      "Authorizing Official or Authorizing Official Designated Representative"
+    ],
+    "supportingRoles": [
+      "Chief Information Officer",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy"
+    ],
+    "sdlcPhase": {
+      "new": "Development/Acquisition; Implementation/Assessment",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Organizations consider both the technical expertise and level of independence required in selecting control assessors. Organizations ensure that control assessors possess the required skills and technical expertise to develop effective assessment plans and to conduct assessments of program management, system-specific, hybrid, and common controls, as appropriate.",
+    "references": "[FIPS 199]; [SP 800-30]; [SP 800-53A]; [SP 800-55].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.5",
+      "pdfPage": 81,
+      "printedPage": 62
+    }
+  },
+  {
+    "step": "assess",
+    "level": "system",
+    "id": "A-2",
+    "title": "Assessment Plan",
+    "task": "Develop, review, and approve plans to assess implemented controls.",
+    "outcome": "Documentation needed to conduct the assessments is provided to the assessor or assessment team. Security and privacy assessment plans are developed and documented. Security and privacy assessment plans are reviewed and approved to establish the expectations for the control assessments and the level of effort required.",
+    "outcomes": [
+      {
+        "text": "Documentation needed to conduct the assessments is provided to the assessor or assessment team.",
+        "cybersecurityFramework": []
+      },
+      {
+        "text": "Security and privacy assessment plans are developed and documented.",
+        "cybersecurityFramework": []
+      },
+      {
+        "text": "Security and privacy assessment plans are reviewed and approved to establish the expectations for the control assessments and the level of effort required.",
+        "cybersecurityFramework": []
+      }
+    ],
+    "potentialInputs": [
+      "Security, privacy, and SCRM plans",
+      "program management control information",
+      "common control documentation",
+      "organizational security and privacy program plans",
+      "SCRM strategy",
+      "system design documentation",
+      "supply chain information",
+      "enterprise, security, and privacy architecture information",
+      "security, privacy, and SCRM policies and procedures applicable to the system"
+    ],
+    "expectedOutputs": [
+      "Security and privacy assessment plans approved by the authorizing official"
+    ],
+    "primaryResponsibility": [
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Control Assessor"
+    ],
+    "supportingRoles": [
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy",
+      "System Owner",
+      "Common Control Provider",
+      "Information Owner or Steward",
+      "System Security Officer",
+      "System Privacy Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Development/Acquisition; Implementation/Assessment",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Security and privacy assessment plans are developed by control assessors based on the implementation information contained in security and privacy plans, program management control documentation, and common control documentation. Organizations may choose to develop a single, integrated security and privacy assessment plan for the system or the organization.",
+    "references": "[SP 800-53A]; [SP 800-160 v1] (Verification and Validation Processes); [SP 800-161]; [IR 8011 v1].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.5",
+      "pdfPage": 82,
+      "printedPage": 63
+    }
+  },
+  {
+    "step": "assess",
+    "level": "system",
+    "id": "A-3",
+    "title": "Control Assessments",
+    "task": "Assess the controls in accordance with the assessment procedures described in assessment plans.",
+    "outcome": "Control assessments are conducted in accordance with the security and privacy assessment plans. Opportunities to reuse assessment results from previous assessments to make the risk management process timely and cost-effective are considered. Use of automation to conduct control assessments is maximized to increase speed, effectiveness, and efficiency of assessments.",
+    "outcomes": [
+      {
+        "text": "Control assessments are conducted in accordance with the security and privacy assessment plans.",
+        "cybersecurityFramework": []
+      },
+      {
+        "text": "Opportunities to reuse assessment results from previous assessments to make the risk management process timely and cost-effective are considered.",
+        "cybersecurityFramework": []
+      },
+      {
+        "text": "Use of automation to conduct control assessments is maximized to increase speed, effectiveness, and efficiency of assessments.",
+        "cybersecurityFramework": []
+      }
+    ],
+    "potentialInputs": [
+      "Security and privacy assessment plans",
+      "security and privacy plans",
+      "external assessment or audit results (if applicable)"
+    ],
+    "expectedOutputs": [
+      "Completed control assessments and associated assessment evidence"
+    ],
+    "primaryResponsibility": [
+      "Control Assessor"
+    ],
+    "supportingRoles": [
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "System Owner",
+      "Common Control Provider",
+      "Information Owner or Steward",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy",
+      "System Security Officer",
+      "System Privacy Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Development/Acquisition; Implementation/Assessment",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Control assessments determine the extent to which the selected controls are implemented correctly, operating as intended, and producing the desired outcome with respect to meeting security and privacy requirements for the system and the organization. The system owner, common control provider, and/or organization rely on the technical skills and expertise of assessors to assess implemented controls using the assessment procedures specified in assessment plans and provide recommendations on how to respond to control deficiencies to reduce or eliminate identified vulnerabilities or unacceptable risks.",
+    "references": "[SP 800-53A]; [SP 800-160 v1] (Verification and Validation Processes); [IR 8011 v1].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.5",
+      "pdfPage": 83,
+      "printedPage": 64
+    }
+  },
+  {
+    "step": "assess",
+    "level": "system",
+    "id": "A-4",
+    "title": "Assessment Reports",
+    "task": "Prepare the assessment reports documenting the findings and recommendations from the control assessments.",
+    "outcome": "Security and privacy assessment reports that provide findings and recommendations are completed.",
+    "outcomes": [
+      {
+        "text": "Security and privacy assessment reports that provide findings and recommendations are completed.",
+        "cybersecurityFramework": []
+      }
+    ],
+    "potentialInputs": [
+      "Completed control assessments and associated assessment evidence"
+    ],
+    "expectedOutputs": [
+      "Completed security and privacy assessment reports detailing the assessor findings and recommendations"
+    ],
+    "primaryResponsibility": [
+      "Control Assessor"
+    ],
+    "supportingRoles": [
+      "System Owner",
+      "Common Control Provider",
+      "System Security Officer",
+      "System Privacy Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Development/Acquisition; Implementation/Assessment",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "The results of the security and privacy control assessments, including recommendations for correcting deficiencies in the implemented controls, are documented in the assessment reports by control assessors. Organizations may develop a single, integrated security and privacy assessment report.",
+    "references": "[SP 800-53A]; [SP 800-160 v1] (Verification and Validation Processes).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.5",
+      "pdfPage": 84,
+      "printedPage": 65
+    }
+  },
+  {
+    "step": "assess",
+    "level": "system",
+    "id": "A-5",
+    "title": "Remediation Actions",
+    "task": "Conduct initial remediation actions on the controls and reassess remediated controls.",
+    "outcome": "Remediation actions to address deficiencies in the controls implemented in the system and environment of operation are taken. Security and privacy plans are updated to reflect control implementation changes made based on the assessments and subsequent remediation actions.",
+    "outcomes": [
+      {
+        "text": "Remediation actions to address deficiencies in the controls implemented in the system and environment of operation are taken.",
+        "cybersecurityFramework": []
+      },
+      {
+        "text": "Security and privacy plans are updated to reflect control implementation changes made based on the assessments and subsequent remediation actions.",
+        "cybersecurityFramework": [
+          "Profile"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Completed security and privacy assessment reports with findings and recommendations",
+      "security and privacy plans",
+      "security and privacy assessment plans",
+      "organization- and system-level risk assessment results"
+    ],
+    "expectedOutputs": [
+      "Completed initial remediation actions based on the security and privacy assessment reports",
+      "changes to implementations reassessed by the assessment team",
+      "updated security and privacy assessment reports",
+      "updated security and privacy plans including changes to the control implementations"
+    ],
+    "primaryResponsibility": [
+      "System Owner",
+      "Common Control Provider",
+      "Control Assessor"
+    ],
+    "supportingRoles": [
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy",
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)",
+      "Information Owner or Steward",
+      "Systems Security Engineer",
+      "Privacy Engineer",
+      "System Security Officer",
+      "System Privacy Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Development/Acquisition; Implementation/Assessment",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "The security and privacy assessment reports describe deficiencies in the controls that could not be resolved during the development of the system or that are discovered post-development. Such control deficiencies may result in security and privacy risks (including supply chain risks).",
+    "references": "[SP 800-53A]; [SP 800-160 v1] (Verification and Validation Processes).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.5",
+      "pdfPage": 85,
+      "printedPage": 66
+    }
+  },
+  {
+    "step": "assess",
+    "level": "system",
+    "id": "A-6",
+    "title": "Plan of Action and Milestones",
+    "task": "Prepare the plan of action and milestones based on the findings and recommendations of the assessment reports.",
+    "outcome": "A plan of action and milestones detailing remediation plans for unacceptable risks identified in security and privacy assessment reports is developed.",
+    "outcomes": [
+      {
+        "text": "A plan of action and milestones detailing remediation plans for unacceptable risks identified in security and privacy assessment reports is developed.",
+        "cybersecurityFramework": [
+          "ID.RA-6"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Updated security and privacy assessment reports",
+      "updated security and privacy plans",
+      "organization- and system-level risk assessment results",
+      "organizational risk management strategy and risk tolerance"
+    ],
+    "expectedOutputs": [
+      "A plan of action and milestones detailing the findings from the security and privacy assessment reports that are to be remediated"
+    ],
+    "primaryResponsibility": [
+      "System Owner",
+      "Common Control Provider"
+    ],
+    "supportingRoles": [
+      "Information Owner or Steward",
+      "System Security Officer",
+      "System Privacy Officer",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy",
+      "Control Assessor",
+      "Chief Acquisition Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Implementation/Assessment",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "The plan of action and milestones is included as part of the authorization package. The plan of action and milestones describes the actions that are planned to correct deficiencies in the controls identified during the assessment of the controls and during continuous monitoring.",
+    "references": "[SP 800-30]; [SP 800-53A]; [SP 800-160 v1] (Verification and Validation Processes); [IR 8062].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.5",
+      "pdfPage": 86,
+      "printedPage": 67
+    }
+  },
+  {
+    "step": "authorize",
+    "level": "system",
+    "id": "R-1",
+    "title": "Authorization Package",
+    "task": "Assemble the authorization package and submit the package to the authorizing official for an authorization decision.",
+    "outcome": "An authorization package is developed for submission to the authorizing official.",
+    "outcomes": [
+      {
+        "text": "An authorization package is developed for submission to the authorizing official.",
+        "cybersecurityFramework": []
+      }
+    ],
+    "potentialInputs": [
+      "Security and privacy plans",
+      "security and privacy assessment reports",
+      "plan of action and milestones",
+      "supporting assessment evidence or other documentation, as required"
+    ],
+    "expectedOutputs": [
+      "Authorization package (with an executive summary), which may be generated from a security or privacy management tool for submission to the authorizing official"
+    ],
+    "primaryResponsibility": [
+      "System Owner",
+      "Common Control Provider",
+      "Senior Agency Official for Privacy"
+    ],
+    "supportingRoles": [
+      "System Security Officer",
+      "System Privacy Officer",
+      "Senior Agency Information Security Officer",
+      "Control Assessor"
+    ],
+    "sdlcPhase": {
+      "new": "Implementation/Assessment",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Authorization packages include security and privacy plans, security and privacy assessment reports, plans of action and milestones, and an executive summary. Additional information can be included in the authorization package at the request of the authorizing official.",
+    "references": "[OMB A-130]; [SP 800-18]; [SP 800-160 v1] (Risk Management Process); [SP 800-161] (SCRM Plans).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.6",
+      "pdfPage": 88,
+      "printedPage": 69
+    }
+  },
+  {
+    "step": "authorize",
+    "level": "system",
+    "id": "R-2",
+    "title": "Risk Analysis and Determination",
+    "task": "Analyze and determine the risk from the operation or use of the system or the provision of common controls.",
+    "outcome": "A risk determination by the authorizing official that reflects the risk management strategy including risk tolerance, is rendered.",
+    "outcomes": [
+      {
+        "text": "A risk determination by the authorizing official that reflects the risk management strategy including risk tolerance, is rendered.",
+        "cybersecurityFramework": []
+      }
+    ],
+    "potentialInputs": [
+      "Authorization package",
+      "supporting assessment evidence or other documentation as required",
+      "information provided by the senior accountable official for risk management or risk executive (function)",
+      "organizational risk management strategy and risk tolerance",
+      "organization- and system-level risk assessment results"
+    ],
+    "expectedOutputs": [
+      "Risk determination"
+    ],
+    "primaryResponsibility": [
+      "Authorizing Official or Authorizing Official Designated Representative"
+    ],
+    "supportingRoles": [
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy"
+    ],
+    "sdlcPhase": {
+      "new": "Implementation/Assessment",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "The authorizing official or designated representative, in collaboration with the senior agency information security officer and the senior agency official for privacy (for information systems processing PII), analyzes the information in the authorization package provided by the control assessor, system owner, or common control provider, and finalizes the determination of risk. Further discussion with the control assessor, system owner, or common control provider may be necessary to help ensure a thorough understanding of risk by the authorizing official.",
+    "references": "[OMB A-130]; [SP 800-30]; [SP 800-39] (Organization, Mission/Business Process, and System Levels); [SP 800-137]; [SP 800-160 v1] (Risk Management Process); [IR 8062].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.6",
+      "pdfPage": 90,
+      "printedPage": 71
+    }
+  },
+  {
+    "step": "authorize",
+    "level": "system",
+    "id": "R-3",
+    "title": "Risk Response",
+    "task": "Identify and implement a preferred course of action in response to the risk determined.",
+    "outcome": "Risk responses for determined risks are provided.",
+    "outcomes": [
+      {
+        "text": "Risk responses for determined risks are provided.",
+        "cybersecurityFramework": [
+          "ID.RA-6"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Authorization package",
+      "risk determination",
+      "organization- and system-level risk assessment results"
+    ],
+    "expectedOutputs": [
+      "Risk responses for determined risks"
+    ],
+    "primaryResponsibility": [
+      "Authorizing Official or Authorizing Official Designated Representative"
+    ],
+    "supportingRoles": [
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy",
+      "System Owner or Common Control Provider",
+      "Information Owner or Steward",
+      "Systems Security Engineer",
+      "Privacy Engineer",
+      "System Security Officer",
+      "System Privacy Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Implementation/Assessment",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "After risk is analyzed and determined, organizations can respond to risk in a variety of ways, including acceptance of risk and mitigation of risk. Existing risk assessment results and risk assessment techniques may be used to help determine the preferred course of action for the risk response.",
+    "references": "[SP 800-30]; [SP 800-39] (Organization, Mission/Business Process, and System Levels); [SP 800-160 v1] (Risk Management Process); [IR 8062]; [IR 8179]; [NIST CSF] (Core [Identify Function]).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.6",
+      "pdfPage": 91,
+      "printedPage": 72
+    }
+  },
+  {
+    "step": "authorize",
+    "level": "system",
+    "id": "R-4",
+    "title": "Authorization Decision",
+    "task": "Determine if the risk from the operation or use of the information system or the provision or use of common controls is acceptable.",
+    "outcome": "The authorization for the system or the common controls is approved or denied.",
+    "outcomes": [
+      {
+        "text": "The authorization for the system or the common controls is approved or denied.",
+        "cybersecurityFramework": []
+      }
+    ],
+    "potentialInputs": [
+      "Risk responses for determined risks"
+    ],
+    "expectedOutputs": [
+      "Authorization to operate, authorization to use, common control authorization",
+      "denial of authorization to operate, denial of authorization to use, denial of common control authorization"
+    ],
+    "primaryResponsibility": [
+      "Authorizing Official"
+    ],
+    "supportingRoles": [
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)",
+      "Chief Information Officer",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy",
+      "Authorizing Official Designated Representative"
+    ],
+    "sdlcPhase": {
+      "new": "Implementation/Assessment",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "The explicit acceptance of risk is the responsibility of the authorizing official and cannot be delegated to other officials within the organization. The authorizing official considers many factors when deciding if the risk to the organization’s operations (including mission, functions, image, and reputation) and assets, individuals, other organizations, or the Nation, is acceptable.",
+    "references": "[SP 800-39] (Organization, Mission/Business Process, and System Levels); [SP 800-160 v1] (Risk Management Process).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.6",
+      "pdfPage": 92,
+      "printedPage": 73
+    }
+  },
+  {
+    "step": "authorize",
+    "level": "system",
+    "id": "R-5",
+    "title": "Authorization Reporting",
+    "task": "Report the authorization decision and any deficiencies in controls that represent significant security or privacy risk.",
+    "outcome": "Authorization decisions, significant vulnerabilities, and risks are reported to organizational officials.",
+    "outcomes": [
+      {
+        "text": "Authorization decisions, significant vulnerabilities, and risks are reported to organizational officials.",
+        "cybersecurityFramework": []
+      }
+    ],
+    "potentialInputs": [
+      "Authorization decision"
+    ],
+    "expectedOutputs": [
+      "A report indicating the authorization decision for a system or set of common controls",
+      "annotation of authorization status in the organizational system registry"
+    ],
+    "primaryResponsibility": [
+      "Authorizing Official or Authorizing Official Designated Representative"
+    ],
+    "supportingRoles": [
+      "System Owner or Common Control Provider",
+      "Information Owner or Steward",
+      "System Security Officer",
+      "System Privacy Officer",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy"
+    ],
+    "sdlcPhase": {
+      "new": "Implementation/Assessment",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Authorizing officials report authorization decisions for systems and common controls to designated organizational officials so the individual risk decisions can be viewed in the context of organization-wide security and privacy risk to organizational operations and assets, individuals, other organizations, and the Nation. Reporting occurs only in situations where organizations have delegated the authorization functions to levels of the organization below the head of agency.",
+    "references": "[SP 800-39] (Organization, Mission/Business Process, and System Levels); [SP 800-160 v1] (Decision Management and Project Assessment and Control Processes); [NIST CSF] (Core [Identify, Protect, Detect, Respond, Recover Functions]).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.6",
+      "pdfPage": 94,
+      "printedPage": 75
+    }
+  },
+  {
+    "step": "monitor",
+    "level": "system",
+    "id": "M-1",
+    "title": "System and Environment Changes",
+    "task": "Monitor the information system and its environment of operation for changes that impact the security and privacy posture of the system.",
+    "outcome": "The information system and environment of operation are monitored in accordance with the continuous monitoring strategy.",
+    "outcomes": [
+      {
+        "text": "The information system and environment of operation are monitored in accordance with the continuous monitoring strategy.",
+        "cybersecurityFramework": [
+          "DE.CM",
+          "ID.GV"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Organizational continuous monitoring strategy",
+      "organizational configuration management policy and procedures",
+      "organizational policy and procedures for handling unauthorized system changes",
+      "security and privacy plans",
+      "configuration change requests/approvals",
+      "system design documentation",
+      "security and privacy assessment reports",
+      "plans of action and milestones",
+      "information from automated and manual monitoring tools"
+    ],
+    "expectedOutputs": [
+      "Updated security and privacy plans",
+      "updated plans of action and milestones",
+      "updated security and privacy assessment reports"
+    ],
+    "primaryResponsibility": [
+      "System Owner or Common Control Provider",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy"
+    ],
+    "supportingRoles": [
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)",
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Information Owner or Steward",
+      "System Security Officer",
+      "System Privacy Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Operations/Maintenance",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Systems and environments of operation are in a constant state of change with changes occurring in the technology or machine elements, human elements, and physical or environmental elements. Changes to the technology or machine elements include for example, upgrades to hardware, software, or firmware; changes to the human elements include for example, staff turnover or a reduction in force; and modifications to the surrounding physical and environmental elements include for example, changes in the location of the facility or the physical access controls protecting the facility.",
+    "references": "[SP 800-30]; [SP 800-128]; [SP 800-137]; [IR 8062].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.7",
+      "pdfPage": 95,
+      "printedPage": 76
+    }
+  },
+  {
+    "step": "monitor",
+    "level": "system",
+    "id": "M-2",
+    "title": "Ongoing Assessments",
+    "task": "Assess the controls implemented within and inherited by the system in accordance with the continuous monitoring strategy.",
+    "outcome": "Ongoing assessments of control effectiveness are conducted in accordance with the continuous monitoring strategy.",
+    "outcomes": [
+      {
+        "text": "Ongoing assessments of control effectiveness are conducted in accordance with the continuous monitoring strategy.",
+        "cybersecurityFramework": [
+          "ID.SC-4"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Organizational continuous monitoring strategy and system level continuous monitoring strategy (if applicable)",
+      "security and privacy plans",
+      "security and privacy assessment plans",
+      "security and privacy assessment reports",
+      "plans of action and milestones",
+      "information from automated and manual monitoring tools",
+      "organization- and system-level risk assessment results",
+      "external assessment or audit results (if applicable)"
+    ],
+    "expectedOutputs": [
+      "Updated security and privacy assessment reports"
+    ],
+    "primaryResponsibility": [
+      "Control Assessor"
+    ],
+    "supportingRoles": [
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "System Owner or Common Control Provider",
+      "Information Owner or Steward",
+      "System Security Officer",
+      "System Privacy Officer",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy"
+    ],
+    "sdlcPhase": {
+      "new": "Operations/Maintenance",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "After an initial system or common control authorization, the organization assesses all controls on an ongoing basis. Ongoing assessment of the control effectiveness is part of the continuous monitoring activities of the organization.",
+    "references": "[SP 800-53A]; [SP 800-137]; [SP 800-160 v1] (Verification, Validation, Operation, and Maintenance Processes); [IR 8011 v1].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.7",
+      "pdfPage": 97,
+      "printedPage": 78
+    }
+  },
+  {
+    "step": "monitor",
+    "level": "system",
+    "id": "M-3",
+    "title": "Ongoing Risk Response",
+    "task": "Respond to risk based on the results of ongoing monitoring activities, risk assessments, and outstanding items in plans of action and milestones.",
+    "outcome": "The output of continuous monitoring activities is analyzed and responded to appropriately.",
+    "outcomes": [
+      {
+        "text": "The output of continuous monitoring activities is analyzed and responded to appropriately.",
+        "cybersecurityFramework": [
+          "RS.AN"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Security and privacy assessment reports",
+      "organization- and system-level risk assessment results",
+      "security and privacy plans",
+      "plans of action and milestones"
+    ],
+    "expectedOutputs": [
+      "Mitigation actions or risk acceptance decisions",
+      "updated security and privacy assessment reports"
+    ],
+    "primaryResponsibility": [
+      "Authorizing Official",
+      "System Owner",
+      "Common Control Provider"
+    ],
+    "supportingRoles": [
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)",
+      "Senior Agency Official for Privacy",
+      "Authorizing Official Designated Representative",
+      "Information Owner or Steward",
+      "System Security Officer",
+      "System Privacy Officer",
+      "Systems Security Engineer",
+      "Privacy Engineer",
+      "Security Architect",
+      "Privacy Architect"
+    ],
+    "sdlcPhase": {
+      "new": "Operations/Maintenance",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "Assessment information produced by an assessor during continuous monitoring is provided to the system owner and the common control provider in updated assessment reports or via reports from automated security/privacy management and reporting tools. The authorizing official determines the appropriate risk response to the assessment findings or approves responses proposed by the system owner and common control provider.",
+    "references": "[SP 800-30]; [SP 800-53]; [SP 800-53A]; [SP 800-137]; [SP 800-160 v1] (Risk Management Process); [IR 8011 v1]; [IR 8062]; [NIST CSF] (Core [Respond Function]).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.7",
+      "pdfPage": 97,
+      "printedPage": 78
+    }
+  },
+  {
+    "step": "monitor",
+    "level": "system",
+    "id": "M-4",
+    "title": "Authorization Package Updates",
+    "task": "Update plans, assessment reports, and plans of action and milestones based on the results of the continuous monitoring process.",
+    "outcome": "Risk management documents are updated based on continuous monitoring activities.",
+    "outcomes": [
+      {
+        "text": "Risk management documents are updated based on continuous monitoring activities.",
+        "cybersecurityFramework": [
+          "RS.IM"
+        ]
+      }
+    ],
+    "potentialInputs": [
+      "Security and privacy assessment reports",
+      "organization- and system-level risk assessment results",
+      "security and privacy plans",
+      "plans of action and milestones"
+    ],
+    "expectedOutputs": [
+      "Updated security and privacy assessment reports",
+      "updated plans of action and milestones",
+      "updated risk assessment results",
+      "updated security and privacy plans"
+    ],
+    "primaryResponsibility": [
+      "System Owner",
+      "Common Control Provider"
+    ],
+    "supportingRoles": [
+      "Information Owner or Steward",
+      "System Security Officer",
+      "System Privacy Officer",
+      "Senior Agency Official for Privacy",
+      "Senior Agency Information Security Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Operations/Maintenance",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "To achieve near real-time risk management, the organization updates security and privacy plans, security and privacy assessment reports, and plans of action and milestones on an ongoing basis. Updates to the plans reflect modifications to controls based on risk mitigation activities carried out by system owners or common control providers.",
+    "references": "[SP 800-30]; [SP 800-53A].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.7",
+      "pdfPage": 98,
+      "printedPage": 79
+    }
+  },
+  {
+    "step": "monitor",
+    "level": "system",
+    "id": "M-5",
+    "title": "Security and Privacy Reporting",
+    "task": "Report the security and privacy posture of the system to the authorizing official and other organizational officials on an ongoing basis in accordance with the organizational continuous monitoring strategy.",
+    "outcome": "A process is in place to report the security and privacy posture to the authorizing official and other senior leaders and executives.",
+    "outcomes": [
+      {
+        "text": "A process is in place to report the security and privacy posture to the authorizing official and other senior leaders and executives.",
+        "cybersecurityFramework": []
+      }
+    ],
+    "potentialInputs": [
+      "Security and privacy assessment reports",
+      "plans of action and milestones",
+      "organization- and system-level risk assessment results",
+      "organization- and system-level continuous monitoring strategy",
+      "security and privacy plans",
+      "Cybersecurity Framework Profile"
+    ],
+    "expectedOutputs": [
+      "Security and privacy posture reports"
+    ],
+    "primaryResponsibility": [
+      "System Owner",
+      "Common Control Provider",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy"
+    ],
+    "supportingRoles": [
+      "System Security Officer",
+      "System Privacy Officer"
+    ],
+    "sdlcPhase": {
+      "new": "Operations/Maintenance",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "The results of monitoring activities are documented and reported to the authorizing official and other selected organizational officials on an ongoing basis in accordance with the organizational continuous monitoring strategy. Other organizational officials who may receive security and privacy posture reports include, for example, chief information officer, senior agency information security officer, senior agency official for privacy, senior accountable official for risk management or risk executive (function), information owner or steward, incident response roles, and contingency planning roles.",
+    "references": "[SP 800-53A]; [SP 800-137]; [NIST CSF] (Core [Identify, Protect, Detect, Respond, Recover Functions]).",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.7",
+      "pdfPage": 99,
+      "printedPage": 80
+    }
+  },
+  {
+    "step": "monitor",
+    "level": "system",
+    "id": "M-6",
+    "title": "Ongoing Authorization",
+    "task": "Review the security and privacy posture of the system on an ongoing basis to determine whether the risk remains acceptable.",
+    "outcome": "Authorizing officials conduct ongoing authorizations using the results of continuous monitoring activities and communicate changes in risk determination and acceptance decisions.",
+    "outcomes": [
+      {
+        "text": "Authorizing officials conduct ongoing authorizations using the results of continuous monitoring activities and communicate changes in risk determination and acceptance decisions.",
+        "cybersecurityFramework": []
+      }
+    ],
+    "potentialInputs": [
+      "Risk tolerance",
+      "security and privacy posture reports",
+      "plans of action and milestones",
+      "organization- and system-level risk assessment results",
+      "security and privacy plans"
+    ],
+    "expectedOutputs": [
+      "A determination of risk",
+      "ongoing authorization to operate, ongoing authorization to use, ongoing common control authorization",
+      "denial of ongoing authorization to operate, denial of ongoing authorization to use, denial of ongoing common control authorization"
+    ],
+    "primaryResponsibility": [
+      "Authorizing Official"
+    ],
+    "supportingRoles": [
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)",
+      "Chief Information Officer",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy",
+      "Authorizing Official Designated Representative"
+    ],
+    "sdlcPhase": {
+      "new": "Operations/Maintenance",
+      "existing": "Operations/Maintenance"
+    },
+    "discussionExcerpt": "To employ an ongoing authorization approach, organizations have in place an organization-level and system-level continuous monitoring process to assess implemented controls on an ongoing basis. The findings or results from the continuous monitoring process provides useful information to authorizing officials to support near-real time risk-based decision making.",
+    "references": "[SP 800-30]; [SP 800-39] (Organization, Mission/Business Process, and System Levels); [SP 800-55]; [SP 800-160 v1] (Risk Management Process); [IR 8011 v1]; [IR 8062].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.7",
+      "pdfPage": 100,
+      "printedPage": 81
+    }
+  },
+  {
+    "step": "monitor",
+    "level": "system",
+    "id": "M-7",
+    "title": "System Disposal",
+    "task": "Implement a system disposal strategy and execute required actions when a system is removed from operation.",
+    "outcome": "A system disposal strategy is developed and implemented, as needed.",
+    "outcomes": [
+      {
+        "text": "A system disposal strategy is developed and implemented, as needed.",
+        "cybersecurityFramework": []
+      }
+    ],
+    "potentialInputs": [
+      "Security and privacy plans",
+      "organization- and system-level risk assessment results",
+      "system component inventory"
+    ],
+    "expectedOutputs": [
+      "Disposal strategy",
+      "updated system component inventory",
+      "updated security and privacy plans"
+    ],
+    "primaryResponsibility": [
+      "System Owner"
+    ],
+    "supportingRoles": [
+      "Authorizing Official or Authorizing Official Designated Representative",
+      "Information Owner or Steward",
+      "System Security Officer",
+      "System Privacy Officer",
+      "Senior Accountable Official for Risk Management or Risk Executive (Function)",
+      "Senior Agency Information Security Officer",
+      "Senior Agency Official for Privacy"
+    ],
+    "sdlcPhase": {
+      "new": "Not Applicable",
+      "existing": "Disposal"
+    },
+    "discussionExcerpt": "When a system is removed from operation, several risk management actions are required. Organizations ensure that controls addressing system disposal are implemented.",
+    "references": "[SP 800-30]; [SP 800-88]; [IR 8062].",
+    "source": {
+      "document": "NIST SP 800-37 Rev. 2",
+      "section": "3.7",
+      "pdfPage": 101,
+      "printedPage": 82
+    }
+  }
+]
