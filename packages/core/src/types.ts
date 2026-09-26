@@ -326,6 +326,15 @@ export interface LawSettings {
   applicability: Record<string, { roles: string[]; note?: string; decidedAt: string; decidedBy: string }>;
 }
 
+/** The public trust center: computed facts only, for the frameworks the workspace chooses to publish. */
+export interface TrustCenterSettings {
+  enabled: boolean;
+  headline?: string;
+  contactEmail?: string;
+  /** Per-framework choice to publish readiness; unset means the default (see trustCenterPublishes). */
+  frameworks?: Record<string, boolean>;
+}
+
 export interface Workspace {
   id: string;
   /** Owning organization (tenant). */
@@ -337,7 +346,7 @@ export interface Workspace {
   frameworks: WorkspaceFramework[];
   /** Which proposal types agents may apply without human approval. */
   autonomy: Partial<Record<ProposalType, boolean>>;
-  trustCenter: { enabled: boolean; headline?: string; contactEmail?: string };
+  trustCenter: TrustCenterSettings;
   /** Latest CSF Tier assessment (CSWP 29, Appendix B). */
   tierAssessment?: TierAssessment;
   createdAt: string;

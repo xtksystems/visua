@@ -18,6 +18,7 @@ import {
   scoreFramework,
   slugify,
   targetFor,
+  trustCenterPublishes,
   type ActivityEvent,
   type AgentKind,
   type AiRmfSettings,
@@ -39,6 +40,7 @@ import {
   type RmfSettings,
   type Soc2Settings,
   type Task,
+  type TrustCenterSettings,
   type Workspace,
   type WorkspaceFramework,
 } from "@visua/core";
@@ -471,12 +473,29 @@ export class VisuaService {
     await this.store.states.putMany(ws.id, changed);
   }
 
-  async updateWorkspace(id: string, patch: Partial<Pick<Workspace, "name" | "description" | "profile" | "autonomy" | "trustCenter">>, actor = "user"): Promise<Workspace> {
+  async updateWorkspace(
+    id: string,
+    patch: Partial<Pick<Workspace, "name" | "description" | "profile" | "autonomy">> & { trustCenter?: Partial<TrustCenterSettings> },
+    actor = "user",
+  ): Promise<Workspace> {
     return this.mutate(id, async (ws) => {
-      const next: Workspace = { ...ws, ...patch, profile: { ...ws.profile, ...(patch.profile ?? {}) }, updatedAt: now() };
+      // Trust center settings merge: saving the headline never drops the publishing choices.
+      let trustCenter = ws.trustCenter;
+      const notes: string[] = [];
+      if (patch.trustCenter) {
+        const choices = patch.trustCenter.frameworks ?? {};
+        for (const [fw, on] of Object.entries(choices)) {
+          const index = this.registry.framework(fw);
+          if (!index || index.graph.framework.family === "threat") throw new ValidationError(`'${fw}' is not a framework the trust center can publish`);
+          if (trustCenterPublishes(ws.trustCenter, fw, index.graph.framework.family) !== on) notes.push(`${index.graph.framework.shortName} ${on ? "published" : "withdrawn"} on the trust center`);
+        }
+        trustCenter = { ...ws.trustCenter, ...patch.trustCenter, frameworks: { ...(ws.trustCenter.frameworks ?? {}), ...choices } };
+        if (patch.trustCenter.enabled !== undefined && patch.trustCenter.enabled !== ws.trustCenter.enabled) notes.unshift(patch.trustCenter.enabled ? "Trust center made public" : "Trust center taken offline");
+      }
+      const next: Workspace = { ...ws, ...patch, trustCenter, profile: { ...ws.profile, ...(patch.profile ?? {}) }, updatedAt: now() };
       await this.store.workspaces.put(next);
       this.emit(ws.id, "workspace.updated", next);
-      await this.log(ws.id, actor, "updated", "workspace", ws.id, "Workspace settings updated", { fields: Object.keys(patch) });
+      await this.log(ws.id, actor, "updated", "workspace", ws.id, notes.length ? notes.join("; ") : "Workspace settings updated", { fields: Object.keys(patch) });
       return next;
     });
   }

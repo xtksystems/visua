@@ -603,4 +603,31 @@ describe("demo seed", () => {
     const trust = await new TestClient(app).get<{ name: string; frameworks: unknown[] }>("/api/trust/northwind-health");
     expect(trust.json.frameworks.length).toBeGreaterThan(0);
   });
+
+  it("publishes on the trust center only the frameworks the workspace chooses, state AI laws off by default", async () => {
+    const visitor = new TestClient(app);
+    const published = async () => (await visitor.get<{ frameworks: { id: string }[] }>("/api/trust/northwind-health")).json.frameworks.map((f) => f.id);
+    const enabled = (await morgan.get<{ frameworks: { id: string; onTrustCenter: boolean }[] }>("/api/workspaces/northwind-health")).json.frameworks;
+    expect(enabled.map((f) => f.id)).toContain("us-state-ai-laws");
+    expect(enabled.find((f) => f.id === "us-state-ai-laws")?.onTrustCenter).toBe(false);
+    expect(await published()).toEqual(enabled.filter((f) => f.id !== "us-state-ai-laws").map((f) => f.id));
+    // Publish the laws and withdraw SOC 2: an audited decision.
+    const res = await morgan.patch<{ frameworks: { id: string; onTrustCenter: boolean }[] }>("/api/workspaces/northwind-health", { trustCenter: { frameworks: { "us-state-ai-laws": true, "aicpa-tsc-2017": false } } });
+    expect(res.status).toBe(200);
+    expect(await published()).toContain("us-state-ai-laws");
+    expect(await published()).not.toContain("aicpa-tsc-2017");
+    const activity = await morgan.get<{ summary: string }[]>("/api/workspaces/northwind-health/activity?limit=3");
+    expect(activity.json[0]!.summary).toBe("State AI laws published on the trust center; SOC 2 (TSC 2017) withdrawn on the trust center");
+    // Saving the headline keeps the choices; threat catalogs and unknown ids are refused.
+    await morgan.patch("/api/workspaces/northwind-health", { trustCenter: { enabled: true, headline: "Northwind Health trust" } });
+    expect(await published()).toContain("us-state-ai-laws");
+    expect((await morgan.patch("/api/workspaces/northwind-health", { trustCenter: { frameworks: { "mitre-atlas": true } } })).status).toBe(400);
+    expect((await morgan.patch("/api/workspaces/northwind-health", { trustCenter: { frameworks: { nope: true } } })).status).toBe(400);
+    // Only admins and owners decide what is public.
+    const priya = new TestClient(app);
+    await priya.devLogin("priya.shah@northwind-health.example");
+    expect((await priya.patch("/api/workspaces/northwind-health", { trustCenter: { frameworks: { "us-state-ai-laws": false } } })).status).toBe(403);
+    await morgan.patch("/api/workspaces/northwind-health", { trustCenter: { frameworks: { "us-state-ai-laws": false, "aicpa-tsc-2017": true } } });
+    expect(await published()).not.toContain("us-state-ai-laws");
+  });
 });

@@ -97,7 +97,10 @@ const Schemas = {
     description: z.string().max(2000).optional(),
     profile: ProfileSchema.partial().optional(),
     autonomy: z.record(z.string(), z.boolean()).optional(),
-    trustCenter: z.object({ enabled: z.boolean(), headline: z.string().max(200).optional(), contactEmail: z.string().max(200).optional() }).optional(),
+    trustCenter: z
+      .object({ enabled: z.boolean(), headline: z.string().max(200), contactEmail: z.string().max(200), frameworks: z.record(z.string().max(80), z.boolean()) })
+      .partial()
+      .optional(),
   }),
   enableFramework: z.object({
     enabled: z.boolean().optional(),
@@ -652,7 +655,8 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
       name: ws.name,
       headline: ws.trustCenter.headline ?? `${ws.name} security & compliance`,
       contactEmail: ws.trustCenter.contactEmail,
-      frameworks: summary.frameworks.map((f) => ({ id: f.id, name: f.shortName, readiness: Math.round(f.readiness * 100), evidenceCoverage: Math.round(f.evidenceCoverage * 100) })),
+      // Only the frameworks the workspace publishes (state AI laws stay private unless chosen).
+      frameworks: summary.frameworks.filter((f) => f.onTrustCenter).map((f) => ({ id: f.id, name: f.shortName, readiness: Math.round(f.readiness * 100), evidenceCoverage: Math.round(f.evidenceCoverage * 100) })),
       policies: summary.policies.filter((p) => p.status === "approved" || p.status === "published").map((p) => ({ title: p.title, version: p.version })),
       monitoring: checks
         .filter((ch, i, all) => all.findIndex((x) => x.checkId === ch.checkId) === i)

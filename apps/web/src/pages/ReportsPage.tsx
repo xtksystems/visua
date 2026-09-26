@@ -203,6 +203,11 @@ export function ReportsPage() {
             <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
               Publishes only computed facts — readiness, evidence coverage, approved policies and live monitoring results. No free-text claims.
             </p>
+            <p style={{ fontSize: 13, marginBottom: 12 }}>
+              Readiness published for:{" "}
+              {workspace.data?.frameworks.filter((f) => f.onTrustCenter).map((f) => f.shortName).join(", ") || "no framework"}.{" "}
+              <Link to={`/w/${ws}/settings`}>Choose in Settings</Link>
+            </p>
             <div className="stack" style={{ gap: 10 }}>
               <div className="field">
                 <label>Headline</label>

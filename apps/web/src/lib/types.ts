@@ -52,6 +52,8 @@ export interface FrameworkSummary {
   evidenceCoverage: number;
   verifiedShare: number;
   counts: Record<Status, number>;
+  /** Whether the public trust center publishes this framework's readiness. */
+  onTrustCenter: boolean;
 }
 
 export interface WorkspaceSummary {

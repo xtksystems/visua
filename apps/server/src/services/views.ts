@@ -2,7 +2,7 @@
  * API view models: lean graphs for the 3D Observatory, full node detail for
  * the inspector, and per-framework state bundles.
  */
-import { codeOf, frameworkOf, groupStatus, type FrameworkGraph, type RequirementNode, type Workspace } from "@visua/core";
+import { codeOf, frameworkOf, groupStatus, trustCenterPublishes, type FrameworkGraph, type RequirementNode, type Workspace } from "@visua/core";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { CORPUS_DIR, FRAMEWORK_ORDER } from "@visua/frameworks";
@@ -201,6 +201,8 @@ export async function workspaceSummary(svc: VisuaService, ws: Workspace) {
       evidenceCoverage: s.evidenceCoverage,
       verifiedShare: s.verifiedShare,
       counts: s.counts,
+      /** Whether the public trust center publishes this framework's readiness. */
+      onTrustCenter: trustCenterPublishes(ws.trustCenter, f.frameworkId, index.graph.framework.family),
     };
   });
   const [tasks, proposals, runs, evidenceTotal, policies] = await Promise.all([

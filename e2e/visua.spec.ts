@@ -118,10 +118,25 @@ test("agents propose, people approve: an offline Copilot run completes with cita
   await expect(page.getByText("What does GV.SC-07 require?").first()).toBeVisible();
 });
 
-test("public trust center shows only computed facts", async ({ page }) => {
+test("public trust center shows only computed facts, for the frameworks chosen in Settings", async ({ page }) => {
   await page.goto("/trust/northwind-health");
   await expect(page.getByText("Trust center · powered by Visua")).toBeVisible();
   await expect(page.getByText(/Readiness is not an audit opinion/)).toBeVisible();
+  await expect(page.getByText("NIST CSF 2.0", { exact: true })).toBeVisible();
+  // State AI laws are private by default; an owner can publish them in Settings.
+  await expect(page.getByText("State AI laws", { exact: true })).toHaveCount(0);
+  await signIn(page);
+  await page.goto(`${WS}/settings`);
+  const laws = page.getByRole("switch", { name: "Publish State AI laws readiness on the trust center" });
+  await expect(laws).toHaveAttribute("aria-checked", "false");
+  await expect(page.getByRole("switch", { name: "Publish NIST CSF 2.0 readiness on the trust center" })).toHaveAttribute("aria-checked", "true");
+  await laws.click();
+  await expect(laws).toHaveAttribute("aria-checked", "true");
+  await page.goto("/trust/northwind-health");
+  await expect(page.getByText("State AI laws", { exact: true })).toBeVisible();
+  await page.goto(`${WS}/settings`);
+  await laws.click();
+  await expect(laws).toHaveAttribute("aria-checked", "false");
 });
 
 test("AI governance: inventory, AI RMF functions and Generative AI Profile risks", async ({ page }) => {

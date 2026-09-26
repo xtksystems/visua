@@ -11,3 +11,4 @@ export * from "./tiers.ts";
 export * from "./rmf.ts";
 export * from "./access.ts";
 export * from "./overlays.ts";
+export * from "./trust.ts";

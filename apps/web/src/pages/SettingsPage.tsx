@@ -1,7 +1,7 @@
 /** Workspace settings: organization profile, frameworks, agent autonomy, AI engine. */
-import { Sparkles, Trash2 } from "lucide-react";
+import { Globe, Sparkles, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import type { OrganizationProfile, ProposalType } from "@visua/core";
 import { AgentBadge, FrameworkBadge, toast } from "../components/ui/index.tsx";
 import { api } from "../lib/api.ts";
@@ -54,10 +54,13 @@ const AUTONOMY: [ProposalType, string, string][] = [
   ["set-applicability", "Scope decisions", "Marking requirements not applicable. Recommended: keep human approval."],
 ];
 
-function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+/** A switch; agent autonomy switches use the agent tone (Aurora Violet is reserved for agent activity). */
+function Toggle({ checked, onChange, label, tone = "primary" }: { checked: boolean; onChange: (v: boolean) => void; label: string; tone?: "primary" | "agent" }) {
+  const on = tone === "agent" ? "var(--color-tertiary)" : "var(--color-primary)";
+  const knob = tone === "agent" ? "var(--color-on-tertiary)" : "var(--color-on-primary)";
   return (
-    <button role="switch" aria-checked={checked} aria-label={label} onClick={() => onChange(!checked)} style={{ width: 38, height: 22, borderRadius: 99, border: "1px solid var(--color-outline-strong)", background: checked ? "var(--color-tertiary)" : "var(--color-surface-raised)", position: "relative", cursor: "pointer", flexShrink: 0 }}>
-      <span style={{ position: "absolute", top: 2, left: checked ? 18 : 2, width: 16, height: 16, borderRadius: 99, background: checked ? "var(--color-on-tertiary)" : "var(--color-on-surface-muted)", transition: "left var(--dur-fast)" }} />
+    <button role="switch" aria-checked={checked} aria-label={label} onClick={() => onChange(!checked)} style={{ width: 38, height: 22, borderRadius: 99, border: "1px solid var(--color-outline-strong)", background: checked ? on : "var(--color-surface-raised)", position: "relative", cursor: "pointer", flexShrink: 0 }}>
+      <span style={{ position: "absolute", top: 2, left: checked ? 18 : 2, width: 16, height: 16, borderRadius: 99, background: checked ? knob : "var(--color-on-surface-muted)", transition: "left var(--dur-fast)" }} />
     </button>
   );
 }
@@ -185,6 +188,36 @@ export function SettingsPage() {
           </div>
           <div className="panel">
             <div className="panel__head">
+              <Globe size={16} />
+              <h2>Public trust center</h2>
+              <span className="spacer" />
+              <span className="muted" style={{ fontSize: 12 }}>
+                {data.workspace.trustCenter.enabled ? "Public" : "Not public"} ·{" "}
+                <Link to={`/w/${ws}/reports`}>headline and visibility</Link>
+              </span>
+            </div>
+            <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
+              Choose which frameworks' readiness the trust center publishes. State AI laws are off by default: they track legal obligations, not a security attestation.
+            </p>
+            <div className="stack" style={{ gap: 10 }}>
+              {data.frameworks.map((f) => (
+                <div key={f.id} className="row" style={{ gap: 10 }}>
+                  <FrameworkBadge frameworkId={f.id} />
+                  <span style={{ flex: 1 }}>{f.shortName}</span>
+                  <span className="muted" style={{ fontSize: 12 }}>
+                    {f.onTrustCenter ? "Published" : "Private"}
+                  </span>
+                  <Toggle
+                    checked={f.onTrustCenter}
+                    label={`Publish ${f.shortName} readiness on the trust center`}
+                    onChange={(v) => save.mutate({ trustCenter: { frameworks: { [f.id]: v } } }, { onSuccess: () => toast(`${f.shortName} ${v ? "published on" : "withdrawn from"} the trust center`) })}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="panel">
+            <div className="panel__head">
               <h2>Agent autonomy</h2>
               <span className="spacer" />
               <AgentBadge label="human-in-the-loop" />
@@ -195,7 +228,7 @@ export function SettingsPage() {
             <div className="stack" style={{ gap: 12 }}>
               {AUTONOMY.map(([type, label, hint]) => (
                 <div key={type} className="row" style={{ gap: 12, alignItems: "flex-start" }}>
-                  <Toggle checked={!!autonomy[type]} label={label} onChange={(v) => save.mutate({ autonomy: { ...autonomy, [type]: v } })} />
+                  <Toggle tone="agent" checked={!!autonomy[type]} label={label} onChange={(v) => save.mutate({ autonomy: { ...autonomy, [type]: v } })} />
                   <div>
                     <div style={{ fontWeight: 500 }}>{label}</div>
                     <div className="muted" style={{ fontSize: 12 }}>
