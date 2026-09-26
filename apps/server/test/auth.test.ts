@@ -101,6 +101,14 @@ describe("sign-in and tenant separation", () => {
     expect((await alice.get(`/api/workspaces/${wsId}`)).status).toBe(200);
   });
 
+  it("refuses state changes another site started, sign-in included", async () => {
+    const res = await alice.request("PATCH", `/api/workspaces/${wsId}/requirements/nist-csf-2.0:GV.OC-01`, { current: 1 }, { "sec-fetch-site": "cross-site" });
+    expect(res.status).toBe(403);
+    const login = await new TestClient(app).request("POST", "/api/auth/dev/login", { email: "victim@acme.example" }, { "sec-fetch-site": "cross-site" });
+    expect(login.status).toBe(403);
+    expect(login.headers.get("set-cookie")).toBeNull();
+  });
+
   it("refuses state changes without the session's CSRF token", async () => {
     const csrf = alice.csrf;
     alice.csrf = "";
@@ -157,12 +165,20 @@ describe("roles", () => {
     expect((await c.patch(`/api/workspaces/${wsId}/policies/${policy.json.id}`, { status: "approved" })).status).toBe(403);
     expect((await c.put(`/api/workspaces/${wsId}/frameworks/nist-ai-rmf`, { enabled: true })).status).toBe(403);
     expect((await c.post(`/api/workspaces/${wsId}/connectors`, { kind: "web-posture", config: { url: "https://example.com" } })).status).toBe(403);
+    // Scope, verification and status overrides are review decisions, like tailoring.
+    const outcome = `/api/workspaces/${wsId}/requirements/nist-csf-2.0:GV.OC-03`;
+    for (const decision of [{ applicable: false, applicabilityRationale: "Not relevant to our organization at all" }, { verifiedAt: new Date().toISOString() }, { statusOverride: "implemented" }]) {
+      expect((await c.patch(outcome, decision)).status, JSON.stringify(decision)).toBe(403);
+    }
+    expect((await c.patch(outcome, { owner: "Legal", notes: "Contributors document the work" })).status).toBe(200);
 
     const approver = clients["approver"]!;
     const decided = await approver.post<{ status: string; decidedBy: string }>(`/api/workspaces/${wsId}/proposals/${proposal}/decision`, { decision: "approved" });
     expect(decided.json.status).toBe("applied");
     expect(decided.json.decidedBy).toBe("approver <approver@acme.example>");
     expect((await approver.patch(`/api/workspaces/${wsId}/policies/${policy.json.id}`, { status: "approved" })).status).toBe(200);
+    expect((await approver.patch(outcome, { applicable: false, applicabilityRationale: "Not relevant to our organization at all" })).status).toBe(200);
+    expect((await approver.patch(outcome, { applicable: true })).status).toBe(200);
   });
 
   it("records the authenticated person in the audit trail", async () => {

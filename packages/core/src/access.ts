@@ -12,9 +12,9 @@ export type Capability =
   | "workspace.read"
   /** Download reports, OSCAL, CSVs and PBC lists. */
   | "workspace.export"
-  /** Assess requirements, manage tasks, upload evidence, draft policies, run agents and connectors. */
+  /** Assess requirements (levels, priority, owner, notes), manage tasks, upload evidence, draft policies, run agents and connectors. */
   | "work.write"
-  /** Decide agent proposals, approve policies, accept evidence, categorize, tailor and authorize. */
+  /** Decide agent proposals, approve policies, accept evidence, mark requirements not applicable or verified, categorize, tailor and authorize. */
   | "work.approve"
   /** Create and delete workspaces; enable frameworks; set scope, autonomy and the trust center. */
   | "workspace.configure"
@@ -41,7 +41,7 @@ export const ROLE_CAPABILITIES: Record<Role, readonly Capability[]> = {
 export const ROLE_LABELS: Record<Role, { name: string; description: string }> = {
   owner: { name: "Owner", description: "Full control, including owners, organization security settings and SSO identity providers." },
   admin: { name: "Admin", description: "Workspaces, frameworks, members, API tokens and running single sign-on." },
-  approver: { name: "Approver", description: "Decides agent proposals, approves policies and evidence, records authorization decisions." },
+  approver: { name: "Approver", description: "Decides agent proposals, approves policies and evidence, scopes and verifies requirements, records authorization decisions." },
   contributor: { name: "Contributor", description: "Assesses requirements, runs agents and connectors, manages tasks, evidence and drafts." },
   auditor: { name: "Auditor", description: "Read-only access with exports and audit-trail verification." },
   viewer: { name: "Viewer", description: "Read-only access to dashboards and the 3D views." },

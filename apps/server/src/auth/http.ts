@@ -113,6 +113,8 @@ export function csrfProtection(auth: AuthService): MiddlewareHandler<AppEnv> {
     if (SAFE.has(c.req.method)) return next();
     const origin = c.req.header("origin");
     if (origin && auth.config.mode === "oidc" && !allowed.has(origin)) return c.json({ error: "Cross-origin request refused" }, 403);
+    // Browsers label requests another site started; none may change state (sign-in included), except from allowed origins.
+    if (c.req.header("sec-fetch-site") === "cross-site" && !(origin && allowed.has(origin))) return c.json({ error: "Cross-site request refused" }, 403);
     const p = c.get("principal");
     if (p?.kind === "user" && !safeEqual(c.req.header(CSRF_HEADER) ?? "", p.session.csrf)) return c.json({ error: "Missing or invalid CSRF token — reload the page" }, 403);
     return next();

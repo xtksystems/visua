@@ -8,6 +8,7 @@ import { FrameworkRegistry, REPO_ROOT } from "@visua/frameworks";
 import { createApp } from "../src/app.ts";
 import { loadAuthConfig } from "../src/auth/config.ts";
 import { AuthService } from "../src/auth/service.ts";
+import { CONNECTOR_KINDS } from "../src/connectors/index.ts";
 import { createService } from "../src/context.ts";
 import { seedDemo } from "../src/seed/demo.ts";
 import { TestClient } from "./client.ts";
@@ -107,9 +108,12 @@ describe("RMF", () => {
     expect(sp.total).toBe(370);
   });
 
-  it("tailors a control out with a rationale", async () => {
+  it("tailors a control out with a rationale, recorded in the audit trail", async () => {
+    expect((await api("POST", `/api/workspaces/${wsId}/rmf/tailor`, { nodeId: "nist-sp-800-53-r5:PE-3", action: "remove", rationale: "  " })).status).toBe(400);
     const res = await api<{ frameworks: { id: string; total: number }[] }>("POST", `/api/workspaces/${wsId}/rmf/tailor`, { nodeId: "nist-sp-800-53-r5:PE-3", action: "remove", rationale: "Inherited from the cloud provider's physical controls" });
     expect(res.json.frameworks.find((f) => f.id === "nist-sp-800-53-r5")!.total).toBe(369);
+    const activity = await api<{ summary: string; entityId: string }[]>("GET", `/api/workspaces/${wsId}/activity?limit=3`);
+    expect(activity.json.find((a) => a.entityId === "nist-sp-800-53-r5:PE-3")?.summary).toBe("PE-3 tailored out of scope: Inherited from the cloud provider's physical controls");
   });
 
   it("exports an OSCAL SSP and POA&M", async () => {
@@ -447,6 +451,61 @@ describe("assessment guardrails: threat catalogs, enabled frameworks and scope",
   });
 });
 
+describe("documented exclusions survive every scope change", () => {
+  let xw = "";
+  type State = { applicable: boolean; applicabilityRationale?: string; userExclusion?: { rationale: string } };
+  const stateOf = async (nodeId: string) => (await api<{ state: State }>("GET", `/api/workspaces/${xw}/requirements/${encodeURIComponent(nodeId)}`)).json.state;
+  const exclude = (nodeId: string, rationale: string) => api("PATCH", `/api/workspaces/${xw}/requirements/${encodeURIComponent(nodeId)}`, { applicable: false, applicabilityRationale: rationale });
+  beforeAll(async () => {
+    const created = await api<{ workspace: { id: string } }>("POST", "/api/workspaces", {
+      name: "Exclusions Co",
+      profile: { industry: "healthcare", size: "51-200", dataTypes: ["phi"], drivers: ["ai-systems"], environments: ["cloud"], maturityTier: 2, guidance: "guided", securityTeamSize: 3 },
+      frameworks: ["nist-csf-2.0", "nist-sp-800-53-r5", "us-state-ai-laws"],
+    });
+    xw = created.json.workspace.id;
+  });
+
+  it.skipIf(!registry.framework("us-state-ai-laws"))("keeps a not-applicable decision on an obligation when the law stops and starts applying", async () => {
+    const laws = registry.framework("us-state-ai-laws")!;
+    const obligation = laws.assessable.find((o) => ((o.attributes?.["roles"] as string[]) ?? []).length > 0 && !o.attributes?.["until"])!;
+    const lawId = String(obligation.attributes?.["lawId"]);
+    const role = (obligation.attributes?.["roles"] as string[])[0]!;
+    await api("PUT", `/api/workspaces/${xw}/laws/${lawId}/applicability`, { roles: [role] });
+    expect((await stateOf(obligation.id)).applicable).toBe(true);
+    const why = "We never offer this service to consumers in the state; confirmed by counsel.";
+    expect((await exclude(obligation.id, why)).status).toBe(200);
+    // The law stops applying: out of scope by configuration, the person's decision kept underneath.
+    await api("PUT", `/api/workspaces/${xw}/laws/${lawId}/applicability`, { roles: [] });
+    const off = await stateOf(obligation.id);
+    expect(off.applicable).toBe(false);
+    expect(off.applicabilityRationale).toMatch(/Not in scope/);
+    expect(off.userExclusion?.rationale).toBe(why);
+    // It applies again: the documented exclusion stands.
+    await api("PUT", `/api/workspaces/${xw}/laws/${lawId}/applicability`, { roles: [role] });
+    expect(await stateOf(obligation.id)).toMatchObject({ applicable: false, applicabilityRationale: why, userExclusion: { rationale: why } });
+  });
+
+  it.skipIf(!registry.overlay("nist-cosais-predictive-ai"))("keeps a not-applicable decision on a control an overlay adds, drops and adds again", async () => {
+    const overlay = registry.overlay("nist-cosais-predictive-ai")!;
+    const moderate = (id: string) => ((registry.node(id)?.attributes?.["baselines"] as string[]) ?? []).includes("moderate");
+    const control = overlay.entries.map((e) => e.nodeId).find((id) => !moderate(id))!;
+    expect((await stateOf(control)).applicable).toBe(false);
+    await api("PUT", `/api/workspaces/${xw}/overlays/nist-cosais-predictive-ai`, {});
+    expect((await stateOf(control)).applicable).toBe(true);
+    const why = "The predictive model runs in a vendor-managed enclave; the vendor's SOC 2 covers this control.";
+    expect((await exclude(control, why)).status).toBe(200);
+    await api("DELETE", `/api/workspaces/${xw}/overlays/nist-cosais-predictive-ai`);
+    const dropped = await stateOf(control);
+    expect(dropped.applicable).toBe(false);
+    expect(dropped.userExclusion?.rationale).toBe(why);
+    await api("PUT", `/api/workspaces/${xw}/overlays/nist-cosais-predictive-ai`, {});
+    expect(await stateOf(control)).toMatchObject({ applicable: false, applicabilityRationale: why });
+    // Re-categorizing the system (a new baseline) does not overwrite it either.
+    await api("POST", `/api/workspaces/${xw}/rmf/categorize`, { informationTypes: [{ id: "phi", name: "Patient records", confidentiality: "high", integrity: "high", availability: "high" }] });
+    expect(await stateOf(control)).toMatchObject({ applicable: false, applicabilityRationale: why });
+  });
+});
+
 describe("agents (offline playbooks) with human-in-the-loop proposals", () => {
   const run = async (agent: string, goal: string, input: Record<string, unknown> = {}) =>
     (await api<{ status: string; mode: string; summary: string; steps: { type: string }[]; proposals: { id: string; type: string; status: string }[] }>("POST", `/api/workspaces/${wsId}/runs?wait=1`, { agent, goal, input })).json;
@@ -534,6 +593,26 @@ describe("evidence, monitoring and exports", () => {
     expect(results.json.find((r) => r.checkId === "lockfile")?.outcome).toBe("pass");
     expect(results.json.find((r) => r.checkId === "secrets")?.outcome).toBe("pass");
     expect(results.json.some((r) => r.requirementIds.length > 0)).toBe(true);
+  });
+
+  it("records a failed connector run in the audit trail", async () => {
+    const con = await api<{ id: string }>("POST", `/api/workspaces/${wsId}/connectors`, { kind: "repo-scan", name: "Missing repository", config: { path: "/nonexistent/visua-repo" } });
+    expect(con.status).toBe(201);
+    const kind = CONNECTOR_KINDS.find((k) => k.kind === "repo-scan")!;
+    const run = kind.run;
+    kind.run = async () => {
+      throw new Error("connection timed out");
+    };
+    try {
+      expect((await api("POST", `/api/workspaces/${wsId}/connectors/${con.json.id}/run`)).status).toBe(500);
+    } finally {
+      kind.run = run;
+    }
+    const connectors = await api<{ id: string; status: string }[]>("GET", `/api/workspaces/${wsId}/connectors`);
+    expect(connectors.json.find((c) => c.id === con.json.id)?.status).toBe("error");
+    const activity = await api<{ summary: string }[]>("GET", `/api/workspaces/${wsId}/activity?limit=3`);
+    expect(activity.json[0]!.summary).toMatch(/^Connector “Missing repository” failed/);
+    expect((await api<{ valid: boolean }>("GET", `/api/workspaces/${wsId}/activity/verify`)).json.valid).toBe(true);
   });
 
   it("accepts uploaded evidence with a content hash and review", async () => {

@@ -4,12 +4,12 @@
  */
 import { Bot, ExternalLink, FileText, ListChecks, Plus, Sparkles, X } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { levelLabel, type FrameworkFamily, type ProfileAction } from "@visua/core";
 import { api, corpusFileUrl } from "../../lib/api.ts";
 import { useCan } from "../../lib/auth.ts";
 import { STATUS_LABEL, TASK_STATUS_LABEL, relativeTime, shortDate, truncate } from "../../lib/format.ts";
-import { badgeOf, familyOf } from "../../lib/frameworks.ts";
+import { badgeOf, familyOf, programPath } from "../../lib/frameworks.ts";
 import { useGraph, useMeta, useNodeDetail, useWsMutation } from "../../lib/queries.ts";
 import type { NodeDetail } from "../../lib/types.ts";
 import { useUi } from "../../state/ui.ts";
@@ -302,6 +302,8 @@ function Assessment({ data, family }: { data: NodeDetail; family: FrameworkFamil
     });
   const levels = scale?.levels ?? [0, 1, 2, 3, 4].map((l) => ({ level: l, label: levelLabel(family, l), description: "" }));
   const canWrite = useCan("work.write");
+  // Scope and verification are review decisions (approvers and above).
+  const canDecide = useCan("work.approve");
   return (
     <fieldset disabled={!canWrite} className="panel panel--raised stack" style={{ gap: 12, margin: 0, minWidth: 0 }} aria-label="Assessment">
       <div className="row">
@@ -328,23 +330,28 @@ function Assessment({ data, family }: { data: NodeDetail; family: FrameworkFamil
           <input className="input" defaultValue={state.owner ?? ""} placeholder="Unassigned" onBlur={(e) => e.target.value !== (state.owner ?? "") && set({ owner: e.target.value })} />
         </label>
       </div>
-      <div className="row">
+      <div className="row row--wrap" style={{ gap: 8 }}>
         {state.applicable ? (
-          <button className="btn btn--quiet btn--sm" onClick={() => setNaOpen(true)}>
-            Mark not applicable…
-          </button>
+          canDecide && (
+            <button className="btn btn--quiet btn--sm" onClick={() => setNaOpen(true)}>
+              Mark not applicable…
+            </button>
+          )
         ) : (
           <>
-            <span className="muted" style={{ fontSize: 12, flex: 1 }}>
-              Not applicable: {state.applicabilityRationale}
+            <span className="muted" style={{ fontSize: 12, flex: 1, minWidth: 180 }}>
+              {state.userExclusion ? "Not applicable" : "Out of scope"}: {state.applicabilityRationale}
+              {!state.userExclusion && <> · <Link to={programPath(ws, data.node.frameworkId)}>change the scope</Link></>}
             </span>
-            <button className="btn btn--sm" onClick={() => set({ applicable: true })}>
-              Bring into scope
-            </button>
+            {state.userExclusion && canDecide && (
+              <button className="btn btn--sm" onClick={() => set({ applicable: true })}>
+                Bring into scope
+              </button>
+            )}
           </>
         )}
         <span style={{ flex: 1 }} />
-        {state.applicable && state.current >= state.target && !state.verifiedAt && (
+        {canDecide && state.applicable && state.current >= state.target && !state.verifiedAt && (
           <button className="btn btn--sm" onClick={() => set({ verifiedAt: new Date().toISOString() })} title="Record that an assessor verified the implementation and its evidence">
             Mark verified
           </button>

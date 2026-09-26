@@ -582,15 +582,20 @@ export class VisuaService {
     });
   }
 
+  /** Tailor a control in or out of the baseline (SP 800-53B): a documented decision with its rationale in the audit trail. */
   async tailorControl(id: string, nodeId: string, action: "add" | "remove" | "reset", rationale: string, actor = "user"): Promise<Workspace> {
     return this.mutate(id, async (ws) => {
       const settings = this.frameworkSettings(ws, "nist-sp-800-53-r5");
       if (!settings?.rmf) throw new ValidationError("Enable NIST RMF / SP 800-53 first");
       const node = this.registry.node(nodeId);
       if (!node || node.frameworkId !== "nist-sp-800-53-r5") throw new ValidationError(`'${nodeId}' is not an SP 800-53 control`);
+      const why = rationale.trim();
+      if (action !== "reset" && !why) throw new ValidationError("Tailoring a control requires a written rationale that auditors can review");
       const tailoring = settings.rmf.tailoring.filter((t) => t.nodeId !== node.id);
-      if (action !== "reset") tailoring.push({ nodeId: node.id, action, rationale });
-      return this.enableFramework(ws.id, "nist-sp-800-53-r5", { rmf: { ...settings.rmf, tailoring } }, actor);
+      if (action !== "reset") tailoring.push({ nodeId: node.id, action, rationale: why });
+      const next = await this.enableFramework(ws.id, "nist-sp-800-53-r5", { rmf: { ...settings.rmf, tailoring } }, actor);
+      await this.log(ws.id, actor, "tailored", "requirement", node.id, action === "reset" ? `${node.code}: tailoring reset to the baseline` : `${node.code} tailored ${action === "add" ? "into" : "out of"} scope: ${why}`);
+      return next;
     });
   }
 
@@ -1204,7 +1209,10 @@ export class VisuaService {
     try {
       outputs = await kind.run(connector.config);
     } catch (err) {
-      await this.store.connectors.update(connector.id, (c) => ({ ...c, status: "error", lastRunAt: now() }));
+      await this.mutate(ws.id, async () => {
+        await this.store.connectors.update(connector.id, (c) => ({ ...c, status: "error", lastRunAt: now() }));
+        await this.log(ws.id, actor, "failed", "connector", connector.id, `Connector “${connector.name}” failed: ${(err as Error).message.slice(0, 200)}`);
+      });
       throw err;
     }
     return this.mutate(ws.id, async (ws) => {

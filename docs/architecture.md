@@ -258,7 +258,10 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     in the workspace's organization. No role means 404, so other tenants' workspaces do
     not exist for you. Reads need `workspace.read`, writes at least `work.write`, and
     routes that need more (`work.approve`, `workspace.configure`, `workspace.export`)
-    declare it. Roles map to capabilities in `packages/core/src/access.ts`.
+    declare it: marking a requirement not applicable or verified, or overriding its
+    status, is an approver decision like tailoring. Roles map to capabilities in
+    `packages/core/src/access.ts`. Requests another site started (`Sec-Fetch-Site:
+    cross-site`) never change state, sign-in included.
   - OpenID Connect uses `openid-client` (authorization code + PKCE, state, nonce; the
     flow state is single-use and stored hashed). A flow is bound to the browser that
     started it by a short-lived pre-auth cookie, and it can only be started from Visua's

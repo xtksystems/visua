@@ -83,8 +83,8 @@ workspaces only through a membership, and their **role** decides what they can d
 |---|---|
 | Owner | everything, including owners, the "Require SSO" setting and which identity provider an SSO connection trusts |
 | Admin | workspaces, frameworks, scope, agent autonomy, connectors, members, API tokens, and running SSO connections (enable, disable, provisioning) |
-| Approver | decide agent proposals, approve policies, accept evidence, categorize, tailor and record authorization decisions |
-| Contributor | assess requirements, manage tasks, upload evidence, draft policies, run agents and connectors |
+| Approver | decide agent proposals, approve policies, accept evidence, mark requirements not applicable or verified, categorize, tailor and record authorization decisions |
+| Contributor | assess requirements (levels, priority, owner, notes), manage tasks, upload evidence, draft policies, run agents and connectors |
 | Auditor | read everything, export reports and verify the audit trail |
 | Viewer | read dashboards and the 3D views |
 

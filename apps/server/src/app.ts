@@ -409,6 +409,8 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
 
   app.patch("/api/workspaces/:ws/requirements/:nodeId", async (c) => {
     const input = await body(c, Schemas.updateState);
+    // Scope (not applicable), verification and status overrides are review decisions, like tailoring and accepting evidence.
+    if (input.applicable !== undefined || input.verifiedAt !== undefined || input.statusOverride !== undefined) requireCapability(c, "work.approve");
     return c.json(await svc.updateState(wsId(c), decodeURIComponent(c.req.param("nodeId")), input as never, actorOf(c)));
   });
 
