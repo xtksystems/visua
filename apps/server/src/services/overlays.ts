@@ -34,9 +34,14 @@ export function overlayLevels(o: FrameworkOverlay): { level: number; label: stri
   ];
 }
 
+const entryIndex = new WeakMap<FrameworkOverlay, Map<string, FrameworkOverlay["entries"][number]>>();
+
 /** The unit's level in the overlay's lens: a profile's priority, or a control overlay's selection. */
 export function overlayLevelFor(o: FrameworkOverlay, nodeId: string, lenses: string[]): number | undefined {
-  const entry = o.entries.find((e) => e.nodeId === nodeId);
+  // Called for every unit of a state bundle (1,014 for SP 800-53): index the entries once per overlay.
+  let index = entryIndex.get(o);
+  if (!index) entryIndex.set(o, (index = new Map(o.entries.map((e) => [e.nodeId, e]))));
+  const entry = index.get(nodeId);
   if (!entry) return undefined;
   if (o.kind === "community-profile") return overlayPriority(entry, lenses);
   return entry.control?.annotated || entry.control?.inSummaryTable ? 1 : 2;
