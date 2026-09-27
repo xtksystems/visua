@@ -260,7 +260,12 @@ test("state AI laws: roles decide scope, upcoming obligations count apart, oblig
   const timeline = page.getByRole("list", { name: "Effective-date timeline of the tracked laws" });
   await expect(timeline).toBeVisible();
   // Each month says what takes effect, on hover and keyboard focus; the list view gives every date.
-  await timeline.getByRole("listitem").first().focus();
+  // Arrive by keyboard: a page without window focus (headless Chromium on macOS) moves focus on
+  // element.focus() without firing focus events, so a bare focus() tests nothing a person does.
+  const months = timeline.getByRole("listitem");
+  await months.nth(1).focus();
+  await page.keyboard.press("Shift+Tab");
+  await expect(months.first()).toBeFocused();
   await expect(page.locator(".law-timeline__tip")).toContainText(/obligations? (in force since|take effect)/);
   await page.getByRole("group", { name: "Timeline view" }).getByRole("button", { name: "List" }).click();
   await expect(page.getByRole("table", { name: "Effective dates of the tracked laws" }).getByRole("row", { name: /CA-SB243/ }).first()).toBeVisible();
