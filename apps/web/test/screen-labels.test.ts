@@ -1,6 +1,6 @@
 import { PerspectiveCamera, Vector3 } from "three";
 import { describe, expect, it } from "vitest";
-import { viewState } from "../src/scene/ScreenLabels.tsx";
+import { hideLabel, showLabel, viewState } from "../src/scene/ScreenLabels.tsx";
 
 const W = 1076;
 const H = 848;
@@ -42,5 +42,31 @@ describe("screen labels follow the camera of the frame being drawn", () => {
     const [fx, fy] = screen(fresh, anchor);
     expect(x).toBeCloseTo(fx, 3);
     expect(y).toBeCloseTo(fy, 3);
+  });
+});
+
+describe("showing and hiding a label needs no repaint", () => {
+  // Positions are compositor properties (transform); visibility is a paint property. When
+  // raster falls behind (a busy machine, SwiftShader), Chromium composites new positions
+  // over old raster: labels just shown stay blank and labels just hidden stay drawn where
+  // they were. Showing and hiding must be compositor changes too.
+  const label = () => ({ style: {} as Record<string, string>, dataset: {} as Record<string, string> });
+
+  it("shows a label by opacity and transform, never visibility", () => {
+    const el = label();
+    showLabel(el as unknown as HTMLElement, 120.4, 80.6);
+    // No inline opacity left: the stylesheet's (1, or 0.5 for a dimmed label) applies.
+    expect(el.style).toEqual({ transform: "translate3d(120px, 81px, 0)", opacity: "", pointerEvents: "" });
+    expect(el.dataset["shown"]).toBe("true");
+  });
+
+  it("hides a label by opacity and keeps it from taking clicks", () => {
+    const el = label();
+    showLabel(el as unknown as HTMLElement, 10, 10);
+    hideLabel(el as unknown as HTMLElement);
+    expect(el.style["opacity"]).toBe("0");
+    expect(el.style["pointerEvents"]).toBe("none");
+    expect(el.style["visibility"]).toBeUndefined();
+    expect(el.dataset["shown"]).toBe("false");
   });
 });

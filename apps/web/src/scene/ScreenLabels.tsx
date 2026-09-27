@@ -127,6 +127,27 @@ export function viewState(camera: Camera, width: number, height: number): number
   return [...camera.matrixWorld.elements, ...camera.projectionMatrix.elements, width, height];
 }
 
+/*
+ * Showing, hiding and moving a label are compositor changes only (opacity and transform), so
+ * each label is rasterized once, hidden, when it is created. Hiding by `visibility` needed a
+ * repaint: when raster fell behind (a busy machine, SwiftShader), Chromium drew the new
+ * positions over old raster, and titles just shown stayed blank while codes just hidden
+ * stayed where they were. `data-shown` says which labels are on screen.
+ */
+export function showLabel(el: HTMLElement, x: number, y: number) {
+  el.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
+  // The stylesheet decides how opaque a shown label is (a dimmed one is half).
+  el.style.opacity = "";
+  el.style.pointerEvents = "";
+  el.dataset["shown"] = "true";
+}
+
+export function hideLabel(el: HTMLElement) {
+  el.style.opacity = "0";
+  el.style.pointerEvents = "none";
+  el.dataset["shown"] = "false";
+}
+
 function span(className: string, text: string): HTMLSpanElement {
   const s = document.createElement("span");
   s.className = className;
@@ -170,7 +191,7 @@ export function ScreenLabels({ labels, margin = 6 }: { labels: ScreenLabel[]; ma
       let el = els.current.get(l.id);
       if (!el) {
         el = document.createElement("div");
-        el.style.visibility = "hidden";
+        hideLabel(el);
         host.appendChild(el);
         els.current.set(l.id, el);
       }
@@ -257,9 +278,8 @@ export function ScreenLabels({ labels, margin = 6 }: { labels: ScreenLabel[]; ma
       if (rect) {
         placed.push(rect);
         if (l.group) shown.add(l.group);
-        el.style.transform = `translate3d(${Math.round(rect.x)}px, ${Math.round(rect.y)}px, 0)`;
-        el.style.visibility = "visible";
-      } else el.style.visibility = "hidden";
+        showLabel(el, rect.x, rect.y);
+      } else hideLabel(el);
     }
   });
   return null;
