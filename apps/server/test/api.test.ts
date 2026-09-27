@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { FrameworkRegistry, REPO_ROOT } from "@visua/frameworks";
 import { createApp } from "../src/app.ts";
 import { loadAuthConfig } from "../src/auth/config.ts";
@@ -526,11 +526,18 @@ describe.skipIf(!registry.framework("us-state-ai-laws") || !registry.framework("
 });
 
 describe.skipIf(!registry.framework("us-state-ai-laws"))("state AI laws: dates decide what counts today", () => {
-  const today = new Date().toISOString().slice(0, 10);
   const law = registry.framework("us-state-ai-laws")?.graph.nodes.find((n) => n.code === "CA-SB243");
-  // Only meaningful while CA-SB243-04 (2027-07-01) is still ahead and CA-SB243-03 (until 2026-12-31) not yet ended.
-  const applicable = !!law && today < "2026-12-31";
-  it.skipIf(!applicable)("counts obligations in force, prepares upcoming ones apart, and drops ended ones when read", async () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+  it.skipIf(!law)("counts obligations in force, prepares upcoming ones apart, and drops ended ones when read", async () => {
+    // Pinned to a day when CA-SB243-03 (until 2026-12-31) is still in force and CA-SB243-04
+    // (from 2027-07-01) still ahead, so the test means the same whenever it runs.
+    vi.useFakeTimers({ toFake: ["Date"], now: new Date("2026-10-15T12:00:00Z") });
+    // The suite's session was opened on the real clock and may have expired on this one: sign in on it.
+    const client = new TestClient(app);
+    await client.devLogin("owner@acme-fintech.example", "Ada Owner");
+    const api = <T = unknown>(method: string, path: string, body?: unknown) => client.request<T>(method, path, body ?? (method === "GET" ? undefined : {}));
     const created = await api<{ workspace: { id: string } }>("POST", "/api/workspaces", {
       name: "Chatbot Co",
       profile: { industry: "saas", size: "11-50", dataTypes: ["pii", "children"], drivers: ["ai-systems"], environments: ["cloud"], maturityTier: 2, guidance: "guided", securityTeamSize: 2 },
@@ -552,21 +559,17 @@ describe.skipIf(!registry.framework("us-state-ai-laws"))("state AI laws: dates d
     expect(state.json.upcoming.total).toBe(1);
     // Months later, with nothing changed in the workspace: the minors duty ended on 2026-12-31, the reporting duty is in force.
     const ws = await svc.workspace(cw);
-    vi.useFakeTimers({ toFake: ["Date"], now: new Date("2027-01-15T12:00:00Z") });
-    try {
-      const january = await lawsOverview(svc, ws);
-      expect(ca(january as unknown as Overview)).toMatchObject({ inScope: 5, inForce: 4, readiness: 1 });
-      const detail = await nodeDetail(svc, ws, registry.node(obligation("3"))!);
-      expect(detail.status?.status).toBe("not-applicable");
-      expect(detail.status?.reasons[0]).toBe("No longer in effect after 2026-12-31");
-      expect(detail.timing).toMatchObject({ state: "ended", until: "2026-12-31" });
-      vi.setSystemTime(new Date("2027-08-01T12:00:00Z"));
-      const august = (await lawsOverview(svc, ws)) as unknown as Overview;
-      expect(ca(august)).toMatchObject({ inScope: 5, inForce: 5, upcomingInScope: { total: 0 } });
-      expect(ca(august).readiness).toBeLessThan(1);
-    } finally {
-      vi.useRealTimers();
-    }
+    vi.setSystemTime(new Date("2027-01-15T12:00:00Z"));
+    const january = await lawsOverview(svc, ws);
+    expect(ca(january as unknown as Overview)).toMatchObject({ inScope: 5, inForce: 4, readiness: 1 });
+    const detail = await nodeDetail(svc, ws, registry.node(obligation("3"))!);
+    expect(detail.status?.status).toBe("not-applicable");
+    expect(detail.status?.reasons[0]).toBe("No longer in effect after 2026-12-31");
+    expect(detail.timing).toMatchObject({ state: "ended", until: "2026-12-31" });
+    vi.setSystemTime(new Date("2027-08-01T12:00:00Z"));
+    const august = (await lawsOverview(svc, ws)) as unknown as Overview;
+    expect(ca(august)).toMatchObject({ inScope: 5, inForce: 5, upcomingInScope: { total: 0 } });
+    expect(ca(august).readiness).toBeLessThan(1);
   });
 });
 
