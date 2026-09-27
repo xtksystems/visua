@@ -21,7 +21,8 @@
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "screens": "node scripts/screens.ts"
   },
   "devDependencies": {
     "@google/design.md": "0.4.0",
