@@ -1001,6 +1001,13 @@ p {
   .table--stack td:first-child {
     grid-column: 1 / -1;
   }
+  /* SSO connections: the connection, its domains, then status and remove. */
+  .table--sso.table--stack tr {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .table--sso.table--stack td:nth-child(2) {
+    grid-column: 1 / -1;
+  }
   .table--stack td[data-label]::before {
     content: attr(data-label);
     display: block;
