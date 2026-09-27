@@ -297,6 +297,14 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     the addresses the socket will use, so DNS rebinding cannot bypass it, and responses are
     capped at 1 MB. Literal private addresses and `localhost` are refused when the issuer is
     saved. The platform provider is the operator's own configuration and is not filtered.
+  - A connection's email domains are proven by DNS: each claimed domain gets a token, and
+    once `_visua-challenge.<domain>` carries `visua-domain-verification=<token>` an admin
+    verifies it (the lookup runs outside any transaction; the result is recorded and
+    audited under the domain lock). Only verified domains route sign-ins (`discover`),
+    link or provision people, and count for "Require SSO". Pending claims from several
+    organizations can coexist; a partial unique index lets only one hold a domain
+    verified. Migration 3 grandfathered domains claimed before verification existed, and
+    `VISUA_SSO_DOMAIN_VERIFICATION=off` trusts domains as claimed.
   - A connection's provider can sign in as any member on its domains, owners included,
     so choosing it (issuer, client, secret, domains; adding or removing a connection) needs
     `tenant.own`. Admins enable, disable and set provisioning. A secret never follows a
@@ -454,7 +462,7 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 6. Testing
 
-- `packages/*/test` and `apps/server/test` (Vitest, 165 tests):
+- `packages/*/test` and `apps/server/test` (Vitest, 171 tests):
   - official counts and citations
   - identifier normalization
   - the SOC 2 skeleton and the licensed overlay
@@ -491,9 +499,11 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     organization audit trail, and OpenID Connect against a mock provider (PKCE, replay,
     the browser that started the flow, JIT provisioning, domain checks, tenant-scoped
     sessions, Require SSO, owner-only provider changes, verified email linking,
-    same-site return paths), and organization providers kept off private addresses
-    unless the operator allows them (`egress.test.ts`: address classes, literal and
-    DNS-resolved refusals, the response cap)
+    same-site return paths), organization providers kept off private addresses unless the
+    operator allows them (`egress.test.ts`: address classes, literal and DNS-resolved
+    refusals, the response cap), DNS proof of SSO domains before they route or admit
+    anyone, first-to-prove ownership, and the upgrade that grandfathers existing domains
+    (`storage.test.ts`)
   - the Postgres event relay (`relay.test.ts`): reconnection with backoff, failing fast
     at startup, NOTIFY payloads sized in bytes
   - `VISUA_TEST_DATABASE_URL=postgres://…` runs the server suites on Postgres, each run
@@ -517,13 +527,11 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 7. Known limitations
 
-- Email domains of SSO connections are asserted by organization owners, not verified by
-  DNS. Sessions from a connection are scoped to its organization, so a false claim cannot
-  reach other tenants' data. But a false claim still routes that domain's people to the
-  claiming organization's provider when they sign in (where a hostile provider could
-  phish them), and first come holds a domain until an operator intervenes. DNS
-  verification is on the roadmap; until then, run a shared installation only for
-  organizations you trust with their domain claims.
+- SSO domains are proven once. An organization that later loses a domain it verified
+  keeps it until an operator removes the claim: verification is not re-checked
+  periodically. Domains grandfathered by the upgrade, or trusted while
+  `VISUA_SSO_DOMAIN_VERIFICATION=off`, were never proven; on a shared installation, ask
+  their organizations to remove and verify them again.
 - An organization's identity provider may be on a host the operator allows on a private
   address (`VISUA_OIDC_PRIVATE_ISSUERS`); every organization can then point its connection
   at that host. Allow only the internal providers you run, not `*`, in a shared

@@ -11,9 +11,11 @@
  *   never grant access to another tenant's data.
  * - An organization can require its own SSO for every session that touches it.
  */
+import { randomBytes } from "node:crypto";
+import { Resolver } from "node:dns/promises";
 import * as oidc from "openid-client";
 import { ROLE_CAPABILITIES, can, newId, roleRank, slugify, type Capability, type Membership, type Role, type Tenant, type TenantSettings, type User } from "@visua/core";
-import type { ApiTokenRecord, SessionRecord, SsoConnection } from "../storage/index.ts";
+import type { ApiTokenRecord, DomainVerification, SessionRecord, SsoConnection } from "../storage/index.ts";
 import { DEFAULT_TENANT_ID } from "../storage/index.ts";
 import { NotFoundError, ValidationError, type Principal as AuditPrincipal, type VisuaService } from "../services/visua.ts";
 import type { AuthConfig } from "./config.ts";
@@ -45,20 +47,36 @@ export interface SsoConnectionInput {
   enabled?: boolean;
 }
 
-/** What the API returns for an SSO connection: never the secret. */
+/** The TXT record that proves control of a domain for one SSO connection. */
+export const challengeRecord = (domain: string, token: string) => ({ name: `_visua-challenge.${domain}`, value: `visua-domain-verification=${token}` });
+
+/** The domains a connection has proven: the only ones that route sign-ins and admit people. */
+export const verifiedDomains = (c: SsoConnection) => c.domains.filter((d) => !!c.verification?.[d]?.verifiedAt);
+
+/** What the API returns for an SSO connection: never the secret; each domain with its status and record. */
 export const publicConnection = (c: SsoConnection) => {
-  const { clientSecretSealed, ...rest } = c;
-  return { ...rest, hasClientSecret: !!clientSecretSealed };
+  const { clientSecretSealed, verification, ...rest } = c;
+  const domainStatus = c.domains.map((domain) => {
+    const v = verification?.[domain];
+    return { domain, verified: !!v?.verifiedAt, method: v?.method, verifiedAt: v?.verifiedAt, record: v ? challengeRecord(domain, v.token) : undefined };
+  });
+  return { ...rest, hasClientSecret: !!clientSecretSealed, domainStatus };
 };
+
+/** TXT lookups for domain verification (replaceable in tests). */
+export type ResolveTxt = (name: string) => Promise<string[][]>;
+const resolveTxtWithTimeout: ResolveTxt = (name) => new Resolver({ timeout: 5000, tries: 2 }).resolveTxt(name);
 
 export class AuthService {
   readonly svc: VisuaService;
   readonly config: AuthConfig;
   private readonly oidcConfigs = new Map<string, { config: oidc.Configuration; at: number }>();
+  private readonly resolveTxt: ResolveTxt;
 
-  constructor(svc: VisuaService, config: AuthConfig) {
+  constructor(svc: VisuaService, config: AuthConfig, deps: { resolveTxt?: ResolveTxt } = {}) {
     this.svc = svc;
     this.config = config;
+    this.resolveTxt = deps.resolveTxt ?? resolveTxtWithTimeout;
   }
 
   private get ids() {
@@ -102,6 +120,8 @@ export class AuthService {
       if (patch.settings?.requireSso) {
         const connections = (await this.ids.sso.forTenant(tenantId)).filter((c) => c.enabled);
         if (!connections.length) throw new ValidationError("Add and enable an SSO connection before requiring SSO");
+        // Only verified domains route sign-ins: without one, nobody could reach the connection.
+        if (!connections.some((c) => verifiedDomains(c).length)) throw new ValidationError("Verify at least one of your SSO connection's domains before requiring SSO");
       }
       const next: Tenant = { ...t, name: patch.name?.trim() || t.name, settings: { ...t.settings, ...(patch.settings ?? {}) }, updatedAt: now() };
       await this.ids.tenants.put(next);
@@ -397,11 +417,23 @@ export class AuthService {
         const others = (await this.ids.sso.forTenant(tenantId)).filter((c) => c.enabled && c.id !== existing.id);
         if (tenant.settings.requireSso && !others.length) throw new ValidationError("Turn off “Require SSO” before disabling the last connection");
       }
+      // Pending claims from different organizations can coexist (a claim alone proves nothing);
+      // a verified one is final, and an organization lists each domain on one connection.
       for (const d of domains) {
-        const owner = await this.ids.sso.domainOwner(d);
-        if (owner && owner !== existing?.id) throw new ValidationError(`The domain ${d} is already used by another SSO connection`);
+        for (const claim of await this.ids.sso.claimants(d)) {
+          if (claim.connectionId === existing?.id) continue;
+          if (claim.verified) throw new ValidationError(`The domain ${d} is verified by another SSO connection`);
+          if (claim.tenantId === tenantId) throw new ValidationError(`The domain ${d} is already listed on another of this organization's SSO connections`);
+        }
       }
       const ts = now();
+      // Each domain keeps its challenge (and proof) while it stays listed; a new one gets a fresh
+      // challenge, or is trusted as claimed when the operator turned verification off.
+      const trusted = this.config.ssoDomainVerification === "off";
+      const verification: Record<string, DomainVerification> = {};
+      for (const d of domains) {
+        verification[d] = existing?.verification?.[d] ?? { token: randomBytes(16).toString("hex"), ...(trusted ? { verifiedAt: ts, method: "trusted" as const } : {}) };
+      }
       // A stored secret belongs to its provider: a new issuer or client needs its own.
       const samePartner = !!existing && existing.issuer === issuerUrl && existing.clientId === input.clientId.trim();
       const connection: SsoConnection = {
@@ -412,6 +444,7 @@ export class AuthService {
         clientId: input.clientId.trim(),
         clientSecretSealed: input.clientSecret ? seal(input.clientSecret, this.config.secret) : samePartner ? existing.clientSecretSealed : undefined,
         domains,
+        verification,
         jitProvisioning: input.jitProvisioning ?? existing?.jitProvisioning ?? false,
         defaultRole: role,
         enabled,
@@ -421,8 +454,56 @@ export class AuthService {
       if (!connection.clientId) throw new ValidationError("The client id is required");
       await this.ids.sso.put(connection);
       this.oidcConfigs.delete(connection.id);
-      await this.audit(tenantId, by, existing ? "updated" : "created", "sso-connection", connection.id, `SSO connection “${connection.name}” ${existing ? "updated" : "added"} for ${domains.join(", ")}`);
+      const pending = domains.filter((d) => !verification[d]!.verifiedAt);
+      await this.audit(
+        tenantId,
+        by,
+        existing ? "updated" : "created",
+        "sso-connection",
+        connection.id,
+        `SSO connection “${connection.name}” ${existing ? "updated" : "added"} for ${domains.join(", ")}${pending.length ? ` (awaiting DNS verification: ${pending.join(", ")})` : ""}`,
+      );
       return connection;
+    });
+  }
+
+  /**
+   * Prove a connection's domain: its TXT record `_visua-challenge.<domain>` must carry the
+   * connection's token. Only then are the domain's people routed to the connection and
+   * admitted by it. DNS is asked outside any transaction; the result is recorded under the
+   * domain lock, and the first organization to prove a domain holds it.
+   */
+  async verifySsoDomain(tenantId: string, id: string, domain: string, by: Principal): Promise<SsoConnection> {
+    if (!(await this.can(by, tenantId, "tenant.manage"))) throw new ForbiddenError("Verifying SSO domains requires the admin or owner role");
+    const d = domain.trim().toLowerCase();
+    const before = await this.ids.sso.get(id);
+    if (!before || before.tenantId !== tenantId) throw new NotFoundError("SSO connection not found");
+    const challenge = before.verification?.[d];
+    if (!before.domains.includes(d) || !challenge) throw new NotFoundError(`${d} is not one of this connection's domains`);
+    if (challenge.verifiedAt) return before;
+    const record = challengeRecord(d, challenge.token);
+    let found = false;
+    try {
+      found = (await this.resolveTxt(record.name)).some((chunks) => chunks.join("") === record.value);
+    } catch (err) {
+      const code = (err as { code?: string }).code;
+      if (code !== "ENOTFOUND" && code !== "ENODATA") throw new ValidationError(`The DNS lookup of ${record.name} failed (${code ?? "error"}). Try again in a moment.`);
+    }
+    if (!found) throw new ValidationError(`No TXT record ${record.name} with the value ${record.value} was found. DNS changes can take a while to appear: try again later.`);
+    return this.svc.store.atomic(async () => {
+      await this.svc.store.lock("sso-domains");
+      const c = await this.ids.sso.get(id);
+      const current = c?.verification?.[d];
+      if (!c || c.tenantId !== tenantId || !c.domains.includes(d) || current?.token !== challenge.token) {
+        throw new ValidationError("The connection changed while its domain was being verified. Try again.");
+      }
+      const owner = await this.ids.sso.domainOwner(d);
+      if (owner && owner !== c.id) throw new ValidationError(`The domain ${d} is verified by another SSO connection`);
+      const ts = now();
+      const next: SsoConnection = { ...c, verification: { ...c.verification, [d]: { ...current, verifiedAt: ts, method: "dns" } }, updatedAt: ts };
+      await this.ids.sso.put(next);
+      await this.audit(tenantId, by, "verified", "sso-domain", c.id, `Domain ${d} verified by DNS for SSO connection “${c.name}”`, { domain: d, record: record.name });
+      return next;
     });
   }
 
@@ -539,8 +620,10 @@ export class AuthService {
     let user = linked ? await this.ids.users.get(linked.userId) : undefined;
     if (!user) {
       if (!id.email || !id.emailVerified) throw new ForbiddenError("Your identity provider did not share a verified email address");
-      if (connection && !connection.domains.includes(id.email.split("@")[1]!)) {
-        throw new ForbiddenError(`This sign-in is for ${connection.domains.join(", ")} addresses`);
+      // A connection admits new people only from domains its organization has proven.
+      const proven = connection ? verifiedDomains(connection) : [];
+      if (connection && !proven.includes(id.email.split("@")[1]!)) {
+        throw new ForbiddenError(proven.length ? `This sign-in is for ${proven.join(", ")} addresses` : "This SSO connection has no verified email domain yet");
       }
       user = await this.ids.users.getByEmail(id.email);
       if (!user && connection?.jitProvisioning) user = await this.ensureUser(id.email, id.name);

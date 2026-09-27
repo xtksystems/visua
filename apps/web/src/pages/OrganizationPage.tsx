@@ -9,7 +9,7 @@ import { Copy, KeyRound, Plus, ShieldCheck, Trash2, UserPlus } from "lucide-reac
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ROLES, ROLE_LABELS, can, roleRank, type ActivityEvent, type Role } from "@visua/core";
-import { Empty, Tabs, toast } from "../components/ui/index.tsx";
+import { Empty, StatusChip, Tabs, toast } from "../components/ui/index.tsx";
 import { api } from "../lib/api.ts";
 import { ROLE_NAMES, useMe, useResetSession } from "../lib/auth.ts";
 import { useWorkspace } from "../lib/queries.ts";
@@ -39,10 +39,18 @@ interface Connection {
   clientId: string;
   hasClientSecret: boolean;
   domains: string[];
+  /** Each domain's proof: only verified domains route sign-ins and admit people. */
+  domainStatus: { domain: string; verified: boolean; method?: "dns" | "grandfathered" | "trusted"; verifiedAt?: string; record?: { name: string; value: string } }[];
   jitProvisioning: boolean;
   defaultRole: Role;
   enabled: boolean;
 }
+
+const PROOF: Record<string, string> = {
+  dns: "Verified",
+  grandfathered: "Verified before DNS checks",
+  trusted: "Trusted (checks off)",
+};
 interface TenantInfo {
   id: string;
   name: string;
@@ -410,6 +418,16 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
     onSuccess: done,
     onError: (e: Error) => toast(e.message, "error"),
   });
+  const verify = useMutation({
+    mutationFn: (v: { id: string; domain: string }) => api.post(`/tenants/${tenant.id}/sso/${v.id}/domains/${encodeURIComponent(v.domain)}/verify`, {}),
+    onSuccess: (_, v) => {
+      toast(`${v.domain} verified: its people now sign in through your provider`);
+      done();
+    },
+    onError: (e: Error) => toast(e.message, "error"),
+  });
+  const copy = (text: string, what: string) => void navigator.clipboard?.writeText(text).then(() => toast(`${what} copied`));
+  const pending = (sso.data?.connections ?? []).flatMap((c) => c.domainStatus.filter((d) => !d.verified && d.record).map((d) => ({ connection: c, ...d, record: d.record! })));
   const requireSso = useMutation({
     mutationFn: (value: boolean) => api.patch(`/tenants/${tenant.id}`, { settings: { requireSso: value } }),
     onSuccess: (_, value) => {
@@ -426,14 +444,14 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
           How it works
         </h2>
         <p className="muted" style={{ margin: 0 }}>
-          Connect your identity provider (Okta, Microsoft Entra ID, Google Workspace, Keycloak…) with OpenID Connect. People whose email is in your domains are sent to it
-          when they sign in. Sessions it creates reach this organization only. Register this redirect URI with your provider:
+          Connect your identity provider (Okta, Microsoft Entra ID, Google Workspace, Keycloak…) with OpenID Connect. Once you prove a domain with a DNS record, people
+          whose email is in it are sent to your provider when they sign in. Sessions it creates reach this organization only. Register this redirect URI with your provider:
         </p>
         <code className="secret">{sso.data?.redirectUri ?? "…"}</code>
       </div>
       <div className="panel" style={{ padding: 0 }}>
         {sso.data?.connections.length ? (
-          <table className="table table--sso">
+          <table className="table table--sso table--stack">
             <thead>
               <tr>
                 <th>Connection</th>
@@ -455,9 +473,18 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
                       </span>
                     </div>
                   </td>
-                  <td className="mono">{c.domains.join(", ")}</td>
-                  <td>{c.jitProvisioning ? `Join as ${ROLE_NAMES[c.defaultRole].toLowerCase()}` : "Admins add them first"}</td>
-                  <td>
+                  <td data-label="Domains">
+                    <ul className="stack" style={{ gap: 4, listStyle: "none", margin: 0, padding: 0 }}>
+                      {c.domainStatus.map((d) => (
+                        <li key={d.domain} className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+                          <span className="mono">{d.domain}</span>
+                          {d.verified ? <StatusChip status="verified" label={PROOF[d.method ?? "dns"]} /> : <StatusChip status="in-progress" label="Awaiting DNS proof" />}
+                        </li>
+                      ))}
+                    </ul>
+                  </td>
+                  <td data-label="New people">{c.jitProvisioning ? `Join as ${ROLE_NAMES[c.defaultRole].toLowerCase()}` : "Admins add them first"}</td>
+                  <td data-label="Status">
                     <button className="btn btn--quiet btn--sm" onClick={() => update.mutate({ id: c.id, patch: { enabled: !c.enabled } })}>
                       {c.enabled ? "Enabled — disable" : "Disabled — enable"}
                     </button>
@@ -477,6 +504,44 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
           <Empty title="No SSO connection">Add your identity provider below.</Empty>
         )}
       </div>
+      {pending.map((p) => (
+        <section key={`${p.connection.id}:${p.domain}`} className="panel stack" style={{ gap: 10 }} aria-labelledby={`proof-${p.connection.id}-${p.domain}`}>
+          <h2 className="section-title" id={`proof-${p.connection.id}-${p.domain}`} style={{ margin: 0 }}>
+            Prove you control {p.domain}
+          </h2>
+          <p className="muted" style={{ margin: 0 }}>
+            Until then, nobody is sent to “{p.connection.name}” for this domain, and it admits no one from it. Add this TXT record at your DNS provider, then verify. Another
+            organization can claim the domain too; the first to prove it holds it.
+          </p>
+          <dl className="stack" style={{ gap: 6, margin: 0 }}>
+            {(
+              [
+                ["Name", p.record.name],
+                ["Value", p.record.value],
+              ] as const
+            ).map(([label, value]) => (
+              <div key={label} className="row" style={{ gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                <dt className="muted" style={{ width: 48 }}>
+                  {label}
+                </dt>
+                <dd style={{ margin: 0, minWidth: 0, flex: "0 1 auto" }}>
+                  <code className="secret" style={{ display: "block", overflowWrap: "anywhere" }}>
+                    {value}
+                  </code>
+                </dd>
+                <button className="btn btn--quiet btn--sm btn--icon" aria-label={`Copy the record ${label.toLowerCase()} for ${p.domain}`} onClick={() => copy(value, `Record ${label.toLowerCase()}`)}>
+                  <Copy size={14} />
+                </button>
+              </div>
+            ))}
+          </dl>
+          <div>
+            <button className="btn btn--primary" disabled={verify.isPending} onClick={() => verify.mutate({ id: p.connection.id, domain: p.domain })}>
+              <ShieldCheck size={15} aria-hidden /> Verify {p.domain}
+            </button>
+          </div>
+        </section>
+      ))}
       {!owner && (
         <div className="panel muted" role="note">
           Only owners add, remove or re-point identity providers: whoever controls a provider can sign in as any member on its domains, owners included. Admins can
