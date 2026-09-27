@@ -12,6 +12,9 @@ Visua is a pnpm monorepo (Node ≥ 22.18, native TypeScript, `node:sqlite`). Rea
 - `pnpm design:lint` after any change to `DESIGN.md`, then `pnpm design:tokens`
 - `pnpm ingest` after any change to `corpus/` or `packages/frameworks/src/ingest/*`
 - `pnpm corpus:verify` to hash-check the corpus
+- `pnpm screens` photographs every view at 1440×900, 1024×768 and 390×844 into `.screens/`
+  (git-ignored) with a contact sheet and an overflow report; `pnpm screens --docs` refreshes
+  the README images
 
 Run `pnpm typecheck && pnpm test` before committing. Run `pnpm test:e2e` when you
 change the web app.

@@ -331,6 +331,11 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     returns coverage in the shape of a state bundle for the 3D Observatory
   - exports and the public trust center
   - `GET /events` (SSE) pushes invalidations and agent steps to clients.
+- **Transfer.** JSON, JavaScript and CSS are compressed (`hono/compress`; the SP 800-53
+  state bundle is 518 KB and travels as 16 KB). Sign-in responses carry the session's
+  CSRF token and are never compressed, so compression cannot become an oracle on it;
+  server-sent events are never compressed either. Framework graphs and `/api/meta`
+  revalidate by ETag, and the web build's hashed assets are cached as immutable.
 - **Connectors.** *Web posture* (HTTPS redirect, HSTS, TLS protocol and certificate
   expiry, security headers, `security.txt`) and *repository hygiene* (SECURITY.md,
   CODEOWNERS, CI, dependency automation, lockfile, secret patterns). Results become
@@ -350,6 +355,14 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   Profile, Crosswalk, SOC 2, RMF, AI governance, State AI laws, AI threats, Reports,
   Organization and Settings. It also has a command palette
   (⌘K: search requirements or ask the copilot), a live approvals badge and toasts.
+  - Below 1024px the rail folds into a menu opened from the top bar (DESIGN.md › Layout)
+    and the inspector becomes a bottom sheet with a handle. Two-pane pages stack below
+    900px; Agents and Policies show one pane at a time. No page, panel or table scrolls
+    sideways at 1024px or on a phone (the ATLAS matrix scrolls within itself): a table's
+    secondary columns hide when its panel is narrow (container queries on `.table-box`)
+    or the screen is a phone, the FIPS 199 editor becomes one card per row, and chart
+    rows wrap.
+  - Breakpoints live in `lib/media.ts` (`NARROW`, `PHONE`, `split()`) and `global.css`.
 - **Observatory.** Instanced hex prisms in two layouts:
   - *constellation*: radial sectors per top-level group
   - *readiness terrain*: a honeycomb
@@ -358,9 +371,27 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   satellites, evidence crystals and agent comets orbit the prisms. The five lenses
   recolor the scene without moving anything.
 
-  CameraControls fly to a selection. Labels are billboards with level-of-detail
-  sizing, and large labels fade out when the camera comes close. Bloom and vignette
-  are applied under a performance monitor.
+  CameraControls fly to a selection. Bloom and vignette are applied under a performance
+  monitor. Units out of scope (an undecided law's obligations, controls outside the
+  baseline) shrink to small dots; nodes with no unit below them (ATLAS's mitigations)
+  stay in the outline and the inspector but take no place in the scene.
+
+  *Labels* are drawn in screen space (`scene/ScreenLabels.tsx`): code-sm and label-caps
+  at 11–13px, placed by priority whenever the camera moves, and hidden rather than drawn
+  where they would overlap another label, a HUD panel or the canvas edge. Sector titles
+  sit outside the ring on the side they face, and a sector whose title does not fit
+  keeps its code (twenty SP 800-53 families, sixteen ATLAS tactics); a ring of up to 40
+  labeled groups (the state laws) moves out so their codes have room.
+
+  *Framing* (`scene/framing.ts`): the projection is offset so the camera target sits in
+  the middle of the area no HUD band covers, so the scene re-frames when the inspector
+  opens or a bottom sheet covers the canvas; the home view fits the ring and its
+  titles inside the canvas and clear of every panel. The HUD's top bar wraps rather than
+  overlaps, its chips become selects on a narrow canvas (container queries on the
+  stage), and the legend collapses to the lens name and swatches.
+
+  Below 1024px the outline opens over the scene; phones open the Observatory on its
+  outline with the 3D scene one tap away (DESIGN.md › Layout).
 
   The outline is a full 2D twin with tree semantics and keyboard control (←/→ siblings,
   Enter drill in, Esc up, F frame, L lens, / filter). Deep links use `?select=`.
@@ -372,21 +403,38 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   keyboard path. An inner **threat ring** holds ATLAS tactics, the OWASP entries and
   the NIST AI 100-2 objectives in neutral ink (threat catalogs have no identity hue);
   their pillars take the status color of their pooled coverage, and their arcs bundle
-  the threat links onto requirement groups.
+  the threat links onto requirement groups. A threat arc shows the status of its
+  strongest link: final solid, draft dashed, unreviewed dotted.
+
+  Labels use the same screen-space layer (framework names with an identity swatch, the
+  threat ring's codes once a pillar is in focus) and the camera frames the ring around
+  the HUD. Arcs are batched into a few draw calls by width, opacity and dash style (the
+  focused pillar's arcs are drawn again on top). Below 1024px the scene and its details
+  stack as one scrolling page.
 - **Threat views.** The Threats page shows the ATLAS matrix (tactics as columns,
   techniques colored by coverage, with glyphs), the OWASP LLM Top 10 by edition, the
   OWASP Agentic Top 10 and the NIST AI 100-2 attacks by objective. A link filter (all
   published, final and draft, final only) is shared with the threat Observatory and
-  the Nexus ring. The threat inspector lists the linked requirements with live status
-  and why each is linked (every link with its publisher and status); a requirement's
-  inspector lists the threats it helps address. Threat catalogs also open in the 3D
-  Observatory, where height is the coverage level.
+  the Nexus ring. In the matrix each tactic is a labeled group; the matrix takes one tab
+  stop and arrow keys move within and across tactics. The threat inspector groups the
+  linked requirements as coverage counts them: a summary per publication (status,
+  requirements at target, progress), then collapsible publication groups split by route
+  (directly, through an ATLAS mitigation, through the other edition's entry, through a
+  group), with live status and why each is linked; a requirement's inspector lists the
+  threats it helps address. Threat catalogs also open in the 3D Observatory, where
+  height is the coverage level.
 - **Laws.** The State AI laws page records which laws apply and in what role, shows an
   effective-date timeline, safe harbors and enforcement, and scopes the obligations.
+  The timeline has one column per month (height: obligations taking effect; filled in
+  force, outlined upcoming), labels only the next wave and the largest month in force,
+  shows every month's laws on hover and keyboard focus, and has a list view.
 - **Programs.**
   - *CSF*: Profile with bullet charts and the Tier assessment
   - *SOC 2*: scope, observation window, DC 200 checklist, readiness by series
   - *RMF*: lifecycle, FIPS 199, tailoring, authorization, readiness by family
+- **Build.** Vite (rolldown) splits the bundle with code-splitting groups: packages in
+  `vendor`, the 3D stack (three.js, react-three-fiber, drei, postprocessing) in `three`,
+  loaded only by the Observatory and the Nexus. Pages are lazy routes.
 - **Design system.** All colors, type, spacing, radii and component tokens come from
   `DESIGN.md`, compiled by `packages/design` into CSS variables and typed tokens.
   - Status colors are semantic and always come with a glyph.
@@ -395,7 +443,7 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 6. Testing
 
-- `packages/*/test` and `apps/server/test` (Vitest, 98 tests):
+- `packages/*/test` and `apps/server/test` (Vitest, 138 tests):
   - official counts and citations
   - identifier normalization
   - the SOC 2 skeleton and the licensed overlay
@@ -403,8 +451,18 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   - API flows: onboarding, RMF categorize/tailor/OSCAL, SOC 2 scoping and DC 200,
     Nexus bundles
   - all eight offline agents, autonomy, connectors, evidence hashing
-  - integrity guardrails: N/A rationale, scope preservation, audit-chain tamper
-    detection, and no plan-as-evidence
+  - integrity guardrails: N/A rationale, scope preservation (documented exclusions
+    survive every scope change), audit-chain tamper detection, no plan-as-evidence, and
+    assessments refused on threat catalogs, frameworks a workspace has not enabled and
+    requirements out of scope, whether a person or an agent's proposal asks
+  - agents: threat, AI RMF and state-law codes read out of a question; the Copilot
+    explaining an ATLAS technique through its published links (and proposing nothing)
+    and a state-law obligation from the statute with section, page, dates and roles;
+    agents proposing passing checks as evidence, filed from the recorded check on
+    approval; licensed text copied into tasks withheld from the model
+  - the trust center publishing only the frameworks a workspace chooses (state AI laws
+    off by default), and transfer: compressed responses, ETag revalidation, and sign-in
+    responses left uncompressed
   - AI governance: AI RMF official counts, the Generative AI Profile's risks and actions,
     the AI system inventory API, Playbook-based planning and the AI RMF profile export
   - overlays: the Cyber AI Profile's priorities for all 106 subcategories and COSAiS's
@@ -418,17 +476,31 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     lost updates under two concurrent server instances, cross-instance cache
     invalidation, and the in-place upgrade of a pre-migration SQLite database
   - identity and access (`auth.test.ts`): sign-in requirements, tenant separation (404
-    across organizations), every role's limits, CSRF, API tokens, the organization audit
-    trail, and OpenID Connect against a mock provider (PKCE, replay, JIT provisioning,
-    domain checks, tenant-scoped sessions, Require SSO)
+    across organizations), every role's limits, CSRF (sign-in included), API tokens, the
+    organization audit trail, and OpenID Connect against a mock provider (PKCE, replay,
+    the browser that started the flow, JIT provisioning, domain checks, tenant-scoped
+    sessions, Require SSO, owner-only provider changes, verified email linking,
+    same-site return paths)
+  - the Postgres event relay (`relay.test.ts`): reconnection with backoff, failing fast
+    at startup, NOTIFY payloads sized in bytes
   - `VISUA_TEST_DATABASE_URL=postgres://…` runs the server suites on Postgres, each run
     in its own schema
-- `e2e/` (Playwright, 13 tests) runs against the production bundle served by the API,
-  with an in-memory seeded database and WebGL on SwiftShader. It covers Home, the
-  Observatory and its 2D twin, the Nexus, RMF, SOC 2, AI governance, an agent run with
-  citations, the trust center, persona sign-in, a viewer's read-only view, tenant
-  separation, organization administration, and the threat views (ATLAS matrix, the
-  coverage inspector and its link filter, OWASP editions, the Nexus threat ring).
+- `e2e/` (Playwright, 20 tests) runs against the production bundle served by the API,
+  with an in-memory seeded database and WebGL on SwiftShader. It covers Home and Mission
+  control's program links, the Observatory and its 2D twin, the Nexus, RMF, SOC 2, AI
+  governance, an agent run with citations, the trust center and its per-framework
+  choice, persona sign-in, a viewer's read-only view, tenant separation, organization
+  administration, the threat views (ATLAS matrix and its keyboard navigation, the
+  coverage inspector and its link filter, OWASP editions, the Nexus threat ring), a
+  threat catalog in the Observatory, the State AI laws page (roles deciding scope, the
+  timeline and its list view, obligations in 3D), and layout: labels in the 3D scenes
+  stay inside the canvas and clear of the HUD and of each other at 1440 and 1024
+  pixels, the rail folds into a menu on a phone, no page, panel or table scrolls sideways
+  at 1024 pixels or on a phone, and the Observatory opens on its outline on a phone.
+- `pnpm screens` (`scripts/screens.ts`) photographs every view at 1440×900, 1024×768
+  and 390×844 into the git-ignored `.screens/` folder, with a contact sheet and a
+  report of horizontal overflow and console errors; `--docs` regenerates the README
+  images.
 
 ## 7. Known limitations
 
@@ -439,8 +511,16 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   phish them), and first come holds a domain until an operator intervenes. DNS
   verification is on the roadmap; until then, run a shared installation only for
   organizations you trust with their domain claims.
+- The server fetches an SSO connection's issuer (OpenID discovery) when someone signs in
+  through it. Only owners choose an issuer and it must use https, but private addresses
+  are not blocked, because identity providers such as Keycloak often run on internal
+  networks. In a shared installation, limit the server's outbound network to the
+  identity providers you use.
 - SAML and SCIM provisioning are not implemented; OpenID Connect covers the major
   identity providers.
+- The demo's historical assessment levels are written to storage in bulk when it is
+  seeded (they are history, not changes anyone made); everything after seeding goes
+  through `VisuaService` and the audit trail.
 - Connectors cover web posture and repository hygiene only. Cloud, IdP, HRIS and MDM
   integrations are on the roadmap.
 - The SOC 2 structured extraction tooling is not in the repository. Installations

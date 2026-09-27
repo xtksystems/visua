@@ -10,6 +10,7 @@
  *   pnpm screens --sizes 390x844         only these sizes (default: 1440x900,1024x768,390x844)
  *   pnpm screens --no-build              reuse apps/web/dist
  *   pnpm screens --url http://localhost:8787   shoot a server that is already running
+ *   pnpm screens --docs                  refresh the README images in docs/images instead
  */
 import { chromium, type Browser, type BrowserContext, type Page } from "@playwright/test";
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
@@ -36,6 +37,7 @@ const sizes = (option("sizes") ?? "1440x900,1024x768,390x844").split(",").map((s
   return { width: width!, height: height!, name: s };
 });
 const OUT = join(ROOT, ".screens", label);
+const DOCS = flag("docs");
 
 // ------------------------------------------------------------------ server
 
@@ -176,6 +178,38 @@ function shots(meta: Meta, runId: string | undefined): Shot[] {
   return only ? list.filter((s) => only.some((o) => s.name.includes(o))) : list;
 }
 
+/** The README's images: the same views every time, so a refresh shows only what changed. */
+interface DocShot {
+  file: string;
+  path: string;
+  kind: Kind;
+  width: number;
+  height: number;
+  act?: (page: Page) => Promise<void>;
+}
+const DOC_SHOTS: DocShot[] = [
+  { file: "observatory-csf.jpg", path: `${WS}/observatory/nist-csf-2.0`, kind: "scene", width: 1600, height: 960 },
+  { file: "crosswalk-nexus.jpg", path: `${WS}/crosswalk`, kind: "scene", width: 1600, height: 960 },
+  { file: "observatory-800-53.jpg", path: `${WS}/observatory/nist-sp-800-53-r5`, kind: "scene", width: 1600, height: 960 },
+  { file: "home.jpg", path: WS, kind: "page", width: 1600, height: 960 },
+  { file: "rmf.jpg", path: `${WS}/rmf`, kind: "page", width: 1600, height: 960 },
+  { file: "ai-governance.jpg", path: `${WS}/ai`, kind: "page", width: 1600, height: 960 },
+  { file: "soc2.jpg", path: `${WS}/soc2`, kind: "page", width: 1600, height: 960 },
+  {
+    file: "threats-atlas.jpg",
+    path: `${WS}/threats/mitre-atlas?select=${encodeURIComponent("mitre-atlas:AML.T0051")}`,
+    kind: "page",
+    width: 1440,
+    height: 900,
+    act: async (page) => {
+      await page.locator(".atlas-matrix").evaluate((el) => el.scrollIntoView({ block: "start" }));
+      await page.locator(".page").first().evaluate((el) => el.scrollBy(0, -170));
+      await page.waitForTimeout(400);
+    },
+  },
+  { file: "nexus-threat-ring.jpg", path: `${WS}/crosswalk?group=${encodeURIComponent("owasp-llm-top10:LLM01")}`, kind: "scene", width: 1440, height: 900 },
+];
+
 // ------------------------------------------------------------------ checks
 
 interface Overflow {
@@ -286,38 +320,56 @@ const browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--ena
 const t0 = Date.now();
 const results: Result[] = [];
 try {
-  const probe = await context(browser, server.base, sizes[0]!, true);
-  const meta = (await (await probe.request.get("/api/meta")).json()) as Meta;
-  const runs = (await (await probe.request.get(`/api/workspaces/${WS_SLUG}/runs?limit=20`)).json()) as { id: string; status: string; agent: string }[];
-  const run = runs.find((r) => r.agent === "auditor-prep") ?? runs.find((r) => r.status === "completed") ?? runs[0];
-  await probe.close();
-  const list = shots(meta, run?.id);
-  console.log(`${list.length} shots × ${sizes.length} sizes → ${relative(ROOT, OUT)}/`);
-  for (const size of sizes) {
-    const signedIn = await context(browser, server.base, size, true);
-    const signedOut = await context(browser, server.base, size, false);
-    for (const shot of list) {
-      // A fresh tab per shot: each 3D view gets its own WebGL context, released when the tab closes.
-      const page = await (shot.signedOut ? signedOut : signedIn).newPage();
-      try {
-        const r = await shoot(page, shot, size);
-        results.push(r);
-        const notes = [r.overflow.length ? `${r.overflow.length} horizontal overflow` : "", r.errors.length ? `${r.errors.length} console error(s)` : ""].filter(Boolean).join(", ");
-        console.log(`  ${size.name.padEnd(9)} ${shot.name.padEnd(40)} ${notes || "ok"}`);
-      } catch (err) {
-        console.log(`  ${size.name.padEnd(9)} ${shot.name.padEnd(40)} FAILED: ${(err as Error).message.split("\n")[0]}`);
-        results.push({ shot: shot.name, size: size.name, file: "", overflow: [], errors: [`harness: ${(err as Error).message.split("\n")[0]}`], ms: 0 });
-      } finally {
-        await page.close();
-      }
+  if (DOCS) {
+    for (const d of DOC_SHOTS) {
+      const ctx = await context(browser, server.base, { width: d.width, height: d.height, name: `${d.width}x${d.height}` }, true);
+      const page = await ctx.newPage();
+      await page.goto(d.path, { waitUntil: "load" });
+      if (d.kind === "scene") await page.locator(".observatory__canvas canvas").first().waitFor({ timeout: 20_000 });
+      else await page.locator("h1, h2").first().waitFor({ timeout: 20_000 });
+      await page.waitForTimeout(d.kind === "scene" ? 3500 : 1000);
+      if (d.act) await d.act(page);
+      const file = join(ROOT, "docs", "images", d.file);
+      await page.screenshot({ path: file, type: "jpeg", quality: 84 });
+      console.log(`  ${relative(ROOT, file)}`);
+      await ctx.close();
     }
-    await signedIn.close();
-    await signedOut.close();
+  } else {
+    const probe = await context(browser, server.base, sizes[0]!, true);
+    const meta = (await (await probe.request.get("/api/meta")).json()) as Meta;
+    const runs = (await (await probe.request.get(`/api/workspaces/${WS_SLUG}/runs?limit=20`)).json()) as { id: string; status: string; agent: string }[];
+    const run = runs.find((r) => r.agent === "auditor-prep") ?? runs.find((r) => r.status === "completed") ?? runs[0];
+    await probe.close();
+    const list = shots(meta, run?.id);
+    console.log(`${list.length} shots × ${sizes.length} sizes → ${relative(ROOT, OUT)}/`);
+    for (const size of sizes) {
+      const signedIn = await context(browser, server.base, size, true);
+      const signedOut = await context(browser, server.base, size, false);
+      for (const shot of list) {
+        // A fresh tab per shot: each 3D view gets its own WebGL context, released when the tab closes.
+        const page = await (shot.signedOut ? signedOut : signedIn).newPage();
+        try {
+          const r = await shoot(page, shot, size);
+          results.push(r);
+          const notes = [r.overflow.length ? `${r.overflow.length} horizontal overflow` : "", r.errors.length ? `${r.errors.length} console error(s)` : ""].filter(Boolean).join(", ");
+          console.log(`  ${size.name.padEnd(9)} ${shot.name.padEnd(40)} ${notes || "ok"}`);
+        } catch (err) {
+          console.log(`  ${size.name.padEnd(9)} ${shot.name.padEnd(40)} FAILED: ${(err as Error).message.split("\n")[0]}`);
+          results.push({ shot: shot.name, size: size.name, file: "", overflow: [], errors: [`harness: ${(err as Error).message.split("\n")[0]}`], ms: 0 });
+        } finally {
+          await page.close();
+        }
+      }
+      await signedIn.close();
+      await signedOut.close();
+    }
   }
 } finally {
   await browser.close();
   server.stop();
 }
+// The README images need no report.
+if (DOCS) process.exit(0);
 mkdirSync(OUT, { recursive: true });
 writeFileSync(join(OUT, "report.json"), JSON.stringify(results.map((r) => ({ ...r, file: relative(OUT, r.file), full: r.full ? relative(OUT, r.full) : undefined })), null, 2));
 writeFileSync(join(OUT, "index.html"), contactSheet(results));
