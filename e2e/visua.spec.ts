@@ -67,6 +67,50 @@ test("Observatory renders the 3D scene with its keyboard-accessible 2D twin", as
   expect(errors).toEqual([]);
 });
 
+test("Observatory compiles its shaders before the first selection, not on it", async ({ page }) => {
+  // Linking a WebGL program blocks the frame that first draws its material: 60 to 100 ms when
+  // the selection halo, its path and agent comets appeared on the first click.
+  await page.addInitScript(() => {
+    const w = window as unknown as { __links: number };
+    w.__links = 0;
+    for (const proto of [WebGL2RenderingContext.prototype, WebGLRenderingContext.prototype]) {
+      const link = proto.linkProgram;
+      proto.linkProgram = function (program) {
+        w.__links++;
+        return link.call(this, program);
+      };
+    }
+  });
+  await signIn(page);
+  await page.goto(`${WS}/observatory/nist-csf-2.0`);
+  await expect(page.locator(".observatory__canvas canvas")).toBeVisible();
+  const links = () =>
+    page.evaluate(async () => {
+      for (let i = 0; i < 4; i++) await new Promise(requestAnimationFrame);
+      return (window as unknown as { __links: number }).__links;
+    });
+  // Loaded: the program count holds still across a few samples.
+  let loaded = -1;
+  for (let still = 0, sample = 0; still < 3 && sample < 30; sample++) {
+    const now = await links();
+    still = now === loaded ? still + 1 : 0;
+    loaded = now;
+  }
+  expect(loaded).toBeGreaterThan(0);
+  // Drill into a function, then open one of its outcomes.
+  const tree = page.getByRole("tree", { name: "Framework outline" });
+  await tree.getByRole("treeitem").first().focus();
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Enter");
+  await expect(page.locator("aside.inspector")).toBeVisible();
+  expect(await links(), "programs linked by the first selection").toBe(loaded);
+  // Nor on later ones: a sibling, then back up to the parent.
+  await page.keyboard.press("ArrowRight");
+  expect(await links(), "programs linked by selecting a sibling").toBe(loaded);
+  await page.keyboard.press("Escape");
+  expect(await links(), "programs linked by selecting the parent").toBe(loaded);
+});
+
 test("Crosswalk Nexus selects a group and lists authoritative mappings", async ({ page }) => {
   await signIn(page);
   const errors = watchErrors(page);
@@ -368,8 +412,9 @@ test("no page, panel or table scrolls sideways at 1024px or on a phone (the ATLA
 
 test("3D scenes: labels stay inside the canvas, clear of the HUD and of each other", async ({ page }) => {
   // Ten scenes, each measured only once its camera has landed: at SwiftShader's frame rate that
-  // takes about a minute on an arm64 Mac.
-  test.setTimeout(180_000);
+  // takes about a minute on an idle arm64 Mac, and several on a busy one (four frames can take
+  // 5 to 13 seconds under heavy load).
+  test.setTimeout(600_000);
   await signIn(page);
   const meta = (await (await page.request.get("/api/meta")).json()) as { frameworks: { id: string }[] };
   const scenes = [...["nist-csf-2.0", "nist-sp-800-53-r5", "mitre-atlas", "us-state-ai-laws"].filter((id) => meta.frameworks.some((f) => f.id === id)).map((id) => `/observatory/${id}`), "/crosswalk"];
@@ -397,16 +442,17 @@ test("3D scenes: labels stay inside the canvas, clear of the HUD and of each oth
             })
             .join("|");
         });
+      // Bounded in samples (at least 400 ms and four rendered frames apart), not seconds: under
+      // heavy load four frames can take 5 to 13 seconds, and the test's own time limit is the backstop.
       let previous = "";
       let still = 0;
-      await expect
-        .poll(async () => {
-          const now = await layout();
-          still = now === previous ? still + 1 : 0;
-          previous = now;
-          return still;
-        }, { intervals: [400], timeout: 15_000, message: `${fw} at ${width}x${height}: labels settle` })
-        .toBeGreaterThanOrEqual(2);
+      for (let sample = 0; sample < 12 && still < 2; sample++) {
+        if (sample) await page.waitForTimeout(400);
+        const now = await layout();
+        still = now === previous ? still + 1 : 0;
+        previous = now;
+      }
+      expect(still, `${fw} at ${width}x${height}: labels settle`).toBeGreaterThanOrEqual(2);
       const report = await page.evaluate(() => {
         const canvas = document.querySelector(".observatory__canvas canvas")!.getBoundingClientRect();
         const panels = [...document.querySelectorAll("[data-hud]")].map((e) => e.getBoundingClientRect());

@@ -20,6 +20,7 @@ import { DEFAULT_TENANT_ID } from "../storage/index.ts";
 import { NotFoundError, ValidationError, type Principal as AuditPrincipal, type VisuaService } from "../services/visua.ts";
 import type { AuthConfig } from "./config.ts";
 import { randomToken, safeEqual, seal, sha256, unseal } from "./crypto.ts";
+import { guardedFetch, privateAddressCause, privateHostAllowed, refusedLiteral } from "./egress.ts";
 
 export class UnauthorizedError extends Error {}
 export class ForbiddenError extends Error {}
@@ -391,6 +392,10 @@ export class AuthService {
       throw new ValidationError("The issuer must be a URL, e.g. https://login.example.com/");
     }
     if (issuer.protocol !== "https:" && !this.config.allowHttpIssuers) throw new ValidationError("The issuer must use https");
+    // Names are checked again at every request, on the addresses they resolve to (egress.ts).
+    if (refusedLiteral(issuer, privateHostAllowed(this.config.privateIssuerHosts))) {
+      throw new ValidationError("The issuer is a private or local address. The server operator can allow an internal identity provider with VISUA_OIDC_PRIVATE_ISSUERS.");
+    }
     const domains = [...new Set(input.domains.map((d) => d.trim().toLowerCase().replace(/^@/, "")).filter(Boolean))];
     if (!domains.length) throw new ValidationError("List at least one email domain this connection signs in");
     if (domains.some((d) => !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(d))) throw new ValidationError("Email domains look like example.com");
@@ -542,7 +547,10 @@ export class AuthService {
     if (cached && Date.now() - cached.at < 3_600_000) return { config: cached.config, connection };
     const execute = this.config.allowHttpIssuers ? [oidc.allowInsecureRequests] : [];
     const auth = settings.clientSecret ? oidc.ClientSecretPost(settings.clientSecret) : oidc.None();
-    const config = await oidc.discovery(new URL(settings.issuer), settings.clientId, undefined, auth, { execute });
+    // An organization's provider is chosen by its owner: its requests may not reach private
+    // addresses. The platform provider is the operator's own configuration.
+    const fetchOptions = connection ? { [oidc.customFetch]: guardedFetch(privateHostAllowed(this.config.privateIssuerHosts)) } : {};
+    const config = await explained(oidc.discovery(new URL(settings.issuer), settings.clientId, undefined, auth, { execute, ...fetchOptions }));
     this.oidcConfigs.set(connectionId, { config, at: Date.now() });
     return { config, connection };
   }
@@ -581,10 +589,12 @@ export class AuthService {
     const idpError = callback.searchParams.get("error");
     if (idpError) throw new UnauthorizedError(`The identity provider refused the sign-in (${idpError})`);
     const { config, connection } = await this.oidcFor(flow.connection);
-    const tokens = await oidc.authorizationCodeGrant(
-      config,
-      new URL(`${this.redirectUri}${callback.search}`),
-      { pkceCodeVerifier: flow.codeVerifier, expectedState: state, expectedNonce: flow.nonce, idTokenExpected: true },
+    const tokens = await explained(
+      oidc.authorizationCodeGrant(
+        config,
+        new URL(`${this.redirectUri}${callback.search}`),
+        { pkceCodeVerifier: flow.codeVerifier, expectedState: state, expectedNonce: flow.nonce, idTokenExpected: true },
+      ),
     );
     const claims = tokens.claims();
     if (!claims) throw new UnauthorizedError("The identity provider returned no ID token");
@@ -708,6 +718,17 @@ export class AuthService {
   /** The principal as recorded in the audit trail. */
   static auditPrincipal(p: Principal): AuditPrincipal {
     return { id: p.id, label: p.label };
+  }
+}
+
+/** A request refused for its address becomes a sign-in error that says why. */
+async function explained<T>(request: Promise<T>): Promise<T> {
+  try {
+    return await request;
+  } catch (err) {
+    const refused = privateAddressCause(err);
+    if (refused) throw new UnauthorizedError(refused.message);
+    throw err;
   }
 }
 

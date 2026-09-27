@@ -290,6 +290,13 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     A session created through an organization's own SSO connection is scoped to that
     organization, so one tenant's identity provider can never grant access to another
     tenant.
+  - An organization's provider is its owner's choice, so every request to it (discovery,
+    token, keys) goes through `auth/egress.ts`: private, loopback, link-local and other
+    non-public addresses are refused unless the operator allows the host
+    (`VISUA_OIDC_PRIVATE_ISSUERS`). The check runs in the connection's own DNS lookup, on
+    the addresses the socket will use, so DNS rebinding cannot bypass it, and responses are
+    capped at 1 MB. Literal private addresses and `localhost` are refused when the issuer is
+    saved. The platform provider is the operator's own configuration and is not filtered.
   - A connection's email domains are proven by DNS: each claimed domain gets a token, and
     once `_visua-challenge.<domain>` carries `visua-domain-verification=<token>` an admin
     verifies it (the lookup runs outside any transaction; the result is recorded and
@@ -380,7 +387,11 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   recolor the scene without moving anything.
 
   CameraControls fly to a selection. Bloom and vignette are applied under a performance
-  monitor. Units out of scope (an undecided law's obligations, controls outside the
+  monitor. A selection compiles no shaders: the programs only the selection halo, its path
+  and agent comets use are compiled while the scene loads (the real components, drawn for
+  a few frames hidden inside the core, then kept hidden so their programs stay alive), and
+  line points are memoized, because drei's `Line` disposes its material whenever its points
+  change and three.js then deletes the shared program. Units out of scope (an undecided law's obligations, controls outside the
   baseline) shrink to small dots; nodes with no unit below them (ATLAS's mitigations)
   stay in the outline and the inspector but take no place in the scene.
 
@@ -451,7 +462,7 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 6. Testing
 
-- `packages/*/test` and `apps/server/test` (Vitest, 144 tests):
+- `packages/*/test` and `apps/server/test` (Vitest, 171 tests):
   - official counts and citations
   - identifier normalization
   - the SOC 2 skeleton and the licensed overlay
@@ -488,21 +499,23 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     organization audit trail, and OpenID Connect against a mock provider (PKCE, replay,
     the browser that started the flow, JIT provisioning, domain checks, tenant-scoped
     sessions, Require SSO, owner-only provider changes, verified email linking,
-    same-site return paths), DNS proof of SSO domains before they route or admit anyone,
-    first-to-prove ownership, and the upgrade that grandfathers existing domains
+    same-site return paths), organization providers kept off private addresses unless the
+    operator allows them (`egress.test.ts`: address classes, literal and DNS-resolved
+    refusals, the response cap), DNS proof of SSO domains before they route or admit
+    anyone, first-to-prove ownership, and the upgrade that grandfathers existing domains
     (`storage.test.ts`)
   - the Postgres event relay (`relay.test.ts`): reconnection with backoff, failing fast
     at startup, NOTIFY payloads sized in bytes
   - `VISUA_TEST_DATABASE_URL=postgres://…` runs the server suites on Postgres, each run
     in its own schema
-- `e2e/` (Playwright, 20 tests) runs against the production bundle served by the API,
+- `e2e/` (Playwright, 21 tests) runs against the production bundle served by the API,
   with an in-memory seeded database and WebGL on SwiftShader. It covers Home and Mission
   control's program links, the Observatory and its 2D twin, the Nexus, RMF, SOC 2, AI
   governance, an agent run with citations, the trust center and its per-framework
   choice, persona sign-in, a viewer's read-only view, tenant separation, organization
   administration, the threat views (ATLAS matrix and its keyboard navigation, the
   coverage inspector and its link filter, OWASP editions, the Nexus threat ring), a
-  threat catalog in the Observatory, the State AI laws page (roles deciding scope, the
+  threat catalog in the Observatory, no shader compiled by a selection in the Observatory, the State AI laws page (roles deciding scope, the
   timeline and its list view, obligations in 3D), and layout: labels in the 3D scenes
   stay inside the canvas and clear of the HUD and of each other at 1440 and 1024
   pixels, the rail folds into a menu on a phone, no page, panel or table scrolls sideways
@@ -519,11 +532,10 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   periodically. Domains grandfathered by the upgrade, or trusted while
   `VISUA_SSO_DOMAIN_VERIFICATION=off`, were never proven; on a shared installation, ask
   their organizations to remove and verify them again.
-- The server fetches an SSO connection's issuer (OpenID discovery) when someone signs in
-  through it. Only owners choose an issuer and it must use https, but private addresses
-  are not blocked, because identity providers such as Keycloak often run on internal
-  networks. In a shared installation, limit the server's outbound network to the
-  identity providers you use.
+- An organization's identity provider may be on a host the operator allows on a private
+  address (`VISUA_OIDC_PRIVATE_ISSUERS`); every organization can then point its connection
+  at that host. Allow only the internal providers you run, not `*`, in a shared
+  installation.
 - SAML and SCIM provisioning are not implemented; OpenID Connect covers the major
   identity providers.
 - The demo's historical assessment levels are written to storage in bulk when it is

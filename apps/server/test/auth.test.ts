@@ -27,6 +27,8 @@ const auth = new AuthService(
     ...loadAuthConfig({}),
     mode: "dev",
     allowHttpIssuers: true,
+    // The mock provider listens on 127.0.0.1: allowed as an operator allows an internal provider.
+    privateIssuerHosts: [new URL(idp.issuer).hostname],
     platform: { issuer: idp.issuer, clientId: idp.clientId, clientSecret: idp.clientSecret, name: "Test IdP" },
   },
   { resolveTxt },
@@ -352,6 +354,20 @@ describe("single sign-on hardening", () => {
     expect(created.status).toBe(201);
     connectionId = created.json.id;
     await proveDomain(olivia, initech, created.json, "initech-sso.example");
+  });
+
+  it("keeps an organization's identity provider off private addresses unless the operator allows them", async () => {
+    // The same connection on a server that allows no private issuers: its provider is on 127.0.0.1.
+    const closed = createApp(svc, new AuthService(svc, { ...auth.config, privateIssuerHosts: [] }));
+    const refused = await closed.request(`/api/auth/oidc/start?connection=${connectionId}`);
+    expect(refused.status).toBe(401);
+    expect(await refused.text()).toMatch(/private or reserved address \(127\.0\.0\.1\).*VISUA_OIDC_PRIVATE_ISSUERS/);
+    // Allowed, as on this suite's server, the sign-in starts.
+    expect((await app.request(`/api/auth/oidc/start?connection=${connectionId}`)).status).toBe(302);
+    // Owners learn it when they save a literal private address or localhost as the issuer.
+    for (const issuer of ["https://10.0.0.5", "https://169.254.169.254/latest", "https://[::1]:8443", "https://[::ffff:a9fe:a9fe]", "https://localhost:8443"]) {
+      expect((await olivia.patch(`/api/tenants/${initech}/sso/${connectionId}`, { issuer })).status, issuer).toBe(400);
+    }
   });
 
   it("finishes a sign-in only in the browser that started it", async () => {
