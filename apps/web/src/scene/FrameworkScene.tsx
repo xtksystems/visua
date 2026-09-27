@@ -6,7 +6,7 @@
  */
 import { Line } from "@react-three/drei";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
-import { useLayoutEffect, useMemo, useRef } from "react";
+import { memo, useLayoutEffect, useMemo, useRef } from "react";
 import {
   AdditiveBlending,
   BufferGeometry,
@@ -268,20 +268,29 @@ function Rings({ layout }: { layout: Layout }) {
  * large sector titles never fill the foreground after a fly-in.
  */
 function Sectors({ layout, state, selectedId }: SceneProps) {
-  if (layout.view !== "constellation") return null;
-  return (
-    <group>
-      {layout.sectors.map((s) => {
-        const g = state?.groups[s.id];
-        const color = g ? TOKENS.status[g.status] : TOKENS.outlineStrong;
+  // Stable per layout: drei's Line disposes its material whenever its points change, and three.js
+  // then deletes the shared shader program, re-linked (blocking) on the next frame.
+  const arcs = useMemo(
+    () =>
+      layout.sectors.map((s) => {
         const points: Vec3[] = [];
         const steps = 48;
         for (let i = 0; i <= steps; i++) {
           const a = s.start + ((s.end - s.start) * i) / steps;
           points.push([Math.cos(a) * s.radius, 0.02, Math.sin(a) * s.radius]);
         }
+        return points;
+      }),
+    [layout],
+  );
+  if (layout.view !== "constellation") return null;
+  return (
+    <group>
+      {layout.sectors.map((s, i) => {
+        const g = state?.groups[s.id];
+        const color = g ? TOKENS.status[g.status] : TOKENS.outlineStrong;
         const active = selectedId === s.id;
-        return <Line key={s.id} points={points} color={active ? TOKENS.primary : color} lineWidth={active ? 3 : 1.5} transparent opacity={active ? 1 : 0.55} />;
+        return <Line key={s.id} points={arcs[i]!} color={active ? TOKENS.primary : color} lineWidth={active ? 3 : 1.5} transparent opacity={active ? 1 : 0.55} />;
       })}
     </group>
   );
@@ -307,20 +316,24 @@ function Core({ active }: { active: boolean }) {
 
 /** Selection halo + highlighted ancestry path. */
 function Selection({ layout, selectedId, state }: SceneProps) {
+  // The ancestry path changes with the selection only (see Sectors on why points stay stable).
+  const path = useMemo(() => {
+    const out: Vec3[] = [];
+    let cur = selectedId ? layout.byId.get(selectedId) : undefined;
+    while (cur) {
+      const q = layout.positions.get(cur.id);
+      if (q) out.push([q[0], 0.08, q[2]]);
+      cur = cur.parentId ? layout.byId.get(cur.parentId) : undefined;
+    }
+    out.push([0, 0.08, 0]);
+    return out;
+  }, [layout, selectedId]);
   if (!selectedId) return null;
   const p = layout.positions.get(selectedId);
   if (!p) return null;
   const node = layout.byId.get(selectedId);
   const u = state?.units[selectedId];
   const h = node?.assessable ? heightFor(Math.max(u?.current ?? 0, u?.target ?? 0), layout.view) : 0.6;
-  const path: Vec3[] = [];
-  let cur = node;
-  while (cur) {
-    const q = layout.positions.get(cur.id);
-    if (q) path.push([q[0], 0.08, q[2]]);
-    cur = cur.parentId ? layout.byId.get(cur.parentId) : undefined;
-  }
-  path.push([0, 0.08, 0]);
   const r = node?.assessable ? layout.cell * 1.6 : layout.view === "terrain" ? 1.6 : 1.9;
   return (
     <group>
@@ -409,6 +422,10 @@ function Crystals({ layout, state }: SceneProps) {
 function AgentComets({ layout, reducedMotion }: { layout: Layout; reducedMotion: boolean }) {
   const hot = useAgentActivity((s) => s.hot);
   const targets = useMemo(() => Object.keys(hot).filter((id) => layout.positions.has(id)).slice(0, 24), [hot, layout]);
+  return <Comets layout={layout} targets={targets} reducedMotion={reducedMotion} />;
+}
+
+function Comets({ layout, targets, reducedMotion }: { layout: Layout; targets: string[]; reducedMotion: boolean }) {
   const curves = useMemo(
     () =>
       targets.map((id) => {
@@ -419,6 +436,7 @@ function AgentComets({ layout, reducedMotion }: { layout: Layout; reducedMotion:
       }),
     [targets, layout],
   );
+  const trails = useMemo(() => curves.map((c) => c.getPoints(32)), [curves]);
   const heads = useRef<(Mesh | null)[]>([]);
   useFrame(({ clock }) => {
     curves.forEach((curve, i) => {
@@ -435,7 +453,7 @@ function AgentComets({ layout, reducedMotion }: { layout: Layout; reducedMotion:
     <group>
       {curves.map((curve, i) => (
         <group key={targets[i]}>
-          <Line points={curve.getPoints(32)} color={TOKENS.tertiary} lineWidth={1.2} transparent opacity={0.45} />
+          <Line points={trails[i]!} color={TOKENS.tertiary} lineWidth={1.2} transparent opacity={0.45} />
           <mesh ref={(el) => (heads.current[i] = el)} raycast={() => null}>
             <sphereGeometry args={[0.22, 12, 12]} />
             <meshBasicMaterial color={violet} toneMapped={false} blending={AdditiveBlending} />
@@ -513,6 +531,41 @@ function SceneLabels({ layout, state, selectedId, hoveredId, focusIds, onSelect 
   return <ScreenLabels labels={labels} />;
 }
 
+/**
+ * Compiles, as soon as the scene is up, the shader programs that only a selection and agent
+ * activity use: the selection halo and path, and agent comets. Compiled on first use, they
+ * stalled the frame that answered the first click by 60 to 100 ms. The real components are
+ * drawn for a couple of frames, for one unit, shrunk inside the opaque core where the depth
+ * test hides them, so they compile through the same pipeline (render target, tone mapping)
+ * as the real ones. Then they are hidden, not removed, and never re-rendered by a selection:
+ * disposing their materials would let three.js delete the programs again.
+ * (`renderer.compileAsync` compiles for the screen, not the post-processing target.)
+ */
+const ShaderWarmup = memo(function ShaderWarmup({ layout }: { layout: Layout }) {
+  const group = useRef<Group>(null);
+  const frames = useRef(0);
+  const unit = layout.units[0];
+  const targets = useMemo(() => (unit ? [unit] : []), [unit]);
+  // Shown again for each layout, drawn however far they are from the camera's view.
+  useLayoutEffect(() => {
+    frames.current = 0;
+    if (!group.current) return;
+    group.current.visible = true;
+    group.current.traverse((o) => (o.frustumCulled = false));
+  }, [layout]);
+  useFrame(() => {
+    if (group.current?.visible && ++frames.current > 2) group.current.visible = false;
+  });
+  if (!unit) return null;
+  const noop = () => undefined;
+  return (
+    <group ref={group} position={[0, 1.6, 0]} scale={0.001}>
+      <Selection layout={layout} state={undefined} selectedId={unit} lens="status" hoveredId={null} focusIds={[]} reducedMotion onHover={noop} onSelect={noop} />
+      <Comets layout={layout} targets={targets} reducedMotion />
+    </group>
+  );
+});
+
 export function FrameworkScene(props: SceneProps & { agentActive: boolean }) {
   return (
     <group>
@@ -526,6 +579,7 @@ export function FrameworkScene(props: SceneProps & { agentActive: boolean }) {
       <Crystals {...props} />
       <Selection {...props} />
       <AgentComets layout={props.layout} reducedMotion={props.reducedMotion} />
+      <ShaderWarmup layout={props.layout} />
       <SceneLabels {...props} />
     </group>
   );

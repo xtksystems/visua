@@ -67,6 +67,50 @@ test("Observatory renders the 3D scene with its keyboard-accessible 2D twin", as
   expect(errors).toEqual([]);
 });
 
+test("Observatory compiles its shaders before the first selection, not on it", async ({ page }) => {
+  // Linking a WebGL program blocks the frame that first draws its material: 60 to 100 ms when
+  // the selection halo, its path and agent comets appeared on the first click.
+  await page.addInitScript(() => {
+    const w = window as unknown as { __links: number };
+    w.__links = 0;
+    for (const proto of [WebGL2RenderingContext.prototype, WebGLRenderingContext.prototype]) {
+      const link = proto.linkProgram;
+      proto.linkProgram = function (program) {
+        w.__links++;
+        return link.call(this, program);
+      };
+    }
+  });
+  await signIn(page);
+  await page.goto(`${WS}/observatory/nist-csf-2.0`);
+  await expect(page.locator(".observatory__canvas canvas")).toBeVisible();
+  const links = () =>
+    page.evaluate(async () => {
+      for (let i = 0; i < 4; i++) await new Promise(requestAnimationFrame);
+      return (window as unknown as { __links: number }).__links;
+    });
+  // Loaded: the program count holds still across a few samples.
+  let loaded = -1;
+  for (let still = 0, sample = 0; still < 3 && sample < 30; sample++) {
+    const now = await links();
+    still = now === loaded ? still + 1 : 0;
+    loaded = now;
+  }
+  expect(loaded).toBeGreaterThan(0);
+  // Drill into a function, then open one of its outcomes.
+  const tree = page.getByRole("tree", { name: "Framework outline" });
+  await tree.getByRole("treeitem").first().focus();
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Enter");
+  await expect(page.locator("aside.inspector")).toBeVisible();
+  expect(await links(), "programs linked by the first selection").toBe(loaded);
+  // Nor on later ones: a sibling, then back up to the parent.
+  await page.keyboard.press("ArrowRight");
+  expect(await links(), "programs linked by selecting a sibling").toBe(loaded);
+  await page.keyboard.press("Escape");
+  expect(await links(), "programs linked by selecting the parent").toBe(loaded);
+});
+
 test("Crosswalk Nexus selects a group and lists authoritative mappings", async ({ page }) => {
   await signIn(page);
   const errors = watchErrors(page);
