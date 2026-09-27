@@ -13,7 +13,7 @@ import { badgeOf, familyOf, programPath } from "../../lib/frameworks.ts";
 import { useGraph, useMeta, useNodeDetail, useWsMutation } from "../../lib/queries.ts";
 import type { NodeDetail } from "../../lib/types.ts";
 import { useUi } from "../../state/ui.ts";
-import { AgentBadge, CodeTag, Dialog, Empty, FrameworkBadge, LevelPips, StatusBar, StatusChip, Tabs, toast } from "../ui/index.tsx";
+import { AgentBadge, CodeTag, Dialog, Empty, FrameworkBadge, LevelPips, SheetGrabber, StatusBar, StatusChip, Tabs, toast } from "../ui/index.tsx";
 import { OverlaySections } from "./Overlays.tsx";
 import { ThreatInspector, ThreatsAddressed } from "./Threats.tsx";
 
@@ -36,6 +36,7 @@ export function Inspector({ nodeId, onClose }: { nodeId: string; onClose: () => 
   const status = data.status?.status ?? data.groupStatus ?? "not-started";
   return (
     <aside className="inspector" aria-label={`${node.code} details`} data-hud>
+      <SheetGrabber />
       <header className="inspector__head">
         <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
           <FrameworkBadge frameworkId={node.frameworkId} />

@@ -1,5 +1,5 @@
 /** UI atoms following DESIGN.md components. Status is never conveyed by color alone. */
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { create } from "zustand";
 import type { Citation as CitationType, Status } from "@visua/core";
 import { corpusFileUrl } from "../../lib/api.ts";
@@ -220,6 +220,23 @@ export function Segmented<T extends string>({ options, value, onChange, label }:
         </button>
       ))}
     </div>
+  );
+}
+
+/** The handle of the inspector's bottom sheet (below 1024px): half height, or nearly full. */
+export function SheetGrabber() {
+  const [full, setFull] = useState(false);
+  return (
+    <button
+      type="button"
+      className="inspector__grabber"
+      aria-label={full ? "Show less of the details" : "Show more of the details"}
+      aria-expanded={full}
+      onClick={(e) => {
+        e.currentTarget.closest(".inspector")?.toggleAttribute("data-full", !full);
+        setFull(!full);
+      }}
+    />
   );
 }
 

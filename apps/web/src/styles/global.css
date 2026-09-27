@@ -1631,6 +1631,34 @@ p {
 .inspector__head {
   padding: var(--inspector-padding) var(--inspector-padding) var(--space-sm);
 }
+.inspector__grabber {
+  display: none;
+  flex: none;
+  width: 56px;
+  height: 18px;
+  margin: 6px auto -8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.inspector__grabber::before {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 4px;
+  margin: 0 auto;
+  border-radius: var(--radius-full);
+  background: var(--color-outline-strong);
+}
+.threat-pub {
+  border-top: 1px solid var(--color-outline);
+  padding-top: var(--space-sm);
+}
+.threat-pub > summary {
+  cursor: pointer;
+  list-style-position: outside;
+}
 .inspector__title {
   font-family: var(--font-headline-md-family);
   font-size: var(--font-headline-md-size);
@@ -1670,6 +1698,7 @@ p {
   .observatory.has-outline.has-inspector {
     grid-template-columns: 1fr;
   }
+  /* The inspector becomes a bottom sheet: half the height, or nearly all of it from its handle. */
   .inspector {
     position: absolute;
     left: 0;
@@ -1678,7 +1707,16 @@ p {
     height: 55%;
     z-index: 30;
     border-left: 0;
-    border-top: 1px solid var(--color-outline);
+    border-top: 1px solid var(--color-outline-strong);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    box-shadow: var(--shadow-overlay);
+    transition: height var(--dur-slow) var(--ease-out);
+  }
+  .inspector[data-full] {
+    height: calc(100% - var(--space-md));
+  }
+  .inspector__grabber {
+    display: block;
   }
 }
 
@@ -2318,6 +2356,17 @@ p {
   gap: 4px;
   min-width: 0;
 }
+.atlas-col__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.atlas-col__list .atlas-cell {
+  width: 100%;
+}
 .atlas-col__head {
   display: flex;
   flex-direction: column;
@@ -2397,9 +2446,20 @@ p {
   cursor: pointer;
 }
 @media (max-width: 1024px) {
+  .threats {
+    position: relative;
+  }
   .threats.has-inspector {
     grid-template-columns: minmax(0, 1fr);
   }
+  /* Room to scroll the page above the sheet, and to bring the selection into view there. */
+  .threats.has-inspector .page {
+    padding-bottom: calc(55vh + var(--space-xl));
+    scroll-padding-bottom: 56vh;
+  }
+}
+.observatory.nexus .inspector__grabber {
+  display: none;
 }
 
 .law-row {

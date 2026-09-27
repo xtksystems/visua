@@ -162,6 +162,17 @@ function shots(meta: Meta, runId: string | undefined): Shot[] {
   for (const [catalog, id] of Object.entries(THREAT_SELECTION)) {
     if (has(catalog)) list.push({ name: `threats-${catalog}`, path: `${WS}/threats/${catalog}?select=${encodeURIComponent(id)}`, kind: "page" });
   }
+  // The longest list: LLM04:2026's linked requirements, grouped by publication and route.
+  if (has("owasp-llm-top10"))
+    list.push({
+      name: "threats-owasp-llm-top10-linked",
+      path: `${WS}/threats/owasp-llm-top10?select=${encodeURIComponent(THREAT_SELECTION["owasp-llm-top10"]!)}`,
+      kind: "page",
+      act: async (page) => {
+        await page.getByRole("tab", { name: /Linked requirements/ }).click();
+        await page.waitForTimeout(500);
+      },
+    });
   return only ? list.filter((s) => only.some((o) => s.name.includes(o))) : list;
 }
 

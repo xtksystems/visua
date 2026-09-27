@@ -8,7 +8,7 @@
  */
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Info, Search, Telescope } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Inspector } from "../components/inspector/Inspector.tsx";
 import { COVERAGE_LABEL, CoverageBar, CoverageChip, CoverageGlyph, CoverageLegend, coverageColor, LINK_STATUS_HELP, LinkStatusBadge, ThreatLinkFilter } from "../components/threats/Coverage.tsx";
@@ -35,11 +35,14 @@ const visible = (c: ThreatCoverage | undefined, show: Show) => {
   return c.state === "open" || c.state === "partial";
 };
 
-function Cell({ node, coverage, selected, onSelect, subs }: { node: ThreatNode; coverage?: ThreatCoverage; selected: boolean; onSelect: (id: string) => void; subs?: number }) {
+function Cell({ node, coverage, selected, onSelect, subs, tabIndex, onFocus }: { node: ThreatNode; coverage?: ThreatCoverage; selected: boolean; onSelect: (id: string) => void; subs?: number; tabIndex?: number; onFocus?: () => void }) {
   const state: CoverageState = coverage?.state ?? "unmapped";
   return (
     <button
       type="button"
+      data-key={node.id}
+      tabIndex={tabIndex}
+      onFocus={onFocus}
       className={`atlas-cell ${selected ? "is-selected" : ""}`}
       style={{ borderLeftColor: coverageColor(state) }}
       onClick={() => onSelect(node.id)}
@@ -58,6 +61,11 @@ function Cell({ node, coverage, selected, onSelect, subs }: { node: ThreatNode; 
   );
 }
 
+/**
+ * The ATLAS matrix: one group per tactic (its heading, then its techniques), laid out
+ * as columns. It takes a single tab stop; arrow keys move within a tactic (up, down)
+ * and across tactics (left, right), Home and End jump within a tactic, Enter opens.
+ */
 function AtlasMatrix({ data, selected, onSelect, show, query }: { data: ThreatCatalogState; selected: string | null; onSelect: (id: string) => void; show: Show; query: string }) {
   const { tactics, byTactic, subs } = useMemo(() => {
     const tactics = data.nodes.filter((n) => n.kind === "tactic").sort((a, b) => a.order - b.order);
@@ -69,25 +77,67 @@ function AtlasMatrix({ data, selected, onSelect, show, query }: { data: ThreatCa
   }, [data.nodes]);
   const q = query.trim().toLowerCase();
   const match = (n: ThreatNode) => !q || n.code.toLowerCase().includes(q) || n.title.toLowerCase().includes(q);
+  const columns = tactics.map((t) => ({ tactic: t, cells: (byTactic.get(t.id) ?? []).filter((n) => match(n) && visible(data.coverage[n.id], show)) }));
+  // Keys of the focusable items, column by column: the tactic heading, then its techniques.
+  const keys = columns.map((c) => [c.tactic.id, ...c.cells.map((n) => n.id)]);
+  const root = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState<string | null>(null);
+  const has = (key: string | null) => !!key && keys.some((col) => col.includes(key));
+  const current = has(active) ? active! : has(selected) ? selected! : (keys[0]?.[0] ?? null);
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (!current) return;
+    const c = keys.findIndex((col) => col.includes(current));
+    const r = keys[c]!.indexOf(current);
+    let next: string | undefined;
+    if (e.key === "ArrowDown") next = keys[c]![Math.min(r + 1, keys[c]!.length - 1)];
+    else if (e.key === "ArrowUp") next = keys[c]![Math.max(r - 1, 0)];
+    else if (e.key === "ArrowRight" && c < keys.length - 1) next = keys[c + 1]![Math.min(r, keys[c + 1]!.length - 1)];
+    else if (e.key === "ArrowLeft" && c > 0) next = keys[c - 1]![Math.min(r, keys[c - 1]!.length - 1)];
+    else if (e.key === "Home") next = keys[c]![0];
+    else if (e.key === "End") next = keys[c]![keys[c]!.length - 1];
+    else return;
+    e.preventDefault();
+    if (!next) return;
+    setActive(next);
+    root.current?.querySelector<HTMLElement>(`[data-key="${CSS.escape(next)}"]`)?.focus();
+  };
   return (
-    <div className="atlas-matrix" role="grid" aria-label="MITRE ATLAS matrix: tactics as columns, techniques colored by coverage">
-      {tactics.map((t) => {
-        const cells = (byTactic.get(t.id) ?? []).filter((n) => match(n) && visible(data.coverage[n.id], show));
-        return (
-          <div key={t.id} className="atlas-col" role="row">
-            <button type="button" className={`atlas-col__head ${selected === t.id ? "is-selected" : ""}`} onClick={() => onSelect(t.id)} title={t.summary}>
-              <span className="atlas-col__name">{t.title}</span>
-              <span className="mono muted" style={{ fontSize: 10.5 }}>
-                {t.code} · {(byTactic.get(t.id) ?? []).length}
-              </span>
-            </button>
-            {cells.map((n) => (
-              <Cell key={n.id} node={n} coverage={data.coverage[n.id]} selected={selected === n.id} onSelect={onSelect} subs={subs.get(n.id)} />
-            ))}
-            {!cells.length && <span className="muted" style={{ fontSize: 11, padding: "4px 6px" }}>—</span>}
-          </div>
-        );
-      })}
+    <div ref={root} className="atlas-matrix" role="group" aria-label="MITRE ATLAS matrix: tactics as columns, techniques colored by coverage" aria-describedby="atlas-keys" onKeyDown={onKeyDown}>
+      <p id="atlas-keys" className="sr-only">
+        Arrow keys move between techniques and tactics; Enter opens one.
+      </p>
+      {columns.map(({ tactic: t, cells }) => (
+        <div key={t.id} className="atlas-col" role="group" aria-labelledby={`tactic-${t.code}`}>
+          <button
+            type="button"
+            id={`tactic-${t.code}`}
+            data-key={t.id}
+            tabIndex={current === t.id ? 0 : -1}
+            onFocus={() => setActive(t.id)}
+            className={`atlas-col__head ${selected === t.id ? "is-selected" : ""}`}
+            onClick={() => onSelect(t.id)}
+            title={t.summary}
+          >
+            <span className="atlas-col__name">{t.title}</span>
+            <span className="mono muted" style={{ fontSize: 10.5 }}>
+              {t.code} · {(byTactic.get(t.id) ?? []).length}
+            </span>
+          </button>
+          {cells.length ? (
+            <ul className="atlas-col__list">
+              {cells.map((n) => (
+                <li key={n.id}>
+                  <Cell node={n} coverage={data.coverage[n.id]} selected={selected === n.id} onSelect={onSelect} subs={subs.get(n.id)} tabIndex={current === n.id ? 0 : -1} onFocus={() => setActive(n.id)} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <span className="muted" style={{ fontSize: 11, padding: "4px 6px" }}>
+              —
+            </span>
+          )}
+        </div>
+      ))}
     </div>
   );
 }

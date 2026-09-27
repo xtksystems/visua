@@ -10,9 +10,9 @@ import { Link, useParams } from "react-router-dom";
 import { corpusFileUrl } from "../../lib/api.ts";
 import { truncate } from "../../lib/format.ts";
 import { badgeOf, isThreatCatalog } from "../../lib/frameworks.ts";
-import type { ExternalReference, LinkView, NodeDetail, ThreatAddressed, ThreatPathView, ThreatRequirement } from "../../lib/types.ts";
+import type { BriefNode, CoverageView, ExternalReference, LinkStatus, LinkView, NodeDetail, ThreatAddressed, ThreatPathView, ThreatRequirement } from "../../lib/types.ts";
 import { CoverageBar, CoverageChip, CoverageLegend, LinkStatusBadge, ThreatLinkFilter } from "../threats/Coverage.tsx";
-import { FrameworkBadge, LevelPips, StatusChip, Tabs } from "../ui/index.tsx";
+import { FrameworkBadge, LevelPips, Progress, SheetGrabber, StatusChip, Tabs } from "../ui/index.tsx";
 
 const enc = encodeURIComponent;
 
@@ -99,6 +99,7 @@ function RequirementRow({ ws, r }: { ws: string; r: ThreatRequirement }) {
   return (
     <div className="stack" style={{ gap: 6, padding: "6px 0", borderBottom: "1px solid var(--color-outline)" }}>
       <div className="row" style={{ gap: 8, alignItems: "center" }}>
+        <FrameworkBadge frameworkId={r.framework} />
         <Link to={nodeHref(ws, r.framework, r.id, false)} className="mono xw-code" title={`Open ${r.code} in the Observatory`}>
           {r.code}
         </Link>
@@ -131,6 +132,127 @@ function RequirementRow({ ws, r }: { ws: string; r: ThreatRequirement }) {
         </div>
       )}
     </div>
+  );
+}
+
+const STATUS_ORDER: Record<LinkStatus, number> = { final: 3, draft: 2, unreviewed: 1, superseded: 0 };
+
+interface Route {
+  key: string;
+  kind: ThreatPathView["kind"];
+  via?: BriefNode;
+  group?: string;
+  requirements: ThreatRequirement[];
+}
+interface Publication {
+  publication: string;
+  status: LinkStatus;
+  view?: CoverageView;
+  routes: Route[];
+  requirements: number;
+}
+
+/**
+ * Linked requirements as coverage counts them: by the publication that links them
+ * (the last link of each path), then by route — directly, through an ATLAS mitigation,
+ * through the other edition's entry, or through a group such as an AI RMF category.
+ */
+function byPublication(requirements: ThreatRequirement[], views: CoverageView[]): Publication[] {
+  const pubs = new Map<string, { status: LinkStatus; routes: Map<string, Route>; ids: Set<string> }>();
+  for (const r of requirements) {
+    for (const p of r.paths) {
+      const publication = p.links[p.links.length - 1]!.authority;
+      const pub = pubs.get(publication) ?? { status: p.status, routes: new Map(), ids: new Set() };
+      if (STATUS_ORDER[p.status] < STATUS_ORDER[pub.status]) pub.status = p.status;
+      const key = p.via ? `via:${p.via.id}` : p.group ? `group:${p.group}` : "direct";
+      const route = pub.routes.get(key) ?? { key, kind: p.kind, ...(p.via ? { via: p.via } : {}), ...(p.group ? { group: p.group } : {}), requirements: [] };
+      if (!route.requirements.includes(r)) route.requirements.push(r);
+      pub.routes.set(key, route);
+      pub.ids.add(r.id);
+      pubs.set(publication, pub);
+    }
+  }
+  return [...pubs.entries()]
+    .map(([publication, p]) => ({
+      publication,
+      status: p.status,
+      view: views.find((v) => v.publication === publication),
+      routes: [...p.routes.values()].sort((a, b) => (a.key === "direct" ? -1 : b.key === "direct" ? 1 : b.requirements.length - a.requirements.length)),
+      requirements: p.ids.size,
+    }))
+    .sort((a, b) => STATUS_ORDER[b.status] - STATUS_ORDER[a.status] || b.requirements - a.requirements);
+}
+
+function RouteGroup({ ws, route }: { ws: string; route: Route }) {
+  const [limit, setLimit] = useState(8);
+  const rows = [...route.requirements].sort((a, b) => a.framework.localeCompare(b.framework) || a.code.localeCompare(b.code, undefined, { numeric: true }));
+  return (
+    <div className="stack" style={{ gap: 2 }}>
+      <div className="row row--wrap" style={{ gap: 6, fontSize: 12, marginTop: 6 }}>
+        <span className="muted">
+          {route.kind === "mitigation" ? "Through mitigation" : route.kind === "edition" ? "Through the same entry in the other edition" : route.group ? "Through the group" : "Linked directly"}
+        </span>
+        {route.via && (
+          <Link to={nodeHref(ws, route.via.framework, route.via.id, true)} className="mono" style={{ color: "var(--color-primary)" }} title={route.via.title}>
+            {route.via.code}
+          </Link>
+        )}
+        {route.via && <span className="muted">{truncate(route.via.title, 44)}</span>}
+        {route.group && <span className="mono">{route.group}</span>}
+        <span className="muted">· {rows.length}</span>
+      </div>
+      {rows.slice(0, limit).map((r) => (
+        <RequirementRow key={r.id} ws={ws} r={r} />
+      ))}
+      {rows.length > limit && (
+        <button className="btn btn--quiet btn--sm" style={{ alignSelf: "flex-start" }} onClick={() => setLimit(rows.length)}>
+          Show {rows.length - limit} more
+        </button>
+      )}
+    </div>
+  );
+}
+
+function LinkedRequirements({ ws, requirements, views }: { ws: string; requirements: ThreatRequirement[]; views: CoverageView[] }) {
+  const publications = useMemo(() => byPublication(requirements, views), [requirements, views]);
+  return (
+    <>
+      <section className="stack" style={{ gap: 8 }} aria-label="Coverage by publication">
+        <div className="eyebrow">By publication · each counted once</div>
+        {publications.map((p) => (
+          <div key={p.publication} className="stack" style={{ gap: 4 }}>
+            <div className="row row--wrap" style={{ gap: 6, fontSize: 12.5 }}>
+              <strong style={{ fontWeight: 500 }}>{p.publication}</strong>
+              <LinkStatusBadge status={p.status} />
+              <span style={{ flex: 1 }} />
+              <span className="mono muted" style={{ fontSize: 11.5 }}>
+                {p.view ? `${p.view.met}/${p.view.inScope} at target` : `${p.requirements} linked`}
+              </span>
+            </div>
+            {p.view && p.view.progress !== null ? <Progress value={p.view.progress} /> : <span className="muted" style={{ fontSize: 11.5 }}>No linked requirement in your frameworks</span>}
+          </div>
+        ))}
+      </section>
+      {publications.map((p) => (
+        <details key={p.publication} className="threat-pub" open={publications.length === 1 || p.requirements <= 15}>
+          <summary>
+            <span className="row row--wrap" style={{ gap: 6 }}>
+              <strong style={{ fontWeight: 600, fontSize: 13 }}>{p.publication}</strong>
+              <LinkStatusBadge status={p.status} />
+              <span className="muted" style={{ fontSize: 12 }}>
+                {p.requirements} requirement{p.requirements === 1 ? "" : "s"}
+                {p.routes.length > 1 ? ` · ${p.routes.length} routes` : ""}
+              </span>
+            </span>
+          </summary>
+          <div className="stack" style={{ gap: 8, marginTop: 4 }}>
+            {p.routes.map((route) => (
+              <RouteGroup key={route.key} ws={ws} route={route} />
+            ))}
+          </div>
+        </details>
+      ))}
+    </>
   );
 }
 
@@ -186,14 +308,10 @@ export function ThreatInspector({ data, onClose }: { data: NodeDetail; onClose: 
   const intro = (a["preventionIntro"] as string[] | undefined) ?? [];
   const lineage = [a["previousEdition"], a["nextEdition"]].filter(Boolean) as { key: string; nodeId: string; basis?: string }[];
   const tactics = (a["tactics"] as string[] | undefined) ?? [];
-  const byFramework = useMemo(() => {
-    const m = new Map<string, ThreatRequirement[]>();
-    for (const r of threat.requirements) m.set(r.framework, [...(m.get(r.framework) ?? []), r]);
-    return [...m.entries()];
-  }, [threat.requirements]);
   const c = threat.coverage;
   return (
     <aside className="inspector" aria-label={`${node.code} details`} data-hud>
+      <SheetGrabber />
       <header className="inspector__head">
         <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
           <FrameworkBadge frameworkId={node.frameworkId} />
@@ -346,20 +464,7 @@ export function ThreatInspector({ data, onClose }: { data: NodeDetail; onClose: 
             <div className="callout" role="note">
               <Info size={14} /> A link says a publisher considers the requirement relevant to this threat. Implementing it is not proof of protection.
             </div>
-            {!threat.requirements.length && <div className="muted">No linked requirement at the chosen link status.</div>}
-            {byFramework.map(([fw, list]) => (
-              <section key={fw} className="stack" style={{ gap: 2 }}>
-                <div className="row" style={{ gap: 6, marginBottom: 4 }}>
-                  <FrameworkBadge frameworkId={fw} />
-                  <span className="muted" style={{ fontSize: 12 }}>
-                    {list.length} requirement{list.length === 1 ? "" : "s"}
-                  </span>
-                </div>
-                {list.map((r) => (
-                  <RequirementRow key={r.id} ws={ws} r={r} />
-                ))}
-              </section>
-            ))}
+            {!threat.requirements.length ? <div className="muted">No linked requirement at the chosen link status.</div> : <LinkedRequirements ws={ws} requirements={threat.requirements} views={threat.coverage.views} />}
           </div>
         )}
         {tab === "related" && (

@@ -212,9 +212,21 @@ test("threat views: ATLAS matrix, coverage from linked requirements, and the Nex
   const errors = watchErrors(page);
   await page.goto(`${WS}/threats`);
   await expect(page.getByRole("heading", { level: 1, name: /AI threats/ })).toBeVisible();
-  const matrix = page.getByRole("grid", { name: /MITRE ATLAS matrix/ });
+  const matrix = page.getByRole("group", { name: /MITRE ATLAS matrix/ });
   await expect(matrix).toBeVisible();
   await expect(matrix.getByText("Reconnaissance", { exact: true })).toBeVisible();
+  // One tab stop; arrow keys move within a tactic and across tactics, Enter opens.
+  const recon = matrix.getByRole("group", { name: /Reconnaissance/ });
+  await recon.getByRole("button").first().focus();
+  await page.keyboard.press("ArrowDown");
+  const firstTechnique = await page.evaluate(() => document.activeElement?.getAttribute("data-key"));
+  expect(firstTechnique).toMatch(/^mitre-atlas:AML\.T\d{4}$/);
+  await page.keyboard.press("ArrowRight");
+  const neighbor = await page.evaluate(() => document.activeElement?.getAttribute("data-key"));
+  expect(neighbor).not.toBe(firstTechnique);
+  expect(await matrix.locator('[tabindex="0"]').count()).toBe(1);
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("complementary", { name: new RegExp(`${neighbor!.split(":")[1]!.replace(".", "\\.")} details`) })).toBeVisible();
   // A technique opens the coverage inspector: never a status of its own, always the linked requirements.
   await matrix.getByRole("button", { name: /LLM Prompt Injection/ }).first().click();
   const inspector = page.getByRole("complementary", { name: /AML\.T0051 details/ });
