@@ -322,17 +322,17 @@ test("phones: the rail folds into a menu, and no page scrolls sideways", async (
   }
 });
 
-test("Observatory: scene labels stay inside the canvas, clear of the HUD and of each other", async ({ page }) => {
+test("3D scenes: labels stay inside the canvas, clear of the HUD and of each other", async ({ page }) => {
   await signIn(page);
   const meta = (await (await page.request.get("/api/meta")).json()) as { frameworks: { id: string }[] };
-  const frameworks = ["nist-csf-2.0", "mitre-atlas", "us-state-ai-laws"].filter((id) => meta.frameworks.some((f) => f.id === id));
+  const scenes = [...["nist-csf-2.0", "mitre-atlas", "us-state-ai-laws"].filter((id) => meta.frameworks.some((f) => f.id === id)).map((id) => `/observatory/${id}`), "/crosswalk"];
   for (const [width, height] of [
     [1440, 900],
     [1024, 768],
   ] as const) {
     await page.setViewportSize({ width, height });
-    for (const fw of frameworks) {
-      await page.goto(`${WS}/observatory/${fw}`);
+    for (const fw of scenes) {
+      await page.goto(`${WS}${fw}`);
       await expect(page.locator(".observatory__canvas canvas")).toBeVisible();
       await expect(page.locator(".scene-label--sector").first()).toBeVisible();
       await page.waitForTimeout(1200);

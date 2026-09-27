@@ -1190,6 +1190,21 @@ p {
   box-shadow: var(--shadow-overlay);
 }
 
+/* The Crosswalk Nexus below 1024px: the scene, then its details, as one scrolling page. */
+@media (max-width: 1024px) {
+  .observatory.nexus {
+    display: block;
+    overflow-y: auto;
+  }
+  .observatory.nexus .observatory__canvas {
+    height: min(68vh, 640px);
+  }
+  .observatory.nexus .inspector {
+    position: static;
+    height: auto;
+    border-top: 1px solid var(--color-outline);
+  }
+}
 /* ------------------------------------------------------------------ agents */
 
 .agent-step {
@@ -1525,6 +1540,13 @@ p {
 .hud--br {
   bottom: var(--space-lg);
   right: var(--space-lg);
+}
+/* On a narrow stage the Nexus panel takes the full width, so its chips wrap in rows. */
+@container stage (max-width: 600px) {
+  .hud--tl {
+    max-width: none;
+    right: var(--space-lg);
+  }
 }
 
 .outline {

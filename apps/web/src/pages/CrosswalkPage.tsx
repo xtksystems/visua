@@ -9,13 +9,13 @@ import { Suspense, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import type { Status } from "@visua/core";
 import { useRunAgent } from "../components/inspector/Inspector.tsx";
-import { CoverageBar, CoverageLegend, LinkStatusBadge, ThreatLinkFilter } from "../components/threats/Coverage.tsx";
+import { CoverageBar, CoverageLegend, LINK_STATUS_HELP, LINK_STATUS_LABEL, LinkStatusBadge, ThreatLinkFilter } from "../components/threats/Coverage.tsx";
 import { Empty, FrameworkBadge, StatusChip } from "../components/ui/index.tsx";
 import { api } from "../lib/api.ts";
 import { truncate } from "../lib/format.ts";
 import { badgeOf } from "../lib/frameworks.ts";
 import { useWorkspace } from "../lib/queries.ts";
-import type { ThreatRing } from "../lib/types.ts";
+import type { LinkStatus, ThreatRing } from "../lib/types.ts";
 import { NexusCanvas, frameworkColor, type NexusData } from "../scene/Nexus.tsx";
 import { useUi } from "../state/ui.ts";
 
@@ -324,17 +324,26 @@ export function CrosswalkPage() {
   };
   const hoveredInfo = hovered && view ? [...view.frameworks, ...(view.threats?.catalogs ?? []).map((c) => ({ id: c.id, shortName: c.shortName, groups: c.groups }))].flatMap((f) => f.groups.map((g) => ({ f, g }))).find((x) => x.g.id === hovered) : null;
   const known = (id: string | null) => !!id && (view?.frameworks.some((f) => f.groups.some((g) => g.id === id)) || isThreatGroup(id));
+  // A threat pillar under the pointer: its coverage by state and its strongest published link.
+  const hoveredThreat = useMemo(() => {
+    const g = hovered ? view?.threats?.catalogs.flatMap((c) => c.groups).find((x) => x.id === hovered) : undefined;
+    if (!g) return null;
+    const links = (view?.threats?.bundles ?? []).filter((b) => b.a === g.id);
+    const rank: Record<LinkStatus, number> = { final: 3, draft: 2, unreviewed: 1, superseded: 0 };
+    const best = links.reduce<LinkStatus | null>((w, b) => (w === null || rank[b.best] > rank[w] ? b.best : w), null);
+    return { byState: g.byState, best, groups: new Set(links.map((b) => b.b)).size };
+  }, [hovered, view]);
 
   if (error) return <div className="page muted">Could not load the crosswalk: {(error as Error).message}</div>;
   if (!view || !workspace.data) return <div className="page muted">Loading the Nexus…</div>;
   if (!view.frameworks.length) return <div className="page"><Empty title="No frameworks to show" /></div>;
   return (
-    <div className="observatory has-inspector">
-      <div className="observatory__canvas">
+    <div className="observatory has-inspector nexus" data-stage-root>
+      <div className="observatory__canvas" data-stage>
         <Suspense fallback={null}>
           <NexusCanvas data={view} selected={known(selected) ? selected : null} onSelect={select} hovered={hovered} onHover={setHovered} />
         </Suspense>
-        <div className="hud hud--tl">
+        <div className="hud hud--tl" data-hud>
           <div className="row" style={{ gap: 8, fontWeight: 600 }}>
             <GitCompareArrows size={15} /> Crosswalk Nexus
           </div>
@@ -360,9 +369,22 @@ export function CrosswalkPage() {
               </button>
             )}
           </div>
+          {showThreats && ring.data && ring.data.catalogs.length > 0 && (
+            <div className="row row--wrap" style={{ gap: 12, marginTop: 8, fontSize: 11.5 }} role="group" aria-label="Threat link status on arcs">
+              <span className="muted">Threat links</span>
+              {(["final", "draft", "unreviewed"] as const).map((st) => (
+                <span key={st} className="row" style={{ gap: 5 }} title={LINK_STATUS_HELP[st]}>
+                  <svg width="22" height="6" aria-hidden>
+                    <line x1="1" y1="3" x2="21" y2="3" stroke="var(--color-on-surface-muted)" strokeWidth="2" strokeLinecap="round" strokeDasharray={st === "final" ? undefined : st === "draft" ? "6 3" : "0.5 4"} />
+                  </svg>
+                  {LINK_STATUS_LABEL[st]}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         {hoveredInfo && (
-          <div className="hud hud--bl" role="status">
+          <div className="hud hud--bl" role="status" data-hud style={{ maxWidth: 360 }}>
             <div className="row" style={{ gap: 8 }}>
               <Dot fw={hoveredInfo.f.id} />
               <strong className="mono">{hoveredInfo.g.code}</strong>
@@ -373,10 +395,22 @@ export function CrosswalkPage() {
               {hoveredInfo.g.readiness !== null ? ` · ${Math.round(hoveredInfo.g.readiness * 100)}% ${isThreatGroup(hovered) ? "covered" : "ready"}` : ""} ·{" "}
               {[...view.bundles, ...(view.threats?.bundles ?? [])].filter((b) => b.a === hovered || b.b === hovered).reduce((s, b) => s + b.count, 0)} {isThreatGroup(hovered) ? "links" : "mappings"}
             </div>
+            {hoveredThreat && (
+              <div className="stack" style={{ gap: 6, marginTop: 8 }}>
+                <CoverageBar byState={hoveredThreat.byState} height={6} />
+                <CoverageLegend byState={hoveredThreat.byState} />
+                {hoveredThreat.best && (
+                  <div className="row" style={{ gap: 6, fontSize: 12 }}>
+                    <span className="muted">Strongest link</span>
+                    <LinkStatusBadge status={hoveredThreat.best} /> <span className="muted">· {hoveredThreat.groups} requirement group(s)</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
-      <aside className="inspector" aria-label="Crosswalk details">
+      <aside className="inspector" aria-label="Crosswalk details" data-hud>
         <div className="inspector__body">
           {selected && isThreatGroup(selected) ? (
             <ThreatGroupDetail ws={ws} data={view} groupId={selected} onClose={() => select(null)} />

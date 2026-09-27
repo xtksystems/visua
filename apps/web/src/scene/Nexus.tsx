@@ -4,19 +4,20 @@
  * Pillar height = number of units (log), pillar color = group status, arc
  * width = number of unit-level mappings, arc color = source → target framework.
  */
-import { Billboard, CameraControls, Line, PerformanceMonitor, Stars, Text } from "@react-three/drei";
-import FONT_MONO from "@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff?url";
-import FONT_DISPLAY from "@fontsource/space-grotesk/files/space-grotesk-latin-600-normal.woff?url";
-import { Canvas, useFrame, type ThreeEvent } from "@react-three/fiber";
+import { CameraControls, Line, PerformanceMonitor, Stars } from "@react-three/drei";
+import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Color, QuadraticBezierCurve3, Vector3, type Group } from "three";
+import { Color, FogExp2, QuadraticBezierCurve3, Vector3, type Group, type PerspectiveCamera } from "three";
 import { designSystem } from "@visua/design";
 import type { FrameworkFamily, Status } from "@visua/core";
 import { allFrameworks, frameworkMeta } from "../lib/frameworks.ts";
-import type { ThreatRing } from "../lib/types.ts";
+import type { LinkStatus, ThreatRing } from "../lib/types.ts";
 import { TOKENS } from "./colors.ts";
+import { fitRing, titleSize, useSafeArea } from "./framing.ts";
+import type { Vec3 } from "./layout.ts";
 import { usePrefersReducedMotion } from "./Observatory.tsx";
+import { hudRects, ScreenLabels, type ScreenLabel } from "./ScreenLabels.tsx";
 
 export interface NexusGroup {
   id: string;
@@ -146,31 +147,10 @@ function Pillars({ layout, selected, hovered, related, onHover, onSelect }: { la
               {p.inner ? <cylinderGeometry args={[0.5, 0.5, h, 3]} /> : <cylinderGeometry args={[0.62, 0.7, h, 6]} />}
               <meshStandardMaterial color={base} emissive={base} emissiveIntensity={isSel ? 1.4 : id === hovered ? 0.9 : 0.28} transparent opacity={dim ? 0.22 : 1} roughness={0.45} metalness={0.1} />
             </mesh>
-            {!dim && (
-              <Billboard position={[0, h + 0.9, 0]}>
-                <Text font={FONT_MONO} fontSize={isSel || id === hovered ? 1.05 : 0.72} color={isSel ? TOKENS.onSurface : TOKENS.muted} anchorX="center" anchorY="bottom" outlineWidth={0.04} outlineColor={TOKENS.neutral}>
-                  {p.group.code}
-                </Text>
-              </Billboard>
-            )}
           </group>
         );
       })}
     </group>
-  );
-}
-
-/** Hides a large label when the camera is closer than `near`, so fly-ins never clip it at the frame edge. */
-function FadingBillboard({ position, near, children }: { position: [number, number, number]; near: number; children: React.ReactNode }) {
-  const ref = useRef<Group>(null);
-  const world = useMemo(() => new Vector3(...position), [position]);
-  useFrame(({ camera }) => {
-    if (ref.current) ref.current.visible = camera.position.distanceTo(world) > near;
-  });
-  return (
-    <Billboard ref={ref} position={position}>
-      {children}
-    </Billboard>
   );
 }
 
@@ -179,10 +159,7 @@ function Sectors({ layout }: { layout: NexusLayout }) {
     <group>
       {layout.sectors.map((s) => {
         const color = inkOf(s.framework.id);
-        const mid = (s.start + s.end) / 2;
         const r = s.inner ? INNER_RADIUS : RADIUS;
-        // Outer labels sit outside the ring; threat-catalog labels sit just inside theirs.
-        const labelR = s.inner ? INNER_RADIUS + 3.6 : RADIUS + 7.5;
         return (
           <group key={s.framework.id}>
             <mesh rotation-x={-Math.PI / 2} position={[0, 0.02, 0]}>
@@ -193,19 +170,62 @@ function Sectors({ layout }: { layout: NexusLayout }) {
               <ringGeometry args={[r - 1.0, r + (s.inner ? 1.1 : 1.6), 96, 1, s.start, s.end - s.start]} />
               <meshBasicMaterial color={color} transparent opacity={0.07} />
             </mesh>
-            <FadingBillboard position={[labelR * Math.cos(mid), s.inner ? 1.2 : 2.2, -labelR * Math.sin(mid)]} near={s.inner ? 40 : 62}>
-              <Text font={FONT_DISPLAY} fontSize={s.inner ? 1.15 : 2.1} color={color} anchorX="center" anchorY="middle" outlineWidth={0.05} outlineColor={TOKENS.neutral}>
-                {s.framework.shortName}
-              </Text>
-              <Text font={FONT_MONO} fontSize={s.inner ? 0.6 : 0.85} position={[0, s.inner ? -1.1 : -1.9, 0]} color={TOKENS.muted} anchorX="center" anchorY="middle">
-                {s.inner ? `${s.framework.groups.length} groups · threats` : `${s.framework.groups.length} groups${s.framework.enabled ? "" : " · not enabled"}`}
-              </Text>
-            </FadingBillboard>
           </group>
         );
       })}
     </group>
   );
+}
+
+const sectorAnchor = (s: NexusLayout["sectors"][number]): Vec3 => {
+  const mid = (s.start + s.end) / 2;
+  // Framework names sit outside the outer ring; threat-catalog names just inside the inner one.
+  const r = s.inner ? INNER_RADIUS - 2.6 : RADIUS + 2.4;
+  return [r * Math.cos(mid), 0.3, -r * Math.sin(mid)];
+};
+
+/**
+ * Names and codes in screen space (ScreenLabels): framework names with their identity
+ * swatch outside the ring, threat catalogs inside theirs, then pillar codes by priority —
+ * the selection and hover first, their linked groups next; the rest where they fit.
+ */
+function NexusLabels({ layout, selected, hovered, related, onSelect }: { layout: NexusLayout; selected: string | null; hovered: string | null; related: Set<string>; onSelect: (id: string) => void }) {
+  const labels = useMemo<ScreenLabel[]>(() => {
+    const out: ScreenLabel[] = [];
+    const focus = hovered ?? selected;
+    const owner = selected ? layout.positions.get(selected)?.framework : undefined;
+    for (const s of layout.sectors) {
+      const anchor = sectorAnchor(s);
+      out.push({
+        id: `sector:${s.framework.id}`,
+        variant: "sector",
+        position: anchor,
+        outwardFrom: s.inner ? [anchor[0] * 4, 0, anchor[2] * 4] : [0, 0, 0],
+        title: s.framework.shortName,
+        sub: s.inner ? `${s.framework.groups.length} groups · threats` : `${s.framework.groups.length} groups${s.framework.enabled ? "" : " · not enabled"}`,
+        swatch: frameworkColor(s.framework.id),
+        priority: s.inner ? 480 : owner === s.framework.id ? 620 : 500,
+      });
+    }
+    for (const [id, p] of layout.positions) {
+      const emphasized = id === selected || id === hovered;
+      if (focus && !emphasized && !related.has(id)) continue;
+      // The threat ring's codes sit among the arcs: they appear once a pillar is in focus.
+      if (!focus && p.inner) continue;
+      const h = heightOf(p.group.units) * (p.inner ? 0.8 : 1);
+      out.push({
+        id: `pillar:${id}`,
+        variant: emphasized ? "selected" : "code",
+        position: [p.pos[0], h + 0.5, p.pos[2]],
+        title: p.group.code,
+        priority: id === selected ? 1000 : id === hovered ? 900 : related.has(id) ? 420 : p.inner ? 140 : 150,
+        active: id === selected,
+        onClick: () => onSelect(id),
+      });
+    }
+    return out;
+  }, [layout, selected, hovered, related, onSelect]);
+  return <ScreenLabels labels={labels} />;
 }
 
 interface ArcGeometry {
@@ -214,7 +234,20 @@ interface ArcGeometry {
   points: Vector3[];
   colors: [number, number, number][];
   width: number;
+  /** Threat links only: the status of the strongest link in the bundle. */
+  status?: LinkStatus;
 }
+
+/**
+ * Threat links show their status as a dash pattern (legend in the Nexus HUD): final
+ * links solid, drafts dashed, unreviewed and superseded ones dotted.
+ */
+export const LINK_DASH: Record<LinkStatus, { dashSize: number; gapSize: number } | null> = {
+  final: null,
+  draft: { dashSize: 1.1, gapSize: 0.55 },
+  unreviewed: { dashSize: 0.28, gapSize: 0.5 },
+  superseded: { dashSize: 0.28, gapSize: 0.5 },
+};
 
 function arcsFor(layout: NexusLayout, bundles: NexusBundle[]): ArcGeometry[] {
   const out: ArcGeometry[] = [];
@@ -236,7 +269,8 @@ function arcsFor(layout: NexusLayout, bundles: NexusBundle[]): ArcGeometry[] {
       const col = ca.clone().lerp(cb, t);
       return [col.r, col.g, col.b] as [number, number, number];
     });
-    out.push({ key: `${b.setId}|${b.a}|${b.b}`, bundle: b, points, colors, width: 0.5 + Math.sqrt(b.count) * 0.55 });
+    const status = b.setId.startsWith("threat:") ? (b.setId.slice(7) as LinkStatus) : undefined;
+    out.push({ key: `${b.setId}|${b.a}|${b.b}`, bundle: b, points, colors, width: 0.5 + Math.sqrt(b.count) * 0.55, ...(status ? { status } : {}) });
   }
   return out;
 }
@@ -255,6 +289,7 @@ function Arcs({ arcs, focus, reducedMotion }: { arcs: ArcGeometry[]; focus: stri
       {arcs.map((arc) => {
         const active = !!focus && (arc.bundle.a === focus || arc.bundle.b === focus);
         const dim = !!focus && !active;
+        const dash = arc.status ? LINK_DASH[arc.status] : null;
         return (
           <Line
             key={arc.key}
@@ -263,9 +298,9 @@ function Arcs({ arcs, focus, reducedMotion }: { arcs: ArcGeometry[]; focus: stri
             lineWidth={active ? arc.width * 1.35 : arc.width}
             transparent
             opacity={dim ? 0.022 : active ? 0.95 : arc.bundle.count > 2 ? 0.3 : 0.14}
-            dashed={active && !reducedMotion}
-            dashSize={1.6}
-            gapSize={0.5}
+            dashed={!!dash || (active && !reducedMotion && !arc.status)}
+            dashSize={dash?.dashSize ?? 1.6}
+            gapSize={dash?.gapSize ?? 0.5}
             depthWrite={false}
             toneMapped={false}
           />
@@ -275,26 +310,54 @@ function Arcs({ arcs, focus, reducedMotion }: { arcs: ArcGeometry[]; focus: stri
   );
 }
 
-/** Home view: the whole ring and its labels, seen from above the SOC 2 / CSF side. */
-const HOME: [number, number, number, number, number, number] = [0, 82, 92, 0, -2, 6];
+/** Seen from above the SOC 2 / CSF side, like the original home view (0, 82, 92 → 0, −2, 6). */
+const HOME_DIRECTION = new Vector3(0, 84, 86);
 
 function Rig({ selected, layout, reducedMotion }: { selected: string | null; layout: NexusLayout; reducedMotion: boolean }) {
   const controls = useRef<CameraControls>(null);
+  const camera = useThree((s) => s.camera) as PerspectiveCamera;
+  const gl = useThree((s) => s.gl);
+  const scene = useThree((s) => s.scene);
+  const size = useThree((s) => s.size);
+  const safe = useSafeArea();
+  const atHome = useRef(true);
+  const framed = useRef(false);
+  const home = (transition: boolean) => {
+    if (!safe || !controls.current) return;
+    const titles = layout.sectors.filter((s) => !s.inner).map((s) => ({ anchor: new Vector3(...sectorAnchor(s)), ...titleSize(s.framework.shortName, { swatch: true, sub: 110 }) }));
+    const pose = fitRing({ camera, width: size.width, height: size.height, safe, panels: hudRects(gl.domElement), radius: RADIUS + 1.6, top: 7, titles, dir: HOME_DIRECTION, center: 0.1 });
+    if (scene.fog instanceof FogExp2) scene.fog.density = (0.0065 * 120) / Math.max(60, pose.distance);
+    void controls.current.setLookAt(pose.position.x, pose.position.y, pose.position.z, pose.target.x, pose.target.y, pose.target.z, transition && framed.current);
+    framed.current = true;
+    atHome.current = true;
+  };
   useEffect(() => {
-    void controls.current?.setLookAt(...HOME, false);
+    const c = controls.current;
+    if (!c) return;
+    const away = () => {
+      atHome.current = false;
+    };
+    c.addEventListener("controlstart", away);
+    return () => c.removeEventListener("controlstart", away);
   }, []);
   useEffect(() => {
     if (!selected) {
-      void controls.current?.setLookAt(...HOME, !reducedMotion);
+      home(!reducedMotion);
       return;
     }
     const p = layout.positions.get(selected);
     if (!p) return;
+    atHome.current = false;
     // Look across the ring from behind the selected pillar so its arcs fan out toward the viewer.
     const back = new Vector3(p.pos[0], 0, p.pos[2]).normalize();
     void controls.current?.setLookAt(back.x * 70, 42, back.z * 70, -back.x * 6, 3, -back.z * 6, !reducedMotion);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected, layout, reducedMotion]);
-  return <CameraControls ref={controls} makeDefault minDistance={18} maxDistance={190} maxPolarAngle={Math.PI * 0.47} smoothTime={reducedMotion ? 0.001 : 0.4} />;
+  useEffect(() => {
+    if (atHome.current && !selected) home(!reducedMotion);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [safe]);
+  return <CameraControls ref={controls} makeDefault minDistance={18} maxDistance={260} maxPolarAngle={Math.PI * 0.47} smoothTime={reducedMotion ? 0.001 : 0.4} />;
 }
 
 export function NexusCanvas({ data, selected, onSelect, onHover, hovered }: { data: NexusData; selected: string | null; onSelect: (id: string | null) => void; onHover: (id: string | null) => void; hovered: string | null }) {
@@ -334,6 +397,7 @@ export function NexusCanvas({ data, selected, onSelect, onHover, hovered }: { da
       <Sectors layout={layout} />
       <Arcs arcs={arcs} focus={focus} reducedMotion={reducedMotion} />
       <Pillars layout={layout} selected={selected} hovered={hovered} related={related} onHover={onHover} onSelect={(id) => onSelect(id)} />
+      <NexusLabels layout={layout} selected={selected} hovered={hovered} related={related} onSelect={onSelect} />
       <Rig selected={selected} layout={layout} reducedMotion={reducedMotion} />
       <PerformanceMonitor onDecline={() => setEffects(false)} />
       {effects && (
