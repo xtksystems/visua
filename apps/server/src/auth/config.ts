@@ -69,7 +69,8 @@ export function loadAuthConfig(env: NodeJS.ProcessEnv = process.env): AuthConfig
     const v = Number(env[key]);
     return Number.isFinite(v) && v > 0 ? v : fallback;
   };
-  const hours = Number(env["VISUA_SSO_DOMAIN_RECHECK_HOURS"]);
+  const hoursRaw = (env["VISUA_SSO_DOMAIN_RECHECK_HOURS"] ?? "").trim();
+  const hours = Number(hoursRaw);
   return {
     mode,
     publicUrl,
@@ -81,7 +82,7 @@ export function loadAuthConfig(env: NodeJS.ProcessEnv = process.env): AuthConfig
     privateIssuerHosts: (env["VISUA_OIDC_PRIVATE_ISSUERS"] ?? "").split(",").map((h) => h.trim()).filter(Boolean),
     trustPlatformEmail: env["VISUA_OIDC_TRUST_EMAIL"] === "1",
     ssoDomainVerification: env["VISUA_SSO_DOMAIN_VERIFICATION"] === "off" ? "off" : "dns",
-    domainRecheckHours: env["VISUA_SSO_DOMAIN_RECHECK_HOURS"] !== undefined && Number.isFinite(hours) && hours >= 0 ? hours : 24,
+    domainRecheckHours: hoursRaw && Number.isFinite(hours) && hours >= 0 ? hours : 24,
     domainRecheckGraceDays: number("VISUA_SSO_DOMAIN_RECHECK_GRACE_DAYS", 7),
     bootstrapOwnerEmail: env["VISUA_BOOTSTRAP_OWNER_EMAIL"]?.trim().toLowerCase() || undefined,
     bootstrapOrgName: env["VISUA_BOOTSTRAP_ORG_NAME"]?.trim() || "My organization",

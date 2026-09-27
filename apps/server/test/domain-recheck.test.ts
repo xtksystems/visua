@@ -88,4 +88,8 @@ describe("re-check settings", () => {
     expect(loadAuthConfig({ VISUA_SSO_DOMAIN_RECHECK_HOURS: "-3", VISUA_SSO_DOMAIN_RECHECK_GRACE_DAYS: "soon" })).toMatchObject({ domainRecheckHours: 24, domainRecheckGraceDays: 7 });
     expect(loadAuthConfig({ VISUA_SSO_DOMAIN_RECHECK_HOURS: "6", VISUA_SSO_DOMAIN_RECHECK_GRACE_DAYS: "14" })).toMatchObject({ domainRecheckHours: 6, domainRecheckGraceDays: 14 });
   });
+  it("treats a blank value as unset", () => {
+    expect(loadAuthConfig({ VISUA_SSO_DOMAIN_RECHECK_HOURS: "" }).domainRecheckHours).toBe(24);
+    expect(loadAuthConfig({ VISUA_SSO_DOMAIN_RECHECK_HOURS: "  " }).domainRecheckHours).toBe(24);
+  });
 });
