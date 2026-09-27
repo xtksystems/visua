@@ -13,7 +13,8 @@ import { claudeEnabled, configuredModel } from "@visua/agents";
 import { REPO_ROOT } from "@visua/frameworks";
 import { createApp } from "./app.ts";
 import { loadAuthConfig } from "./auth/config.ts";
-import { AuthService } from "./auth/service.ts";
+import { AuthService, RECHECK_BATCH } from "./auth/service.ts";
+import { startDomainRechecks } from "./auth/recheck-ticker.ts";
 import { createService, databaseUrl } from "./context.ts";
 import { describeDatabase } from "./storage/index.ts";
 import { seedDemo } from "./seed/demo.ts";
@@ -31,6 +32,12 @@ if (process.env["VISUA_SEED"] !== "0" && (await svc.store.workspaces.list()).len
   await seedDemo(svc, auth);
 }
 await auth.bootstrap();
+// SSO domains proven by DNS are looked at again; each instance ticks, claims keep them apart.
+if (auth.domainRechecksEnabled) {
+  startDomainRechecks(async () => {
+    while ((await auth.recheckDueDomains()) === RECHECK_BATCH);
+  });
+}
 if (auth.config.mode === "oidc" && !auth.config.platform && !(await svc.store.identity.tenants.count())) {
   console.warn("[visua] No identity provider and no organization: set VISUA_OIDC_* and VISUA_BOOTSTRAP_OWNER_EMAIL to sign in.");
 }
@@ -55,4 +62,5 @@ serve({ fetch: app.fetch, port }, (info) => {
   console.log(
     `[visua] Sign-in: ${auth.config.mode === "dev" ? "developer mode (password-less personas; never expose this server)" : `OpenID Connect${auth.config.platform ? ` via ${auth.config.platform.issuer}` : ""} + per-organization SSO`}`,
   );
+  console.log(`[visua] SSO domain re-checks: ${auth.domainRechecksEnabled ? `every ${auth.config.domainRecheckHours} h, lapse after ${auth.config.domainRecheckGraceDays} days` : "off"}`);
 });

@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { loadAuthConfig } from "../src/auth/config.ts";
 import { applyOutcome, classifyLookup, standingOf } from "../src/auth/domain-recheck.ts";
+import { startDomainRechecks } from "../src/auth/recheck-ticker.ts";
 
 const DAY = 86_400_000;
 const s = { intervalMs: DAY, graceMs: 7 * DAY };
@@ -91,5 +92,53 @@ describe("re-check settings", () => {
   it("treats a blank value as unset", () => {
     expect(loadAuthConfig({ VISUA_SSO_DOMAIN_RECHECK_HOURS: "" }).domainRecheckHours).toBe(24);
     expect(loadAuthConfig({ VISUA_SSO_DOMAIN_RECHECK_HOURS: "  " }).domainRecheckHours).toBe(24);
+  });
+});
+
+describe("the re-check ticker", () => {
+  afterEach(() => vi.useRealTimers());
+
+  it("runs shortly after start and then on every interval, never overlapping, until stopped", async () => {
+    vi.useFakeTimers();
+    let runs = 0;
+    let release: () => void = () => undefined;
+    const stop = startDomainRechecks(
+      () => {
+        runs++;
+        return new Promise<void>((r) => (release = r));
+      },
+      { firstMs: 1000, everyMs: 10_000 },
+    );
+    await vi.advanceTimersByTimeAsync(999);
+    expect(runs).toBe(0);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(runs).toBe(1);
+    // Still running at the next interval: that tick is skipped.
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(runs).toBe(1);
+    release();
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(runs).toBe(2);
+    release();
+    stop();
+    await vi.advanceTimersByTimeAsync(50_000);
+    expect(runs).toBe(2);
+  });
+
+  it("logs a failed run and keeps ticking", async () => {
+    vi.useFakeTimers();
+    const logged: string[] = [];
+    let runs = 0;
+    const stop = startDomainRechecks(
+      async () => {
+        runs++;
+        throw new Error("database gone");
+      },
+      { firstMs: 10, everyMs: 100, log: (m) => logged.push(m) },
+    );
+    await vi.advanceTimersByTimeAsync(210);
+    expect(runs).toBe(3);
+    expect(logged[0]).toContain("database gone");
+    stop();
   });
 });
