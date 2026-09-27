@@ -170,7 +170,7 @@ function Members({ tenantId, role, onChange }: { tenantId: string; role: Role; o
         </form>
       )}
       <div className="panel" style={{ padding: 0 }}>
-        <table className="table">
+        <table className="table table--members">
           <thead>
             <tr>
               <th>Member</th>
@@ -322,7 +322,7 @@ function Tokens({ tenantId, role }: { tenantId: string; role: Role }) {
       )}
       <div className="panel" style={{ padding: 0 }}>
         {tokens.data?.length ? (
-          <table className="table">
+          <table className="table table--tokens">
             <thead>
               <tr>
                 <th>Token</th>
@@ -433,7 +433,7 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
       </div>
       <div className="panel" style={{ padding: 0 }}>
         {sso.data?.connections.length ? (
-          <table className="table">
+          <table className="table table--sso">
             <thead>
               <tr>
                 <th>Connection</th>

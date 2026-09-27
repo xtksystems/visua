@@ -10,6 +10,7 @@ import { api } from "../lib/api.ts";
 import { pct, relativeTime, truncate } from "../lib/format.ts";
 import { frameworkMeta, programPath } from "../lib/frameworks.ts";
 import { useActivity, useAuditVerification, useFrameworkState, useGraph, useProposals, useRuns, useWorkspace } from "../lib/queries.ts";
+import { split } from "../lib/media.ts";
 
 const PRIORITY_WEIGHT = { critical: 4, high: 3, medium: 2, low: 1 } as const;
 
@@ -98,7 +99,7 @@ export function HomePage() {
         </div>
       )}
 
-      <div className="grid" style={{ gridTemplateColumns: "minmax(0, 1.6fr) minmax(0, 1fr)", alignItems: "start" }}>
+      <div className="grid split" style={split(1.6, 1)}>
         <div className="stack" style={{ gap: 16 }}>
           <div className="grid grid--2">
             {data.frameworks.map((f) => (
@@ -213,7 +214,7 @@ export function HomePage() {
                   <span className="mono muted" style={{ width: 70, flexShrink: 0, fontSize: 11 }}>
                     {relativeTime(a.at)}
                   </span>
-                  <span style={{ minWidth: 0 }}>
+                  <span className="wrap-anywhere" style={{ minWidth: 0 }}>
                     <strong style={{ color: a.actor.startsWith("agent") ? "var(--color-tertiary)" : undefined }}>{truncate(a.actor, 30)}</strong> <span className="muted">{truncate(a.summary, 120)}</span>
                   </span>
                 </div>

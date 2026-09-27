@@ -201,6 +201,142 @@ p {
 .topbar__search:hover {
   border-color: var(--color-outline-strong);
 }
+.topbar__search-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.topbar__ws {
+  width: 220px;
+  min-height: 32px;
+  height: 32px;
+  padding: 0 8px;
+  font-weight: 600;
+}
+.topbar__menu {
+  display: none;
+}
+.rail__label {
+  display: none;
+}
+.shell__backdrop {
+  display: none;
+}
+
+/* The framework badges repeat what each page shows: they go first when the bar gets tight. */
+@media (max-width: 1280px) {
+  .topbar .topbar__frameworks {
+    display: none;
+  }
+}
+
+/* Below 1024px the rail folds into the top bar and opens as a labeled menu (DESIGN.md › Layout). */
+@media (max-width: 1024px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .topbar {
+    gap: var(--space-md);
+    padding: 0 var(--space-md);
+  }
+  .topbar__menu {
+    display: inline-grid;
+    flex: none;
+  }
+  .rail {
+    position: fixed;
+    top: var(--top-bar-height);
+    bottom: 0;
+    left: 0;
+    width: min(288px, 86vw);
+    align-items: stretch;
+    padding: var(--space-md);
+    gap: 2px;
+    overflow-y: auto;
+    z-index: 45;
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition:
+      transform var(--dur-slow) var(--ease-out),
+      visibility 0s linear var(--dur-slow);
+  }
+  .shell--nav-open .rail {
+    transform: none;
+    visibility: visible;
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+  .rail__logo {
+    display: none;
+  }
+  .rail__item {
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--space-md);
+    padding: 0 var(--space-md);
+    flex: none;
+  }
+  .rail__label {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+  }
+  .rail__badge {
+    position: static;
+    margin-left: auto;
+  }
+  .rail__spacer {
+    flex: none;
+    height: var(--space-md);
+    border-bottom: 1px solid var(--color-outline);
+    margin-bottom: var(--space-md);
+  }
+  .shell__backdrop {
+    display: block;
+    position: fixed;
+    inset: var(--top-bar-height) 0 0 0;
+    z-index: 44;
+    background: var(--color-neutral);
+    opacity: 0.6;
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    gap: var(--space-sm);
+    padding: 0 var(--space-sm);
+  }
+  .topbar__title {
+    flex: 1 1 auto;
+  }
+  .topbar__ws {
+    width: 100%;
+    max-width: 220px;
+  }
+  .topbar__search {
+    width: 34px;
+    flex: none;
+    justify-content: center;
+    padding: 0;
+  }
+  .topbar .topbar__search-text,
+  .topbar .topbar__search .kbd,
+  .topbar .topbar__pulse,
+  .topbar .topbar__agents,
+  .topbar .role-badge,
+  .topbar .account__name {
+    display: none;
+  }
+  .account__button {
+    padding: 2px;
+  }
+}
 .kbd {
   margin-left: auto;
   font-family: var(--font-code-sm-family);
@@ -223,6 +359,72 @@ p {
   overflow: auto;
   padding: var(--space-xl) var(--space-2xl) var(--space-3xl);
 }
+@media (max-width: 640px) {
+  .page {
+    padding: var(--space-lg) var(--space-lg) var(--space-2xl);
+  }
+  .page__header h1 {
+    font-size: var(--font-headline-md-size);
+    line-height: 1.25;
+  }
+}
+/* Two panes in given proportions (split() in lib/media.ts), one column below 900px. */
+.split {
+  grid-template-columns: var(--split, minmax(0, 1fr) minmax(0, 1fr));
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* A list beside the item it opens (Agents, Policies); one pane at a time below 900px. */
+.master-detail {
+  padding: 0;
+  display: grid;
+  grid-template-columns: var(--master, 400px) minmax(0, 1fr);
+  height: 100%;
+  overflow: hidden;
+}
+.master-detail__master {
+  border-right: 1px solid var(--color-outline);
+  overflow: auto;
+  padding: 20px;
+  min-width: 0;
+}
+.master-detail__detail {
+  overflow: auto;
+  padding: var(--space-xl);
+  min-width: 0;
+}
+.master-detail__back {
+  display: none;
+}
+@media (max-width: 900px) {
+  .master-detail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .master-detail__master {
+    border-right: 0;
+  }
+  .master-detail[data-pane="detail"] .master-detail__master,
+  .master-detail[data-pane="list"] .master-detail__detail {
+    display: none;
+  }
+  .master-detail__back {
+    display: inline-flex;
+    margin-bottom: var(--space-md);
+  }
+  .master-detail__detail {
+    padding: var(--space-lg);
+  }
+}
+
+/* Long identifiers (run ids, actor names) wrap instead of widening their container. */
+.wrap-anywhere {
+  overflow-wrap: anywhere;
+}
+
 .page__header {
   display: flex;
   align-items: flex-end;
@@ -320,6 +522,12 @@ p {
   .grid--3,
   .grid--4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .grid--2,
+  .grid--3 {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 .row {
@@ -653,6 +861,11 @@ p {
   background: var(--color-primary-container);
   color: var(--color-on-primary-container);
 }
+/* Many options (the corpus library) wrap rather than widen the page. */
+.segmented--wrap {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
 
 /* ------------------------------------------------------------------ data */
 
@@ -735,6 +948,76 @@ p {
 }
 .table tr[aria-selected="true"] td {
   background: var(--color-primary-container);
+}
+
+/* Phones: tables keep their essential columns and wrap long values; secondary columns hide. */
+@media (max-width: 640px) {
+  .table th,
+  .table td {
+    padding-left: var(--space-sm);
+    padding-right: var(--space-sm);
+  }
+  .table td {
+    overflow-wrap: anywhere;
+  }
+  .table--members :is(th, td):is(:nth-child(3), :nth-child(4)),
+  .table--tokens :is(th, td):is(:nth-child(3), :nth-child(4)),
+  .table--sso :is(th, td):nth-child(3),
+  .table--systems :is(th, td):is(:nth-child(2), :nth-child(4)),
+  .table--gai :is(th, td):is(:nth-child(2), :nth-child(3), :nth-child(5)),
+  .table--evidence :is(th, td):is(:nth-child(2), :nth-child(3)),
+  .table--docs :is(th, td):is(:nth-child(2), :nth-child(3)),
+  .table--audit :is(th, td):is(:nth-child(1), :nth-child(5)),
+  .table--cosais :is(th, td):nth-child(2),
+  .table--obligations :is(th, td):is(:nth-child(3), :nth-child(4)) {
+    display: none;
+  }
+  /* An editable table becomes one card per row, each cell labeled. */
+  .table--stack thead {
+    display: none;
+  }
+  .table--stack,
+  .table--stack tbody {
+    display: block;
+  }
+  .table--stack tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+    align-items: end;
+    gap: var(--space-sm);
+    padding: var(--space-md) 0;
+    border-bottom: 1px solid var(--color-outline);
+  }
+  .table--stack td {
+    display: block;
+    height: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+  .table--stack tr:hover td {
+    background: transparent;
+  }
+  .table--stack td:first-child {
+    grid-column: 1 / -1;
+  }
+  .table--stack td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 4px;
+    color: var(--color-on-surface-muted);
+    font-family: var(--font-label-caps-family);
+    font-size: var(--font-label-caps-size);
+    font-weight: var(--font-label-caps-weight);
+    letter-spacing: var(--font-label-caps-letter-spacing);
+    text-transform: uppercase;
+  }
+  .table--stack .select {
+    width: 100%;
+    padding-left: 6px;
+    padding-right: 2px;
+    font-size: 13px;
+  }
 }
 
 .empty {
@@ -1261,11 +1544,24 @@ p {
 
 .board {
   display: grid;
-  grid-template-columns: repeat(6, minmax(220px, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: var(--space-md);
   align-items: start;
-  overflow-x: auto;
   padding-bottom: var(--space-lg);
+}
+/* Six columns fit from 1280px; below, the board folds into rows of three, then one column. */
+@media (max-width: 1280px) {
+  .board {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .board {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .board__col {
+    min-height: 0;
+  }
 }
 .board__col {
   background: var(--color-surface);
@@ -1335,6 +1631,57 @@ p {
 }
 .bullet__row--head {
   padding-bottom: 8px;
+}
+/* Phones: the category name takes its own line; the bullet and its numbers share the next. */
+@media (max-width: 640px) {
+  .bullet__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "label label" "track nums";
+    row-gap: 4px;
+    padding: 6px var(--space-md);
+  }
+  .bullet__row > :nth-child(1) {
+    grid-area: label;
+  }
+  .bullet__row > :nth-child(2) {
+    grid-area: track;
+  }
+  .bullet__row > :nth-child(3) {
+    grid-area: nums;
+  }
+  .bullet__row--head {
+    grid-template-areas: "track nums";
+  }
+  .bullet__row--head > :nth-child(1) {
+    display: none;
+  }
+  .bullet__group {
+    padding: 12px var(--space-md) 4px;
+  }
+}
+
+/* SOC 2 criteria series: name, status bar, count; the name takes its own line on phones. */
+.series-row {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr) 70px;
+  align-items: center;
+  gap: 10px;
+}
+@media (max-width: 640px) {
+  .series-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "label label" "bar count";
+    row-gap: 4px;
+  }
+  .series-row > :nth-child(1) {
+    grid-area: label;
+  }
+  .series-row > :nth-child(2) {
+    grid-area: bar;
+  }
+  .series-row > :nth-child(3) {
+    grid-area: count;
+  }
 }
 .bullet__group {
   padding: 12px var(--space-lg) 4px;
@@ -1608,6 +1955,13 @@ p {
   background: var(--color-surface);
   color: var(--color-on-surface);
   cursor: pointer;
+}
+.account__name {
+  font-size: 13px;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .account__menu {
   position: absolute;

@@ -153,7 +153,7 @@ function Obligations({ ws, law }: { ws: string; law: Law }) {
   });
   const rows = (graph.data?.nodes ?? []).filter((n) => n.parentId === law.id);
   return (
-    <table className="table" style={{ marginTop: 8 }}>
+    <table className="table table--obligations" style={{ marginTop: 8 }}>
       <thead>
         <tr>
           <th style={{ width: 150 }}>Obligation</th>

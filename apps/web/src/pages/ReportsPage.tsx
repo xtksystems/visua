@@ -8,6 +8,7 @@ import { api, corpusFileUrl, exportUrl } from "../lib/api.ts";
 import { useCan } from "../lib/auth.ts";
 import { relativeTime, truncate } from "../lib/format.ts";
 import { useActivity, useAuditVerification, useWorkspace, useWsMutation } from "../lib/queries.ts";
+import { split } from "../lib/media.ts";
 
 interface ManifestDoc {
   id: string;
@@ -50,7 +51,7 @@ function Library() {
         </div>
       )}
       <div style={{ maxHeight: 420, overflow: "auto" }}>
-        <table className="table">
+        <table className="table table--docs">
           <thead>
             <tr>
               <th>Document</th>
@@ -143,7 +144,7 @@ export function ReportsPage() {
             </a>
           ))}
       </div>
-      <div className="grid" style={{ gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)", alignItems: "start" }}>
+      <div className="grid split" style={split(1.4, 1)}>
         <div className="panel" style={{ padding: 0, overflow: "hidden" }}>
           <div className="panel__head" style={{ padding: "16px 16px 0" }}>
             <ShieldCheck size={16} style={{ color: audit.data?.valid ? "var(--color-status-verified)" : "var(--color-status-at-risk)" }} />
@@ -159,7 +160,7 @@ export function ReportsPage() {
             Each event stores the SHA-256 of the previous one. Editing, deleting or reordering any past event breaks the chain, and verification pinpoints where.
           </p>
           <div style={{ maxHeight: 520, overflow: "auto" }}>
-            <table className="table">
+            <table className="table table--audit">
               <thead>
                 <tr>
                   <th>#</th>
@@ -217,7 +218,7 @@ export function ReportsPage() {
                 <label>Security contact</label>
                 <input className="input" value={contact ?? tc?.contactEmail ?? ""} onChange={(e) => setContact(e.target.value)} />
               </div>
-              <div className="row">
+              <div className="row row--wrap">
                 {tc?.enabled && (
                   <Link className="btn" to={`/trust/${workspace.data?.workspace.slug}`} target="_blank">
                     View public page <ExternalLink size={13} />

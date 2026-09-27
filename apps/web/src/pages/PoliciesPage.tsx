@@ -1,5 +1,5 @@
 /** Policies: versioned lifecycle (draft → in review → approved → published), agent drafting. */
-import { CheckCircle2, Edit3, FileText, Send, Sparkles } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Edit3, FileText, Send, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useRunAgent } from "../components/inspector/Inspector.tsx";
@@ -64,6 +64,8 @@ export function PoliciesPage() {
   const { ws = "" } = useParams();
   const { data: policies = [] } = usePolicies(ws);
   const [selected, setSelected] = useState<string | null>(null);
+  // Narrow screens show the list until a policy is opened (desktop shows both panes).
+  const [opened, setOpened] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
   const [drafting, setDrafting] = useState(false);
@@ -75,8 +77,8 @@ export function PoliciesPage() {
   const canApprove = useCan("work.approve");
   const act = (patch: Partial<Policy>, msg: string) => update.mutate(patch, { onSuccess: () => toast(msg), onError: (e) => toast((e as Error).message, "error") });
   return (
-    <div className="page" style={{ padding: 0, display: "grid", gridTemplateColumns: "380px 1fr", height: "100%", overflow: "hidden" }}>
-      <aside style={{ borderRight: "1px solid var(--color-outline)", overflow: "auto", padding: 20 }} className="stack">
+    <div className="page master-detail" data-pane={opened ? "detail" : "list"} style={{ ["--master" as string]: "380px" }}>
+      <aside className="stack master-detail__master">
         <div className="row">
           <h1 style={{ fontFamily: "var(--font-headline-lg-family)", fontSize: 24, fontWeight: 600, flex: 1 }}>Policies</h1>
           <button className="btn btn--agent btn--sm" onClick={() => setDrafting(true)}>
@@ -87,7 +89,7 @@ export function PoliciesPage() {
           Approved policies automatically become evidence for the requirements they govern, valid until their next review date.
         </p>
         {policies.map((p) => (
-          <button key={p.id} className={`runrow ${policy?.id === p.id ? "is-selected" : ""}`} onClick={() => setSelected(p.id)}>
+          <button key={p.id} className={`runrow ${policy?.id === p.id ? "is-selected" : ""}`} onClick={() => (setSelected(p.id), setOpened(true))}>
             <div className="row" style={{ gap: 8 }}>
               <FileText size={14} />
               <strong style={{ flex: 1 }}>{p.title}</strong>
@@ -103,7 +105,10 @@ export function PoliciesPage() {
         ))}
         {!policies.length && <Empty title="No policies yet">Ask the Policy Author to draft your first one.</Empty>}
       </aside>
-      <section style={{ overflow: "auto", padding: 28 }}>
+      <section className="master-detail__detail">
+        <button className="btn btn--quiet btn--sm master-detail__back" onClick={() => setOpened(false)}>
+          <ArrowLeft size={14} aria-hidden /> All policies
+        </button>
         {policy ? (
           <div className="stack" style={{ gap: 16, maxWidth: 900 }}>
             <div className="row" style={{ alignItems: "flex-start", gap: 12 }}>

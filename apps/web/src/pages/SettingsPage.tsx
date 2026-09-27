@@ -174,7 +174,7 @@ export function SettingsPage() {
                 return (
                   <div key={f.id} className="row" style={{ gap: 10 }}>
                     <FrameworkBadge frameworkId={f.id} />
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 500 }}>{f.name}</div>
                       <div className="muted" style={{ fontSize: 12 }}>
                         {f.units} {f.unitLabelPlural} · {f.publisher}

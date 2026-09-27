@@ -213,7 +213,7 @@ export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: { id: 
 
 export function Segmented<T extends string>({ options, value, onChange, label }: { options: { id: T; label: string }[]; value: T; onChange: (v: T) => void; label: string }) {
   return (
-    <div className="segmented" role="group" aria-label={label}>
+    <div className={`segmented ${options.length > 3 ? "segmented--wrap" : ""}`} role="group" aria-label={label}>
       {options.map((o) => (
         <button key={o.id} aria-pressed={value === o.id} onClick={() => onChange(o.id)}>
           {o.label}

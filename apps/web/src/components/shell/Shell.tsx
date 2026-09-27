@@ -7,7 +7,9 @@ import {
   Building2,
   Check,
   LogOut,
+  Menu,
   Users,
+  X,
   ClipboardList,
   FileText,
   GitCompareArrows,
@@ -23,7 +25,7 @@ import {
   Waypoints,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Link, NavLink, Outlet, useNavigate, useParams } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 import { api, setCsrfToken } from "../../lib/api.ts";
 import { ROLE_NAMES, useMe, useResetSession } from "../../lib/auth.ts";
 import { initials } from "../../pages/LoginPage.tsx";
@@ -39,6 +41,10 @@ function RailItem({ to, icon, label, badge, end }: { to: string; icon: ReactNode
   return (
     <NavLink to={to} end={end} className="rail__item" aria-label={label} title={label}>
       {icon}
+      {/* Shown when the rail opens as a menu below 1024px, where there are no tooltips on touch. */}
+      <span className="rail__label" aria-hidden>
+        {label}
+      </span>
       {badge ? <span className="rail__badge">{badge > 99 ? "99+" : badge}</span> : null}
     </NavLink>
   );
@@ -48,7 +54,7 @@ function NavRail({ ws, approvals }: { ws: string; approvals: number }) {
   const base = `/w/${ws}`;
   const s = 20;
   return (
-    <nav className="rail" aria-label="Primary">
+    <nav className="rail" id="primary-nav" aria-label="Primary">
       <Link to={base} className="rail__logo" aria-label="Visua home">
         <Logo />
       </Link>
@@ -80,7 +86,7 @@ function AgentPulse({ ws }: { ws: string }) {
   const navigate = useNavigate();
   if (!count && !last) return null;
   return (
-    <button className="btn btn--quiet btn--sm" onClick={() => navigate(`/w/${ws}/agents`)} title="Agent activity" style={{ maxWidth: 360 }}>
+    <button className="btn btn--quiet btn--sm topbar__pulse" onClick={() => navigate(`/w/${ws}/agents`)} title="Agent activity" style={{ maxWidth: 360 }}>
       <span className={count ? "pulse" : ""} style={{ width: 8, height: 8, borderRadius: 99, background: count ? "var(--color-tertiary)" : "var(--color-outline-strong)" }} />
       <span className="muted" style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
         {count ? `${count} agent run${count > 1 ? "s" : ""} · ` : ""}
@@ -135,7 +141,7 @@ function AccountMenu({ ws }: { ws: string }) {
         <span className="account__avatar" aria-hidden>
           {initials(user.name)}
         </span>
-        <span style={{ fontSize: 13, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tenantName ?? user.name}</span>
+        <span className="account__name">{tenantName ?? user.name}</span>
       </button>
       {open && (
         <div className="account__menu" role="menu" aria-label="Account">
@@ -176,15 +182,19 @@ function TopBar({ ws }: { ws: string }) {
   const role = data?.access?.role;
   const readOnly = !!data?.access && !data.access.capabilities.includes("work.write");
   const canCreate = !!data?.access?.capabilities.includes("workspace.configure");
+  const navOpen = useUi((s) => s.navOpen);
+  const setNav = useUi((s) => s.setNav);
   return (
     <header className="topbar">
+      <button className="btn btn--quiet btn--icon topbar__menu" aria-label={navOpen ? "Close menu" : "Open menu"} aria-expanded={navOpen} aria-controls="primary-nav" onClick={() => setNav(!navOpen)}>
+        {navOpen ? <X size={18} /> : <Menu size={18} />}
+      </button>
       <div className="topbar__title">
         <select
-          className="select"
+          className="select topbar__ws"
           aria-label="Workspace"
           value={data?.workspace.slug ?? ws}
           onChange={(e) => (e.target.value === "__new" ? navigate("/onboarding") : navigate(`/w/${e.target.value}`))}
-          style={{ width: 220, minHeight: 32, height: 32, padding: "0 8px", fontWeight: 600 }}
         >
           {data && !(all ?? []).some((w) => w.workspace.id === data.workspace.id) && <option value={data.workspace.slug}>{data.workspace.name}</option>}
           {(all ?? []).map((w) => (
@@ -194,17 +204,17 @@ function TopBar({ ws }: { ws: string }) {
           ))}
           {canCreate && <option value="__new">+ New workspace…</option>}
         </select>
-        <span className="row" style={{ gap: 6 }}>
+        <span className="row topbar__frameworks" style={{ gap: 6 }}>
           {data?.frameworks.map((f) => <FrameworkBadge key={f.id} frameworkId={f.id} />)}
         </span>
       </div>
       <button className="topbar__search" onClick={() => openPalette()} aria-label="Search or ask the copilot">
         <Search size={15} />
-        <span>Search requirements or ask the copilot…</span>
+        <span className="topbar__search-text">Search requirements or ask the copilot…</span>
         <span className="kbd">⌘K</span>
       </button>
       <AgentPulse ws={ws} />
-      <span className="badge-agent" title={meta.data?.ai.mode === "claude" ? `Agents run on ${meta.data.ai.model}` : "Agents run deterministic offline playbooks. Set ANTHROPIC_API_KEY on the server to enable Claude."}>
+      <span className="badge-agent topbar__agents" title={meta.data?.ai.mode === "claude" ? `Agents run on ${meta.data.ai.model}` : "Agents run deterministic offline playbooks. Set ANTHROPIC_API_KEY on the server to enable Claude."}>
         <Sparkles size={11} />
         {meta.data?.ai.mode === "claude" ? meta.data.ai.model : "offline agents"}
       </span>
@@ -394,8 +404,26 @@ export function Shell() {
   // Framework families, names and pages come from /api/meta: pages render once it has loaded.
   const meta = useMeta();
   const openPalette = useUi((s) => s.openPalette);
+  const navOpen = useUi((s) => s.navOpen);
+  const setNav = useUi((s) => s.setNav);
   const navigate = useNavigate();
+  const location = useLocation();
   useWorkspaceEvents(data?.workspace.id);
+
+  // The menu closes when a destination is chosen, on Escape, and when the window grows past it.
+  useEffect(() => setNav(false), [location.pathname, setNav]);
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setNav(false);
+    const wide = window.matchMedia("(min-width: 1025px)");
+    const onWide = () => wide.matches && setNav(false);
+    window.addEventListener("keydown", onKey);
+    wide.addEventListener("change", onWide);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      wide.removeEventListener("change", onWide);
+    };
+  }, [navOpen, setNav]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -414,8 +442,9 @@ export function Shell() {
 
   if (!meta.data) return <div className="page muted">{meta.error ? `Visua could not load: ${(meta.error as Error).message}` : "Loading Visua…"}</div>;
   return (
-    <div className="shell">
+    <div className={`shell ${navOpen ? "shell--nav-open" : ""}`}>
       <NavRail ws={ws} approvals={data?.approvals ?? 0} />
+      {navOpen && <div className="shell__backdrop" onClick={() => setNav(false)} aria-hidden />}
       <TopBar ws={ws} />
       <main className="main" id="main">
         <Outlet />

@@ -11,6 +11,7 @@ import { StatusBar, StatusLegend, toast } from "../components/ui/index.tsx";
 import { api, corpusFileUrl, exportUrl } from "../lib/api.ts";
 import { useFrameworkState, useGraph, useMeta, useWorkspace, useWsMutation } from "../lib/queries.ts";
 import type { LeanNode } from "../lib/types.ts";
+import { split } from "../lib/media.ts";
 
 const FW = "nist-csf-2.0";
 
@@ -27,7 +28,7 @@ function BulletChart({ rows, functions }: { rows: Row[]; functions: LeanNode[] }
   const x = (v: number) => `${(v / 4) * 100}%`;
   return (
     <div className="panel" style={{ padding: 0 }}>
-      <div className="row" style={{ padding: "12px 16px", gap: 16, borderBottom: "1px solid var(--color-outline)" }}>
+      <div className="row row--wrap" style={{ padding: "12px 16px", gap: "8px 16px", borderBottom: "1px solid var(--color-outline)" }}>
         <span className="eyebrow">Current vs target profile · mean implementation level by category (0–4)</span>
         <span style={{ flex: 1 }} />
         <span className="row" style={{ gap: 6, fontSize: 12 }}>
@@ -248,7 +249,7 @@ export function ProfilePage() {
           </div>
         </div>
       )}
-      <div className="grid" style={{ gridTemplateColumns: "minmax(0, 1.25fr) minmax(0, 1fr)", alignItems: "start" }}>
+      <div className="grid split" style={split(1.25, 1)}>
         <BulletChart rows={rows} functions={functions} />
         <TierAssessment />
       </div>

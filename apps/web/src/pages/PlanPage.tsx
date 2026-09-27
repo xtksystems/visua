@@ -10,6 +10,7 @@ import { badgeOf } from "../lib/frameworks.ts";
 import { Markdown } from "../lib/markdown.tsx";
 import { useTasks, useWorkspace, useWsMutation } from "../lib/queries.ts";
 import type { Task } from "../lib/types.ts";
+import { split } from "../lib/media.ts";
 
 const COLUMNS: Task["status"][] = ["backlog", "todo", "in-progress", "in-review", "blocked", "done"];
 const PRIORITY_COLOR: Record<string, string> = {
@@ -63,7 +64,7 @@ function TaskDialog({ task, onClose }: { task: Task; onClose: () => void }) {
     );
   return (
     <Dialog wide title={task.title} onClose={onClose}>
-      <div className="grid" style={{ gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)", alignItems: "start" }}>
+      <div className="grid split" style={split(1.4, 1)}>
         <div className="stack" style={{ gap: 12 }}>
           {task.description && (
             <div style={{ maxHeight: 280, overflow: "auto" }} className="panel">
@@ -247,8 +248,8 @@ export function PlanPage() {
           </button>
         </div>
       </header>
-      <div className="row" style={{ marginBottom: 16, gap: 8 }}>
-        <select className="select" style={{ width: 220 }} value={framework} onChange={(e) => setFramework(e.target.value)} aria-label="Filter by framework">
+      <div className="row row--wrap" style={{ marginBottom: 16, gap: 8 }}>
+        <select className="select" style={{ width: 220, maxWidth: "100%" }} value={framework} onChange={(e) => setFramework(e.target.value)} aria-label="Filter by framework">
           <option value="all">All frameworks</option>
           {workspace.data?.frameworks.map((f) => (
             <option key={f.id} value={f.id}>
@@ -262,12 +263,13 @@ export function PlanPage() {
         <span style={{ flex: 1 }} />
         <form
           className="row"
+          style={{ minWidth: 0, maxWidth: "100%" }}
           onSubmit={(e) => {
             e.preventDefault();
             if (newTitle.trim()) create.mutate(newTitle.trim(), { onSuccess: () => setNewTitle("") });
           }}
         >
-          <input className="input" style={{ width: 280 }} placeholder="Quick add a task…" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
+          <input className="input" style={{ width: 280, maxWidth: "100%", minWidth: 0 }} placeholder="Quick add a task…" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
           <button className="btn btn--icon" aria-label="Add task">
             <Plus size={15} />
           </button>

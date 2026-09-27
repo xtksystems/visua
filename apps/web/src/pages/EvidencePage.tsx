@@ -9,6 +9,7 @@ import { useCan } from "../lib/auth.ts";
 import { relativeTime, shortDate, truncate } from "../lib/format.ts";
 import { useChecks, useConnectors, useEvidence, useMeta, useWsMutation } from "../lib/queries.ts";
 import type { CheckResult, Evidence } from "../lib/types.ts";
+import { split } from "../lib/media.ts";
 
 const OUTCOME_COLOR: Record<CheckResult["outcome"], string> = {
   pass: "var(--color-status-implemented)",
@@ -143,7 +144,7 @@ export function EvidencePage() {
         <Metric label="Expired" value={expired} sub="Expired evidence puts requirements at risk" />
         <Metric label="Connectors" value={connectors.length} sub={`${latestChecks.filter((c) => c.outcome === "pass").length}/${latestChecks.length} checks passing`} />
       </div>
-      <div className="grid" style={{ gridTemplateColumns: "minmax(0, 1.7fr) minmax(0, 1fr)", alignItems: "start" }}>
+      <div className="grid split" style={split(1.7, 1)}>
         <div className="panel" style={{ padding: 0, overflow: "hidden" }}>
           <div className="row" style={{ padding: 12, gap: 8 }}>
             <Segmented
@@ -159,7 +160,7 @@ export function EvidencePage() {
             />
           </div>
           <div style={{ overflow: "auto", maxHeight: "calc(100vh - 360px)" }}>
-            <table className="table">
+            <table className="table table--evidence">
               <thead>
                 <tr>
                   <th>Evidence</th>
@@ -248,7 +249,7 @@ export function EvidencePage() {
                     <Play size={12} /> Run
                   </button>
                 </div>
-                <div className="muted" style={{ fontSize: 12, marginBottom: 10 }}>
+                <div className="muted wrap-anywhere" style={{ fontSize: 12, marginBottom: 10 }}>
                   {c.kind} · {Object.values(c.config).map(String).join(" ")} · {c.lastRunAt ? `last run ${relativeTime(c.lastRunAt)}` : "never run"}
                 </div>
                 <div className="stack" style={{ gap: 8 }}>

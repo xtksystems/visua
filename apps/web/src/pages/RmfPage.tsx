@@ -97,7 +97,7 @@ function Categorize({ ws, rmf }: { ws: string; rmf: RmfSettings }) {
         <label>System name</label>
         <input className="input" value={systemName} onChange={(e) => setSystemName(e.target.value)} />
       </div>
-      <table className="table">
+      <table className="table table--stack">
         <thead>
           <tr>
             <th>Information type</th>
@@ -110,12 +110,12 @@ function Categorize({ ws, rmf }: { ws: string; rmf: RmfSettings }) {
         <tbody>
           {types.map((t, i) => (
             <tr key={`${t.id}-${i}`}>
-              <td>
-                <input className="input" value={t.name} onChange={(e) => set(i, { name: e.target.value, id: t.id || e.target.value.toLowerCase().replace(/\W+/g, "-") })} />
+              <td data-label="Information type">
+                <input className="input" aria-label="Information type" value={t.name} onChange={(e) => set(i, { name: e.target.value, id: t.id || e.target.value.toLowerCase().replace(/\W+/g, "-") })} />
               </td>
               {(["confidentiality", "integrity", "availability"] as const).map((obj) => (
-                <td key={obj}>
-                  <select className="select" value={t[obj]} onChange={(e) => set(i, { [obj]: e.target.value as ImpactLevel })} style={{ color: IMPACT_COLOR[t[obj]] }}>
+                <td key={obj} data-label={obj[0]!.toUpperCase() + obj.slice(1)}>
+                  <select className="select" aria-label={`${t.name}: ${obj}`} value={t[obj]} onChange={(e) => set(i, { [obj]: e.target.value as ImpactLevel })} style={{ color: IMPACT_COLOR[t[obj]] }}>
                     {LEVELS.map((l) => (
                       <option key={l} value={l}>
                         {l}
@@ -181,17 +181,19 @@ function Tailoring({ ws, rmf }: { ws: string; rmf: RmfSettings }) {
           </div>
         )}
         {rmf.tailoring.filter((t) => !t.source).map((t) => (
-          <div key={t.nodeId} className="row" style={{ gap: 8, fontSize: 13 }}>
+          <div key={t.nodeId} className="row row--wrap" style={{ gap: 8, fontSize: 13 }}>
             <CodeTag id={t.nodeId} />
             <span className="mono" style={{ fontSize: 11, color: t.action === "add" ? "var(--color-status-implemented)" : "var(--color-status-in-progress)" }}>
               {t.action === "add" ? "+ added" : "− removed"}
             </span>
-            <span className="muted" style={{ flex: 1 }}>
+            <span className="muted" style={{ flex: "1 1 160px", minWidth: 0 }}>
               {t.rationale}
             </span>
-            <button className="btn btn--quiet btn--sm" onClick={() => tailor.mutate({ nodeId: t.nodeId, action: "reset", rationale: "" })}>
-              Reset
-            </button>
+            {canDecide && (
+              <button className="btn btn--quiet btn--sm" onClick={() => tailor.mutate({ nodeId: t.nodeId, action: "reset", rationale: "" })}>
+                Reset
+              </button>
+            )}
           </div>
         ))}
         {!rmf.tailoring.some((t) => !t.source) && <div className="muted" style={{ fontSize: 13 }}>No tailoring decisions yet — the {rmf.baseline?.toUpperCase()} baseline applies as published.</div>}
@@ -212,7 +214,7 @@ function Tailoring({ ws, rmf }: { ws: string; rmf: RmfSettings }) {
           <option value="remove">Remove</option>
           <option value="add">Add</option>
         </select>
-        <input className="input" style={{ flex: 1, minWidth: 200 }} placeholder="Rationale (required, visible to assessors)" value={rationale} onChange={(e) => setRationale(e.target.value)} />
+        <input className="input" style={{ flex: "1 1 200px", minWidth: 0 }} placeholder="Rationale (required, visible to assessors)" value={rationale} onChange={(e) => setRationale(e.target.value)} />
         <button className="btn" disabled={!canDecide || !code.trim() || rationale.trim().length < 8} title={canDecide ? undefined : "Tailoring is an approver decision"}>
           Record
         </button>

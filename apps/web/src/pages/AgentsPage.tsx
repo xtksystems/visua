@@ -1,9 +1,9 @@
 /**
  * Agents: glass-box flight recorders, the approvals inbox and the launcher.
  */
-import { AlertTriangle, BookOpen, Brain, CheckCheck, Compass, MessageSquare, Play, Square, Wrench } from "lucide-react";
+import { AlertTriangle, ArrowLeft, BookOpen, Brain, CheckCheck, Compass, MessageSquare, Play, Square, Wrench } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import type { AgentStep } from "@visua/core";
 import { ProposalCard } from "../components/agents/Proposals.tsx";
 import { AgentBadge, CitationBlock, CodeTag, Empty, toast } from "../components/ui/index.tsx";
@@ -11,6 +11,7 @@ import { api } from "../lib/api.ts";
 import { useCan } from "../lib/auth.ts";
 import { relativeTime, truncate } from "../lib/format.ts";
 import { Markdown } from "../lib/markdown.tsx";
+import { NARROW, useMediaQuery } from "../lib/media.ts";
 import { useMeta, useProposals, useRun, useRuns, useWorkspace, useWsMutation } from "../lib/queries.ts";
 import type { RunWithProposals } from "../lib/types.ts";
 import { useUi } from "../state/ui.ts";
@@ -108,9 +109,9 @@ function FlightRecorder({ runId }: { runId: string }) {
   return (
     <div className="stack" style={{ gap: 16 }}>
       <div className="panel">
-        <div className="row" style={{ alignItems: "flex-start", gap: 12 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="row" style={{ gap: 8 }}>
+        <div className="row row--wrap" style={{ alignItems: "flex-start", gap: 12 }}>
+          <div style={{ flex: "1 1 260px", minWidth: 0 }}>
+            <div className="row row--wrap" style={{ gap: 8 }}>
               <AgentBadge label={run.agent} />
               <RunStatus status={run.status} />
               <span className="muted mono" style={{ fontSize: 11 }}>
@@ -246,13 +247,15 @@ export function AgentsPage() {
   const pending = useProposals(ws, "pending");
   const selected = runId ?? runs.data?.[0]?.id;
   const [tab, setTab] = useState<"runs" | "inbox">("runs");
+  // Narrow screens show one pane at a time: the list, or the run someone opened.
+  const narrow = useMediaQuery(NARROW);
   useEffect(() => {
-    if (!runId && runs.data?.[0]) navigate(`/w/${ws}/agents/${runs.data[0].id}`, { replace: true });
-  }, [runId, runs.data, navigate, ws]);
+    if (!narrow && !runId && runs.data?.[0]) navigate(`/w/${ws}/agents/${runs.data[0].id}`, { replace: true });
+  }, [narrow, runId, runs.data, navigate, ws]);
   const inbox = useMemo(() => pending.data ?? [], [pending.data]);
   return (
-    <div className="page" style={{ padding: 0, display: "grid", gridTemplateColumns: "420px 1fr", height: "100%", overflow: "hidden" }}>
-      <aside style={{ borderRight: "1px solid var(--color-outline)", overflow: "auto", padding: 20 }} className="stack">
+    <div className="page master-detail" data-pane={runId ? "detail" : "list"} style={{ ["--master" as string]: "420px" }}>
+      <aside className="stack master-detail__master">
         <div>
           <h1 style={{ fontFamily: "var(--font-headline-lg-family)", fontSize: 24, fontWeight: 600 }}>Agents</h1>
           <p className="muted" style={{ fontSize: 13, marginTop: 4 }}>
@@ -295,7 +298,12 @@ export function AgentsPage() {
           </div>
         )}
       </aside>
-      <section style={{ overflow: "auto", padding: 24 }}>{selected ? <FlightRecorder runId={selected} /> : <Empty title="Select a run" />}</section>
+      <section className="master-detail__detail">
+        <Link to={`/w/${ws}/agents`} className="btn btn--quiet btn--sm master-detail__back">
+          <ArrowLeft size={14} aria-hidden /> All runs and approvals
+        </Link>
+        {selected ? <FlightRecorder runId={selected} /> : <Empty title="Select a run" />}
+      </section>
     </div>
   );
 }

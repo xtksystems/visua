@@ -167,7 +167,7 @@ function Inventory({ ws, systems }: { ws: string; systems: AiSystem[] }) {
         </button>
       </div>
       {systems.length ? (
-        <table className="table">
+        <table className="table table--systems">
           <thead>
             <tr>
               <th>System</th>
@@ -293,7 +293,7 @@ export function AiPage() {
         <div className="grid grid--4">
           {data.functions.map((f) => (
             <Link key={f.id} to={`/w/${ws}/observatory/${AI_RMF}?select=${encodeURIComponent(f.id)}`} className="panel" style={{ color: "inherit" }}>
-              <div className="row" style={{ gap: 8 }}>
+              <div className="row row--wrap" style={{ gap: 8 }}>
                 <span className="mono" style={{ color: "var(--color-framework-ai)" }}>
                   {f.code}
                 </span>
@@ -323,13 +323,13 @@ export function AiPage() {
             <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
               Each GAI risk is addressed by Generative AI Profile actions attached to AI RMF outcomes. Readiness here is the progress of those outcomes toward their targets — a lead indicator, not a risk rating.
             </p>
-            <table className="table">
+            <table className="table table--gai">
               <thead>
                 <tr>
                   <th>GAI risk</th>
                   <th style={{ width: 90 }}>Actions</th>
                   <th style={{ width: 90 }}>Outcomes</th>
-                  <th style={{ width: 220 }}>Outcome readiness</th>
+                  <th style={{ width: "32%" }}>Outcome readiness</th>
                   <th style={{ width: 70 }}>Gaps</th>
                 </tr>
               </thead>

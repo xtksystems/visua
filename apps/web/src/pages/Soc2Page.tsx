@@ -12,6 +12,7 @@ import { Empty, Segmented, StatusBar, toast } from "../components/ui/index.tsx";
 import { api, exportUrl } from "../lib/api.ts";
 import { shortDate } from "../lib/format.ts";
 import { useFrameworkState, useGraph, useMeta, useWorkspace, useWsMutation } from "../lib/queries.ts";
+import { split } from "../lib/media.ts";
 
 const TSC = "aicpa-tsc-2017";
 type Category = Soc2Settings["categories"][number];
@@ -239,7 +240,7 @@ export function Soc2Page() {
           </Link>
         </div>
       </header>
-      <div className="grid" style={{ gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.25fr)", alignItems: "start" }}>
+      <div className="grid split" style={split(1, 1.25)}>
         <div className="stack" style={{ gap: 16 }}>
           <Scope ws={ws} settings={s} />
           <SystemDescription ws={ws} />
@@ -269,12 +270,12 @@ export function Soc2Page() {
                       const sg = state.data?.groups[se.id];
                       const criteria = nodes.filter((n) => n.parentId === se.id);
                       return (
-                        <div key={se.id} className="row" style={{ gap: 10 }}>
-                          <Link to={`/w/${ws}/observatory/${TSC}?select=${encodeURIComponent(se.id)}`} style={{ width: 210, flexShrink: 0, color: "inherit" }}>
+                        <div key={se.id} className="series-row">
+                          <Link to={`/w/${ws}/observatory/${TSC}?select=${encodeURIComponent(se.id)}`} style={{ color: "inherit", minWidth: 0 }}>
                             <span className="mono" style={{ color: "var(--color-primary)", fontSize: 12.5 }}>{se.code}</span> <span style={{ fontSize: 12.5 }}>{se.title}</span>
                           </Link>
-                          <div style={{ flex: 1 }}>{sg && <StatusBar counts={sg.counts} height={8} />}</div>
-                          <span className="mono muted" style={{ fontSize: 11.5, width: 70, textAlign: "right" }}>
+                          <div style={{ minWidth: 0 }}>{sg && <StatusBar counts={sg.counts} height={8} />}</div>
+                          <span className="mono muted" style={{ fontSize: 11.5, textAlign: "right" }}>
                             {criteria.length} criteria
                           </span>
                         </div>

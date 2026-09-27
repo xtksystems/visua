@@ -277,13 +277,13 @@ export function CosaisPanel({ ws }: { ws: string }) {
           </button>
         )}
       </div>
-      <table className="table">
+      <table className="table table--cosais">
         <thead>
           <tr>
             <th>Control</th>
             <th>AI lifecycle phases</th>
-            <th style={{ width: 150 }}>Scope</th>
-            <th style={{ width: 140 }}>Status</th>
+            <th style={{ width: "20%" }}>Scope</th>
+            <th style={{ width: "22%" }}>Status</th>
           </tr>
         </thead>
         <tbody>

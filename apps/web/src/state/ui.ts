@@ -17,6 +17,8 @@ interface UiState {
   inspectorOpen: boolean;
   paletteOpen: boolean;
   paletteQuery: string;
+  /** Below 1024px the nav rail folds into the top bar (DESIGN.md › Layout) and opens as a menu. */
+  navOpen: boolean;
   /** Weakest link status counted in threat views (Threats page, threat Observatory, Nexus ring). */
   threatMin: MinStatus;
   select: (id: string | null) => void;
@@ -29,6 +31,7 @@ interface UiState {
   setInspector: (open: boolean) => void;
   openPalette: (query?: string) => void;
   closePalette: () => void;
+  setNav: (open: boolean) => void;
   setThreatMin: (min: MinStatus) => void;
 }
 
@@ -45,6 +48,7 @@ export const useUi = create<UiState>((set, get) => ({
   inspectorOpen: true,
   paletteOpen: false,
   paletteQuery: "",
+  navOpen: false,
   threatMin: "unreviewed",
   select: (id) => set({ selectedId: id, inspectorOpen: id ? true : get().inspectorOpen }),
   hover: (id) => set({ hoveredId: id }),
@@ -56,5 +60,6 @@ export const useUi = create<UiState>((set, get) => ({
   setInspector: (open) => set({ inspectorOpen: open }),
   openPalette: (query = "") => set({ paletteOpen: true, paletteQuery: query }),
   closePalette: () => set({ paletteOpen: false }),
+  setNav: (navOpen) => set({ navOpen }),
   setThreatMin: (threatMin) => set({ threatMin }),
 }));

@@ -25,7 +25,7 @@ test("home shows the workspace, its frameworks and next best actions", async ({ 
   const errors = watchErrors(page);
   await page.goto(WS);
   await expect(page.getByRole("heading", { level: 1, name: "Northwind Health" })).toBeVisible();
-  for (const name of ["CSF 2.0", "SOC 2", "SP 800-53", "RMF"]) await expect(page.getByText(name).first()).toBeVisible();
+  for (const name of ["CSF 2.0", "SOC 2", "SP 800-53", "RMF"]) await expect(page.getByRole("main").getByText(name).first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Next best actions" })).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -298,4 +298,26 @@ test("Observatory: a threat catalog shows coverage from linked requirements, nev
   await expect(page).toHaveURL(/\/observatory\/owasp-llm-top10/);
   await expect(page.locator(".observatory__canvas canvas")).toBeVisible();
   expect(errors).toEqual([]);
+});
+
+test("phones: the rail folds into a menu, and no page scrolls sideways", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await signIn(page);
+  await page.goto(WS);
+  const nav = page.getByRole("navigation", { name: "Primary" });
+  await expect(nav).toBeHidden();
+  await page.getByRole("button", { name: "Open menu" }).click();
+  await expect(nav).toBeVisible();
+  await nav.getByRole("link", { name: "State AI laws" }).click();
+  await expect(page).toHaveURL(new RegExp(`${WS}/laws$`));
+  await expect(nav).toBeHidden();
+  for (const path of ["", "/plan", "/evidence", "/organization", "/reports", "/settings", "/profile", "/rmf", "/ai", "/laws", "/threats"]) {
+    await page.goto(`${WS}${path}`);
+    await page.locator("h1").first().waitFor();
+    const sideways = await page.evaluate(() => {
+      const scroller = document.querySelector(".page") ?? document.documentElement;
+      return Math.max(scroller.scrollWidth - scroller.clientWidth, document.documentElement.scrollWidth - window.innerWidth);
+    });
+    expect(sideways, `${path || "/"} scrolls sideways`).toBeLessThanOrEqual(1);
+  }
 });
