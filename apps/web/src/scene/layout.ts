@@ -63,8 +63,26 @@ function weightOf(id: string, children: Map<string | null, LeanNode[]>, byId: Ma
 
 const polar = (r: number, a: number, y = 0): Vec3 => [Math.cos(a) * r, y, Math.sin(a) * r];
 
+/**
+ * The scene draws units of work and the groups that hold them. Nodes with no unit
+ * below them (MITRE ATLAS's mitigations, a law with no tracked obligation) stay in
+ * the outline and the inspector but take no place in space: `positions` has only
+ * what is drawn, while `byId` and `children` keep every node for navigation.
+ */
 export function computeLayout(nodes: LeanNode[], view: ViewMode): Layout {
-  return view === "terrain" ? terrain(nodes) : constellation(nodes);
+  const { children } = index(nodes);
+  const holds = new Map<string, boolean>();
+  const hasUnit = (n: LeanNode): boolean => {
+    const known = holds.get(n.id);
+    if (known !== undefined) return known;
+    const v = n.assessable || (children.get(n.id) ?? []).some(hasUnit);
+    holds.set(n.id, v);
+    return v;
+  };
+  const drawn = nodes.filter(hasUnit);
+  const layout = view === "terrain" ? terrain(drawn) : constellation(drawn);
+  const all = index(nodes);
+  return { ...layout, byId: all.byId, children: all.children };
 }
 
 function constellation(nodes: LeanNode[]): Layout {
@@ -95,6 +113,11 @@ function constellation(nodes: LeanNode[]): Layout {
     r = Math.max(min, (count * spacing) / usable);
     radii.push(r);
   }
+
+  // A ring of labeled groups (up to 40, e.g. the state laws between jurisdictions and
+  // obligations) moves out toward the units so the group codes have room to be read.
+  const labeledMids = nodes.filter((n) => n.depth === 1 && !n.assessable).length;
+  if (labeledMids > 0 && labeledMids <= 40 && radii[2] !== undefined && byDepth.get(2)) radii[1] = Math.max(radii[1]!, Math.min(radii[2] * 0.58, radii[2] - 7));
 
   const totalWeight = roots.reduce((s, n) => s + weightOf(n.id, children, byId, memo), 0);
   const gap = roots.length > 1 ? 0.14 * Math.PI * 2 * (1 / roots.length) * 0.35 : 0;

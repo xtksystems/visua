@@ -14,6 +14,8 @@ interface UiState {
   lens: Lens;
   view: ViewMode;
   outlineOpen: boolean;
+  /** The Observatory legend: open where there is room for it. */
+  legendOpen: boolean;
   inspectorOpen: boolean;
   paletteOpen: boolean;
   paletteQuery: string;
@@ -28,6 +30,7 @@ interface UiState {
   cycleLens: () => void;
   setView: (view: ViewMode) => void;
   toggleOutline: () => void;
+  toggleLegend: () => void;
   setInspector: (open: boolean) => void;
   openPalette: (query?: string) => void;
   closePalette: () => void;
@@ -44,7 +47,9 @@ export const useUi = create<UiState>((set, get) => ({
   focusSeq: 0,
   lens: "status",
   view: "constellation",
-  outlineOpen: true,
+  // Below 1024px the outline is an overlay: it starts closed so the scene is visible.
+  outlineOpen: typeof window === "undefined" || window.innerWidth > 1024,
+  legendOpen: typeof window === "undefined" || (window.innerWidth >= 1280 && window.innerHeight >= 960),
   inspectorOpen: true,
   paletteOpen: false,
   paletteQuery: "",
@@ -57,6 +62,7 @@ export const useUi = create<UiState>((set, get) => ({
   cycleLens: () => set((s) => ({ lens: LENSES[(LENSES.indexOf(s.lens) + 1) % LENSES.length]! })),
   setView: (view) => set({ view }),
   toggleOutline: () => set((s) => ({ outlineOpen: !s.outlineOpen })),
+  toggleLegend: () => set((s) => ({ legendOpen: !s.legendOpen })),
   setInspector: (open) => set({ inspectorOpen: open }),
   openPalette: (query = "") => set({ paletteOpen: true, paletteQuery: query }),
   closePalette: () => set({ paletteOpen: false }),

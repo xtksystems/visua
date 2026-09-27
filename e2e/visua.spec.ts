@@ -293,8 +293,8 @@ test("Observatory: a threat catalog shows coverage from linked requirements, nev
   await expect(inspector).toContainText("not an assessment of it");
   await expect(inspector.getByRole("radiogroup")).toHaveCount(0);
   await expect(inspector.getByRole("group", { name: "Assessment" })).toHaveCount(0);
-  // The other catalogs are one chip away.
-  await page.getByRole("button", { name: "OWASP LLM", exact: true }).click();
+  // The other catalogs are one choice away.
+  await page.getByRole("combobox", { name: "Framework" }).first().selectOption("owasp-llm-top10");
   await expect(page).toHaveURL(/\/observatory\/owasp-llm-top10/);
   await expect(page.locator(".observatory__canvas canvas")).toBeVisible();
   expect(errors).toEqual([]);
@@ -320,4 +320,57 @@ test("phones: the rail folds into a menu, and no page scrolls sideways", async (
     });
     expect(sideways, `${path || "/"} scrolls sideways`).toBeLessThanOrEqual(1);
   }
+});
+
+test("Observatory: scene labels stay inside the canvas, clear of the HUD and of each other", async ({ page }) => {
+  await signIn(page);
+  const meta = (await (await page.request.get("/api/meta")).json()) as { frameworks: { id: string }[] };
+  const frameworks = ["nist-csf-2.0", "mitre-atlas", "us-state-ai-laws"].filter((id) => meta.frameworks.some((f) => f.id === id));
+  for (const [width, height] of [
+    [1440, 900],
+    [1024, 768],
+  ] as const) {
+    await page.setViewportSize({ width, height });
+    for (const fw of frameworks) {
+      await page.goto(`${WS}/observatory/${fw}`);
+      await expect(page.locator(".observatory__canvas canvas")).toBeVisible();
+      await expect(page.locator(".scene-label--sector").first()).toBeVisible();
+      await page.waitForTimeout(1200);
+      const report = await page.evaluate(() => {
+        const canvas = document.querySelector(".observatory__canvas canvas")!.getBoundingClientRect();
+        const panels = [...document.querySelectorAll("[data-hud]")].map((e) => e.getBoundingClientRect());
+        const labels = [...document.querySelectorAll<HTMLElement>(".scene-label")].filter((l) => l.style.visibility === "visible").map((l) => ({ text: l.textContent ?? "", r: l.getBoundingClientRect(), sector: l.classList.contains("scene-label--sector") }));
+        const hit = (a: DOMRect, b: DOMRect) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+        const problems: string[] = [];
+        labels.forEach((l, i) => {
+          if (l.r.left < canvas.left || l.r.right > canvas.right || l.r.top < canvas.top || l.r.bottom > canvas.bottom) problems.push(`outside the canvas: ${l.text}`);
+          if (panels.some((p) => hit(l.r, p))) problems.push(`under a panel: ${l.text}`);
+          for (const other of labels.slice(i + 1)) if (hit(l.r, other.r)) problems.push(`overlaps: ${l.text} / ${other.text}`);
+        });
+        return { problems, sectors: labels.filter((l) => l.sector).length };
+      });
+      expect(report.problems, `${fw} at ${width}x${height}`).toEqual([]);
+      expect(report.sectors, `${fw} at ${width}x${height}: sector titles shown`).toBeGreaterThanOrEqual(4);
+    }
+  }
+});
+
+test.describe("on a phone", () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+  test("the Observatory opens on its outline, the 3D scene one tap away", async ({ page }) => {
+    await signIn(page);
+    const errors = watchErrors(page);
+    await page.goto(`${WS}/observatory/nist-csf-2.0`);
+    await expect(page.getByRole("tree", { name: "Framework outline" })).toBeVisible();
+    await expect(page.locator(".observatory__canvas canvas")).toHaveCount(0);
+    await page.getByRole("tree", { name: "Framework outline" }).locator(".outline__row", { hasText: "GV" }).first().click();
+    await expect(page.locator("aside.inspector")).toBeVisible();
+    await page.getByRole("button", { name: "Close inspector" }).click();
+    await page.getByRole("button", { name: "3D", exact: true }).click();
+    await expect(page.locator(".observatory__canvas canvas")).toBeVisible();
+    await page.getByRole("button", { name: "Show the outline" }).click();
+    await expect(page.getByRole("tree", { name: "Framework outline" })).toBeVisible();
+    expect(errors).toEqual([]);
+  });
 });

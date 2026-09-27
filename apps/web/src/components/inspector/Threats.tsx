@@ -193,7 +193,7 @@ export function ThreatInspector({ data, onClose }: { data: NodeDetail; onClose: 
   }, [threat.requirements]);
   const c = threat.coverage;
   return (
-    <aside className="inspector" aria-label={`${node.code} details`}>
+    <aside className="inspector" aria-label={`${node.code} details`} data-hud>
       <header className="inspector__head">
         <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
           <FrameworkBadge frameworkId={node.frameworkId} />

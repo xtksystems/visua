@@ -25,7 +25,7 @@ export function Inspector({ nodeId, onClose }: { nodeId: string; onClose: () => 
   const [tab, setTab] = useState<Tab>("overview");
   if (isLoading || !data) {
     return (
-      <aside className="inspector" aria-busy="true">
+      <aside className="inspector" aria-busy="true" data-hud>
         <div className="muted">Loading…</div>
       </aside>
     );
@@ -35,7 +35,7 @@ export function Inspector({ nodeId, onClose }: { nodeId: string; onClose: () => 
   const { node } = data;
   const status = data.status?.status ?? data.groupStatus ?? "not-started";
   return (
-    <aside className="inspector" aria-label={`${node.code} details`}>
+    <aside className="inspector" aria-label={`${node.code} details`} data-hud>
       <header className="inspector__head">
         <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
           <FrameworkBadge frameworkId={node.frameworkId} />

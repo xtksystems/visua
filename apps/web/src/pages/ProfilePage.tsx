@@ -90,7 +90,19 @@ function BulletChart({ rows, functions }: { rows: Row[]; functions: LeanNode[] }
                     <span className="bullet__bar" style={{ width: x(r.current) }} />
                     <span className="bullet__target" style={{ left: x(r.target) }} />
                     {hover === r.node.id && (
-                      <span className="tooltip" style={{ position: "absolute", left: x(Math.max(r.current, r.target)), top: -46, marginLeft: 10, whiteSpace: "nowrap" }}>
+                      // Opens toward the middle of the chart, so it never widens the page.
+                      <span
+                        className="tooltip"
+                        style={{
+                          position: "absolute",
+                          bottom: "calc(100% + 6px)",
+                          top: "auto",
+                          width: "max-content",
+                          maxWidth: "min(280px, 100%)",
+                          whiteSpace: "normal",
+                          ...(Math.max(r.current, r.target) > 2 ? { right: `calc(100% - ${x(Math.max(r.current, r.target))})`, left: "auto" } : { left: x(Math.max(r.current, r.target)) }),
+                        }}
+                      >
                         <strong className="mono">{r.current.toFixed(1)}</strong> current · <strong className="mono">{r.target.toFixed(1)}</strong> target · {r.gaps}/{r.units} below target
                       </span>
                     )}

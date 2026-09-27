@@ -128,6 +128,20 @@ function shots(meta: Meta, runId: string | undefined): Shot[] {
   for (const [fw, id] of Object.entries(SCENE_SELECTION)) {
     if (has(fw)) list.push({ name: `observatory-${fw}-inspector`, path: `${WS}/observatory/${fw}?select=${encodeURIComponent(id)}`, kind: "scene" });
   }
+  // Phones open the Observatory on its outline; this shot switches to the 3D scene.
+  list.push({
+    name: "observatory-nist-csf-2.0-3d",
+    path: `${WS}/observatory/nist-csf-2.0`,
+    kind: "scene",
+    act: async (page) => {
+      const button = page.getByRole("button", { name: "3D", exact: true });
+      if (await button.count()) {
+        await button.click();
+        await page.locator(".observatory__canvas canvas").first().waitFor({ timeout: 20_000 });
+        await page.waitForTimeout(2500);
+      }
+    },
+  });
   list.push(
     { name: "nexus-threat-ring", path: `${WS}/crosswalk`, kind: "scene" },
     {

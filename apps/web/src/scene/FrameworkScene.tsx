@@ -4,9 +4,7 @@
  * translucent "gap glass" up to the target level; groups are beacons; tasks
  * orbit as satellites; evidence docks as crystals; agents travel as comets.
  */
-import { Billboard, Line, Text } from "@react-three/drei";
-import FONT_MONO from "@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff?url";
-import FONT_DISPLAY from "@fontsource/space-grotesk/files/space-grotesk-latin-600-normal.woff?url";
+import { Line } from "@react-three/drei";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { useLayoutEffect, useMemo, useRef } from "react";
 import {
@@ -30,6 +28,7 @@ import { useAgentActivity } from "../state/agentActivity.ts";
 import type { Lens } from "../state/ui.ts";
 import { TOKENS, unitColor } from "./colors.ts";
 import type { Layout, Vec3 } from "./layout.ts";
+import { ScreenLabels, type ScreenLabel } from "./ScreenLabels.tsx";
 
 
 export interface SceneProps {
@@ -63,19 +62,25 @@ function UnitField({ layout, state, lens, onHover, onSelect, reducedMotion }: Sc
   const shown = useRef<Float32Array>(new Float32Array(count));
   const goal = useRef<Float32Array>(new Float32Array(count));
   const tops = useRef<Float32Array>(new Float32Array(count));
+  // Units out of scope (not applicable, or no link for a threat) shrink to small dots so the ones that count stand out.
+  const widths = useRef<Float32Array>(new Float32Array(count).fill(1));
   const animating = useRef(true);
 
   // Targets for heights whenever state changes.
   useLayoutEffect(() => {
     const g = new Float32Array(count);
     const t = new Float32Array(count);
+    const w = new Float32Array(count);
     ids.forEach((id, i) => {
       const u = state?.units[id];
-      g[i] = heightFor(u ? u.current : 0, layout.view);
+      const out = !!u && !u.applicable;
+      g[i] = out ? 0.08 : heightFor(u ? u.current : 0, layout.view);
       t[i] = u && u.applicable ? heightFor(Math.max(u.current, u.target), layout.view) : g[i]!;
+      w[i] = out ? 0.42 : 1;
     });
     goal.current = g;
     tops.current = t;
+    widths.current = w;
     if (shown.current.length !== count) shown.current = new Float32Array(g);
     if (reducedMotion) shown.current = new Float32Array(g);
     animating.current = true;
@@ -105,7 +110,7 @@ function UnitField({ layout, state, lens, onHover, onSelect, reducedMotion }: Sc
       if (next !== tgt) moving = true;
       shown.current[i] = next;
       const p = layout.positions.get(ids[i]!)!;
-      const r = layout.cell;
+      const r = layout.cell * (widths.current[i] ?? 1);
       tmp.position.set(p[0], 0, p[2]);
       tmp.scale.set(r, next, r);
       tmp.updateMatrix();
@@ -262,24 +267,8 @@ function Rings({ layout }: { layout: Layout }) {
  * A billboard that hides itself when the camera comes closer than `near`, so
  * large sector titles never fill the foreground after a fly-in.
  */
-function DistanceFade({ position, near, children }: { position: Vec3; near: number; children: React.ReactNode }) {
-  const ref = useRef<Group>(null);
-  const world = useMemo(() => new Vector3(...position), [position]);
-  useFrame(({ camera }) => {
-    if (ref.current) ref.current.visible = camera.position.distanceTo(world) > near;
-  });
-  return (
-    <Billboard ref={ref} position={position}>
-      {children}
-    </Billboard>
-  );
-}
-
-function Sectors({ layout, state, selectedId, onSelect }: SceneProps) {
-  const many = layout.sectors.length > 12;
-  const big = layout.radius > 60;
-  const titleSize = big ? (many ? 1.7 : 2.4) : 1.15;
-  const subSize = big ? (many ? 1.15 : 1.6) : 0.75;
+function Sectors({ layout, state, selectedId }: SceneProps) {
+  if (layout.view !== "constellation") return null;
   return (
     <group>
       {layout.sectors.map((s) => {
@@ -292,43 +281,7 @@ function Sectors({ layout, state, selectedId, onSelect }: SceneProps) {
           points.push([Math.cos(a) * s.radius, 0.02, Math.sin(a) * s.radius]);
         }
         const active = selectedId === s.id;
-        return (
-          <group key={s.id}>
-            {layout.view === "constellation" && <Line points={points} color={active ? TOKENS.primary : color} lineWidth={active ? 3 : 1.5} transparent opacity={active ? 1 : 0.55} />}
-            <DistanceFade position={[s.labelPos[0], big ? 4.5 : 2.2, s.labelPos[2]]} near={titleSize * 16}>
-              <Text
-                fontSize={titleSize}
-                font={FONT_DISPLAY}
-                color={active ? TOKENS.primary : TOKENS.onSurface}
-                outlineWidth={titleSize * 0.07}
-                outlineColor={TOKENS.neutral}
-                anchorX="center"
-                anchorY="bottom"
-                letterSpacing={0.08}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSelect(s.id);
-                }}
-              >
-                {`${s.code}${s.title && s.title.toUpperCase() !== s.code.toUpperCase() ? ` · ${(many && s.title.length > 26 ? `${s.title.slice(0, 25)}…` : s.title).toUpperCase()}` : ""}`}
-              </Text>
-              {g && (
-                <Text
-                  position={[0, -subSize * 0.45, 0]}
-                  fontSize={subSize}
-                  font={FONT_MONO}
-                  color={TOKENS.muted}
-                  outlineWidth={subSize * 0.08}
-                  outlineColor={TOKENS.neutral}
-                  anchorX="center"
-                  anchorY="top"
-                >
-                  {state?.threat ? `${Math.round(g.readiness * 100)}% covered · ${g.total} with links` : `${Math.round(g.readiness * 100)}% ready · ${g.gaps} gaps`}
-                </Text>
-              )}
-            </DistanceFade>
-          </group>
-        );
+        return <Line key={s.id} points={points} color={active ? TOKENS.primary : color} lineWidth={active ? 3 : 1.5} transparent opacity={active ? 1 : 0.55} />;
       })}
     </group>
   );
@@ -497,77 +450,70 @@ function AgentComets({ layout, reducedMotion }: { layout: Layout; reducedMotion:
   );
 }
 
-/** Level-of-detail labels: codes for the selection, hover, focus and the selected group's children. */
-function Labels({ layout, state, selectedId, hoveredId, focusIds }: SceneProps) {
-  const ids = useMemo(() => {
-    const set = new Set<string>();
-    const add = (id: string | null | undefined) => id && layout.positions.has(id) && set.add(id);
-    add(selectedId);
-    add(hoveredId);
-    focusIds.forEach(add);
-    const selectedNode = selectedId ? layout.byId.get(selectedId) : undefined;
-    const group = selectedNode ? (selectedNode.assessable && selectedNode.parentId ? selectedNode.parentId : selectedNode.id) : undefined;
+const pct = (x: number) => `${Math.round(x * 100)}%`;
+
+/**
+ * Titles and codes, placed in screen space (ScreenLabels): sector titles outside the
+ * ring; codes for the selection, hover, agent focus, the selected group's members and
+ * the mid-level groups when there are few. Higher priority wins where labels collide.
+ */
+function SceneLabels({ layout, state, selectedId, hoveredId, focusIds, onSelect }: SceneProps) {
+  const labels = useMemo<ScreenLabel[]>(() => {
+    const out: ScreenLabel[] = [];
+    const selected = selectedId ? layout.byId.get(selectedId) : undefined;
+    let root = selected;
+    while (root?.parentId) root = layout.byId.get(root.parentId);
+    for (const s of layout.sectors) {
+      const g = state?.groups[s.id];
+      const mid = (s.start + s.end) / 2;
+      const position: Vec3 = layout.view === "constellation" ? [Math.cos(mid) * (s.radius + 1), 0.3, Math.sin(mid) * (s.radius + 1)] : s.labelPos;
+      const titled = !!s.title && s.title.toUpperCase() !== s.code.toUpperCase();
+      out.push({
+        id: `sector:${s.id}`,
+        variant: "sector",
+        position,
+        outwardFrom: [0, 0, 0],
+        code: titled ? s.code : undefined,
+        title: titled ? s.title : s.code,
+        sub: g ? (state?.threat ? `${pct(g.readiness)} covered · ${g.total} with links` : `${pct(g.readiness)} ready · ${g.gaps} gaps`) : undefined,
+        priority: root ? (root.id === s.id ? 700 : 300) : 500,
+        active: selectedId === s.id,
+        onClick: () => onSelect(s.id),
+      });
+    }
+    const focus = new Set(focusIds);
+    const members = new Set<string>();
+    const group = selected ? (selected.assessable && selected.parentId ? selected.parentId : selected.id) : undefined;
     if (group) {
       const walk = (id: string) => {
         for (const k of layout.children.get(id) ?? []) {
-          add(k.id);
-          if (set.size < 70) walk(k.id);
+          members.add(k.id);
+          if (members.size < 90) walk(k.id);
         }
       };
       walk(group);
     }
-    if (layout.view === "constellation" && layout.mids.length <= 40) layout.mids.forEach(add);
-    return [...set].slice(0, 90);
-  }, [layout, selectedId, hoveredId, focusIds]);
-  const size = layout.radius > 60 ? 0.9 : 0.46;
-  // Fit each label into the gap to its nearest labeled neighbor (monospace ≈ 0.62 em per glyph);
-  // labels that cannot stay legible are dropped, and the selection is lifted above its row.
-  const placed = useMemo(() => {
-    const textOf = (id: string) => {
-      const n = layout.byId.get(id);
-      return (n?.meta?.["label"] as string | undefined) ?? n?.code ?? "";
-    };
-    return ids.map((id) => {
+    const ids = new Set<string>([selectedId, hoveredId, ...focusIds, ...members].filter((id): id is string => !!id && layout.positions.has(id)));
+    if (layout.view === "constellation" && layout.mids.length <= 40) for (const id of layout.mids) ids.add(id);
+    for (const id of ids) {
+      const node = layout.byId.get(id);
       const p = layout.positions.get(id)!;
-      let nearest = Infinity;
-      for (const other of ids) {
-        if (other === id) continue;
-        const q = layout.positions.get(other)!;
-        nearest = Math.min(nearest, Math.hypot(p[0] - q[0], p[2] - q[2]));
-      }
-      const text = textOf(id);
-      const fit = Number.isFinite(nearest) ? (nearest * 0.92) / (0.62 * Math.max(text.length, 1)) : size;
-      return { id, text, fontSize: Math.min(size, fit) };
-    });
-  }, [ids, layout, size]);
-  return (
-    <group>
-      {placed.map(({ id, text, fontSize }) => {
-        const node = layout.byId.get(id);
-        const p = layout.positions.get(id)!;
-        const u = state?.units[id];
-        const emphasized = id === selectedId || id === hoveredId;
-        if (!emphasized && fontSize < size * 0.42) return null;
-        const base = node?.assessable ? heightFor(Math.max(u?.current ?? 0, u?.target ?? 0), layout.view) + 0.75 : 1.1;
-        const y = emphasized ? base + size * 1.6 : base;
-        return (
-          <Billboard key={id} position={[p[0], y, p[2]]}>
-            <Text
-              fontSize={emphasized ? size * 1.35 : fontSize}
-              font={FONT_MONO}
-              color={emphasized ? TOKENS.onSurface : TOKENS.muted}
-              outlineWidth={(emphasized ? size : fontSize) * 0.12}
-              outlineColor={TOKENS.neutral}
-              anchorX="center"
-              anchorY="bottom"
-            >
-              {text}
-            </Text>
-          </Billboard>
-        );
-      })}
-    </group>
-  );
+      const u = state?.units[id];
+      const emphasized = id === selectedId || id === hoveredId;
+      const y = node?.assessable ? heightFor(Math.max(u?.current ?? 0, u?.target ?? 0), layout.view) + 0.3 : 0.9;
+      out.push({
+        id: `code:${id}`,
+        variant: emphasized ? "selected" : "code",
+        position: [p[0], y, p[2]],
+        title: (node?.meta?.["label"] as string | undefined) ?? node?.code ?? "",
+        // Groups with units in scope (a law that applies) outrank the rest when space is short.
+        priority: id === selectedId ? 1000 : id === hoveredId ? 900 : focus.has(id) ? 450 : members.has(id) ? 350 : state?.groups[id]?.total ? 260 : 200,
+        active: id === selectedId,
+      });
+    }
+    return out;
+  }, [layout, state, selectedId, hoveredId, focusIds, onSelect]);
+  return <ScreenLabels labels={labels} />;
 }
 
 export function FrameworkScene(props: SceneProps & { agentActive: boolean }) {
@@ -583,7 +529,7 @@ export function FrameworkScene(props: SceneProps & { agentActive: boolean }) {
       <Crystals {...props} />
       <Selection {...props} />
       <AgentComets layout={props.layout} reducedMotion={props.reducedMotion} />
-      <Labels {...props} />
+      <SceneLabels {...props} />
     </group>
   );
 }
