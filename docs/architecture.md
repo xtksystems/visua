@@ -290,6 +290,13 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     A session created through an organization's own SSO connection is scoped to that
     organization, so one tenant's identity provider can never grant access to another
     tenant.
+  - An organization's provider is its owner's choice, so every request to it (discovery,
+    token, keys) goes through `auth/egress.ts`: private, loopback, link-local and other
+    non-public addresses are refused unless the operator allows the host
+    (`VISUA_OIDC_PRIVATE_ISSUERS`). The check runs in the connection's own DNS lookup, on
+    the addresses the socket will use, so DNS rebinding cannot bypass it, and responses are
+    capped at 1 MB. Literal private addresses and `localhost` are refused when the issuer is
+    saved. The platform provider is the operator's own configuration and is not filtered.
   - A connection's provider can sign in as any member on its domains, owners included,
     so choosing it (issuer, client, secret, domains; adding or removing a connection) needs
     `tenant.own`. Admins enable, disable and set provisioning. A secret never follows a
@@ -443,7 +450,7 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 6. Testing
 
-- `packages/*/test` and `apps/server/test` (Vitest, 138 tests):
+- `packages/*/test` and `apps/server/test` (Vitest, 165 tests):
   - official counts and citations
   - identifier normalization
   - the SOC 2 skeleton and the licensed overlay
@@ -480,7 +487,9 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     organization audit trail, and OpenID Connect against a mock provider (PKCE, replay,
     the browser that started the flow, JIT provisioning, domain checks, tenant-scoped
     sessions, Require SSO, owner-only provider changes, verified email linking,
-    same-site return paths)
+    same-site return paths), and organization providers kept off private addresses
+    unless the operator allows them (`egress.test.ts`: address classes, literal and
+    DNS-resolved refusals, the response cap)
   - the Postgres event relay (`relay.test.ts`): reconnection with backoff, failing fast
     at startup, NOTIFY payloads sized in bytes
   - `VISUA_TEST_DATABASE_URL=postgres://…` runs the server suites on Postgres, each run
@@ -511,11 +520,10 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   phish them), and first come holds a domain until an operator intervenes. DNS
   verification is on the roadmap; until then, run a shared installation only for
   organizations you trust with their domain claims.
-- The server fetches an SSO connection's issuer (OpenID discovery) when someone signs in
-  through it. Only owners choose an issuer and it must use https, but private addresses
-  are not blocked, because identity providers such as Keycloak often run on internal
-  networks. In a shared installation, limit the server's outbound network to the
-  identity providers you use.
+- An organization's identity provider may be on a host the operator allows on a private
+  address (`VISUA_OIDC_PRIVATE_ISSUERS`); every organization can then point its connection
+  at that host. Allow only the internal providers you run, not `*`, in a shared
+  installation.
 - SAML and SCIM provisioning are not implemented; OpenID Connect covers the major
   identity providers.
 - The demo's historical assessment levels are written to storage in bulk when it is
