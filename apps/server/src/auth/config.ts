@@ -9,6 +9,8 @@
  *   VISUA_OIDC_CLIENT_SECRET    … client secret (omit for a public client; PKCE is always used)
  *   VISUA_OIDC_NAME             … button label (default "Single sign-on")
  *   VISUA_OIDC_ALLOW_HTTP=1     allow http:// issuers (local test IdPs only)
+ *   VISUA_OIDC_PRIVATE_ISSUERS  hosts an organization's SSO connection may reach on a private address
+ *                               (comma-separated names or IPs, e.g. keycloak.internal; "*" for any)
  *   VISUA_OIDC_TRUST_EMAIL=1    the platform IdP verifies every email it asserts, even without an email_verified claim
  *   VISUA_BOOTSTRAP_OWNER_EMAIL first owner, pre-provisioned when no organization has one
  *   VISUA_BOOTSTRAP_ORG_NAME    name of the organization created for that owner
@@ -32,6 +34,8 @@ export interface AuthConfig {
   secretIsDefault: boolean;
   platform?: PlatformIdp;
   allowHttpIssuers: boolean;
+  /** Hosts organizations' identity providers may use on private addresses (see egress.ts). */
+  privateIssuerHosts: string[];
   /** The platform IdP's email claim is verified even when it sends no email_verified claim. */
   trustPlatformEmail: boolean;
   bootstrapOwnerEmail?: string;
@@ -63,6 +67,7 @@ export function loadAuthConfig(env: NodeJS.ProcessEnv = process.env): AuthConfig
     secretIsDefault: !secret,
     platform: issuer && clientId ? { issuer, clientId, clientSecret: env["VISUA_OIDC_CLIENT_SECRET"] || undefined, name: env["VISUA_OIDC_NAME"] || "Single sign-on" } : undefined,
     allowHttpIssuers: env["VISUA_OIDC_ALLOW_HTTP"] === "1",
+    privateIssuerHosts: (env["VISUA_OIDC_PRIVATE_ISSUERS"] ?? "").split(",").map((h) => h.trim()).filter(Boolean),
     trustPlatformEmail: env["VISUA_OIDC_TRUST_EMAIL"] === "1",
     bootstrapOwnerEmail: env["VISUA_BOOTSTRAP_OWNER_EMAIL"]?.trim().toLowerCase() || undefined,
     bootstrapOrgName: env["VISUA_BOOTSTRAP_ORG_NAME"]?.trim() || "My organization",
