@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { ActivityEvent, OrganizationProfile, Workspace } from "@visua/core";
 import { FrameworkRegistry } from "@visua/frameworks";
 import { createApp } from "../src/app.ts";
@@ -224,6 +224,83 @@ describe(`upgrading SSO domains to DNS verification (${db.dialect})`, () => {
         ["sso_legacy", true],
         ["sso_rival", false],
       ]);
+    } finally {
+      await upgraded.store.close();
+      await target.cleanup();
+    }
+  });
+});
+
+describe(`SSO domain re-check columns (${db.dialect})`, () => {
+  const dir = mkdtempSync(join(tmpdir(), "visua-recheck-"));
+  afterAll(() => rmSync(dir, { recursive: true, force: true }));
+  // Nothing else in this file gives the shared `svc` a tenant row for DEFAULT_TENANT_ID (it is only
+  // created by migration 1 when upgrading a database that has orphaned, pre-tenancy workspaces); the
+  // sso_connections FK needs the row to exist before these tests can save a connection under it.
+  beforeAll(async () => {
+    if (await svc.store.identity.tenants.get(DEFAULT_TENANT_ID)) return;
+    const ts = new Date().toISOString();
+    await svc.store.identity.tenants.put({ id: DEFAULT_TENANT_ID, slug: "default", name: "Default organization", settings: {}, createdAt: ts, updatedAt: ts });
+  });
+  const ts = "2026-09-01T00:00:00.000Z";
+  const base = { tenantId: DEFAULT_TENANT_ID, issuer: "https://login.example", clientId: "visua", jitProvisioning: false, defaultRole: "viewer" as const, enabled: true, createdAt: ts, updatedAt: ts };
+
+  it("keeps the schedule and a lapse in the domain rows when a connection is saved again", async () => {
+    const sso = svc.store.identity.sso;
+    await sso.put({ ...base, id: "sso_cols", name: "Cols", domains: ["cols.example"], verification: { "cols.example": { token: "a".repeat(32), verifiedAt: ts, method: "dns", nextCheckAt: "2026-09-02T00:00:00.000Z" } } });
+    expect(await sso.dueForRecheck("2026-09-02T00:00:00.000Z", 25)).toContainEqual({ connectionId: "sso_cols", domain: "cols.example" });
+    expect(await sso.dueForRecheck("2026-09-01T23:59:59.000Z", 25)).not.toContainEqual({ connectionId: "sso_cols", domain: "cols.example" });
+    // An unrelated edit (rename) rewrites the rows: the schedule must survive.
+    const c = (await sso.get("sso_cols"))!;
+    await sso.put({ ...c, name: "Renamed" });
+    expect(await sso.dueForRecheck("2026-09-02T00:00:00.000Z", 25)).toContainEqual({ connectionId: "sso_cols", domain: "cols.example" });
+    await sso.delete(DEFAULT_TENANT_ID, "sso_cols");
+  });
+
+  it("routes a lapsed domain to its connection until another connection proves it", async () => {
+    const sso = svc.store.identity.sso;
+    const lapsed = { token: "b".repeat(32), method: "dns" as const, lapsedAt: "2026-09-10T00:00:00.000Z", nextCheckAt: "2026-09-11T00:00:00.000Z" };
+    await sso.put({ ...base, id: "sso_old", name: "Old", domains: ["lapse.example"], verification: { "lapse.example": lapsed } });
+    expect((await sso.byDomain("lapse.example"))?.id).toBe("sso_old");
+    expect(await sso.domainOwner("lapse.example")).toBeUndefined();
+    // Another connection may now prove it (the verified unique index does not see a lapsed row)...
+    await sso.put({ ...base, id: "sso_new", name: "New", domains: ["lapse.example"], verification: { "lapse.example": { token: "c".repeat(32), verifiedAt: ts, method: "dns" } } });
+    // ...and then routing moves to it.
+    expect((await sso.byDomain("lapse.example"))?.id).toBe("sso_new");
+    await sso.delete(DEFAULT_TENANT_ID, "sso_old");
+    await sso.delete(DEFAULT_TENANT_ID, "sso_new");
+  });
+
+  it("schedules the first re-check of every DNS-verified domain within a day when upgrading", async () => {
+    const target = TEST_PG_URL ? await testDatabase("recheckmig") : { url: join(dir, "recheck.db"), cleanup: async () => undefined };
+    const J = TEST_PG_URL ? "?::jsonb" : "?";
+    const old = TEST_PG_URL ? new PostgresDriver(target.url) : new SqliteDriver(target.url);
+    await old.execute(`CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL)`);
+    for (const m of MIGRATIONS.filter((m) => m.version < 4)) {
+      await old.transaction(async (tx) => {
+        await m.up(tx);
+        await tx.execute(`INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)`, [m.version, m.name, ts]);
+      });
+    }
+    await old.execute(`INSERT INTO tenants (id, slug, data, created_at, updated_at) VALUES (?, ?, ${J}, ?, ?)`, ["tnt_m4", "m4", JSON.stringify({ id: "tnt_m4", slug: "m4", name: "M4", settings: {}, createdAt: ts, updatedAt: ts }), ts, ts]);
+    const conn = {
+      ...base, id: "sso_m4", tenantId: "tnt_m4", name: "M4", domains: ["dns-m4.example", "old-m4.example"],
+      verification: { "dns-m4.example": { token: "d".repeat(32), verifiedAt: ts, method: "dns" }, "old-m4.example": { token: "e".repeat(32), verifiedAt: ts, method: "grandfathered" } },
+    };
+    await old.execute(`INSERT INTO sso_connections (id, tenant_id, data, created_at, updated_at) VALUES (?, ?, ${J}, ?, ?)`, [conn.id, conn.tenantId, JSON.stringify(conn), ts, ts]);
+    for (const d of conn.domains) await old.execute(`INSERT INTO sso_domains (domain, connection_id, tenant_id, verified_at) VALUES (?, ?, ?, ?)`, [d, conn.id, conn.tenantId, ts]);
+    await old.close();
+
+    const before = Date.now();
+    const upgraded = await createService({ database: target.url, registry });
+    try {
+      const v = (await upgraded.store.identity.sso.get("sso_m4"))!.verification!;
+      const next = Date.parse(v["dns-m4.example"]!.nextCheckAt!);
+      expect(next).toBeGreaterThanOrEqual(before - 1000);
+      expect(next).toBeLessThanOrEqual(Date.now() + 24 * 3_600_000);
+      expect(v["old-m4.example"]!.nextCheckAt).toBeUndefined();
+      const due = await upgraded.store.identity.sso.dueForRecheck(new Date(Date.now() + 25 * 3_600_000).toISOString(), 25);
+      expect(due).toEqual([{ connectionId: "sso_m4", domain: "dns-m4.example" }]);
     } finally {
       await upgraded.store.close();
       await target.cleanup();
