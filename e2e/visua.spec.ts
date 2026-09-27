@@ -67,9 +67,13 @@ test("Observatory renders the 3D scene with its keyboard-accessible 2D twin", as
   expect(errors).toEqual([]);
 });
 
-test("Observatory compiles its shaders before the first selection, not on it", async ({ page }) => {
-  // Linking a WebGL program blocks the frame that first draws its material: 60 to 100 ms when
-  // the selection halo, its path and agent comets appeared on the first click.
+/**
+ * Opens the CSF Observatory counting WebGL program links, and returns the count once loading has
+ * settled plus a step runner: a step (a selection) must link nothing. Linking a program blocks
+ * the frame that first draws its material: 60 to 100 ms when the selection halo, its path and
+ * agent comets appeared on the first click.
+ */
+async function observatoryCountingLinks(page: Page, settle?: () => Promise<void>) {
   await page.addInitScript(() => {
     const w = window as unknown as { __links: number };
     w.__links = 0;
@@ -89,6 +93,8 @@ test("Observatory compiles its shaders before the first selection, not on it", a
       for (let i = 0; i < 4; i++) await new Promise(requestAnimationFrame);
       return (window as unknown as { __links: number }).__links;
     });
+  const effects = () => page.locator(".observatory__canvas canvas").getAttribute("data-effects");
+  await settle?.();
   // Loaded: the program count holds still across a few samples.
   let loaded = -1;
   for (let still = 0, sample = 0; still < 3 && sample < 30; sample++) {
@@ -97,18 +103,53 @@ test("Observatory compiles its shaders before the first selection, not on it", a
     loaded = now;
   }
   expect(loaded).toBeGreaterThan(0);
-  // Drill into a function, then open one of its outcomes.
-  const tree = page.getByRole("tree", { name: "Framework outline" });
-  await tree.getByRole("treeitem").first().focus();
-  await page.keyboard.press("Enter");
-  await page.keyboard.press("Enter");
-  await expect(page.locator("aside.inspector")).toBeVisible();
-  expect(await links(), "programs linked by the first selection").toBe(loaded);
-  // Nor on later ones: a sibling, then back up to the parent.
-  await page.keyboard.press("ArrowRight");
-  expect(await links(), "programs linked by selecting a sibling").toBe(loaded);
-  await page.keyboard.press("Escape");
-  expect(await links(), "programs linked by selecting the parent").toBe(loaded);
+  // When the performance monitor drops post-processing during a step (slow frames), every
+  // material recompiles for the screen and the step says nothing about the selection: the scene
+  // warms up again, and the step is taken again (it happens at most once).
+  const step = async (label: string, act: () => Promise<void>) => {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const before = await effects();
+      const count = await links();
+      await act();
+      const after = await links();
+      if ((await effects()) === before) {
+        expect(after, `programs linked by ${label}`).toBe(count);
+        return;
+      }
+      await links();
+    }
+    throw new Error(`Post-processing kept changing during ${label}`);
+  };
+  const selections = async () => {
+    // Drill into a function, open one of its outcomes, then a sibling, then back up to the parent.
+    await page.getByRole("tree", { name: "Framework outline" }).getByRole("treeitem").first().focus();
+    await step("the first selection", async () => {
+      await page.keyboard.press("Enter");
+      await page.keyboard.press("Enter");
+      await expect(page.locator("aside.inspector")).toBeVisible();
+    });
+    await step("selecting a sibling", () => page.keyboard.press("ArrowRight"));
+    await step("selecting the parent", () => page.keyboard.press("Escape"));
+  };
+  return { effects, selections };
+}
+
+test("Observatory compiles its shaders before the first selection, not on it", async ({ page }) => {
+  const { selections } = await observatoryCountingLinks(page);
+  await selections();
+});
+
+test("Observatory still compiles no shader on a selection once slow frames drop post-processing", async ({ page }) => {
+  const canvas = page.locator(".observatory__canvas canvas");
+  const { effects, selections } = await observatoryCountingLinks(page, async () => {
+    // Slow the page down until the performance monitor turns bloom and vignette off.
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send("Emulation.setCPUThrottlingRate", { rate: 20 });
+    await expect(canvas).toHaveAttribute("data-effects", "false", { timeout: 60_000 });
+    await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
+  });
+  expect(await effects()).toBe("false");
+  await selections();
 });
 
 test("Crosswalk Nexus selects a group and lists authoritative mappings", async ({ page }) => {
