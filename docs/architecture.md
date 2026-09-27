@@ -464,7 +464,7 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 6. Testing
 
-- `packages/*/test` and `apps/server/test` (Vitest, 171 tests):
+- `packages/*/test`, `apps/server/test` and `apps/web/test` (Vitest, 172 tests):
   - official counts and citations
   - identifier normalization
   - the SOC 2 skeleton and the licensed overlay
@@ -510,6 +510,8 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     at startup, NOTIFY payloads sized in bytes
   - `VISUA_TEST_DATABASE_URL=postgres://…` runs the server suites on Postgres, each run
     in its own schema
+  - 3D labels (`apps/web/test`): placed for the camera of the frame being drawn, not the
+    previous one (the camera controls leave its world matrix to the renderer)
 - `e2e/` (Playwright, 22 tests) runs against the production bundle served by the API,
   with an in-memory seeded database and WebGL on SwiftShader. It covers Home and Mission
   control's program links, the Observatory and its 2D twin, the Nexus, RMF, SOC 2, AI
