@@ -260,7 +260,12 @@ test("state AI laws: roles decide scope, upcoming obligations count apart, oblig
   const timeline = page.getByRole("list", { name: "Effective-date timeline of the tracked laws" });
   await expect(timeline).toBeVisible();
   // Each month says what takes effect, on hover and keyboard focus; the list view gives every date.
-  await timeline.getByRole("listitem").first().focus();
+  // Arrive by keyboard: a page without window focus (headless Chromium on macOS) moves focus on
+  // element.focus() without firing focus events, so a bare focus() tests nothing a person does.
+  const months = timeline.getByRole("listitem");
+  await months.nth(1).focus();
+  await page.keyboard.press("Shift+Tab");
+  await expect(months.first()).toBeFocused();
   await expect(page.locator(".law-timeline__tip")).toContainText(/obligations? (in force since|take effect)/);
   await page.getByRole("group", { name: "Timeline view" }).getByRole("button", { name: "List" }).click();
   await expect(page.getByRole("table", { name: "Effective dates of the tracked laws" }).getByRole("row", { name: /CA-SB243/ }).first()).toBeVisible();
@@ -362,6 +367,9 @@ test("no page, panel or table scrolls sideways at 1024px or on a phone (the ATLA
 });
 
 test("3D scenes: labels stay inside the canvas, clear of the HUD and of each other", async ({ page }) => {
+  // Ten scenes, each measured only once its camera has landed: at SwiftShader's frame rate that
+  // takes about a minute on an arm64 Mac.
+  test.setTimeout(180_000);
   await signIn(page);
   const meta = (await (await page.request.get("/api/meta")).json()) as { frameworks: { id: string }[] };
   const scenes = [...["nist-csf-2.0", "nist-sp-800-53-r5", "mitre-atlas", "us-state-ai-laws"].filter((id) => meta.frameworks.some((f) => f.id === id)).map((id) => `/observatory/${id}`), "/crosswalk"];
@@ -374,7 +382,31 @@ test("3D scenes: labels stay inside the canvas, clear of the HUD and of each oth
       await page.goto(`${WS}${fw}`);
       await expect(page.locator(".observatory__canvas canvas")).toBeVisible();
       await expect(page.locator(".scene-label--sector").filter({ visible: true }).first()).toBeVisible();
-      await page.waitForTimeout(1200);
+      // Measure once the camera has landed. Labels are placed again on every frame the camera moves,
+      // so the layout is sampled a few rendered frames apart, not a fixed time apart: a software
+      // renderer can stall for a second on its first frames (SwiftShader on arm64 does), and a
+      // stalled scene looks as still as a settled one.
+      const layout = () =>
+        page.evaluate(async () => {
+          for (let i = 0; i < 4; i++) await new Promise(requestAnimationFrame);
+          return [...document.querySelectorAll<HTMLElement>(".scene-label")]
+            .filter((l) => l.style.visibility === "visible")
+            .map((l) => {
+              const r = l.getBoundingClientRect();
+              return `${l.textContent}@${Math.round(r.left)},${Math.round(r.top)}`;
+            })
+            .join("|");
+        });
+      let previous = "";
+      let still = 0;
+      await expect
+        .poll(async () => {
+          const now = await layout();
+          still = now === previous ? still + 1 : 0;
+          previous = now;
+          return still;
+        }, { intervals: [400], timeout: 15_000, message: `${fw} at ${width}x${height}: labels settle` })
+        .toBeGreaterThanOrEqual(2);
       const report = await page.evaluate(() => {
         const canvas = document.querySelector(".observatory__canvas canvas")!.getBoundingClientRect();
         const panels = [...document.querySelectorAll("[data-hud]")].map((e) => e.getBoundingClientRect());
