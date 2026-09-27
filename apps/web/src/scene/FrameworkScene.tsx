@@ -5,7 +5,7 @@
  * orbit as satellites; evidence docks as crystals; agents travel as comets.
  */
 import { Line } from "@react-three/drei";
-import { useFrame, type ThreeEvent } from "@react-three/fiber";
+import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { memo, useLayoutEffect, useMemo, useRef } from "react";
 import {
   AdditiveBlending,
@@ -538,21 +538,25 @@ function SceneLabels({ layout, state, selectedId, hoveredId, focusIds, onSelect 
  * drawn for a couple of frames, for one unit, shrunk inside the opaque core where the depth
  * test hides them, so they compile through the same pipeline (render target, tone mapping)
  * as the real ones. Then they are hidden, not removed, and never re-rendered by a selection:
- * disposing their materials would let three.js delete the programs again.
+ * disposing their materials would let three.js delete the programs again. They are drawn
+ * again when the layout changes, and when post-processing turns on or off (the performance
+ * monitor drops it on slow frames): drawing straight to the screen needs other programs.
  * (`renderer.compileAsync` compiles for the screen, not the post-processing target.)
  */
-const ShaderWarmup = memo(function ShaderWarmup({ layout }: { layout: Layout }) {
+const ShaderWarmup = memo(function ShaderWarmup({ layout, effects }: { layout: Layout; effects: boolean }) {
   const group = useRef<Group>(null);
+  const gl = useThree((s) => s.gl);
   const frames = useRef(0);
   const unit = layout.units[0];
   const targets = useMemo(() => (unit ? [unit] : []), [unit]);
-  // Shown again for each layout, drawn however far they are from the camera's view.
+  // Shown again for each layout and pipeline, drawn however far they are from the camera's view.
   useLayoutEffect(() => {
+    gl.domElement.dataset["effects"] = String(effects);
     frames.current = 0;
     if (!group.current) return;
     group.current.visible = true;
     group.current.traverse((o) => (o.frustumCulled = false));
-  }, [layout]);
+  }, [layout, effects, gl]);
   useFrame(() => {
     if (group.current?.visible && ++frames.current > 2) group.current.visible = false;
   });
@@ -566,7 +570,7 @@ const ShaderWarmup = memo(function ShaderWarmup({ layout }: { layout: Layout }) 
   );
 });
 
-export function FrameworkScene(props: SceneProps & { agentActive: boolean }) {
+export function FrameworkScene(props: SceneProps & { agentActive: boolean; effects: boolean }) {
   return (
     <group>
       <Rings layout={props.layout} />
@@ -579,7 +583,7 @@ export function FrameworkScene(props: SceneProps & { agentActive: boolean }) {
       <Crystals {...props} />
       <Selection {...props} />
       <AgentComets layout={props.layout} reducedMotion={props.reducedMotion} />
-      <ShaderWarmup layout={props.layout} />
+      <ShaderWarmup layout={props.layout} effects={props.effects} />
       <SceneLabels {...props} />
     </group>
   );

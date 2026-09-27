@@ -389,7 +389,9 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   CameraControls fly to a selection. Bloom and vignette are applied under a performance
   monitor. A selection compiles no shaders: the programs only the selection halo, its path
   and agent comets use are compiled while the scene loads (the real components, drawn for
-  a few frames hidden inside the core, then kept hidden so their programs stay alive), and
+  a few frames hidden inside the core, then kept hidden so their programs stay alive, and
+  drawn again when the performance monitor drops post-processing, since drawing straight
+  to the screen needs other programs), and
   line points are memoized, because drei's `Line` disposes its material whenever its points
   change and three.js then deletes the shared program. Units out of scope (an undecided law's obligations, controls outside the
   baseline) shrink to small dots; nodes with no unit below them (ATLAS's mitigations)
@@ -508,14 +510,14 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     at startup, NOTIFY payloads sized in bytes
   - `VISUA_TEST_DATABASE_URL=postgres://…` runs the server suites on Postgres, each run
     in its own schema
-- `e2e/` (Playwright, 21 tests) runs against the production bundle served by the API,
+- `e2e/` (Playwright, 22 tests) runs against the production bundle served by the API,
   with an in-memory seeded database and WebGL on SwiftShader. It covers Home and Mission
   control's program links, the Observatory and its 2D twin, the Nexus, RMF, SOC 2, AI
   governance, an agent run with citations, the trust center and its per-framework
   choice, persona sign-in, a viewer's read-only view, tenant separation, organization
   administration, the threat views (ATLAS matrix and its keyboard navigation, the
   coverage inspector and its link filter, OWASP editions, the Nexus threat ring), a
-  threat catalog in the Observatory, no shader compiled by a selection in the Observatory, the State AI laws page (roles deciding scope, the
+  threat catalog in the Observatory, no shader compiled by a selection in the Observatory (with post-processing and after slow frames drop it), the State AI laws page (roles deciding scope, the
   timeline and its list view, obligations in 3D), and layout: labels in the 3D scenes
   stay inside the canvas and clear of the HUD and of each other at 1440 and 1024
   pixels, the rail folds into a menu on a phone, no page, panel or table scrolls sideways

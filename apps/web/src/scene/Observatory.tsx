@@ -142,7 +142,7 @@ export function Observatory(props: ObservatoryProps) {
       <directionalLight position={[30, 60, 20]} intensity={1.6} />
       <directionalLight position={[-40, 20, -30]} intensity={0.35} color={TOKENS.primary} />
       <Stars radius={props.layout.radius * 3} depth={props.layout.radius} count={1400} factor={2.2} saturation={0} fade speed={0} />
-      <FrameworkScene {...props} reducedMotion={reducedMotion} />
+      <FrameworkScene {...props} reducedMotion={reducedMotion} effects={effects} />
       <CameraRig layout={props.layout} selectedId={props.selectedId} focusIds={props.focusIds} focusSeq={props.focusSeq} reducedMotion={reducedMotion} />
       <PerformanceMonitor onDecline={() => setEffects(false)} />
       {effects && (
