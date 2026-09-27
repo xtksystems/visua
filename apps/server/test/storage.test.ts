@@ -12,6 +12,9 @@ import { createService } from "../src/context.ts";
 import { chainHash } from "../src/services/visua.ts";
 import { toPostgresParams } from "../src/storage/driver.ts";
 import { DEFAULT_TENANT_ID } from "../src/storage/index.ts";
+import { MIGRATIONS } from "../src/storage/migrations.ts";
+import { PostgresDriver } from "../src/storage/postgres.ts";
+import { SqliteDriver } from "../src/storage/sqlite.ts";
 import { TestClient } from "./client.ts";
 import { TEST_PG_URL, testDatabase } from "./db.ts";
 
@@ -177,5 +180,53 @@ describe("upgrading a SQLite database written before migrations", () => {
     const again = await createService({ database: file, registry });
     expect((await again.workspace("legacy")).description).toBe("Upgraded in place");
     await again.store.close();
+  });
+});
+
+describe(`upgrading SSO domains to DNS verification (${db.dialect})`, () => {
+  const dir = mkdtempSync(join(tmpdir(), "visua-sso-"));
+  afterAll(() => rmSync(dir, { recursive: true, force: true }));
+
+  it("grandfathers every domain claimed before verification existed, and holds each domain verified once", async () => {
+    const target = TEST_PG_URL ? await testDatabase("ssomig") : { url: join(dir, "sso.db"), cleanup: async () => undefined };
+    const J = TEST_PG_URL ? "?::jsonb" : "?";
+    const ts = new Date().toISOString();
+    // A database at version 2, with a connection claiming a domain the old way.
+    const old = TEST_PG_URL ? new PostgresDriver(target.url) : new SqliteDriver(target.url);
+    await old.execute(`CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL)`);
+    for (const m of MIGRATIONS.filter((m) => m.version < 3)) {
+      await old.transaction(async (tx) => {
+        await m.up(tx);
+        await tx.execute(`INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)`, [m.version, m.name, ts]);
+      });
+    }
+    await old.execute(`INSERT INTO tenants (id, slug, data, created_at, updated_at) VALUES (?, ?, ${J}, ?, ?)`, ["tnt_legacy", "legacy", JSON.stringify({ id: "tnt_legacy", slug: "legacy", name: "Legacy", settings: {}, createdAt: ts, updatedAt: ts }), ts, ts]);
+    const legacy = { id: "sso_legacy", tenantId: "tnt_legacy", name: "Legacy SSO", issuer: "https://login.legacy.example", clientId: "visua", domains: ["legacy-sso.example"], jitProvisioning: false, defaultRole: "viewer", enabled: true, createdAt: ts, updatedAt: ts };
+    await old.execute(`INSERT INTO sso_connections (id, tenant_id, data, created_at, updated_at) VALUES (?, ?, ${J}, ?, ?)`, [legacy.id, legacy.tenantId, JSON.stringify(legacy), ts, ts]);
+    await old.execute(`INSERT INTO sso_domains (domain, connection_id, tenant_id) VALUES (?, ?, ?)`, ["legacy-sso.example", legacy.id, legacy.tenantId]);
+    await old.close();
+
+    const upgraded = await createService({ database: target.url, registry });
+    try {
+      // Still routes: nobody is locked out by the upgrade.
+      expect((await upgraded.store.identity.sso.byDomain("legacy-sso.example"))?.id).toBe("sso_legacy");
+      expect((await upgraded.store.identity.sso.get("sso_legacy"))?.verification?.["legacy-sso.example"]).toMatchObject({
+        method: "grandfathered",
+        verifiedAt: expect.any(String),
+        token: expect.stringMatching(/^[0-9a-f]{32}$/),
+      });
+      // The database itself refuses a second verified claim on the domain.
+      const rival = { ...legacy, id: "sso_rival", verification: { "legacy-sso.example": { token: "0".repeat(32), verifiedAt: ts, method: "dns" as const } } };
+      await expect(upgraded.store.identity.sso.put({ ...rival, defaultRole: "viewer" })).rejects.toThrow();
+      // A pending claim beside it is fine.
+      await upgraded.store.identity.sso.put({ ...rival, defaultRole: "viewer", verification: { "legacy-sso.example": { token: "0".repeat(32) } } });
+      expect((await upgraded.store.identity.sso.claimants("legacy-sso.example")).map((c) => [c.connectionId, c.verified]).sort()).toEqual([
+        ["sso_legacy", true],
+        ["sso_rival", false],
+      ]);
+    } finally {
+      await upgraded.store.close();
+      await target.cleanup();
+    }
   });
 });

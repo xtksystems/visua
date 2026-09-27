@@ -9,7 +9,7 @@ import { SqliteDriver } from "./sqlite.ts";
 import { Store } from "./store.ts";
 
 export { Collection, ActivityLog, StateTable, WorkspaceTable, Store } from "./store.ts";
-export type { ApiTokenRecord, LoginFlow, SessionRecord, SsoConnection } from "./identity.ts";
+export type { ApiTokenRecord, DomainVerification, LoginFlow, SessionRecord, SsoConnection } from "./identity.ts";
 export { DEFAULT_TENANT_ID } from "./migrations.ts";
 export type { Dialect, SqlDriver } from "./driver.ts";
 

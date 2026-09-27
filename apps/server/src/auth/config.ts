@@ -10,6 +10,8 @@
  *   VISUA_OIDC_NAME             … button label (default "Single sign-on")
  *   VISUA_OIDC_ALLOW_HTTP=1     allow http:// issuers (local test IdPs only)
  *   VISUA_OIDC_TRUST_EMAIL=1    the platform IdP verifies every email it asserts, even without an email_verified claim
+ *   VISUA_SSO_DOMAIN_VERIFICATION  dns (default): an SSO connection's email domains route sign-ins only once
+ *                               proven by a DNS TXT record; off: trusted as claimed (single-organization installs)
  *   VISUA_BOOTSTRAP_OWNER_EMAIL first owner, pre-provisioned when no organization has one
  *   VISUA_BOOTSTRAP_ORG_NAME    name of the organization created for that owner
  *   VISUA_SESSION_HOURS         absolute session lifetime (default 12)
@@ -34,6 +36,8 @@ export interface AuthConfig {
   allowHttpIssuers: boolean;
   /** The platform IdP's email claim is verified even when it sends no email_verified claim. */
   trustPlatformEmail: boolean;
+  /** How SSO connections' email domains are proven: a DNS TXT record, or not at all. */
+  ssoDomainVerification: "dns" | "off";
   bootstrapOwnerEmail?: string;
   bootstrapOrgName: string;
   sessionHours: number;
@@ -64,6 +68,7 @@ export function loadAuthConfig(env: NodeJS.ProcessEnv = process.env): AuthConfig
     platform: issuer && clientId ? { issuer, clientId, clientSecret: env["VISUA_OIDC_CLIENT_SECRET"] || undefined, name: env["VISUA_OIDC_NAME"] || "Single sign-on" } : undefined,
     allowHttpIssuers: env["VISUA_OIDC_ALLOW_HTTP"] === "1",
     trustPlatformEmail: env["VISUA_OIDC_TRUST_EMAIL"] === "1",
+    ssoDomainVerification: env["VISUA_SSO_DOMAIN_VERIFICATION"] === "off" ? "off" : "dns",
     bootstrapOwnerEmail: env["VISUA_BOOTSTRAP_OWNER_EMAIL"]?.trim().toLowerCase() || undefined,
     bootstrapOrgName: env["VISUA_BOOTSTRAP_ORG_NAME"]?.trim() || "My organization",
     sessionHours: number("VISUA_SESSION_HOURS", 12),

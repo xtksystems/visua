@@ -353,6 +353,11 @@ export function authRoutes(app: Hono<AppEnv>, auth: AuthService): void {
     return c.json(publicConnection(await auth.upsertSsoConnection(c.get("tenantId"), { ...merged, id: existing.id }, principalOf(c))));
   });
 
+  // Checks the domain's TXT record now; admins may, since proving a domain chooses no provider.
+  app.post("/api/tenants/:tenant/sso/:id/domains/:domain/verify", need("tenant.manage"), async (c) =>
+    c.json(publicConnection(await auth.verifySsoDomain(c.get("tenantId"), c.req.param("id"), c.req.param("domain"), principalOf(c)))),
+  );
+
   app.delete("/api/tenants/:tenant/sso/:id", need("tenant.manage"), async (c) => {
     await auth.deleteSsoConnection(c.get("tenantId"), c.req.param("id"), principalOf(c));
     return c.body(null, 204);

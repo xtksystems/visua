@@ -14,12 +14,23 @@ const registry = FrameworkRegistry.load();
 const db = await testDatabase("auth");
 const svc = await createService({ database: db.url, registry });
 const idp = await startMockIdp();
-const auth = new AuthService(svc, {
-  ...loadAuthConfig({}),
-  mode: "dev",
-  allowHttpIssuers: true,
-  platform: { issuer: idp.issuer, clientId: idp.clientId, clientSecret: idp.clientSecret, name: "Test IdP" },
-});
+/** The DNS this suite's server sees: TXT records by name, which tests publish. */
+const txt = new Map<string, string[]>();
+const resolveTxt = async (name: string) => {
+  const values = txt.get(name);
+  if (!values) throw Object.assign(new Error(`queryTxt ENOTFOUND ${name}`), { code: "ENOTFOUND" });
+  return values.map((v) => [v]);
+};
+const auth = new AuthService(
+  svc,
+  {
+    ...loadAuthConfig({}),
+    mode: "dev",
+    allowHttpIssuers: true,
+    platform: { issuer: idp.issuer, clientId: idp.clientId, clientSecret: idp.clientSecret, name: "Test IdP" },
+  },
+  { resolveTxt },
+);
 const app = createApp(svc, auth);
 
 afterAll(async () => {
@@ -37,6 +48,18 @@ async function signIn(email: string, name?: string) {
   const res = await c.devLogin(email, name);
   expect(res.status).toBe(200);
   return c;
+}
+
+type DomainStatus = { domain: string; verified: boolean; method?: string; record?: { name: string; value: string } };
+type ConnectionJson = { id: string; domainStatus: DomainStatus[] };
+
+/** Publish a connection's TXT record for a domain and have the organization verify it. */
+async function proveDomain(client: TestClient, tenant: string, connection: ConnectionJson, domain: string) {
+  const record = connection.domainStatus.find((d) => d.domain === domain)!.record!;
+  txt.set(record.name, [record.value]);
+  const res = await client.post<ConnectionJson>(`/api/tenants/${tenant}/sso/${connection.id}/domains/${domain}/verify`);
+  expect(res.status, JSON.stringify(res.json)).toBe(200);
+  return res.json;
 }
 
 /** Complete an OpenID Connect sign-in through the mock provider. */
@@ -265,7 +288,7 @@ describe("single sign-on (OpenID Connect)", () => {
   });
 
   it("provisions members through an organization's own SSO connection, scoped to that organization", async () => {
-    const created = await alice.post<{ id: string; hasClientSecret: boolean; clientSecretSealed?: string }>(`/api/tenants/${aliceTenant}/sso`, {
+    const created = await alice.post<ConnectionJson & { hasClientSecret: boolean; clientSecretSealed?: string }>(`/api/tenants/${aliceTenant}/sso`, {
       name: "Acme Okta",
       issuer: idp.issuer,
       clientId: idp.clientId,
@@ -277,6 +300,10 @@ describe("single sign-on (OpenID Connect)", () => {
     expect(created.status).toBe(201);
     expect(created.json.hasClientSecret).toBe(true);
     expect(created.json.clientSecretSealed).toBeUndefined();
+    // Claimed, not yet proven: the domain's people are not sent to this provider.
+    expect(created.json.domainStatus).toMatchObject([{ domain: "acme-sso.example", verified: false, record: { name: "_visua-challenge.acme-sso.example" } }]);
+    expect((await new TestClient(app).post<{ connection: string }>("/api/auth/sso/discover", { email: "ivy@acme-sso.example" })).json.connection).toBe("platform");
+    await proveDomain(alice, aliceTenant, created.json, "acme-sso.example");
     const discovered = await new TestClient(app).post<{ connection: string }>("/api/auth/sso/discover", { email: "ivy@acme-sso.example" });
     expect(discovered.json.connection).toBe(created.json.id);
 
@@ -313,7 +340,7 @@ describe("single sign-on hardening", () => {
   beforeAll(async () => {
     olivia = await signIn("olivia@initech.example", "Olivia Owner");
     initech = (await olivia.get<Me>("/api/auth/me")).json.activeTenant!.id;
-    const created = await olivia.post<{ id: string }>(`/api/tenants/${initech}/sso`, {
+    const created = await olivia.post<ConnectionJson>(`/api/tenants/${initech}/sso`, {
       name: "Initech SSO",
       issuer: idp.issuer,
       clientId: idp.clientId,
@@ -324,6 +351,7 @@ describe("single sign-on hardening", () => {
     });
     expect(created.status).toBe(201);
     connectionId = created.json.id;
+    await proveDomain(olivia, initech, created.json, "initech-sso.example");
   });
 
   it("finishes a sign-in only in the browser that started it", async () => {
@@ -396,6 +424,100 @@ describe("single sign-on hardening", () => {
   it("allows only same-site relative return paths", () => {
     for (const bad of ["//evil.example", "/\\evil.example", "/\t/evil.example", "/\n/evil.example", "https://evil.example", "evil", "/ok\\..\\..\\x"]) expect(safeReturnTo(bad), JSON.stringify(bad)).toBe("/");
     for (const good of ["/", "/w/acme/agents?tab=inbox", "/w/acme/observatory/nist-csf-2.0?select=nist-csf-2.0%3AGV.OC-01"]) expect(safeReturnTo(good)).toBe(good);
+  });
+});
+
+describe("SSO domains are proven by DNS before they route or admit anyone", () => {
+  let owner: TestClient;
+  let tenant = "";
+  let connection: ConnectionJson;
+  const create = (client: TestClient, t: string, domains: string[]) =>
+    client.post<ConnectionJson & { error?: string }>(`/api/tenants/${t}/sso`, { name: "Umbrella SSO", issuer: idp.issuer, clientId: idp.clientId, clientSecret: idp.clientSecret, domains, jitProvisioning: true });
+  beforeAll(async () => {
+    owner = await signIn("uma@umbrella.example", "Uma Owner");
+    tenant = (await owner.get<Me>("/api/auth/me")).json.activeTenant!.id;
+    const created = await create(owner, tenant, ["umbrella-sso.example"]);
+    expect(created.status).toBe(201);
+    connection = created.json;
+  });
+
+  it("neither routes, admits nor can be required while a domain is pending", async () => {
+    expect((await new TestClient(app).post<{ connection: string }>("/api/auth/sso/discover", { email: "val@umbrella-sso.example" })).json.connection).toBe("platform");
+    const stranger = await oidcSignIn(connection.id, { sub: "okta|val", email: "val@umbrella-sso.example", email_verified: true });
+    expect(decodeURIComponent(stranger.redirect)).toContain("no verified email domain yet");
+    const required = await owner.patch<{ error: string }>(`/api/tenants/${tenant}`, { settings: { requireSso: true } });
+    expect(required.status).toBe(400);
+    expect(required.json.error).toMatch(/Verify at least one/);
+  });
+
+  it("verifies only the exact TXT record, lets admins do it, and records it in the organization's trail", async () => {
+    const record = connection.domainStatus[0]!.record!;
+    expect(record).toEqual({ name: "_visua-challenge.umbrella-sso.example", value: expect.stringMatching(/^visua-domain-verification=[0-9a-f]{32}$/) });
+    const verify = (client: TestClient) => client.post<ConnectionJson & { error?: string }>(`/api/tenants/${tenant}/sso/${connection.id}/domains/umbrella-sso.example/verify`);
+    const missing = await verify(owner);
+    expect(missing.status).toBe(400);
+    expect(missing.json.error).toContain(record.name);
+    txt.set(record.name, ["visua-domain-verification=someone-elses-token"]);
+    expect((await verify(owner)).status).toBe(400);
+    // Other organizations and members below admin cannot.
+    const outsider = await signIn("xavier@elsewhere-dns.example");
+    expect((await verify(outsider)).status).toBe(404);
+    await owner.post(`/api/tenants/${tenant}/members`, { email: "carl@umbrella.example", role: "contributor" });
+    await owner.post(`/api/tenants/${tenant}/members`, { email: "ada@umbrella.example", role: "admin" });
+    expect((await verify(await signIn("carl@umbrella.example"))).status).toBe(403);
+    // Records may be split into several strings, and sit beside others.
+    txt.set(record.name, ["v=spf1 -all", record.value]);
+    const done = await verify(await signIn("ada@umbrella.example"));
+    expect(done.status).toBe(200);
+    expect(done.json.domainStatus).toMatchObject([{ domain: "umbrella-sso.example", verified: true, method: "dns" }]);
+    const trail = await owner.get<{ action: string; entity: string; summary: string }[]>(`/api/tenants/${tenant}/activity`);
+    expect(trail.json.some((e) => e.action === "verified" && e.entity === "sso-domain" && e.summary.includes("umbrella-sso.example"))).toBe(true);
+    expect((await new TestClient(app).post<{ connection: string }>("/api/auth/sso/discover", { email: "val@umbrella-sso.example" })).json.connection).toBe(connection.id);
+    const member = await oidcSignIn(connection.id, { sub: "okta|val", email: "val@umbrella-sso.example", email_verified: true });
+    expect(member.me.json.tenantScope).toBe(tenant);
+  });
+
+  it("lets claims wait side by side, and gives a domain to the first organization that proves it", async () => {
+    // Two other organizations claim the same domain: a claim alone holds nothing.
+    const first = await signIn("fay@first-dns.example");
+    const firstTenant = (await first.get<Me>("/api/auth/me")).json.activeTenant!.id;
+    const second = await signIn("sid@second-dns.example");
+    const secondTenant = (await second.get<Me>("/api/auth/me")).json.activeTenant!.id;
+    const a = await create(first, firstTenant, ["shared-dns.example"]);
+    const b = await create(second, secondTenant, ["shared-dns.example"]);
+    expect([a.status, b.status]).toEqual([201, 201]);
+    expect(a.json.domainStatus[0]!.record!.value).not.toBe(b.json.domainStatus[0]!.record!.value);
+    // Within one organization, a domain goes on one connection only.
+    expect((await create(first, firstTenant, ["shared-dns.example"])).status).toBe(400);
+    await proveDomain(second, secondTenant, b.json, "shared-dns.example");
+    // Even with its own record published too, the first organization can no longer take it...
+    const record = a.json.domainStatus[0]!.record!;
+    txt.set(record.name, [record.value, b.json.domainStatus[0]!.record!.value]);
+    const late = await first.post<{ error: string }>(`/api/tenants/${firstTenant}/sso/${a.json.id}/domains/shared-dns.example/verify`);
+    expect(late.status).toBe(400);
+    expect(late.json.error).toMatch(/verified by another SSO connection/);
+    // ...and nobody can claim it anew.
+    const third = await signIn("tia@third-dns.example");
+    expect((await create(third, (await third.get<Me>("/api/auth/me")).json.activeTenant!.id, ["shared-dns.example"])).status).toBe(400);
+  });
+
+  it("gives a domain that is removed and listed again a new challenge", async () => {
+    const before = connection.domainStatus[0]!.record!.value;
+    await owner.patch(`/api/tenants/${tenant}/sso/${connection.id}`, { domains: ["umbrella-sso.example", "umbrella-two.example"] });
+    await owner.patch(`/api/tenants/${tenant}/sso/${connection.id}`, { domains: ["umbrella-two.example"] });
+    const back = await owner.patch<ConnectionJson>(`/api/tenants/${tenant}/sso/${connection.id}`, { domains: ["umbrella-two.example", "umbrella-sso.example"] });
+    const again = back.json.domainStatus.find((d) => d.domain === "umbrella-sso.example")!;
+    expect(again.verified).toBe(false);
+    expect(again.record!.value).not.toBe(before);
+  });
+
+  it("trusts domains as claimed when the operator turns verification off", async () => {
+    const trusting = createApp(svc, new AuthService(svc, { ...auth.config, ssoDomainVerification: "off" }, { resolveTxt }));
+    const client = new TestClient(trusting);
+    await client.devLogin("otto@trusting.example");
+    const t = (await client.get<Me>("/api/auth/me")).json.activeTenant!.id;
+    const created = await create(client, t, ["trusting-sso.example"]);
+    expect(created.json.domainStatus).toMatchObject([{ domain: "trusting-sso.example", verified: true, method: "trusted" }]);
   });
 });
 

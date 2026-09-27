@@ -4,7 +4,8 @@
  * together cannot race. Version 1 is the baseline: it creates the complete
  * schema and upgrades SQLite databases written before migrations existed.
  */
-import type { Dialect, SqlDriver } from "./driver.ts";
+import { randomBytes } from "node:crypto";
+import { parseJson, type Dialect, type SqlDriver } from "./driver.ts";
 
 export interface Migration {
   version: number;
@@ -121,7 +122,39 @@ const tenantSettings: Migration = {
   },
 };
 
-export const MIGRATIONS: Migration[] = [baseline, tenantSettings];
+/**
+ * SSO domains are verified by DNS. Several organizations may claim a domain while it is
+ * pending, but only one can hold it verified (a partial unique index), and only verified
+ * domains route sign-ins. Domains claimed before this version keep working: they are
+ * recorded as verified, method "grandfathered", so no organization is locked out.
+ */
+const ssoDomainVerification: Migration = {
+  version: 3,
+  name: "SSO domains verified by DNS; existing claims grandfathered",
+  async up(db) {
+    const ts = new Date().toISOString();
+    const FK = `REFERENCES sso_connections(id) ON DELETE CASCADE`;
+    await run(db, [
+      `CREATE TABLE sso_domains_v3 (domain TEXT NOT NULL, connection_id TEXT NOT NULL ${FK}, tenant_id TEXT NOT NULL, verified_at TEXT, PRIMARY KEY (domain, connection_id))`,
+    ]);
+    await db.execute(`INSERT INTO sso_domains_v3 (domain, connection_id, tenant_id, verified_at) SELECT domain, connection_id, tenant_id, ? FROM sso_domains`, [ts]);
+    await run(db, [
+      `DROP TABLE sso_domains`,
+      `ALTER TABLE sso_domains_v3 RENAME TO sso_domains`,
+      `CREATE UNIQUE INDEX sso_domains_verified ON sso_domains(domain) WHERE verified_at IS NOT NULL`,
+      `CREATE INDEX sso_domains_connection ON sso_domains(connection_id)`,
+    ]);
+    const cast = db.dialect === "postgres" ? "?::jsonb" : "?";
+    for (const row of await db.query<{ id: string; data: unknown }>(`SELECT id, data FROM sso_connections`)) {
+      const connection = parseJson<{ domains?: string[]; verification?: Record<string, unknown> }>(row.data);
+      const verification = { ...(connection.verification ?? {}) };
+      for (const d of connection.domains ?? []) verification[d] ??= { token: randomBytes(16).toString("hex"), verifiedAt: ts, method: "grandfathered" };
+      await db.execute(`UPDATE sso_connections SET data = ${cast} WHERE id = ?`, [JSON.stringify({ ...connection, verification }), row.id]);
+    }
+  },
+};
+
+export const MIGRATIONS: Migration[] = [baseline, tenantSettings, ssoDomainVerification];
 
 export async function migrate(driver: SqlDriver): Promise<number[]> {
   await driver.execute(`CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL)`);

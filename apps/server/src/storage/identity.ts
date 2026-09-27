@@ -48,13 +48,27 @@ export interface SsoConnection {
   clientId: string;
   /** AES-256-GCM sealed with the server secret; never returned by the API. */
   clientSecretSealed?: string;
+  /** Email domains the connection claims. Only verified ones route and admit people. */
   domains: string[];
+  /** Per claimed domain: its DNS challenge and, once proven, how and when. */
+  verification?: Record<string, DomainVerification>;
   /** Create a membership on first login for users of the connection's domains. */
   jitProvisioning: boolean;
   defaultRole: Role;
   enabled: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+/**
+ * Proof that an organization controls an email domain: a TXT record carrying `token` at
+ * `_visua-challenge.<domain>` ("dns"), a domain claimed before verification existed
+ * ("grandfathered"), or one accepted while the operator turned verification off ("trusted").
+ */
+export interface DomainVerification {
+  token: string;
+  verifiedAt?: string;
+  method?: "dns" | "grandfathered" | "trusted";
 }
 
 export interface LoginFlow {
@@ -247,13 +261,26 @@ class SsoConnections extends Repo {
   async forTenant(tenantId: string): Promise<SsoConnection[]> {
     return (await this.db.query<DataRow>(`SELECT data FROM sso_connections WHERE tenant_id = ? ORDER BY created_at ASC`, [tenantId])).map((r) => parseJson<SsoConnection>(r.data));
   }
+  /** The connection that has verified a domain: the only one people of that domain are sent to. */
   async byDomain(domain: string): Promise<SsoConnection | undefined> {
-    const [row] = await this.db.query<DataRow>(`SELECT c.data FROM sso_domains d JOIN sso_connections c ON c.id = d.connection_id WHERE d.domain = ?`, [domain.toLowerCase()]);
+    const [row] = await this.db.query<DataRow>(
+      `SELECT c.data FROM sso_domains d JOIN sso_connections c ON c.id = d.connection_id WHERE d.domain = ? AND d.verified_at IS NOT NULL`,
+      [domain.toLowerCase()],
+    );
     return row ? parseJson<SsoConnection>(row.data) : undefined;
   }
+  /** The id of the connection that has verified a domain. */
   async domainOwner(domain: string): Promise<string | undefined> {
-    const [row] = await this.db.query<{ connection_id: string }>(`SELECT connection_id FROM sso_domains WHERE domain = ?`, [domain.toLowerCase()]);
+    const [row] = await this.db.query<{ connection_id: string }>(`SELECT connection_id FROM sso_domains WHERE domain = ? AND verified_at IS NOT NULL`, [domain.toLowerCase()]);
     return row?.connection_id;
+  }
+  /** Every connection that claims a domain, verified or not. */
+  async claimants(domain: string): Promise<{ connectionId: string; tenantId: string; verified: boolean }[]> {
+    const rows = await this.db.query<{ connection_id: string; tenant_id: string; verified_at: string | null }>(
+      `SELECT connection_id, tenant_id, verified_at FROM sso_domains WHERE domain = ?`,
+      [domain.toLowerCase()],
+    );
+    return rows.map((r) => ({ connectionId: r.connection_id, tenantId: r.tenant_id, verified: !!r.verified_at }));
   }
   async put(c: SsoConnection): Promise<SsoConnection> {
     await this.store.atomic(async () => {
@@ -263,7 +290,14 @@ class SsoConnections extends Repo {
         [c.id, c.tenantId, JSON.stringify(c), c.createdAt, c.updatedAt],
       );
       await this.db.execute(`DELETE FROM sso_domains WHERE connection_id = ?`, [c.id]);
-      for (const d of c.domains) await this.db.execute(`INSERT INTO sso_domains (domain, connection_id, tenant_id) VALUES (?, ?, ?)`, [d.toLowerCase(), c.id, c.tenantId]);
+      for (const d of c.domains) {
+        await this.db.execute(`INSERT INTO sso_domains (domain, connection_id, tenant_id, verified_at) VALUES (?, ?, ?, ?)`, [
+          d.toLowerCase(),
+          c.id,
+          c.tenantId,
+          c.verification?.[d]?.verifiedAt ?? null,
+        ]);
+      }
     });
     return c;
   }
