@@ -178,7 +178,7 @@ Details: [`docs/architecture.md`](docs/architecture.md). Design system:
 pnpm check           # local CI: every check below, with a summary (--quick: guard, typecheck, SQLite tests)
 pnpm typecheck       # all packages (TypeScript 7)
 pnpm test            # 165 unit, API, storage and auth tests (Vitest; add VISUA_TEST_DATABASE_URL=postgres://… for Postgres)
-pnpm test:e2e        # 20 Playwright end-to-end tests against the production build (WebGL via SwiftShader)
+pnpm test:e2e        # 21 Playwright end-to-end tests against the production build (WebGL via SwiftShader)
 pnpm screens         # screenshots of every view at 1440×900, 1024×768 and 390×844 into .screens/ (git-ignored)
 pnpm screens --docs  # regenerate the README images in docs/images/
 pnpm design:lint     # DESIGN.md lint
