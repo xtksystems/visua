@@ -468,18 +468,15 @@ function SceneLabels({ layout, state, selectedId, hoveredId, focusIds, onSelect 
       const mid = (s.start + s.end) / 2;
       const position: Vec3 = layout.view === "constellation" ? [Math.cos(mid) * (s.radius + 1), 0.3, Math.sin(mid) * (s.radius + 1)] : s.labelPos;
       const titled = !!s.title && s.title.toUpperCase() !== s.code.toUpperCase();
-      out.push({
-        id: `sector:${s.id}`,
-        variant: "sector",
-        position,
-        outwardFrom: [0, 0, 0],
-        code: titled ? s.code : undefined,
-        title: titled ? s.title : s.code,
-        sub: g ? (state?.threat ? `${pct(g.readiness)} covered · ${g.total} with links` : `${pct(g.readiness)} ready · ${g.gaps} gaps`) : undefined,
-        priority: root ? (root.id === s.id ? 700 : 300) : 500,
-        active: selectedId === s.id,
-        onClick: () => onSelect(s.id),
-      });
+      const sub = g ? (state?.threat ? `${pct(g.readiness)} covered · ${g.total} with links` : `${pct(g.readiness)} ready · ${g.gaps} gaps`) : undefined;
+      const priority = root ? (root.id === s.id ? 700 : 300) : 500;
+      const sector = { variant: "sector" as const, position, outwardFrom: [0, 0, 0] as Vec3, group: `sector:${s.id}`, active: selectedId === s.id, onClick: () => onSelect(s.id) };
+      out.push({ ...sector, id: `sector:${s.id}`, code: titled ? s.code : undefined, title: titled ? s.title : s.code, sub, priority });
+      // Where its title does not fit (twenty SP 800-53 families), a sector keeps its code, with its read-out if there is room.
+      if (titled) {
+        out.push({ ...sector, id: `sector:${s.id}:code`, title: s.code, sub, priority: priority - 12 });
+        if (sub) out.push({ ...sector, id: `sector:${s.id}:bare`, title: s.code, priority: priority - 14 });
+      }
     }
     const focus = new Set(focusIds);
     const members = new Set<string>();

@@ -364,7 +364,7 @@ test("no page, panel or table scrolls sideways at 1024px or on a phone (the ATLA
 test("3D scenes: labels stay inside the canvas, clear of the HUD and of each other", async ({ page }) => {
   await signIn(page);
   const meta = (await (await page.request.get("/api/meta")).json()) as { frameworks: { id: string }[] };
-  const scenes = [...["nist-csf-2.0", "mitre-atlas", "us-state-ai-laws"].filter((id) => meta.frameworks.some((f) => f.id === id)).map((id) => `/observatory/${id}`), "/crosswalk"];
+  const scenes = [...["nist-csf-2.0", "nist-sp-800-53-r5", "mitre-atlas", "us-state-ai-laws"].filter((id) => meta.frameworks.some((f) => f.id === id)).map((id) => `/observatory/${id}`), "/crosswalk"];
   for (const [width, height] of [
     [1440, 900],
     [1024, 768],
@@ -373,7 +373,7 @@ test("3D scenes: labels stay inside the canvas, clear of the HUD and of each oth
     for (const fw of scenes) {
       await page.goto(`${WS}${fw}`);
       await expect(page.locator(".observatory__canvas canvas")).toBeVisible();
-      await expect(page.locator(".scene-label--sector").first()).toBeVisible();
+      await expect(page.locator(".scene-label--sector").filter({ visible: true }).first()).toBeVisible();
       await page.waitForTimeout(1200);
       const report = await page.evaluate(() => {
         const canvas = document.querySelector(".observatory__canvas canvas")!.getBoundingClientRect();
@@ -389,7 +389,8 @@ test("3D scenes: labels stay inside the canvas, clear of the HUD and of each oth
         return { problems, sectors: labels.filter((l) => l.sector).length };
       });
       expect(report.problems, `${fw} at ${width}x${height}`).toEqual([]);
-      expect(report.sectors, `${fw} at ${width}x${height}: sector titles shown`).toBeGreaterThanOrEqual(4);
+      // Twenty SP 800-53 families: where a family's title does not fit, its code does.
+      expect(report.sectors, `${fw} at ${width}x${height}: sectors labeled`).toBeGreaterThanOrEqual(fw.endsWith("800-53-r5") ? 12 : 4);
     }
   }
 });

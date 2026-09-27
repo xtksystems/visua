@@ -31,6 +31,8 @@ export interface ScreenLabel {
   outwardFrom?: Vec3;
   /** A swatch before the title, as a CSS color from the design tokens. */
   swatch?: string;
+  /** Alternatives share a group: the first of them that fits, by priority, is shown and the others stay hidden. */
+  group?: string;
   active?: boolean;
   dim?: boolean;
   onClick?: () => void;
@@ -217,13 +219,14 @@ export function ScreenLabels({ labels, margin = 6 }: { labels: ScreenLabel[]; ma
     const H = size.height;
     const blocked = hudRects(gl.domElement);
     const placed: Rect[] = [];
+    const shown = new Set<string>();
     for (const l of sorted) {
       const el = els.current.get(l.id);
       const s = sizes.current.get(l.id);
       if (!el) continue;
       let rect: Rect | null = null;
       p.set(l.position[0], l.position[1], l.position[2]).project(camera);
-      if (s && s.w > 0 && p.z > -1 && p.z < 1) {
+      if (s && s.w > 0 && p.z > -1 && p.z < 1 && !(l.group && shown.has(l.group))) {
         const px = ((p.x + 1) / 2) * W;
         const py = ((1 - p.y) / 2) * H;
         let x = px - s.w / 2;
@@ -240,6 +243,7 @@ export function ScreenLabels({ labels, margin = 6 }: { labels: ScreenLabel[]; ma
       }
       if (rect) {
         placed.push(rect);
+        if (l.group) shown.add(l.group);
         el.style.transform = `translate3d(${Math.round(rect.x)}px, ${Math.round(rect.y)}px, 0)`;
         el.style.visibility = "visible";
       } else el.style.visibility = "hidden";
