@@ -172,6 +172,7 @@ Details: [`docs/architecture.md`](docs/architecture.md). Design system:
 ## Development
 
 ```sh
+pnpm check           # local CI: every check below, with a summary (--quick: guard, typecheck, SQLite tests)
 pnpm typecheck       # all packages (TypeScript 7)
 pnpm test            # 138 unit, API, storage and auth tests (Vitest; add VISUA_TEST_DATABASE_URL=postgres://… for Postgres)
 pnpm test:e2e        # 20 Playwright end-to-end tests against the production build (WebGL via SwiftShader)
