@@ -22,7 +22,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "screens": "node scripts/screens.ts"
+    "screens": "node scripts/screens.ts",
+    "check": "node scripts/check.ts"
   },
   "devDependencies": {
     "@google/design.md": "0.4.0",

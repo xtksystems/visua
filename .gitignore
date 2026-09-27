@@ -21,6 +21,8 @@ playwright-report/
 /blob-report/
 # Screenshot harness output (pnpm screens)
 /.screens/
+# Local CI logs (pnpm check)
+/.check/
 # Local corpus downloads flagged as non-redistributable are kept out of git
 corpus/**/.local/
 

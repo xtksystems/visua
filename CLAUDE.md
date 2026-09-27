@@ -17,7 +17,10 @@ Visua is a pnpm monorepo (Node ≥ 22.18, native TypeScript, `node:sqlite`). Rea
   the README images
 
 Run `pnpm typecheck && pnpm test` before committing. Run `pnpm test:e2e` when you
-change the web app.
+change the web app. `pnpm check` is the local CI (there is no hosted CI): a licensing
+guard (no git-ignored file tracked or staged), typecheck, unit tests on SQLite and on
+Postgres (`VISUA_TEST_DATABASE_URL`, or a throwaway Docker container), e2e, corpus
+hashes and the DESIGN.md lint; `--quick` runs the first three.
 
 ## Rules
 
