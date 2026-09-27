@@ -6,8 +6,9 @@ import { onUnauthorized } from "./lib/api.ts";
 import { meKey, useMe } from "./lib/auth.ts";
 import { useWorkspaces } from "./lib/queries.ts";
 import { LoginPage } from "./pages/LoginPage.tsx";
-import { ObservatoryPage } from "./pages/ObservatoryPage.tsx";
 
+// three.js (1.1 MB, 290 KB compressed) loads with the 3D pages only.
+const ObservatoryPage = lazy(() => import("./pages/ObservatoryPage.tsx").then((m) => ({ default: m.ObservatoryPage })));
 const HomePage = lazy(() => import("./pages/HomePage.tsx").then((m) => ({ default: m.HomePage })));
 const PlanPage = lazy(() => import("./pages/PlanPage.tsx").then((m) => ({ default: m.PlanPage })));
 const EvidencePage = lazy(() => import("./pages/EvidencePage.tsx").then((m) => ({ default: m.EvidencePage })));

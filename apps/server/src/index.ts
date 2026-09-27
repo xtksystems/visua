@@ -38,6 +38,11 @@ if (auth.config.mode === "oidc" && !auth.config.platform && !(await svc.store.id
 const app = createApp(svc, auth);
 const webDist = resolve(REPO_ROOT, "apps/web/dist");
 if (existsSync(webDist)) {
+  // Built assets carry a content hash in their names: they never change under the same URL.
+  app.use("/assets/*", async (c, next) => {
+    await next();
+    if (c.res.ok) c.header("Cache-Control", "public, max-age=31536000, immutable");
+  });
   app.use("/*", serveStatic({ root: webDist }));
   app.get("*", serveStatic({ path: resolve(webDist, "index.html") }));
 }

@@ -704,6 +704,25 @@ describe("agents (offline playbooks) with human-in-the-loop proposals", () => {
   });
 });
 
+describe("transfer: compression and revalidation", () => {
+  it("compresses API responses, revalidates framework data by ETag, and leaves sign-in responses alone", async () => {
+    const gz = { "accept-encoding": "gzip" };
+    const graph = await client.request("GET", "/api/frameworks/nist-csf-2.0", undefined, gz);
+    expect(graph.status).toBe(200);
+    expect(graph.headers.get("content-encoding")).toBe("gzip");
+    const tag = graph.headers.get("etag");
+    expect(tag).toMatch(/^W\//);
+    expect((await client.request("GET", "/api/frameworks/nist-csf-2.0", undefined, { "if-none-match": tag! })).status).toBe(304);
+    expect((await client.request("GET", `/api/workspaces/${wsId}/frameworks/nist-csf-2.0/state`, undefined, gz)).headers.get("content-encoding")).toBe("gzip");
+    // Responses that carry the session's CSRF token are never compressed (no compression oracle on a secret).
+    const probe = new TestClient(app);
+    const login = await probe.request("POST", "/api/auth/dev/login", { email: "owner@acme-fintech.example" }, gz);
+    expect(login.status).toBe(200);
+    expect(login.headers.get("content-encoding")).toBeNull();
+    expect((await probe.request("GET", "/api/auth/me", undefined, gz)).headers.get("content-encoding")).toBeNull();
+  });
+});
+
 describe("evidence, monitoring and exports", () => {
   it("runs the repository hygiene connector against this repository", async () => {
     const con = await api<{ id: string }>("POST", `/api/workspaces/${wsId}/connectors`, { kind: "repo-scan", config: { path: REPO_ROOT } });

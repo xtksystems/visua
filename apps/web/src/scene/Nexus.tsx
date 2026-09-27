@@ -4,11 +4,14 @@
  * Pillar height = number of units (log), pillar color = group status, arc
  * width = number of unit-level mappings, arc color = source → target framework.
  */
-import { CameraControls, Line, PerformanceMonitor, Stars } from "@react-three/drei";
+import { CameraControls, PerformanceMonitor, Stars } from "@react-three/drei";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Color, FogExp2, QuadraticBezierCurve3, Vector3, type Group, type PerspectiveCamera } from "three";
+import { Color, FogExp2, QuadraticBezierCurve3, Vector3, type PerspectiveCamera } from "three";
+import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
+import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2.js";
+import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry.js";
 import { designSystem } from "@visua/design";
 import type { FrameworkFamily, Status } from "@visua/core";
 import { allFrameworks, frameworkMeta } from "../lib/frameworks.ts";
@@ -275,37 +278,109 @@ function arcsFor(layout: NexusLayout, bundles: NexusBundle[]): ArcGeometry[] {
   return out;
 }
 
+/** Line widths (pixels) snap to a few steps so arcs batch into a handful of draw calls. */
+const WIDTHS = [1, 1.5, 2.2, 3, 4, 5.4, 7.2];
+const snapWidth = (w: number) => WIDTHS.reduce((best, x) => (Math.abs(x - w) < Math.abs(best - w) ? x : best), WIDTHS[0]!);
+
+interface Batch {
+  line: LineSegments2;
+  animated: boolean;
+  /** The resting opacity, restored when nothing is in focus. */
+  opacity: number;
+}
+
+function batch(arcs: ArcGeometry[], opts: { width: number; opacity: number; dash: { dashSize: number; gapSize: number } | null; animated: boolean }): Batch {
+  const positions: number[] = [];
+  const colors: number[] = [];
+  for (const arc of arcs) {
+    for (let i = 0; i < arc.points.length - 1; i++) {
+      const p = arc.points[i]!;
+      const q = arc.points[i + 1]!;
+      positions.push(p.x, p.y, p.z, q.x, q.y, q.z);
+      colors.push(...arc.colors[i]!, ...arc.colors[i + 1]!);
+    }
+  }
+  const geometry = new LineSegmentsGeometry();
+  geometry.setPositions(positions);
+  geometry.setColors(colors);
+  const material = new LineMaterial({ linewidth: opts.width, vertexColors: true, transparent: true, opacity: opts.opacity, depthWrite: false, dashed: !!opts.dash, dashSize: opts.dash?.dashSize ?? 1, gapSize: opts.dash?.gapSize ?? 1 });
+  material.toneMapped = false;
+  const line = new LineSegments2(geometry, material);
+  if (opts.dash) line.computeLineDistances();
+  return { line, animated: opts.animated, opacity: opts.opacity };
+}
+
+/**
+ * All arcs in a few draw calls (the Nexus drew one mesh per bundle, ~960 a frame):
+ * resting arcs batch by width, opacity and dash style, and dim together when a pillar
+ * is in focus; the focused pillar's arcs are drawn again on top, wider and bright.
+ */
 function Arcs({ arcs, focus, reducedMotion }: { arcs: ArcGeometry[]; focus: string | null; reducedMotion: boolean }) {
-  const group = useRef<Group>(null);
-  useFrame((_, dt) => {
-    if (reducedMotion || !focus || !group.current) return;
-    group.current.traverse((o) => {
-      const m = (o as unknown as { material?: { dashOffset?: number; dashed?: boolean } }).material;
-      if (m && m.dashed && typeof m.dashOffset === "number") m.dashOffset -= dt * 2.4;
+  const size = useThree((s) => s.size);
+  const resting = useMemo(() => {
+    const groups = new Map<string, ArcGeometry[]>();
+    for (const arc of arcs) {
+      const dash = arc.status ? LINK_DASH[arc.status] : null;
+      const key = `${snapWidth(arc.width)}|${arc.bundle.count > 2 ? 0.3 : 0.14}|${dash ? `${dash.dashSize}/${dash.gapSize}` : "-"}`;
+      groups.set(key, [...(groups.get(key) ?? []), arc]);
+    }
+    return [...groups.entries()].map(([key, list]) => {
+      const [w, o] = key.split("|");
+      const dash = list[0]!.status ? LINK_DASH[list[0]!.status] : null;
+      return batch(list, { width: Number(w), opacity: Number(o), dash, animated: false });
     });
+  }, [arcs]);
+  const active = useMemo(() => {
+    if (!focus) return [];
+    const touching = arcs.filter((a) => a.bundle.a === focus || a.bundle.b === focus);
+    const groups = new Map<string, ArcGeometry[]>();
+    for (const arc of touching) {
+      const dash = arc.status ? LINK_DASH[arc.status] : null;
+      const key = `${snapWidth(arc.width * 1.35)}|${dash ? `${dash.dashSize}/${dash.gapSize}` : "-"}`;
+      groups.set(key, [...(groups.get(key) ?? []), arc]);
+    }
+    // Requirement arcs in focus march (dashes move) unless motion is reduced; threat arcs keep their status pattern.
+    return [...groups.entries()].map(([key, list]) => {
+      const dash = list[0]!.status ? LINK_DASH[list[0]!.status] : null;
+      const animated = !dash && !reducedMotion;
+      return batch(list, { width: Number(key.split("|")[0]), opacity: 0.95, dash: dash ?? (animated ? { dashSize: 1.6, gapSize: 0.5 } : null), animated });
+    });
+  }, [arcs, focus, reducedMotion]);
+  useEffect(() => {
+    for (const b of resting) (b.line.material as LineMaterial).opacity = focus ? 0.022 : b.opacity;
+  }, [resting, focus]);
+  useEffect(() => {
+    for (const b of [...resting, ...active]) (b.line.material as LineMaterial).resolution.set(size.width, size.height);
+  }, [resting, active, size]);
+  useEffect(
+    () => () => {
+      for (const b of resting) {
+        b.line.geometry.dispose();
+        (b.line.material as LineMaterial).dispose();
+      }
+    },
+    [resting],
+  );
+  useEffect(
+    () => () => {
+      for (const b of active) {
+        b.line.geometry.dispose();
+        (b.line.material as LineMaterial).dispose();
+      }
+    },
+    [active],
+  );
+  useFrame((_, dt) => {
+    for (const b of active) if (b.animated) (b.line.material as LineMaterial).dashOffset -= dt * 2.4;
   });
   return (
-    <group ref={group}>
-      {arcs.map((arc) => {
-        const active = !!focus && (arc.bundle.a === focus || arc.bundle.b === focus);
-        const dim = !!focus && !active;
-        const dash = arc.status ? LINK_DASH[arc.status] : null;
-        return (
-          <Line
-            key={arc.key}
-            points={arc.points}
-            vertexColors={arc.colors}
-            lineWidth={active ? arc.width * 1.35 : arc.width}
-            transparent
-            opacity={dim ? 0.022 : active ? 0.95 : arc.bundle.count > 2 ? 0.3 : 0.14}
-            dashed={!!dash || (active && !reducedMotion && !arc.status)}
-            dashSize={dash?.dashSize ?? 1.6}
-            gapSize={dash?.gapSize ?? 0.5}
-            depthWrite={false}
-            toneMapped={false}
-          />
-        );
-      })}
+    <group>
+      {resting.map((b, i) => (
+        <primitive key={`r${i}`} object={b.line} />
+      ))}
+      {active.map((b, i) => (
+        <primitive key={`a${i}`} object={b.line} />
+      ))}
     </group>
   );
 }

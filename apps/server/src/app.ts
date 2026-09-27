@@ -8,6 +8,8 @@ import { createReadStream, existsSync, realpathSync, statSync } from "node:fs";
 import { extname, isAbsolute, relative, resolve, sep } from "node:path";
 import { Readable } from "node:stream";
 import { Hono, type Context } from "hono";
+import { compress } from "hono/compress";
+import { etag } from "hono/etag";
 import { streamSSE } from "hono/streaming";
 import { z } from "zod";
 import {
@@ -244,6 +246,16 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
     console.error("[visua] unhandled error", err);
     return c.json({ error: "Internal error" }, 500);
   });
+
+  // ---------------------------------------------------------------- transfer
+  // Compress JSON, JavaScript and CSS (the SP 800-53 state bundle: 518 KB → 16 KB). Sign-in
+  // responses carry the CSRF token and are left alone (no compression oracle on a secret);
+  // hono/compress never touches server-sent events.
+  const compressed = compress();
+  app.use("*", (c, next) => (c.req.path.startsWith("/api/auth/") ? next() : compressed(c, next)));
+  // Framework graphs and metadata change only with a deploy: revalidate them by ETag.
+  app.use("/api/meta", etag({ weak: true }));
+  app.use("/api/frameworks/*", etag({ weak: true }));
 
   // ---------------------------------------------------------------- security & identity
   app.use("*", securityHeaders(auth));
