@@ -50,7 +50,7 @@ function Library() {
           © AICPA — these documents are not redistributed with Visua. {current.documents.filter((d) => d.present).length} of {current.documents.length} are present in this installation's local copy; the rest are listed for provenance. AICPA text is withheld from AI models unless your organization holds AICPA's permission.
         </div>
       )}
-      <div style={{ maxHeight: 420, overflow: "auto" }}>
+      <div className="table-box" style={{ maxHeight: 420 }}>
         <table className="table table--docs">
           <thead>
             <tr>
@@ -159,7 +159,7 @@ export function ReportsPage() {
           <p className="muted" style={{ fontSize: 12.5, padding: "8px 16px 12px" }}>
             Each event stores the SHA-256 of the previous one. Editing, deleting or reordering any past event breaks the chain, and verification pinpoints where.
           </p>
-          <div style={{ maxHeight: 520, overflow: "auto" }}>
+          <div className="table-box" style={{ maxHeight: 520 }}>
             <table className="table table--audit">
               <thead>
                 <tr>

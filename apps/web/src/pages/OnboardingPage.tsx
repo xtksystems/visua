@@ -82,7 +82,7 @@ export function OnboardingPage() {
             <h1 style={{ fontFamily: "var(--font-display-lg-family)", fontSize: 30, fontWeight: 600 }}>Set up your compliance observatory</h1>
           </div>
         </div>
-        <ol className="row" style={{ listStyle: "none", padding: 0, gap: 8, marginBottom: 24 }}>
+        <ol className="row row--wrap" style={{ listStyle: "none", padding: 0, gap: 8, marginBottom: 24 }}>
           {steps.map((s, i) => (
             <li key={s} className="chip" aria-current={i === step ? "step" : undefined} aria-pressed={i === step} style={{ cursor: "default" }}>
               {i < step ? <Check size={12} /> : <span className="mono">{i + 1}</span>} {s}

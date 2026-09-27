@@ -319,7 +319,7 @@ test("Observatory: a threat catalog shows coverage from linked requirements, nev
   expect(errors).toEqual([]);
 });
 
-test("phones: the rail folds into a menu, and no page scrolls sideways", async ({ page }) => {
+test("phones: the rail folds into a menu", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await signIn(page);
   await page.goto(WS);
@@ -330,14 +330,34 @@ test("phones: the rail folds into a menu, and no page scrolls sideways", async (
   await nav.getByRole("link", { name: "State AI laws" }).click();
   await expect(page).toHaveURL(new RegExp(`${WS}/laws$`));
   await expect(nav).toBeHidden();
-  for (const path of ["", "/plan", "/evidence", "/organization", "/reports", "/settings", "/profile", "/rmf", "/ai", "/laws", "/threats"]) {
-    await page.goto(`${WS}${path}`);
-    await page.locator("h1").first().waitFor();
-    const sideways = await page.evaluate(() => {
-      const scroller = document.querySelector(".page") ?? document.documentElement;
-      return Math.max(scroller.scrollWidth - scroller.clientWidth, document.documentElement.scrollWidth - window.innerWidth);
-    });
-    expect(sideways, `${path || "/"} scrolls sideways`).toBeLessThanOrEqual(1);
+});
+
+test("no page, panel or table scrolls sideways at 1024px or on a phone (the ATLAS matrix scrolls in its own box)", async ({ page }) => {
+  await signIn(page);
+  const paths = ["", "/plan", "/evidence", "/organization", "/reports", "/settings", "/profile", "/rmf", "/soc2", "/ai", "/laws", "/threats"].map((p) => `${WS}${p}`);
+  for (const [width, height] of [
+    [1024, 768],
+    [390, 844],
+  ] as const) {
+    await page.setViewportSize({ width, height });
+    for (const path of [...paths, "/onboarding"]) {
+      await page.goto(path);
+      await page.locator("h1").first().waitFor();
+      await page.waitForTimeout(300);
+      const sideways = await page.evaluate(() => {
+        const out: string[] = [];
+        if (document.documentElement.scrollWidth > window.innerWidth + 1) out.push("the document");
+        for (const el of document.querySelectorAll<HTMLElement>("body *")) {
+          if (el.closest(".atlas-matrix")) continue;
+          const { overflowX } = getComputedStyle(el);
+          if ((overflowX === "auto" || overflowX === "scroll") && el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 1) {
+            out.push(`${el.tagName.toLowerCase()}${[...el.classList].map((c) => `.${c}`).join("")} (${el.scrollWidth}px in ${el.clientWidth}px)`);
+          }
+        }
+        return out;
+      });
+      expect(sideways, `${path} at ${width}px`).toEqual([]);
+    }
   }
 });
 

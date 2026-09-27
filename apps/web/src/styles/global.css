@@ -968,8 +968,6 @@ p {
   .table--systems :is(th, td):is(:nth-child(2), :nth-child(4)),
   .table--gai :is(th, td):is(:nth-child(2), :nth-child(3), :nth-child(5)),
   .table--evidence :is(th, td):is(:nth-child(2), :nth-child(3)),
-  .table--docs :is(th, td):is(:nth-child(2), :nth-child(3)),
-  .table--audit :is(th, td):is(:nth-child(1), :nth-child(5)),
   .table--cosais :is(th, td):nth-child(2),
   .table--obligations :is(th, td):is(:nth-child(3), :nth-child(4)) {
     display: none;
@@ -1019,6 +1017,25 @@ p {
     padding-left: 6px;
     padding-right: 2px;
     font-size: 13px;
+  }
+}
+
+/* A table in a scroll box follows the box's width, not the window's: in a narrow pane
+   (Reports beside the trust center at 1024px, any phone) secondary columns hide rather
+   than scroll sideways. */
+.table-box {
+  container-type: inline-size;
+  overflow: auto;
+}
+@container (max-width: 600px) {
+  .table--audit :is(th, td):nth-child(5) {
+    display: none;
+  }
+}
+@container (max-width: 460px) {
+  .table--audit :is(th, td):nth-child(1),
+  .table--docs :is(th, td):is(:nth-child(2), :nth-child(3)) {
+    display: none;
   }
 }
 
