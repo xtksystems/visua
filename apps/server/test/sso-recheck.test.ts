@@ -201,6 +201,37 @@ describe("re-checking SSO domains proven by DNS", () => {
     }
   });
 
+  it.skipIf(!TEST_PG_URL)("removes a connection only under the domain lock, so a re-check in flight cannot bring it back", async () => {
+    const { client, tenant, connection } = await provenOrg("zoe@delete.example", "delete-sso.example");
+    // A second instance holds the domain lock, as a re-check does between reading a connection and writing it back.
+    const otherSvc = await createService({ database: db.url, registry });
+    let release!: () => void;
+    const released = new Promise<void>((resolve) => (release = resolve));
+    let locked!: () => void;
+    const lockHeld = new Promise<void>((resolve) => (locked = resolve));
+    const holder = otherSvc.store.atomic(async () => {
+      await otherSvc.store.lock("sso-domains");
+      locked();
+      await released;
+    });
+    try {
+      await lockHeld;
+      let settled = false;
+      const deletion = client.request("DELETE", `/api/tenants/${tenant}/sso/${connection.id}`).finally(() => (settled = true));
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      expect(settled).toBe(false);
+      release();
+      await holder;
+      expect((await deletion).status).toBe(204);
+      const left = (await client.get<{ connections: ConnectionJson[] }>(`/api/tenants/${tenant}/sso`)).json.connections;
+      expect(left.some((c) => c.id === connection.id)).toBe(false);
+    } finally {
+      release();
+      await holder.catch(() => undefined);
+      await otherSvc.store.close();
+    }
+  });
+
   it("drops a result when the challenge changed meanwhile", async () => {
     const { client, tenant, connection, record } = await provenOrg("yan@edit.example", "edit-sso.example");
     txt.delete(record.name);

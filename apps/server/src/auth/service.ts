@@ -609,6 +609,8 @@ export class AuthService {
   async deleteSsoConnection(tenantId: string, id: string, by: Principal): Promise<void> {
     if (!(await this.can(by, tenantId, "tenant.own"))) throw new ForbiddenError("Only owners remove an SSO connection");
     await this.svc.store.atomic(async () => {
+      // A re-check holding this lock may be about to write the connection back: wait for it.
+      await this.svc.store.lock("sso-domains");
       const tenant = await this.tenant(tenantId);
       const remaining = (await this.ids.sso.forTenant(tenantId)).filter((c) => c.enabled && c.id !== id);
       if (tenant.settings.requireSso && !remaining.length) throw new ValidationError("Turn off “Require SSO” before removing the last connection");
