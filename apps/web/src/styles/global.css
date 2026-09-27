@@ -2462,6 +2462,37 @@ p {
   display: none;
 }
 
+/* State-law timeline (components/laws/Timeline.tsx). */
+.law-timeline {
+  position: relative;
+  min-width: 0;
+}
+.law-timeline svg {
+  display: block;
+  overflow: visible;
+}
+.law-timeline__legend {
+  gap: 6px 16px;
+  margin: -4px 0 8px;
+  font-size: 12px;
+  color: var(--color-on-surface-muted);
+}
+.law-timeline__month {
+  cursor: default;
+  outline: none;
+}
+.law-timeline__month.is-active path,
+.law-timeline__month:focus-visible path {
+  stroke: var(--color-on-surface);
+  stroke-width: 2;
+}
+.law-timeline__tip {
+  position: absolute;
+  width: max-content;
+  max-width: 280px;
+  pointer-events: none;
+}
+
 .law-row {
   width: 100%;
   font: inherit;

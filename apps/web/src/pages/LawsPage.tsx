@@ -8,6 +8,7 @@ import { ChevronDown, ChevronRight, Gavel, Scale, Telescope } from "lucide-react
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { Status } from "@visua/core";
+import { LawTimeline } from "../components/laws/Timeline.tsx";
 import { Empty, Progress, StatusBar, StatusChip, toast } from "../components/ui/index.tsx";
 import { api } from "../lib/api.ts";
 import { useCan } from "../lib/auth.ts";
@@ -71,79 +72,6 @@ interface Obligation {
 }
 
 const roleLabel = (r: string) => r.replace(/-/g, " ");
-
-/** One point per month; labels stack by their real width; dates before the window fold into its first point. */
-function Timeline({ data }: { data: LawsOverview }) {
-  const t = (d: string) => new Date(`${d.length === 7 ? `${d}-01` : d}T00:00:00Z`).getTime();
-  const windowStart = new Date(t(data.today) - 2 * 365 * 86_400_000).toISOString().slice(0, 7);
-  const byMonth = new Map<string, { month: string; codes: string[]; obligations: number; past: boolean; earlier: boolean }>();
-  for (const p of data.timeline) {
-    const earlier = p.date.slice(0, 7) < windowStart;
-    const month = earlier ? windowStart : p.date.slice(0, 7);
-    const entry = byMonth.get(month) ?? { month, codes: [], obligations: 0, past: true, earlier: false };
-    if (!entry.codes.includes(p.lawCode)) entry.codes.push(p.lawCode);
-    entry.obligations += p.obligations;
-    entry.past = entry.past && p.past;
-    entry.earlier = entry.earlier || earlier;
-    byMonth.set(month, entry);
-  }
-  const points = [...byMonth.values()].sort((a, b) => a.month.localeCompare(b.month));
-  if (!points.length) return null;
-  const min = t(points[0]!.month) - 30 * 86_400_000;
-  const max = Math.max(t(points.at(-1)!.month), t(data.today)) + 60 * 86_400_000;
-  const W = 1000;
-  const x = (d: string) => ((t(d) - min) / (max - min)) * W;
-  const years: number[] = [];
-  for (let y = new Date(min).getUTCFullYear(); y <= new Date(max).getUTCFullYear(); y++) if (t(`${y}-01-01`) > min) years.push(y);
-  const label = (p: (typeof points)[number]) => `${p.earlier ? `≤ ${p.month}` : p.month} · ${p.codes.length === 1 ? p.codes[0] : `${p.codes.length} laws`}`;
-  // Each row remembers where its last label ends (~6.6 units per mono character at 11px).
-  const rows: number[] = [];
-  const placed = points.map((p) => {
-    const px = x(p.month);
-    const width = label(p).length * 6.6 + 12;
-    // Labels near the right edge extend to the left of their point.
-    const flip = px + width > W;
-    const start = flip ? px - width : px;
-    let row = 0;
-    while (rows[row] !== undefined && start < rows[row]!) row++;
-    rows[row] = start + width;
-    return { ...p, px, row, flip };
-  });
-  const height = 58 + rows.length * 18;
-  return (
-    <div className="panel" style={{ overflowX: "auto" }}>
-      <div className="panel__head">
-        <h2>When obligations take effect</h2>
-        <span className="spacer" />
-        <span className="muted" style={{ fontSize: 12 }}>
-          ● in force · ○ upcoming · today {data.today}
-        </span>
-      </div>
-      <svg viewBox={`0 0 ${W} ${height}`} width="100%" style={{ minWidth: 640 }} role="img" aria-label="Effective-date timeline of the tracked laws">
-        <line x1={0} x2={W} y1={24} y2={24} stroke="var(--color-outline-strong)" strokeWidth={1} />
-        {years.map((y) => (
-          <g key={y}>
-            <line x1={x(`${y}-01-01`)} x2={x(`${y}-01-01`)} y1={16} y2={32} stroke="var(--color-outline-strong)" />
-            <text x={x(`${y}-01-01`) + 4} y={12} fill="var(--color-on-surface-muted)" fontSize={11}>
-              {y}
-            </text>
-          </g>
-        ))}
-        <line x1={x(data.today)} x2={x(data.today)} y1={6} y2={height - 4} stroke="var(--color-primary)" strokeDasharray="3 3" />
-        {placed.map((p) => (
-          <g key={p.month}>
-            <title>{`${p.earlier ? `${p.month} or earlier` : p.month}: ${p.codes.join(", ")} — ${p.obligations} obligation(s) take effect`}</title>
-            <circle cx={p.px} cy={24} r={5} fill={p.past ? "var(--color-framework-law)" : "var(--color-neutral)"} stroke="var(--color-framework-law)" strokeWidth={2} />
-            <line x1={p.px} x2={p.px} y1={29} y2={44 + p.row * 18} stroke="var(--color-outline)" />
-            <text x={p.flip ? p.px - 3 : p.px + 3} y={50 + p.row * 18} textAnchor={p.flip ? "end" : "start"} fill="var(--color-on-surface)" fontSize={11} fontFamily="var(--font-code-sm-family)">
-              {label(p)}
-            </text>
-          </g>
-        ))}
-      </svg>
-    </div>
-  );
-}
 
 function Obligations({ ws, law }: { ws: string; law: Law }) {
   const graph = useQuery({ queryKey: keys.graph(LAWS), queryFn: () => api.get<{ nodes: (Obligation & { parentId: string | null })[] }>(`/frameworks/${LAWS}`), staleTime: Infinity });
@@ -433,7 +361,7 @@ export function LawsPage() {
         </Empty>
       )}
       <div className="stack" style={{ gap: 16 }}>
-        <Timeline data={data} />
+        <LawTimeline timeline={data.timeline} today={data.today} />
         <input className="input" placeholder="Filter laws (state, code, title)" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Filter laws" style={{ maxWidth: 420 }} />
         {jurisdictions.map((j) => (
           <section key={j.id} className="stack" style={{ gap: 12 }} aria-labelledby={`j-${j.code}`}>

@@ -257,7 +257,14 @@ test("state AI laws: roles decide scope, upcoming obligations count apart, oblig
   await page.goto(`${WS}/laws`);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("State AI laws");
   await expect(page.getByText(/26 laws and regulations, 187 obligations/)).toBeVisible();
-  await expect(page.getByRole("img", { name: "Effective-date timeline of the tracked laws" })).toBeVisible();
+  const timeline = page.getByRole("list", { name: "Effective-date timeline of the tracked laws" });
+  await expect(timeline).toBeVisible();
+  // Each month says what takes effect, on hover and keyboard focus; the list view gives every date.
+  await timeline.getByRole("listitem").first().focus();
+  await expect(page.locator(".law-timeline__tip")).toContainText(/obligations? (in force since|take effect)/);
+  await page.getByRole("group", { name: "Timeline view" }).getByRole("button", { name: "List" }).click();
+  await expect(page.getByRole("table", { name: "Effective dates of the tracked laws" }).getByRole("row", { name: /CA-SB243/ }).first()).toBeVisible();
+  await page.getByRole("group", { name: "Timeline view" }).getByRole("button", { name: "Chart" }).click();
   // The demo records Northwind as a developer and deployer under TRAIGA.
   const traiga = page.getByRole("article", { name: /Texas Responsible Artificial Intelligence Governance Act/ });
   await expect(traiga.getByRole("checkbox", { name: /^developer/ })).toBeChecked();
