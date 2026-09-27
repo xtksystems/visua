@@ -368,8 +368,9 @@ test("no page, panel or table scrolls sideways at 1024px or on a phone (the ATLA
 
 test("3D scenes: labels stay inside the canvas, clear of the HUD and of each other", async ({ page }) => {
   // Ten scenes, each measured only once its camera has landed: at SwiftShader's frame rate that
-  // takes about a minute on an arm64 Mac.
-  test.setTimeout(180_000);
+  // takes about a minute on an idle arm64 Mac, and several on a busy one (four frames can take
+  // 5 to 13 seconds under heavy load).
+  test.setTimeout(600_000);
   await signIn(page);
   const meta = (await (await page.request.get("/api/meta")).json()) as { frameworks: { id: string }[] };
   const scenes = [...["nist-csf-2.0", "nist-sp-800-53-r5", "mitre-atlas", "us-state-ai-laws"].filter((id) => meta.frameworks.some((f) => f.id === id)).map((id) => `/observatory/${id}`), "/crosswalk"];
@@ -397,16 +398,17 @@ test("3D scenes: labels stay inside the canvas, clear of the HUD and of each oth
             })
             .join("|");
         });
+      // Bounded in samples (at least 400 ms and four rendered frames apart), not seconds: under
+      // heavy load four frames can take 5 to 13 seconds, and the test's own time limit is the backstop.
       let previous = "";
       let still = 0;
-      await expect
-        .poll(async () => {
-          const now = await layout();
-          still = now === previous ? still + 1 : 0;
-          previous = now;
-          return still;
-        }, { intervals: [400], timeout: 15_000, message: `${fw} at ${width}x${height}: labels settle` })
-        .toBeGreaterThanOrEqual(2);
+      for (let sample = 0; sample < 12 && still < 2; sample++) {
+        if (sample) await page.waitForTimeout(400);
+        const now = await layout();
+        still = now === previous ? still + 1 : 0;
+        previous = now;
+      }
+      expect(still, `${fw} at ${width}x${height}: labels settle`).toBeGreaterThanOrEqual(2);
       const report = await page.evaluate(() => {
         const canvas = document.querySelector(".observatory__canvas canvas")!.getBoundingClientRect();
         const panels = [...document.querySelectorAll("[data-hud]")].map((e) => e.getBoundingClientRect());
