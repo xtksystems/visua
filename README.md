@@ -91,8 +91,9 @@ workspaces only through a membership, and their **role** decides what they can d
 - **Single sign-on.** Each organization can connect its own OpenID Connect provider
   (Okta, Microsoft Entra ID, Google Workspace, Keycloak…): authorization code flow with
   PKCE, state and nonce, bound to the browser that started it. People are routed to it
-  by email domain, can be provisioned on first sign-in with a default role, and their
-  sessions reach that organization only. Whoever controls a connection's provider can
+  by email domain once the organization proves the domain with a DNS TXT record, can be
+  provisioned on first sign-in with a default role, and their sessions reach that
+  organization only. The first organization to prove a domain holds it. Whoever controls a connection's provider can
   sign in as any member on its domains, so only owners choose the provider, client and
   domains; a new provider never inherits the old one's client secret. An owner can
   require the organization's SSO for every session. A platform-wide provider
@@ -114,6 +115,7 @@ workspaces only through a membership, and their **role** decides what they can d
 | `VISUA_PUBLIC_URL` | `http://localhost:8787` | External URL: OIDC redirect URI (`/api/auth/oidc/callback`), secure cookies over HTTPS, allowed origin |
 | `VISUA_SECRET` | — | At least 32 characters. Encrypts SSO client secrets at rest (AES-256-GCM). Required in production before storing a client secret. |
 | `VISUA_OIDC_ISSUER`, `VISUA_OIDC_CLIENT_ID`, `VISUA_OIDC_CLIENT_SECRET`, `VISUA_OIDC_NAME` | — | Optional platform identity provider |
+| `VISUA_SSO_DOMAIN_VERIFICATION` | `dns` | `dns`: an SSO connection's email domains route sign-ins and admit people only once proven by a TXT record at `_visua-challenge.<domain>`. `off`: domains are trusted as claimed (single-organization installations). Domains added before this check existed stay verified ("grandfathered"). |
 | `VISUA_OIDC_TRUST_EMAIL` | — | Set to `1` only if the platform provider verifies every email it asserts but sends no `email_verified` claim. Otherwise an unverified email never links to an existing account. |
 | `VISUA_BOOTSTRAP_OWNER_EMAIL`, `VISUA_BOOTSTRAP_ORG_NAME` | — | First owner of a new installation (or of an unowned upgraded one) |
 | `VISUA_SESSION_HOURS`, `VISUA_SESSION_IDLE_MINUTES` | `12`, `120` | Session lifetime and idle timeout |
@@ -174,7 +176,7 @@ Details: [`docs/architecture.md`](docs/architecture.md). Design system:
 ```sh
 pnpm check           # local CI: every check below, with a summary (--quick: guard, typecheck, SQLite tests)
 pnpm typecheck       # all packages (TypeScript 7)
-pnpm test            # 138 unit, API, storage and auth tests (Vitest; add VISUA_TEST_DATABASE_URL=postgres://… for Postgres)
+pnpm test            # 144 unit, API, storage and auth tests (Vitest; add VISUA_TEST_DATABASE_URL=postgres://… for Postgres)
 pnpm test:e2e        # 20 Playwright end-to-end tests against the production build (WebGL via SwiftShader)
 pnpm screens         # screenshots of every view at 1440×900, 1024×768 and 390×844 into .screens/ (git-ignored)
 pnpm screens --docs  # regenerate the README images in docs/images/
