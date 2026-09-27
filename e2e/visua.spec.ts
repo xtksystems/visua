@@ -467,7 +467,7 @@ test("3D scenes: labels stay inside the canvas, clear of the HUD and of each oth
     for (const fw of scenes) {
       await page.goto(`${WS}${fw}`);
       await expect(page.locator(".observatory__canvas canvas")).toBeVisible();
-      await expect(page.locator(".scene-label--sector").filter({ visible: true }).first()).toBeVisible();
+      await expect(page.locator('.scene-label--sector[data-shown="true"]').first()).toBeVisible();
       // Measure once the camera has landed. Labels are placed again on every frame the camera moves,
       // so the layout is sampled a few rendered frames apart, not a fixed time apart: a software
       // renderer can stall for a second on its first frames (SwiftShader on arm64 does), and a
@@ -476,7 +476,7 @@ test("3D scenes: labels stay inside the canvas, clear of the HUD and of each oth
         page.evaluate(async () => {
           for (let i = 0; i < 4; i++) await new Promise(requestAnimationFrame);
           return [...document.querySelectorAll<HTMLElement>(".scene-label")]
-            .filter((l) => l.style.visibility === "visible")
+            .filter((l) => l.dataset["shown"] === "true")
             .map((l) => {
               const r = l.getBoundingClientRect();
               return `${l.textContent}@${Math.round(r.left)},${Math.round(r.top)}`;
@@ -497,7 +497,7 @@ test("3D scenes: labels stay inside the canvas, clear of the HUD and of each oth
       const report = await page.evaluate(() => {
         const canvas = document.querySelector(".observatory__canvas canvas")!.getBoundingClientRect();
         const panels = [...document.querySelectorAll("[data-hud]")].map((e) => e.getBoundingClientRect());
-        const labels = [...document.querySelectorAll<HTMLElement>(".scene-label")].filter((l) => l.style.visibility === "visible").map((l) => ({ text: l.textContent ?? "", r: l.getBoundingClientRect(), sector: l.classList.contains("scene-label--sector") }));
+        const labels = [...document.querySelectorAll<HTMLElement>(".scene-label")].filter((l) => l.dataset["shown"] === "true").map((l) => ({ text: l.textContent ?? "", r: l.getBoundingClientRect(), sector: l.classList.contains("scene-label--sector") }));
         const hit = (a: DOMRect, b: DOMRect) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
         const problems: string[] = [];
         labels.forEach((l, i) => {
