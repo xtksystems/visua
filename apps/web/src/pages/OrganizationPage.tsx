@@ -12,6 +12,7 @@ import { ROLES, ROLE_LABELS, can, roleRank, type ActivityEvent, type Role } from
 import { Empty, StatusChip, Tabs, toast } from "../components/ui/index.tsx";
 import { api } from "../lib/api.ts";
 import { ROLE_NAMES, useMe, useResetSession } from "../lib/auth.ts";
+import { shortDate } from "../lib/format.ts";
 import { useWorkspace } from "../lib/queries.ts";
 
 interface Member {
@@ -40,7 +41,18 @@ interface Connection {
   hasClientSecret: boolean;
   domains: string[];
   /** Each domain's proof: only verified domains route sign-ins and admit people. */
-  domainStatus: { domain: string; verified: boolean; method?: "dns" | "grandfathered" | "trusted"; verifiedAt?: string; record?: { name: string; value: string } }[];
+  domainStatus: {
+    domain: string;
+    verified: boolean;
+    standing: "pending" | "verified" | "failing" | "lapsed" | "not-proven";
+    method?: "dns" | "grandfathered" | "trusted";
+    verifiedAt?: string;
+    failingSince?: string;
+    lapsesAt?: string;
+    lapsedAt?: string;
+    takenOver: boolean;
+    record?: { name: string; value: string };
+  }[];
   jitProvisioning: boolean;
   defaultRole: Role;
   enabled: boolean;
@@ -51,6 +63,12 @@ const PROOF: Record<string, string> = {
   grandfathered: "Verified before DNS checks",
   trusted: "Trusted (checks off)",
 };
+function DomainChip({ d }: { d: Connection["domainStatus"][number] }) {
+  if (d.standing === "failing") return <StatusChip status="at-risk" label={`Record missing · lapses ${shortDate(d.lapsesAt)}`} />;
+  if (d.standing === "lapsed") return <StatusChip status="at-risk" label={d.takenOver ? "Held by another organization" : "Lapsed · admits no one new"} />;
+  if (d.standing === "pending") return <StatusChip status="in-progress" label="Awaiting DNS proof" />;
+  return <StatusChip status="verified" label={PROOF[d.method ?? "dns"]} />;
+}
 interface TenantInfo {
   id: string;
   name: string;
@@ -427,7 +445,9 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
     onError: (e: Error) => toast(e.message, "error"),
   });
   const copy = (text: string, what: string) => void navigator.clipboard?.writeText(text).then(() => toast(`${what} copied`));
-  const pending = (sso.data?.connections ?? []).flatMap((c) => c.domainStatus.filter((d) => !d.verified && d.record).map((d) => ({ connection: c, ...d, record: d.record! })));
+  const attention = (sso.data?.connections ?? []).flatMap((c) =>
+    c.domainStatus.filter((d) => d.record && (d.standing === "pending" || d.standing === "failing" || (d.standing === "lapsed" && !d.takenOver))).map((d) => ({ connection: c, ...d, record: d.record! })),
+  );
   const requireSso = useMutation({
     mutationFn: (value: boolean) => api.patch(`/tenants/${tenant.id}`, { settings: { requireSso: value } }),
     onSuccess: (_, value) => {
@@ -478,7 +498,7 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
                       {c.domainStatus.map((d) => (
                         <li key={d.domain} className="row" style={{ gap: 8, flexWrap: "wrap" }}>
                           <span className="mono">{d.domain}</span>
-                          {d.verified ? <StatusChip status="verified" label={PROOF[d.method ?? "dns"]} /> : <StatusChip status="in-progress" label="Awaiting DNS proof" />}
+                          <DomainChip d={d} />
                         </li>
                       ))}
                     </ul>
@@ -504,14 +524,21 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
           <Empty title="No SSO connection">Add your identity provider below.</Empty>
         )}
       </div>
-      {pending.map((p) => (
+      {attention.map((p) => (
         <section key={`${p.connection.id}:${p.domain}`} className="panel stack" style={{ gap: 10 }} aria-labelledby={`proof-${p.connection.id}-${p.domain}`}>
           <h2 className="section-title" id={`proof-${p.connection.id}-${p.domain}`} style={{ margin: 0 }}>
-            Prove you control {p.domain}
+            {p.standing === "pending" ? `Prove you control ${p.domain}` : p.standing === "failing" ? `Restore the DNS record for ${p.domain}` : `${p.domain} has lapsed`}
           </h2>
           <p className="muted" style={{ margin: 0 }}>
-            Until then, nobody is sent to “{p.connection.name}” for this domain, and it admits no one from it. Add this TXT record at your DNS provider, then verify. Another
-            organization can claim the domain too; the first to prove it holds it.
+            {p.standing === "pending" && (
+              <>Until then, nobody is sent to “{p.connection.name}” for this domain, and it admits no one from it. Add this TXT record at your DNS provider, then verify. Another organization can claim the domain too; the first to prove it holds it.</>
+            )}
+            {p.standing === "failing" && (
+              <>Visua looks at this record again every day and has not found it since {shortDate(p.failingSince)}. Unless it is back by {shortDate(p.lapsesAt)}, the domain lapses: “{p.connection.name}” then admits no one new from it, and another organization can prove it. People who already sign in with it keep doing so.</>
+            )}
+            {p.standing === "lapsed" && (
+              <>Since {shortDate(p.lapsedAt)}, “{p.connection.name}” admits no one new from this domain, and another organization can prove it. People who already sign in with it still can. Restore this TXT record, then verify.</>
+            )}
           </p>
           <dl className="stack" style={{ gap: 6, margin: 0 }}>
             {(
