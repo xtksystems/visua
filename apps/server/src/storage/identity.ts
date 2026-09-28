@@ -92,6 +92,36 @@ export interface LoginFlow {
   createdAt: string;
 }
 
+/** Visua's side of a SAML AuthnRequest, keyed by `saml-request:<request id>` (single use, 10 minutes). */
+export interface SamlRequestFlow {
+  kind: "saml-request";
+  connection: string;
+  requestId: string;
+  returnTo: string;
+  /** SHA-256 of the pre-auth cookie of the browser that started the sign-in. */
+  binding: string;
+  createdAt: string;
+}
+
+/** A verified SAML response waiting for its browser, keyed by `saml-code:<one-time code>` (single use, 2 minutes). */
+export interface SamlResultFlow {
+  kind: "saml-result";
+  connection: string;
+  returnTo: string;
+  binding: string;
+  identity: { issuer: string; subject: string; email: string; name: string };
+  createdAt: string;
+}
+
+/** node-saml's record of a request id (its cache provider), keyed by `saml-cache:<request id>`. */
+export interface SamlCacheEntry {
+  kind: "saml-cache";
+  value: string;
+  createdAt: string;
+}
+
+export type StoredFlow = LoginFlow | SamlRequestFlow | SamlResultFlow | SamlCacheEntry;
+
 class Tenants extends Repo {
   async get(id: string): Promise<Tenant | undefined> {
     const [row] = await this.db.query<DataRow>(`SELECT data FROM tenants WHERE id = ?`, [id]);
@@ -335,18 +365,26 @@ class SsoConnections extends Repo {
   }
 }
 
-class LoginFlows extends Repo {
-  async put(stateHash: string, flow: LoginFlow, expiresAt: string): Promise<void> {
+export class LoginFlows extends Repo {
+  async put(stateHash: string, flow: StoredFlow, expiresAt: string): Promise<void> {
     await this.db.execute(`INSERT INTO login_flows (state_hash, data, expires_at) VALUES (?, ${this.J}, ?)`, [stateHash, JSON.stringify(flow), expiresAt]);
   }
-  /** Single use: returns the flow and deletes it. */
-  async take(stateHash: string): Promise<LoginFlow | undefined> {
-    return this.store.atomic(async () => {
-      const [row] = await this.db.query<{ data: unknown; expires_at: string }>(`SELECT data, expires_at FROM login_flows WHERE state_hash = ?`, [stateHash]);
-      if (!row) return undefined;
-      await this.db.execute(`DELETE FROM login_flows WHERE state_hash = ?`, [stateHash]);
-      return row.expires_at < now() ? undefined : parseJson<LoginFlow>(row.data);
-    });
+  /**
+   * Single use: deletes the row and returns what it held, in one statement, so of several
+   * concurrent callers (on any instance) exactly one gets it. Expired flows return undefined.
+   */
+  async consume<T extends StoredFlow = LoginFlow>(stateHash: string): Promise<T | undefined> {
+    const [row] = await this.db.query<{ data: unknown; expires_at: string }>(`DELETE FROM login_flows WHERE state_hash = ? RETURNING data, expires_at`, [stateHash]);
+    return row && row.expires_at >= now() ? parseJson<T>(row.data) : undefined;
+  }
+  /** An OpenID Connect flow, single use. */
+  take(stateHash: string): Promise<LoginFlow | undefined> {
+    return this.consume<LoginFlow>(stateHash);
+  }
+  /** Reads a flow without consuming it (node-saml's cache lookups). */
+  async peek<T extends StoredFlow>(stateHash: string): Promise<T | undefined> {
+    const [row] = await this.db.query<{ data: unknown; expires_at: string }>(`SELECT data, expires_at FROM login_flows WHERE state_hash = ?`, [stateHash]);
+    return row && row.expires_at >= now() ? parseJson<T>(row.data) : undefined;
   }
   async purgeExpired(at = now()): Promise<number> {
     return this.db.execute(`DELETE FROM login_flows WHERE expires_at < ?`, [at]);
