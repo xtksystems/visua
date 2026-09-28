@@ -193,6 +193,28 @@ describe("re-checking SSO domains proven by DNS", () => {
     expect((await trail(old.client, old.tenant)).some((e) => e.action === "recovered" && e.summary.includes("handback-sso.example"))).toBe(true);
   });
 
+  it("goes on past a batch made only of domains other organizations hold", async () => {
+    const old = await provenOrg("dov@batch-holder.example", "batch-held.example");
+    txt.delete(old.record.name);
+    const t = Date.now();
+    for (let d = 1; d <= 9; d++) await recheckAll(new Date(t + d * DAY + 60_000));
+    await provenOrg("eda@batch-holder.example", "batch-held.example");
+    const other = await provenOrg("fay@batch-other.example", "batch-other.example");
+    // Nothing else is due before `at`; the held domain is due first, the other right after it.
+    const at = new Date(t + 40 * DAY);
+    await recheckAll(new Date(at.getTime() - 60_000));
+    const dueAt = async (id: string, domain: string, when: Date) => {
+      const c = (await svc.store.identity.sso.get(id))!;
+      await svc.store.identity.sso.put({ ...c, verification: { ...c.verification, [domain]: { ...c.verification![domain]!, nextCheckAt: when.toISOString() } } });
+    };
+    await dueAt(old.connection.id, "batch-held.example", new Date(at.getTime() - 2));
+    await dueAt(other.connection.id, "batch-other.example", new Date(at.getTime() - 1));
+    lookups.length = 0;
+    const oneAtATime = new AuthService(svc, config, { resolveTxt, recheckBatch: 1 });
+    expect(await oneAtATime.recheckAllDue(at)).toBe(1);
+    expect(lookups).toEqual([other.record.name]);
+  });
+
   it("tells the organization page how often domains are re-checked", async () => {
     const { client, tenant } = await provenOrg("cy@schedule.example", "schedule-sso.example");
     const on = await client.get<{ domainRechecks: unknown }>(`/api/tenants/${tenant}/sso`);

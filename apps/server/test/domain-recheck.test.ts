@@ -88,6 +88,8 @@ describe("re-check settings", () => {
   it("turns re-checking off with 0 and ignores nonsense", () => {
     expect(loadAuthConfig({ VISUA_SSO_DOMAIN_RECHECK_HOURS: "0" }).domainRecheckHours).toBe(0);
     expect(loadAuthConfig({ VISUA_SSO_DOMAIN_RECHECK_HOURS: "-3", VISUA_SSO_DOMAIN_RECHECK_GRACE_DAYS: "soon" })).toMatchObject({ domainRecheckHours: 24, domainRecheckGraceDays: 7 });
+    // A negative zero is a negative value, not a way to say "off".
+    expect(loadAuthConfig({ VISUA_SSO_DOMAIN_RECHECK_HOURS: "-0" }).domainRecheckHours).toBe(24);
     expect(loadAuthConfig({ VISUA_SSO_DOMAIN_RECHECK_HOURS: "6", VISUA_SSO_DOMAIN_RECHECK_GRACE_DAYS: "14" })).toMatchObject({ domainRecheckHours: 6, domainRecheckGraceDays: 14 });
   });
   it("re-checks at most hourly: a positive interval below an hour counts as one hour", () => {

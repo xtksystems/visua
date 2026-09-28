@@ -13,7 +13,7 @@ import { claudeEnabled, configuredModel } from "@visua/agents";
 import { REPO_ROOT } from "@visua/frameworks";
 import { createApp } from "./app.ts";
 import { loadAuthConfig } from "./auth/config.ts";
-import { AuthService, RECHECK_BATCH } from "./auth/service.ts";
+import { AuthService } from "./auth/service.ts";
 import { startDomainRechecks } from "./auth/recheck-ticker.ts";
 import { createService, databaseUrl } from "./context.ts";
 import { describeDatabase } from "./storage/index.ts";
@@ -34,9 +34,7 @@ if (process.env["VISUA_SEED"] !== "0" && (await svc.store.workspaces.list()).len
 await auth.bootstrap();
 // SSO domains proven by DNS are looked at again; each instance ticks, claims keep them apart.
 if (auth.domainRechecksEnabled) {
-  startDomainRechecks(async () => {
-    while ((await auth.recheckDueDomains()) === RECHECK_BATCH);
-  });
+  startDomainRechecks(() => auth.recheckAllDue());
 }
 if (auth.config.mode === "oidc" && !auth.config.platform && !(await svc.store.identity.tenants.count())) {
   console.warn("[visua] No identity provider and no organization: set VISUA_OIDC_* and VISUA_BOOTSTRAP_OWNER_EMAIL to sign in.");
