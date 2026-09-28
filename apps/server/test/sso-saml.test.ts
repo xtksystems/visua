@@ -240,6 +240,28 @@ describe("SAML sign-in", () => {
     expect((await samlSignIn(connection.id, { nameId: "ada@flow-saml.example" })).me?.user.email).toBe("ada@flow-saml.example");
   });
 
+  it("sets the SAML flow cookie's attributes, __Host-prefixed and Secure over https", async () => {
+    const { connection } = await samlOrg("cody@cookie-saml.example", "cookie-saml.example");
+    const start = await new TestClient(app).get(`/api/auth/saml/start?connection=${connection.id}`);
+    const setCookie = start.headers.getSetCookie().find((c) => c.startsWith("visua_saml="));
+    expect(setCookie).toBeDefined();
+    expect(setCookie).toContain("HttpOnly");
+    expect(setCookie).toContain("SameSite=Lax");
+    expect(setCookie).toContain("Path=/");
+    expect(setCookie).toContain("Max-Age=600");
+    expect(setCookie).not.toContain("Secure");
+
+    const httpsApp = createApp(svc, new AuthService(svc, { ...config, publicUrl: "https://visua.test", secureCookies: true }, { resolveTxt }));
+    const httpsStart = await new TestClient(httpsApp).get(`/api/auth/saml/start?connection=${connection.id}`);
+    const httpsSetCookie = httpsStart.headers.getSetCookie().find((c) => c.startsWith("__Host-visua_saml="));
+    expect(httpsSetCookie).toBeDefined();
+    expect(httpsSetCookie).toContain("Secure");
+    expect(httpsSetCookie).toContain("HttpOnly");
+    expect(httpsSetCookie).toContain("SameSite=Lax");
+    expect(httpsSetCookie).toContain("Path=/");
+    expect(httpsSetCookie).toContain("Max-Age=600");
+  });
+
   it("finishes only in the browser that started it, and only once", async () => {
     const { connection } = await samlOrg("bea@browser-saml.example", "browser-saml.example");
     const flow = await startSaml(connection.id);
