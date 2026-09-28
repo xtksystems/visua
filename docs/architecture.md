@@ -315,9 +315,9 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     consumes the stored request with one `DELETE … RETURNING` (a response counts once on
     every instance), and parks the person under a one-time code (2 minutes).
     `/api/auth/saml/finish` checks the browser's cookie and opens a session
-    (`saml:<connectionId>`, scoped to the organization). Identities are keyed
-    `saml:<connectionId>` + NameID, so another organization pasting the same entity ID
-    reaches no one; the email comes from an email NameID or the `email`/`mail`/claims
+    (`saml:<connectionId>`, scoped to the organization). Identities are keyed by connection
+    and provider entity ID + NameID: links survive certificate rotation, not a change of
+    provider; the email comes from an email NameID or the `email`/`mail`/claims
     attributes and is treated as verified, as for OpenID Connect organization connections.
   - A connection's email domains are proven by DNS: each claimed domain gets a token, and
     once `_visua-challenge.<domain>` carries `visua-domain-verification=<token>` an admin

@@ -430,6 +430,21 @@ describe("SAML certificates, domains and instances", () => {
     expect(intruder.me).toBeNull();
   });
 
+  it("does not carry identity links over to another identity provider", async () => {
+    const persistent = "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent";
+    const { client, tenant, connection } = await samlOrg("ann@rekey-saml.example", "rekey-saml.example");
+    const first = await samlSignIn(connection.id, { nameId: "jdoe", nameIdFormat: persistent, attributes: { email: "ann@rekey-saml.example" } });
+    expect(first.me?.user.email).toBe("ann@rekey-saml.example");
+
+    const changed = await client.patch<ConnectionJson>(`/api/tenants/${tenant}/sso/${connection.id}`, { metadataXml: metadata(["a"], "https://idp2.test/saml") });
+    expect(changed.status, JSON.stringify(changed.json)).toBe(200);
+    const latestUpdated = (await trail(client, tenant)).find((e) => e.action === "updated");
+    expect(latestUpdated?.summary).toContain(`identity provider ${IDP} → https://idp2.test/saml`);
+
+    const second = await samlSignIn(connection.id, { nameId: "jdoe", nameIdFormat: persistent, attributes: { email: "bob@rekey-saml.example" } }, { issuer: "https://idp2.test/saml" });
+    expect(second.me?.user.email).toBe("bob@rekey-saml.example");
+  });
+
   it("completes on another instance, and accepts a response replayed to two instances once", async () => {
     const { connection } = await samlOrg("pat@multi-saml.example", "multi-saml.example");
     const other = createApp(svc, new AuthService(svc, config, { resolveTxt }));

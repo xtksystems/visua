@@ -121,6 +121,29 @@ function certificateChanges(before: SamlIdp | undefined, after: SamlIdp | undefi
   return { added, removed, summary: `; signing certificates ${parts.join("; ")}` };
 }
 
+/**
+ * Whether a metadata update changes the provider itself (entity ID or sign-in URL) and how the
+ * audit summary and data say so. Identity links are keyed to the entity ID (resolveIdentity /
+ * acceptSamlResponse): a changed entity ID starts new links, so this is called out on its own,
+ * separately from a certificate rotation.
+ */
+function providerChanges(before: SamlIdp | undefined, after: SamlIdp | undefined): { summary: string; data: Record<string, string> } {
+  if (!before || !after) return { summary: "", data: {} };
+  const data: Record<string, string> = {};
+  const parts: string[] = [];
+  if (before.entityId !== after.entityId) {
+    parts.push(`; identity provider ${before.entityId} → ${after.entityId}`);
+    data["entityIdBefore"] = before.entityId;
+    data["entityIdAfter"] = after.entityId;
+  }
+  if (before.ssoUrl !== after.ssoUrl) {
+    parts.push(`; sign-in URL ${before.ssoUrl} → ${after.ssoUrl}`);
+    data["ssoUrlBefore"] = before.ssoUrl;
+    data["ssoUrlAfter"] = after.ssoUrl;
+  }
+  return { summary: parts.join(""), data };
+}
+
 const day = (iso: string | undefined) => (iso ? iso.slice(0, 10) : "");
 function recheckSummary(event: RecheckEvent, domain: string, record: string, connection: string, v: DomainVerification): string {
   if (event === "failing") return `Domain ${domain}: its TXT record ${record} was not found on re-check; it lapses on ${day(v.lapsesAt)} unless the record is restored`;
@@ -601,14 +624,15 @@ export class AuthService {
       this.oidcConfigs.delete(connection.id);
       const pending = domains.filter((d) => !verification[d]!.verifiedAt);
       const certificates = certificateChanges(existing?.saml, saml);
+      const provider = providerChanges(existing?.saml, saml);
       await this.audit(
         tenantId,
         by,
         existing ? "updated" : "created",
         "sso-connection",
         connection.id,
-        `SSO connection “${connection.name}” ${existing ? "updated" : "added"} for ${domains.join(", ")}${pending.length ? ` (awaiting DNS verification: ${pending.join(", ")})` : ""}${certificates.summary}`,
-        protocol === "saml" ? { protocol, certificatesAdded: certificates.added, certificatesRemoved: certificates.removed } : undefined,
+        `SSO connection “${connection.name}” ${existing ? "updated" : "added"} for ${domains.join(", ")}${pending.length ? ` (awaiting DNS verification: ${pending.join(", ")})` : ""}${certificates.summary}${provider.summary}`,
+        protocol === "saml" ? { protocol, certificatesAdded: certificates.added, certificatesRemoved: certificates.removed, ...provider.data } : undefined,
       );
       return connection;
     });
@@ -986,8 +1010,12 @@ export class AuthService {
         connection: c.id,
         returnTo: flow.returnTo,
         binding: flow.binding,
-        // Keyed to the connection: an entity ID is only a string another organization could paste too.
-        identity: { issuer: `saml:${c.id}`, subject: person.subject, email: person.email, name: person.name ?? person.email.split("@")[0]! },
+        // Keyed to the connection and its provider entity ID: an entity ID alone is only a string
+        // another organization could paste too. Replacing a connection's metadata with another
+        // provider (a new entity ID) therefore starts new links; people re-link by verified-domain
+        // email, as when an OIDC issuer changes. Certificate rotation and a changed sign-in URL
+        // keep the same key, so existing links survive them.
+        identity: { issuer: `saml:${c.id}|${c.saml.entityId}`, subject: person.subject, email: person.email, name: person.name ?? person.email.split("@")[0]! },
         createdAt: now(),
       },
       addMinutes(2),
