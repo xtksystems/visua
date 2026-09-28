@@ -16,7 +16,7 @@ export interface SessionRecord {
   activeTenantId?: string;
   /** When set, the session may only access this tenant (login through that tenant's SSO). */
   tenantScope?: string;
-  /** "dev", "oidc:platform", "oidc:<connectionId>". */
+  /** "dev", "oidc:platform", "oidc:<connectionId>", "saml:<connectionId>". */
   method: string;
   csrf: string;
   userAgent?: string;

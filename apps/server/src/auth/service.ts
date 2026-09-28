@@ -13,17 +13,17 @@
  */
 import { randomBytes } from "node:crypto";
 import { Resolver } from "node:dns/promises";
-import { SAML, ValidateInResponseTo } from "@node-saml/node-saml";
+import { SAML, SamlStatusError, ValidateInResponseTo, type CacheItem, type CacheProvider, type Profile } from "@node-saml/node-saml";
 import * as oidc from "openid-client";
 import { ROLE_CAPABILITIES, can, newId, roleRank, slugify, type Capability, type Membership, type Role, type Tenant, type TenantSettings, type User } from "@visua/core";
-import type { ApiTokenRecord, DomainVerification, SamlIdp, SessionRecord, SsoConnection } from "../storage/index.ts";
+import type { ApiTokenRecord, DomainVerification, LoginFlows, SamlCacheEntry, SamlIdp, SamlRequestFlow, SamlResultFlow, SessionRecord, SsoConnection } from "../storage/index.ts";
 import { DEFAULT_TENANT_ID, protocolOf } from "../storage/index.ts";
 import { NotFoundError, ValidationError, type Principal as AuditPrincipal, type VisuaService } from "../services/visua.ts";
 import type { AuthConfig } from "./config.ts";
 import { applyOutcome, classifyLookup, standingOf, type LookupOutcome, type RecheckEvent } from "./domain-recheck.ts";
 import { randomToken, safeEqual, seal, sha256, unseal } from "./crypto.ts";
 import { guardedFetch, privateAddressCause, privateHostAllowed, refusedLiteral } from "./egress.ts";
-import { certificateStanding, NAMEID_EMAIL, parseIdpMetadata, type CertificateStanding } from "./saml.ts";
+import { certificateStanding, NAMEID_EMAIL, parseIdpMetadata, samlIdentity, type CertificateStanding } from "./saml.ts";
 
 export class UnauthorizedError extends Error {}
 export class ForbiddenError extends Error {}
@@ -137,6 +137,40 @@ const LEASE_MS = 15 * 60_000;
 /** TXT lookups for domain verification (replaceable in tests). */
 export type ResolveTxt = (name: string) => Promise<string[][]>;
 const resolveTxtWithTimeout: ResolveTxt = (name) => new Resolver({ timeout: 5000, tries: 2 }).resolveTxt(name);
+
+/** A base64 SAML response larger than this is refused unread. */
+const SAML_RESPONSE_MAX = 1_000_000;
+
+/**
+ * node-saml's record of the requests Visua issued, in the database so any instance can
+ * validate a response (`saml-cache:<request id>`, 10 minutes). node-saml 5.1.0 reads then
+ * removes an id in two calls; Visua's own single-use request flow (`saml-request:<id>`,
+ * consumed after validation) is what makes a response count once. consumeAsync serves
+ * node-saml versions that use it.
+ */
+class SamlRequestCache implements CacheProvider {
+  readonly flows: LoginFlows;
+  constructor(flows: LoginFlows) {
+    this.flows = flows;
+  }
+  private key(id: string) {
+    return sha256(`saml-cache:${id}`);
+  }
+  async saveAsync(key: string, value: string): Promise<CacheItem> {
+    const createdAt = Date.now();
+    await this.flows.put(this.key(key), { kind: "saml-cache", value, createdAt: new Date(createdAt).toISOString() }, addMinutes(10));
+    return { value, createdAt };
+  }
+  async getAsync(key: string): Promise<string | null> {
+    return (await this.flows.peek<SamlCacheEntry>(this.key(key)))?.value ?? null;
+  }
+  async removeAsync(key: string | null): Promise<string | null> {
+    return key ? ((await this.flows.consume<SamlCacheEntry>(this.key(key)))?.value ?? null) : null;
+  }
+  async consumeAsync(key: string): Promise<string | null> {
+    return this.removeAsync(key);
+  }
+}
 
 export class AuthService {
   readonly svc: VisuaService;
@@ -333,7 +367,7 @@ export class AuthService {
     if (!m) return undefined;
     const tenant = await this.ids.tenants.get(tenantId);
     if (tenant?.settings.requireSso) {
-      const own = (await this.ids.sso.forTenant(tenantId)).filter((c) => c.enabled).map((c) => `oidc:${c.id}`);
+      const own = (await this.ids.sso.forTenant(tenantId)).filter((c) => c.enabled).map((c) => `${protocolOf(c)}:${c.id}`);
       if (own.length && !own.includes(principal.session.method)) return undefined;
     }
     return m.role;
@@ -714,12 +748,12 @@ export class AuthService {
     });
   }
 
-  /** Where an email address signs in: its organization's SSO, else the platform provider. */
-  async discover(email: string): Promise<{ connection: string; name: string } | undefined> {
+  /** Where an email address signs in: its organization's SSO (with its protocol), else the platform provider. */
+  async discover(email: string): Promise<{ connection: string; name: string; protocol: "oidc" | "saml" } | undefined> {
     const domain = email.trim().toLowerCase().split("@")[1];
     const c = domain ? await this.ids.sso.byDomain(domain) : undefined;
-    if (c?.enabled) return { connection: c.id, name: c.name };
-    if (this.config.platform) return { connection: PLATFORM, name: this.config.platform.name };
+    if (c?.enabled) return { connection: c.id, name: c.name, protocol: protocolOf(c) };
+    if (this.config.platform) return { connection: PLATFORM, name: this.config.platform.name, protocol: "oidc" };
     return undefined;
   }
 
@@ -878,10 +912,88 @@ export class AuthService {
       wantAuthnResponseSigned: false,
       validateInResponseTo: ValidateInResponseTo.always,
       requestIdExpirationPeriodMs: 10 * 60_000,
+      cacheProvider: new SamlRequestCache(this.ids.loginFlows),
       acceptedClockSkewMs: 60_000,
       maxAssertionAgeMs: 5 * 60_000,
       ...(requestId ? { generateUniqueId: () => requestId } : {}),
     });
+  }
+
+  private async samlConnection(id: string): Promise<SsoConnection & { saml: SamlIdp }> {
+    const c = id ? await this.ids.sso.get(id) : undefined;
+    if (!c || !c.enabled || protocolOf(c) !== "saml" || !c.saml) throw new UnauthorizedError("This SSO connection is not available");
+    return { ...c, saml: c.saml };
+  }
+
+  /**
+   * Build the AuthnRequest (HTTP-Redirect binding) and remember it: node-saml's record of its
+   * id, and Visua's single-use flow (10 minutes) bound to the browser that started it, whose
+   * pre-auth cookie value is `browser`. RelayState carries nothing.
+   */
+  async startSamlLogin(connectionId: string, returnTo = "/", browser = ""): Promise<string> {
+    if (!browser) throw new UnauthorizedError("Sign-in could not be started in this browser");
+    const c = await this.samlConnection(connectionId);
+    const requestId = `_${randomBytes(20).toString("hex")}`;
+    await this.ids.loginFlows.purgeExpired();
+    await this.ids.loginFlows.put(
+      sha256(`saml-request:${requestId}`),
+      { kind: "saml-request", connection: c.id, requestId, returnTo: safeReturnTo(returnTo), binding: sha256(browser), createdAt: now() },
+      addMinutes(10),
+    );
+    return this.samlFor(c, { requestId }).getAuthorizeUrlAsync("", undefined, {});
+  }
+
+  /**
+   * The assertion consumer service: validate a response for one connection, take the request it
+   * answers (single use, on any instance), and keep the person it names under a one-time code
+   * (2 minutes) for the browser that started the sign-in. Creates no session: the provider's
+   * cross-site POST carries no Lax cookie, so the finish step checks the browser.
+   */
+  async acceptSamlResponse(connectionId: string, samlResponse: string): Promise<string> {
+    const c = await this.samlConnection(connectionId);
+    if (!samlResponse || samlResponse.length > SAML_RESPONSE_MAX) throw new UnauthorizedError("The sign-in response is missing or too large");
+    let profile: Profile | null;
+    try {
+      ({ profile } = await this.samlFor(c).validatePostResponseAsync({ SAMLResponse: samlResponse }));
+    } catch (err) {
+      if (err instanceof SamlStatusError) throw new UnauthorizedError("The identity provider refused the sign-in");
+      console.warn(`[visua] SAML response refused for connection ${c.id}: ${(err as Error).message}`);
+      throw new UnauthorizedError("The identity provider's response could not be verified. Start again.");
+    }
+    if (!profile) throw new UnauthorizedError("The identity provider sent no sign-in");
+    const requestId = typeof profile["inResponseTo"] === "string" ? profile["inResponseTo"] : "";
+    const flow = requestId ? await this.ids.loginFlows.consume<SamlRequestFlow>(sha256(`saml-request:${requestId}`)) : undefined;
+    if (!flow || flow.kind !== "saml-request" || flow.connection !== c.id) throw new UnauthorizedError("This sign-in expired or was already used. Start again.");
+    const person = samlIdentity(profile);
+    if (!person.subject) throw new UnauthorizedError("The identity provider did not name the person signing in (no NameID)");
+    if (!person.email) throw new ForbiddenError("Your identity provider did not share an email address");
+    const code = randomToken(32);
+    await this.ids.loginFlows.put(
+      sha256(`saml-code:${code}`),
+      {
+        kind: "saml-result",
+        connection: c.id,
+        returnTo: flow.returnTo,
+        binding: flow.binding,
+        // Keyed to the connection: an entity ID is only a string another organization could paste too.
+        identity: { issuer: `saml:${c.id}`, subject: person.subject, email: person.email, name: person.name ?? person.email.split("@")[0]! },
+        createdAt: now(),
+      },
+      addMinutes(2),
+    );
+    return code;
+  }
+
+  /** The browser that started the sign-in comes back with its code: map the person to a member and open a session. */
+  async finishSamlLogin(code: string, userAgent?: string, browser = ""): Promise<{ token: string; returnTo: string }> {
+    const result = code ? await this.ids.loginFlows.consume<SamlResultFlow>(sha256(`saml-code:${code}`)) : undefined;
+    if (!result || result.kind !== "saml-result") throw new UnauthorizedError("This sign-in link expired or was already used. Start again.");
+    if (!browser || !safeEqual(result.binding, sha256(browser))) throw new UnauthorizedError("This sign-in was started in another browser. Start again.");
+    const c = await this.samlConnection(result.connection);
+    // The organization's own provider: its email is treated as verified, as for OIDC organization connections.
+    const user = await this.svc.store.atomic(() => this.resolveIdentity({ ...result.identity, emailVerified: true }, c));
+    const { token } = await this.createSession(user, `saml:${c.id}`, { tenantScope: c.tenantId, userAgent });
+    return { token, returnTo: result.returnTo };
   }
 
   /** Visua's service-provider metadata for an enabled SAML connection (public: providers fetch it). */

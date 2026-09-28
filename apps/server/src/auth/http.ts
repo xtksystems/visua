@@ -28,14 +28,18 @@ const SAFE = new Set(["GET", "HEAD", "OPTIONS"]);
 /** Routes that answer without a signed-in principal. */
 const PUBLIC_ROUTES = [
   /^\/api\/health$/,
-  /^\/api\/auth\/(config|me|dev\/login|oidc\/start|oidc\/callback|sso\/discover|logout)$/,
-  /^\/api\/auth\/saml\/[^/]+\/metadata$/,
+  /^\/api\/auth\/(config|me|dev\/login|oidc\/start|oidc\/callback|saml\/start|saml\/finish|sso\/discover|logout)$/,
+  /^\/api\/auth\/saml\/[^/]+\/(acs|metadata)$/,
   /^\/api\/trust\//,
 ];
+/** The SAML assertion consumer service: the identity provider's cross-site form POST. */
+const SAML_ACS = /^\/api\/auth\/saml\/[^/]+\/acs$/;
 
 export const cookieName = (auth: AuthService) => (auth.config.secureCookies ? "__Host-visua_session" : "visua_session");
 /** Pre-auth cookie that binds an OpenID Connect flow to the browser that started it. */
 const flowCookieName = (auth: AuthService) => (auth.config.secureCookies ? "__Host-visua_oidc" : "visua_oidc");
+/** Pre-auth cookie that binds a SAML sign-in to the browser that started it. */
+const samlCookieName = (auth: AuthService) => (auth.config.secureCookies ? "__Host-visua_saml" : "visua_saml");
 
 /** `?limit=` as a bounded positive integer (anything else: the default). */
 export function limitParam(value: string | undefined, fallback: number, max: number): number {
@@ -117,6 +121,9 @@ export function requireSignIn(): MiddlewareHandler<AppEnv> {
 export function csrfProtection(auth: AuthService): MiddlewareHandler<AppEnv> {
   const allowed = new Set([new URL(auth.config.publicUrl).origin, ...(process.env["VISUA_ALLOWED_ORIGINS"] ?? "").split(",").map((o) => o.trim()).filter(Boolean)]);
   return async (c, next) => {
+    // The identity provider posts the response from its own site, with no Visua cookie or token:
+    // the signed response and the stored request authenticate it (AuthService.acceptSamlResponse).
+    if (c.req.method === "POST" && SAML_ACS.test(c.req.path)) return next();
     if (SAFE.has(c.req.method)) return next();
     const origin = c.req.header("origin");
     if (origin && auth.config.mode === "oidc" && !allowed.has(origin)) return c.json({ error: "Cross-origin request refused" }, 403);
@@ -198,6 +205,20 @@ async function json<T extends z.ZodType>(c: Context, schema: T): Promise<z.infer
   return parse(schema, body);
 }
 
+/** Sign-in starts from Visua's own pages (or a typed URL), never from another site's link. */
+const startedElsewhere = (c: Context) => {
+  const site = c.req.header("sec-fetch-site");
+  return !!site && site !== "same-origin" && site !== "none";
+};
+
+/** A failed sign-in goes back to the sign-in page, saying why only for authentication and access errors. */
+function signInFailed(c: Context, err: unknown, what: string, status: 302 | 303) {
+  const known = err instanceof UnauthorizedError || err instanceof ForbiddenError;
+  if (!known) console.error(`[visua] ${what} failed`, err);
+  const message = known ? err.message : "Sign-in failed. Try again or contact your administrator.";
+  return c.redirect(`/login?error=${encodeURIComponent(message)}`, status);
+}
+
 export function authRoutes(app: Hono<AppEnv>, auth: AuthService): void {
   const setSession = (c: Context, token: string) =>
     setCookie(c, cookieName(auth), token, {
@@ -233,9 +254,7 @@ export function authRoutes(app: Hono<AppEnv>, auth: AuthService): void {
   });
 
   app.get("/api/auth/oidc/start", async (c) => {
-    // Sign-in starts from Visua's own pages (or a typed URL), never from another site's link.
-    const site = c.req.header("sec-fetch-site");
-    if (site && site !== "same-origin" && site !== "none") return c.redirect(`/login?error=${encodeURIComponent("Start signing in from the Visua sign-in page.")}`, 302);
+    if (startedElsewhere(c)) return c.redirect(`/login?error=${encodeURIComponent("Start signing in from the Visua sign-in page.")}`, 302);
     const browser = randomToken(24);
     const url = await auth.startLogin(c.req.query("connection") || "platform", safeReturnTo(c.req.query("returnTo")), browser);
     setCookie(c, flowCookieName(auth), browser, { httpOnly: true, secure: auth.config.secureCookies, sameSite: "Lax", path: "/", maxAge: 600 });
@@ -250,9 +269,46 @@ export function authRoutes(app: Hono<AppEnv>, auth: AuthService): void {
       setSession(c, token);
       return c.redirect(returnTo, 302);
     } catch (err) {
-      const message = err instanceof UnauthorizedError || err instanceof ForbiddenError ? err.message : "Sign-in failed. Try again or contact your administrator.";
-      if (!(err instanceof UnauthorizedError || err instanceof ForbiddenError)) console.error("[visua] OIDC callback failed", err);
-      return c.redirect(`/login?error=${encodeURIComponent(message)}`, 302);
+      return signInFailed(c, err, "OIDC callback", 302);
+    }
+  });
+
+  app.get("/api/auth/saml/start", async (c) => {
+    if (startedElsewhere(c)) return c.redirect(`/login?error=${encodeURIComponent("Start signing in from the Visua sign-in page.")}`, 302);
+    const browser = randomToken(24);
+    try {
+      const url = await auth.startSamlLogin(c.req.query("connection") ?? "", safeReturnTo(c.req.query("returnTo")), browser);
+      setCookie(c, samlCookieName(auth), browser, { httpOnly: true, secure: auth.config.secureCookies, sameSite: "Lax", path: "/", maxAge: 600 });
+      return c.redirect(url, 302);
+    } catch (err) {
+      return signInFailed(c, err, "SAML start", 302);
+    }
+  });
+
+  // Exempt from the origin and CSRF checks (csrfProtection); creates no session.
+  app.post("/api/auth/saml/:id/acs", async (c) => {
+    try {
+      if (Number(c.req.header("content-length") ?? 0) > 1_048_576) throw new UnauthorizedError("The sign-in response is missing or too large");
+      const form = await c.req.parseBody();
+      const samlResponse = typeof form["SAMLResponse"] === "string" ? form["SAMLResponse"] : "";
+      const code = await auth.acceptSamlResponse(c.req.param("id"), samlResponse);
+      return c.redirect(`/api/auth/saml/finish?code=${encodeURIComponent(code)}`, 303);
+    } catch (err) {
+      return signInFailed(c, err, "SAML response", 303);
+    }
+  });
+
+  // Reached through the ACS's 303: a top-level GET, so the browser sends the Lax flow cookie. The
+  // redirect chain began at the provider, so Sec-Fetch-Site is "cross-site": not checked here.
+  app.get("/api/auth/saml/finish", async (c) => {
+    const browser = getCookie(c, samlCookieName(auth)) ?? "";
+    deleteCookie(c, samlCookieName(auth), { path: "/", secure: auth.config.secureCookies });
+    try {
+      const { token, returnTo } = await auth.finishSamlLogin(c.req.query("code") ?? "", c.req.header("user-agent"), browser);
+      setSession(c, token);
+      return c.redirect(returnTo, 302);
+    } catch (err) {
+      return signInFailed(c, err, "SAML sign-in", 302);
     }
   });
 

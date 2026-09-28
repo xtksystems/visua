@@ -1,12 +1,14 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import type { Hono } from "hono";
 import { FrameworkRegistry } from "@visua/frameworks";
 import { createApp } from "../src/app.ts";
+import type { AppEnv } from "../src/auth/http.ts";
 import { loadAuthConfig } from "../src/auth/config.ts";
 import { AuthService } from "../src/auth/service.ts";
 import { createService } from "../src/context.ts";
 import { TestClient } from "./client.ts";
 import { testDatabase } from "./db.ts";
-import { fingerprint, KEYS, type TestKey } from "./saml-idp.ts";
+import { assertion, fingerprint, KEYS, readRequest, response, sign, type TestKey } from "./saml-idp.ts";
 import { oktaMetadata } from "./saml-samples.ts";
 
 process.env["VISUA_AGENT_MODE"] = "offline";
@@ -176,5 +178,126 @@ describe("SAML connections", () => {
     const { connection } = await samlOrg("quin@oidc-saml.example", "oidc-saml.example");
     const res = await new TestClient(app).get(`/api/auth/oidc/start?connection=${connection.id}`);
     expect(res.status).toBe(401);
+  });
+});
+
+type Flow = { client: TestClient; request: ReturnType<typeof readRequest> };
+type Person = { nameId: string; nameIdFormat?: string; attributes?: Record<string, string> };
+
+/** Start a SAML sign-in in a browser (a TestClient keeps its cookies). */
+async function startSaml(connection: string, client = new TestClient(app)): Promise<Flow> {
+  const start = await client.get(`/api/auth/saml/start?connection=${connection}&returnTo=${encodeURIComponent("/w/somewhere")}`);
+  expect(start.status, start.text).toBe(302);
+  return { client, request: readRequest(start.headers.get("location")!) };
+}
+/** The test provider's signed answer to a request (key a, SHA-256, email NameID unless told otherwise). */
+function answer(req: Flow["request"], person: Person, o: { key?: TestKey; issuer?: string; algorithm?: "sha256" | "sha1" } = {}): string {
+  const issuer = o.issuer ?? IDP;
+  return response({ issuer, acs: req.acs, inResponseTo: req.id }, sign(assertion({ issuer, audience: req.issuer, acs: req.acs, inResponseTo: req.id, ...person }), o.key ?? "a", o.algorithm));
+}
+/** The provider's form POST to the ACS: cross-site, so no Lax cookie reaches Visua. */
+const postAcs = (connection: string, samlResponse: string, via: Hono<AppEnv> = app) =>
+  via.request(`/api/auth/saml/${connection}/acs`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded", origin: "https://idp.test", "sec-fetch-site": "cross-site" },
+    body: new URLSearchParams({ SAMLResponse: samlResponse, RelayState: "" }).toString(),
+  });
+/** Follow the ACS's redirect in the browser that started the sign-in: the chain began at the provider, so it is cross-site. */
+async function finish(flow: Flow, acs: Response) {
+  const location = acs.headers.get("location") ?? "";
+  const done = await flow.client.request("GET", location, undefined, { "sec-fetch-site": "cross-site" });
+  const me = (await flow.client.get<Me | null>("/api/auth/me")).json;
+  if (me) flow.client.csrf = me.csrf;
+  return { acsLocation: location, redirect: done.headers.get("location") ?? "", me };
+}
+async function samlSignIn(connection: string, person: Person, o: { key?: TestKey; issuer?: string; algorithm?: "sha256" | "sha1" } = {}) {
+  const flow = await startSaml(connection);
+  const acs = await postAcs(connection, answer(flow.request, person, o));
+  return { ...(await finish(flow, acs)), acs, flow };
+}
+const loginError = (location: string) => (location.startsWith("/login?") ? new URLSearchParams(location.slice("/login?".length)).get("error") ?? "" : "");
+
+describe("SAML sign-in", () => {
+  it("signs a new person in through start, the provider, the ACS and finish, scoped to the organization", async () => {
+    const { client, tenant, connection } = await samlOrg("owen@flow-saml.example", "flow-saml.example");
+    const flow = await startSaml(connection.id);
+    expect(flow.request.url.origin + flow.request.url.pathname).toBe(SSO_URL);
+    expect(flow.request.acs).toBe(`${PUBLIC}/api/auth/saml/${connection.id}/acs`);
+    expect(flow.request.issuer).toBe(`${PUBLIC}/api/auth/saml/${connection.id}`);
+    expect(flow.request.url.searchParams.get("RelayState") ?? "").toBe("");
+    expect([...flow.client.jar.keys()]).toContain("visua_saml");
+    const acs = await postAcs(connection.id, answer(flow.request, { nameId: "ada@flow-saml.example", attributes: { displayName: "Ada Lovelace" } }));
+    expect(acs.status).toBe(303);
+    expect(acs.headers.get("location")).toMatch(/^\/api\/auth\/saml\/finish\?code=/);
+    expect(acs.headers.getSetCookie()).toEqual([]);
+    const done = await finish(flow, acs);
+    expect(done.redirect).toBe("/w/somewhere");
+    expect(done.me).toMatchObject({ user: { email: "ada@flow-saml.example" }, method: `saml:${connection.id}`, tenantScope: tenant, activeTenant: { id: tenant, role: "viewer" } });
+    expect(done.me!.organizations.map((o) => o.id)).toEqual([tenant]);
+    expect(flow.client.jar.has("visua_saml")).toBe(false);
+    expect((await trail(client, tenant)).some((e) => e.action === "provisioned" && e.summary.includes("ada@flow-saml.example"))).toBe(true);
+    // The same person again: linked by the connection's own key, still one organization.
+    expect((await samlSignIn(connection.id, { nameId: "ada@flow-saml.example" })).me?.user.email).toBe("ada@flow-saml.example");
+  });
+
+  it("finishes only in the browser that started it, and only once", async () => {
+    const { connection } = await samlOrg("bea@browser-saml.example", "browser-saml.example");
+    const flow = await startSaml(connection.id);
+    const acs = await postAcs(connection.id, answer(flow.request, { nameId: "cy@browser-saml.example" }));
+    const elsewhere = await finish({ client: new TestClient(app), request: flow.request }, acs);
+    expect(loginError(elsewhere.redirect)).toBe("This sign-in was started in another browser. Start again.");
+    expect(elsewhere.me).toBeNull();
+    const reused = await finish(flow, acs);
+    expect(loginError(reused.redirect)).toBe("This sign-in link expired or was already used. Start again.");
+    expect(reused.me).toBeNull();
+  });
+
+  it("starts only from Visua, and only for an enabled SAML connection", async () => {
+    const { client, tenant, connection } = await samlOrg("cal@start-saml.example", "start-saml.example");
+    const fromElsewhere = await new TestClient(app).request("GET", `/api/auth/saml/start?connection=${connection.id}`, undefined, { "sec-fetch-site": "cross-site" });
+    expect(loginError(fromElsewhere.headers.get("location")!)).toBe("Start signing in from the Visua sign-in page.");
+    const oidc = await client.post<ConnectionJson>(`/api/tenants/${tenant}/sso`, { name: "OIDC", issuer: "https://login.start-saml.example", clientId: "visua", domains: ["oidc.start-saml.example"] });
+    const wrong = await new TestClient(app).get(`/api/auth/saml/start?connection=${oidc.json.id}`);
+    expect(loginError(wrong.headers.get("location")!)).toBe("This SSO connection is not available");
+    await client.patch(`/api/tenants/${tenant}/sso/${connection.id}`, { enabled: false });
+    const disabled = await new TestClient(app).get(`/api/auth/saml/start?connection=${connection.id}`);
+    expect(loginError(disabled.headers.get("location")!)).toBe("This SSO connection is not available");
+  });
+
+  it("exempts exactly the ACS from the cross-site guard", async () => {
+    const { connection } = await samlOrg("dan@guard-saml.example", "guard-saml.example");
+    const crossSite = { "content-type": "application/x-www-form-urlencoded", origin: "https://idp.test", "sec-fetch-site": "cross-site" };
+    // Public paths (they pass the sign-in check and reach the cross-site guard), next to the ACS or not.
+    for (const path of [`/api/auth/saml/${connection.id}/metadata`, "/api/auth/saml/start", "/api/auth/saml/finish", "/api/auth/oidc/callback", "/api/auth/dev/login", "/api/auth/logout"]) {
+      const res = await app.request(path, { method: "POST", headers: crossSite, body: "SAMLResponse=x" });
+      expect(res.status, path).toBe(403);
+    }
+    // The ACS itself is reached: a response that is not XML ends on the sign-in page, not in a 403.
+    const acs = await postAcs(connection.id, "bm90IHhtbA==");
+    expect(acs.status).toBe(303);
+    expect(loginError(acs.headers.get("location")!)).not.toBe("");
+  });
+
+  it("tells the sign-in page which protocol a domain uses", async () => {
+    const { connection } = await samlOrg("eve@disc-saml.example", "disc-saml.example");
+    const saml = await new TestClient(app).post<{ connection: string; protocol: string }>("/api/auth/sso/discover", { email: "x@disc-saml.example" });
+    expect(saml.json).toMatchObject({ connection: connection.id, protocol: "saml" });
+    const owner = await signIn("fay@disc-oidc.example");
+    const tenant = await tenantOf(owner);
+    const oidc = await owner.post<ConnectionJson>(`/api/tenants/${tenant}/sso`, { name: "OIDC", issuer: "https://login.disc-oidc.example", clientId: "visua", domains: ["disc-oidc.example"] });
+    const record = oidc.json.domainStatus[0]!.record!;
+    txt.set(record.name, [record.value]);
+    await owner.post(`/api/tenants/${tenant}/sso/${oidc.json.id}/domains/disc-oidc.example/verify`);
+    const found = await new TestClient(app).post<{ connection: string; protocol: string }>("/api/auth/sso/discover", { email: "x@disc-oidc.example" });
+    expect(found.json).toMatchObject({ connection: oidc.json.id, protocol: "oidc" });
+  });
+
+  it("with only a SAML connection, Require SSO keeps its members' roles and no other session's", async () => {
+    const { client, tenant, connection } = await samlOrg("gil@req-saml.example", "req-saml.example");
+    expect((await client.patch(`/api/tenants/${tenant}`, { settings: { requireSso: true } })).status).toBe(200);
+    // The owner's developer session stands in for any session not from the organization's own SSO.
+    expect((await client.get(`/api/tenants/${tenant}`)).status).toBe(404);
+    const owner = await samlSignIn(connection.id, { nameId: "gil@req-saml.example" });
+    expect(owner.me?.activeTenant).toMatchObject({ id: tenant, role: "owner" });
   });
 });
