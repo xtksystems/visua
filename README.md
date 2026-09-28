@@ -92,17 +92,18 @@ workspaces only through a membership, and their **role** decides what they can d
   Microsoft Entra ID, Google Workspace, AD FS, Keycloak…) over OpenID Connect
   (authorization code flow with PKCE, state and nonce) or SAML 2.0 (from pasted
   metadata; signed assertions, SHA-256, certificate rotation), always bound to the
-  browser that started the sign-in. People are routed to it
-  by email domain once the organization proves the domain with a DNS TXT record, can be
-  provisioned on first sign-in with a default role, and their sessions reach that
-  organization only. The first organization to prove a domain holds it. Whoever controls a connection's provider can
-  sign in as any member on its domains, so only owners choose the provider, client and
-  domains; a new provider never inherits the old one's client secret. An owner can
-  require the organization's SSO for every session. The server never reaches an
-  organization's provider (discovery, token and key endpoints) on a private, loopback or
-  link-local address unless the operator allows that host (`VISUA_OIDC_PRIVATE_ISSUERS`).
-  A platform-wide provider (`VISUA_OIDC_*`) can be configured too; it links an existing
-  account by email only when the email is verified.
+  browser that started the sign-in. People are routed to it by email domain once the
+  organization proves the domain with a DNS TXT record, can be provisioned on first
+  sign-in with a default role, and their sessions reach that organization only. The
+  first organization to prove a domain holds it. Whoever controls a connection's
+  provider can sign in as any member on its domains, so only owners choose the provider,
+  client and domains; a new provider never inherits the old one's client secret. An
+  owner can require the organization's SSO for every session. The server never reaches
+  an organization's provider (discovery, token and key endpoints) on a private, loopback
+  or link-local address unless the operator allows that host
+  (`VISUA_OIDC_PRIVATE_ISSUERS`). A platform-wide provider (`VISUA_OIDC_*`) can be
+  configured too; it links an existing account by email only when the email is
+  verified.
 - **API tokens** act in one organization with a chosen role (never owner), are shown
   once and stored as SHA-256 hashes, and can expire or be revoked.
 - **Sessions** are random tokens in an HttpOnly, SameSite=Lax cookie (`__Host-` and

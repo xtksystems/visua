@@ -304,8 +304,9 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     in place and the trail names the fingerprints added and removed. Visua's side per
     connection: entity ID `<VISUA_PUBLIC_URL>/api/auth/saml/<id>`, ACS `…/acs` (HTTP-POST)
     and public metadata `…/metadata`. Sign-in: `/api/auth/saml/start` stores a single-use
-    request (10 minutes, `login_flows`, browser-bound by the `visua_saml` cookie) and
-    redirects with an unsigned AuthnRequest; the provider POSTs the response to the ACS,
+    request (10 minutes, `login_flows`, browser-bound by a pre-auth cookie
+    (`__Host-visua_saml`, or `visua_saml` without https)) and redirects with an unsigned
+    AuthnRequest; the provider POSTs the response to the ACS,
     which is the only route exempt from the cross-site guard and the CSRF token. The ACS
     refuses DOCTYPEs, encrypted assertions and SHA-1 before node-saml validates the
     signature (assertion signed, every stored certificate trusted), audience, time
