@@ -69,6 +69,16 @@ export interface DomainVerification {
   token: string;
   verifiedAt?: string;
   method?: "dns" | "grandfathered" | "trusted";
+  /** Last re-check that got an answer (found or missing). */
+  lastCheckedAt?: string;
+  /** When the domain is next looked up (DNS-proven and lapsed domains only). */
+  nextCheckAt?: string;
+  /** First re-check of the current failure that did not find the record. */
+  failingSince?: string;
+  /** When a failing domain lapses unless its record comes back. */
+  lapsesAt?: string;
+  /** When it lapsed: it then admits no one new and holds no claim (verifiedAt is cleared). */
+  lapsedAt?: string;
 }
 
 export interface LoginFlow {
@@ -261,10 +271,15 @@ class SsoConnections extends Repo {
   async forTenant(tenantId: string): Promise<SsoConnection[]> {
     return (await this.db.query<DataRow>(`SELECT data FROM sso_connections WHERE tenant_id = ? ORDER BY created_at ASC`, [tenantId])).map((r) => parseJson<SsoConnection>(r.data));
   }
-  /** The connection that has verified a domain: the only one people of that domain are sent to. */
+  /**
+   * The connection people of a domain are sent to: the one that has verified it, else the one
+   * whose proof lapsed most recently (its members keep signing in until someone proves the domain).
+   */
   async byDomain(domain: string): Promise<SsoConnection | undefined> {
     const [row] = await this.db.query<DataRow>(
-      `SELECT c.data FROM sso_domains d JOIN sso_connections c ON c.id = d.connection_id WHERE d.domain = ? AND d.verified_at IS NOT NULL`,
+      `SELECT c.data FROM sso_domains d JOIN sso_connections c ON c.id = d.connection_id
+       WHERE d.domain = ? AND (d.verified_at IS NOT NULL OR d.lapsed_at IS NOT NULL)
+       ORDER BY CASE WHEN d.verified_at IS NOT NULL THEN 0 ELSE 1 END, d.lapsed_at DESC LIMIT 1`,
       [domain.toLowerCase()],
     );
     return row ? parseJson<SsoConnection>(row.data) : undefined;
@@ -282,6 +297,14 @@ class SsoConnections extends Repo {
     );
     return rows.map((r) => ({ connectionId: r.connection_id, tenantId: r.tenant_id, verified: !!r.verified_at }));
   }
+  /** Domains whose re-check is due at `atIso`, oldest first. */
+  async dueForRecheck(atIso: string, limit: number): Promise<{ connectionId: string; domain: string }[]> {
+    const rows = await this.db.query<{ connection_id: string; domain: string }>(
+      `SELECT connection_id, domain FROM sso_domains WHERE next_check_at IS NOT NULL AND next_check_at <= ? ORDER BY next_check_at LIMIT ?`,
+      [atIso, limit],
+    );
+    return rows.map((r) => ({ connectionId: r.connection_id, domain: r.domain }));
+  }
   async put(c: SsoConnection): Promise<SsoConnection> {
     await this.store.atomic(async () => {
       await this.db.execute(
@@ -291,11 +314,14 @@ class SsoConnections extends Repo {
       );
       await this.db.execute(`DELETE FROM sso_domains WHERE connection_id = ?`, [c.id]);
       for (const d of c.domains) {
-        await this.db.execute(`INSERT INTO sso_domains (domain, connection_id, tenant_id, verified_at) VALUES (?, ?, ?, ?)`, [
+        const v = c.verification?.[d];
+        await this.db.execute(`INSERT INTO sso_domains (domain, connection_id, tenant_id, verified_at, lapsed_at, next_check_at) VALUES (?, ?, ?, ?, ?, ?)`, [
           d.toLowerCase(),
           c.id,
           c.tenantId,
-          c.verification?.[d]?.verifiedAt ?? null,
+          v?.verifiedAt ?? null,
+          v?.lapsedAt ?? null,
+          v?.nextCheckAt ?? null,
         ]);
       }
     });

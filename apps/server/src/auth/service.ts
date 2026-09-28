@@ -19,6 +19,7 @@ import type { ApiTokenRecord, DomainVerification, SessionRecord, SsoConnection }
 import { DEFAULT_TENANT_ID } from "../storage/index.ts";
 import { NotFoundError, ValidationError, type Principal as AuditPrincipal, type VisuaService } from "../services/visua.ts";
 import type { AuthConfig } from "./config.ts";
+import { applyOutcome, classifyLookup, standingOf, type LookupOutcome, type RecheckEvent } from "./domain-recheck.ts";
 import { randomToken, safeEqual, seal, sha256, unseal } from "./crypto.ts";
 import { guardedFetch, privateAddressCause, privateHostAllowed, refusedLiteral } from "./egress.ts";
 
@@ -53,15 +54,45 @@ export const challengeRecord = (domain: string, token: string) => ({ name: `_vis
 /** The domains a connection has proven: the only ones that route sign-ins and admit people. */
 export const verifiedDomains = (c: SsoConnection) => c.domains.filter((d) => !!c.verification?.[d]?.verifiedAt);
 
-/** What the API returns for an SSO connection: never the secret; each domain with its status and record. */
-export const publicConnection = (c: SsoConnection) => {
+/**
+ * What the API returns for an SSO connection: never the secret; each domain with its status and
+ * record. `owners` names, for the connection's lapsed domains, the connection that has proven
+ * each one since (AuthService.describeConnection looks them up).
+ */
+export const publicConnection = (c: SsoConnection, owners: Record<string, string | undefined> = {}) => {
   const { clientSecretSealed, verification, ...rest } = c;
   const domainStatus = c.domains.map((domain) => {
     const v = verification?.[domain];
-    return { domain, verified: !!v?.verifiedAt, method: v?.method, verifiedAt: v?.verifiedAt, record: v ? challengeRecord(domain, v.token) : undefined };
+    const standing = standingOf(v);
+    return {
+      domain,
+      verified: !!v?.verifiedAt,
+      standing,
+      method: v?.method,
+      verifiedAt: v?.verifiedAt,
+      lastCheckedAt: v?.lastCheckedAt,
+      failingSince: v?.failingSince,
+      lapsesAt: v?.lapsesAt,
+      lapsedAt: v?.lapsedAt,
+      takenOver: standing === "lapsed" && !!owners[domain] && owners[domain] !== c.id,
+      record: v ? challengeRecord(domain, v.token) : undefined,
+    };
   });
   return { ...rest, hasClientSecret: !!clientSecretSealed, domainStatus };
 };
+
+const day = (iso: string | undefined) => (iso ? iso.slice(0, 10) : "");
+function recheckSummary(event: RecheckEvent, domain: string, record: string, connection: string, v: DomainVerification): string {
+  if (event === "failing") return `Domain ${domain}: its TXT record ${record} was not found on re-check; it lapses on ${day(v.lapsesAt)} unless the record is restored`;
+  if (event === "lapsed")
+    return `Domain ${domain} lapsed: its TXT record ${record} has been missing since ${day(v.failingSince)}; “${connection}” no longer admits new people from it, and another organization can prove it`;
+  return `Domain ${domain}: its TXT record ${record} was found again`;
+}
+
+/** How many due domains one tick claims. */
+export const RECHECK_BATCH = 25;
+/** How long a claimed re-check is hidden from other instances while it is looked up. */
+const LEASE_MS = 15 * 60_000;
 
 /** TXT lookups for domain verification (replaceable in tests). */
 export type ResolveTxt = (name: string) => Promise<string[][]>;
@@ -81,6 +112,43 @@ export class AuthService {
 
   private get ids() {
     return this.svc.store.identity;
+  }
+
+  /** Domains proven by DNS are looked up again on a schedule (VISUA_SSO_DOMAIN_RECHECK_HOURS, 0 = off). */
+  get domainRechecksEnabled(): boolean {
+    return this.config.ssoDomainVerification === "dns" && this.config.domainRecheckHours > 0;
+  }
+
+  /** How the organization page describes the re-check schedule. */
+  get domainRecheckSchedule(): { enabled: boolean; everyHours: number } {
+    return { enabled: this.domainRechecksEnabled, everyHours: this.config.domainRecheckHours };
+  }
+
+  /** A connection as the API returns it, with each lapsed domain's current holder looked up. */
+  async describeConnection(c: SsoConnection): Promise<ReturnType<typeof publicConnection>> {
+    const owners: Record<string, string | undefined> = {};
+    for (const d of c.domains) if (c.verification?.[d]?.lapsedAt) owners[d] = await this.ids.sso.domainOwner(d);
+    return publicConnection(c, owners);
+  }
+
+  async describeConnections(list: SsoConnection[]): Promise<ReturnType<typeof publicConnection>[]> {
+    const out: ReturnType<typeof publicConnection>[] = [];
+    for (const c of list) out.push(await this.describeConnection(c));
+    return out;
+  }
+
+  private get recheckSettings() {
+    return { intervalMs: this.config.domainRecheckHours * 3_600_000, graceMs: this.config.domainRecheckGraceDays * 86_400_000 };
+  }
+
+  /** Look up a domain's challenge record. Never inside a transaction. */
+  private async lookupChallenge(domain: string, token: string): Promise<{ outcome: LookupOutcome; code?: string }> {
+    const record = challengeRecord(domain, token);
+    try {
+      return classifyLookup({ records: await this.resolveTxt(record.name) }, record.value);
+    } catch (error) {
+      return classifyLookup({ error }, record.value);
+    }
   }
 
   /** Organization-level audit trail: the same hash-chained log, keyed by the tenant id. */
@@ -120,7 +188,8 @@ export class AuthService {
       if (patch.settings?.requireSso) {
         const connections = (await this.ids.sso.forTenant(tenantId)).filter((c) => c.enabled);
         if (!connections.length) throw new ValidationError("Add and enable an SSO connection before requiring SSO");
-        // Only verified domains route sign-ins: without one, nobody could reach the connection.
+        // Verified domains route sign-ins (and lapsed ones, until another connection proves them),
+        // but only a verified one can be required: a lapsed domain admits no one new.
         if (!connections.some((c) => verifiedDomains(c).length)) throw new ValidationError("Verify at least one of your SSO connection's domains before requiring SSO");
       }
       const next: Tenant = { ...t, name: patch.name?.trim() || t.name, settings: { ...t.settings, ...(patch.settings ?? {}) }, updatedAt: now() };
@@ -480,16 +549,11 @@ export class AuthService {
     if (!before || before.tenantId !== tenantId) throw new NotFoundError("SSO connection not found");
     const challenge = before.verification?.[d];
     if (!before.domains.includes(d) || !challenge) throw new NotFoundError(`${d} is not one of this connection's domains`);
-    if (challenge.verifiedAt) return before;
+    if (challenge.verifiedAt && !challenge.failingSince) return before;
     const record = challengeRecord(d, challenge.token);
-    let found = false;
-    try {
-      found = (await this.resolveTxt(record.name)).some((chunks) => chunks.join("") === record.value);
-    } catch (err) {
-      const code = (err as { code?: string }).code;
-      if (code !== "ENOTFOUND" && code !== "ENODATA") throw new ValidationError(`The DNS lookup of ${record.name} failed (${code ?? "error"}). Try again in a moment.`);
-    }
-    if (!found) throw new ValidationError(`No TXT record ${record.name} with the value ${record.value} was found. DNS changes can take a while to appear: try again later.`);
+    const { outcome, code } = await this.lookupChallenge(d, challenge.token);
+    if (outcome === "unknown") throw new ValidationError(`The DNS lookup of ${record.name} failed (${code ?? "error"}). Try again in a moment.`);
+    if (outcome === "missing") throw new ValidationError(`No TXT record ${record.name} with the value ${record.value} was found. DNS changes can take a while to appear: try again later.`);
     return this.svc.store.atomic(async () => {
       await this.svc.store.lock("sso-domains");
       const c = await this.ids.sso.get(id);
@@ -500,16 +564,77 @@ export class AuthService {
       const owner = await this.ids.sso.domainOwner(d);
       if (owner && owner !== c.id) throw new ValidationError(`The domain ${d} is verified by another SSO connection`);
       const ts = now();
-      const next: SsoConnection = { ...c, verification: { ...c.verification, [d]: { ...current, verifiedAt: ts, method: "dns" } }, updatedAt: ts };
+      const { failingSince, lapsesAt, lapsedAt, ...kept } = current;
+      const next: SsoConnection = {
+        ...c,
+        verification: {
+          ...c.verification,
+          // With re-checks off the schedule is still written, a day ahead, so turning them on later picks the domain up.
+          [d]: { ...kept, verifiedAt: ts, method: "dns", lastCheckedAt: ts, nextCheckAt: new Date(Date.now() + (this.recheckSettings.intervalMs || 86_400_000)).toISOString() },
+        },
+        updatedAt: ts,
+      };
       await this.ids.sso.put(next);
       await this.audit(tenantId, by, "verified", "sso-domain", c.id, `Domain ${d} verified by DNS for SSO connection “${c.name}”`, { domain: d, record: record.name });
       return next;
     });
   }
 
+  /**
+   * Re-check SSO domains proven by DNS that are due at `at` (every server instance calls this
+   * from its ticker). Claims up to RECHECK_BATCH due domains under the domain lock, pushing each
+   * one's next check out by a lease so other instances skip it; looks each up outside any
+   * transaction; records each result in its own transaction. Returns how many were claimed.
+   */
+  async recheckDueDomains(at: Date = new Date()): Promise<number> {
+    if (!this.domainRechecksEnabled) return 0;
+    const lease = new Date(at.getTime() + LEASE_MS).toISOString();
+    const claimed = await this.svc.store.atomic(async () => {
+      await this.svc.store.lock("sso-domains");
+      const out: { connectionId: string; domain: string; token: string }[] = [];
+      for (const due of await this.ids.sso.dueForRecheck(at.toISOString(), RECHECK_BATCH)) {
+        const c = await this.ids.sso.get(due.connectionId);
+        const v = c?.verification?.[due.domain];
+        if (!c || !v) continue;
+        // A lapsed domain another connection has proven is not looked up while that one holds it;
+        // it is looked at again an interval later, so it can recover once the holder is gone.
+        const owner = v.lapsedAt ? await this.ids.sso.domainOwner(due.domain) : undefined;
+        const held = !!owner && owner !== c.id;
+        const nextCheckAt = held ? new Date(at.getTime() + this.recheckSettings.intervalMs).toISOString() : lease;
+        await this.ids.sso.put({ ...c, verification: { ...c.verification, [due.domain]: { ...v, nextCheckAt } } });
+        if (!held) out.push({ connectionId: c.id, domain: due.domain, token: v.token });
+      }
+      return out;
+    });
+    for (const claim of claimed) await this.recordRecheck(claim, (await this.lookupChallenge(claim.domain, claim.token)).outcome, at);
+    return claimed.length;
+  }
+
+  private async recordRecheck(claim: { connectionId: string; domain: string; token: string }, outcome: LookupOutcome, at: Date): Promise<void> {
+    await this.svc.store.atomic(async () => {
+      await this.svc.store.lock("sso-domains");
+      const c = await this.ids.sso.get(claim.connectionId);
+      const v = c?.verification?.[claim.domain];
+      // The connection changed while the domain was looked up: this answer is about an old challenge.
+      if (!c || !v || !c.domains.includes(claim.domain) || v.token !== claim.token) return;
+      if (outcome === "found" && v.lapsedAt) {
+        const owner = await this.ids.sso.domainOwner(claim.domain);
+        if (owner && owner !== c.id) return;
+      }
+      const { next, event } = applyOutcome(v, outcome, at, this.recheckSettings);
+      await this.ids.sso.put({ ...c, verification: { ...c.verification, [claim.domain]: next } });
+      if (event) {
+        const record = challengeRecord(claim.domain, v.token);
+        await this.audit(c.tenantId, "Domain re-check", event, "sso-domain", c.id, recheckSummary(event, claim.domain, record.name, c.name, next), { domain: claim.domain, record: record.name });
+      }
+    });
+  }
+
   async deleteSsoConnection(tenantId: string, id: string, by: Principal): Promise<void> {
     if (!(await this.can(by, tenantId, "tenant.own"))) throw new ForbiddenError("Only owners remove an SSO connection");
     await this.svc.store.atomic(async () => {
+      // A re-check holding this lock may be about to write the connection back: wait for it.
+      await this.svc.store.lock("sso-domains");
       const tenant = await this.tenant(tenantId);
       const remaining = (await this.ids.sso.forTenant(tenantId)).filter((c) => c.enabled && c.id !== id);
       if (tenant.settings.requireSso && !remaining.length) throw new ValidationError("Turn off “Require SSO” before removing the last connection");
@@ -622,7 +747,11 @@ export class AuthService {
       if (!id.email || !id.emailVerified) throw new ForbiddenError("Your identity provider did not share a verified email address");
       // A connection admits new people only from domains its organization has proven.
       const proven = connection ? verifiedDomains(connection) : [];
-      if (connection && !proven.includes(id.email.split("@")[1]!)) {
+      const emailDomain = id.email.split("@")[1]!;
+      if (connection && !proven.includes(emailDomain)) {
+        if (connection.domains.includes(emailDomain) && connection.verification?.[emailDomain]?.lapsedAt) {
+          throw new ForbiddenError(`This sign-in no longer admits new people from ${emailDomain}: its DNS proof has lapsed. Ask an administrator of your organization.`);
+        }
         throw new ForbiddenError(proven.length ? `This sign-in is for ${proven.join(", ")} addresses` : "This SSO connection has no verified email domain yet");
       }
       user = await this.ids.users.getByEmail(id.email);

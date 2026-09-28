@@ -300,11 +300,31 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   - A connection's email domains are proven by DNS: each claimed domain gets a token, and
     once `_visua-challenge.<domain>` carries `visua-domain-verification=<token>` an admin
     verifies it (the lookup runs outside any transaction; the result is recorded and
-    audited under the domain lock). Only verified domains route sign-ins (`discover`),
-    link or provision people, and count for "Require SSO". Pending claims from several
+    audited under the domain lock). Verified domains route sign-ins (`discover`), link
+    or provision people, and count for "Require SSO"; a lapsed domain (see below) keeps
+    routing its own members until another connection proves it, but admits no one new.
+    Pending claims from several
     organizations can coexist; a partial unique index lets only one hold a domain
     verified. Migration 3 grandfathered domains claimed before verification existed, and
     `VISUA_SSO_DOMAIN_VERIFICATION=off` trusts domains as claimed.
+  - Domains proven by DNS are re-checked on a schedule (`VISUA_SSO_DOMAIN_RECHECK_HOURS`,
+    default daily, at most hourly): a clean negative answer — NXDOMAIN, NODATA, or a TXT set without the
+    expected value — is the only kind of miss that counts against a domain; any other lookup
+    error just reschedules the next try. A domain's standing moves from verified to failing
+    at its first miss, and from failing to lapsed if it is still missing when its grace
+    period (`VISUA_SSO_DOMAIN_RECHECK_GRACE_DAYS`, default a week) ends; found again, it
+    recovers to verified. A lapsed domain admits no one new and releases its claim, so
+    another organization can prove it, but keeps routing its own members (`byDomain`) so
+    nobody is locked out. While another connection holds a lapsed domain, the old one is not
+    looked up (the page shows it as held by another organization); it is looked at again an
+    interval later, so it can recover once that holder is gone. Every instance's ticker
+    claims up to 25 due domains under the domain lock with a 15-minute lease, looks each one
+    up outside any transaction, and records the result in its own transaction, with an
+    audit entry under the actor "Domain re-check" only when the standing changes (failing,
+    lapsed, recovered); a manual Verify clears a failure the same way. Keep the instances'
+    clocks NTP-synced: skew beyond the 15-minute lease only causes a duplicate lookup, since
+    recording an outcome is idempotent. Grandfathered and trusted domains were never proven
+    and are never re-checked.
   - A connection's provider can sign in as any member on its domains, owners included,
     so choosing it (issuer, client, secret, domains; adding or removing a connection) needs
     `tenant.own`. Admins enable, disable and set provisioning. A secret never follows a
@@ -464,7 +484,7 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 6. Testing
 
-- `packages/*/test`, `apps/server/test` and `apps/web/test` (Vitest, 174 tests):
+- `packages/*/test`, `apps/server/test` and `apps/web/test` (Vitest, 202 tests):
   - official counts and citations
   - identifier normalization
   - the SOC 2 skeleton and the licensed overlay
@@ -495,7 +515,10 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     requirements reach target, ATLAS reached through mitigations, and the Nexus ring
   - storage (`storage.test.ts`): rollback and savepoints, a linear audit chain and no
     lost updates under two concurrent server instances, cross-instance cache
-    invalidation, and the in-place upgrade of a pre-migration SQLite database
+    invalidation, the in-place upgrade of a pre-migration SQLite database, migration 4's
+    `lapsed_at`/`next_check_at` columns surviving an unrelated save and routing to a
+    lapsed claim, and the first re-check schedule spread over a day when upgrading
+    existing DNS-proven domains
   - identity and access (`auth.test.ts`): sign-in requirements, tenant separation (404
     across organizations), every role's limits, CSRF (sign-in included), API tokens, the
     organization audit trail, and OpenID Connect against a mock provider (PKCE, replay,
@@ -506,6 +529,14 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     refusals, the response cap), DNS proof of SSO domains before they route or admit
     anyone, first-to-prove ownership, and the upgrade that grandfathers existing domains
     (`storage.test.ts`)
+  - re-checking SSO domains proven by DNS: classifying a lookup, the standings a re-check
+    moves a domain through (failing, lapsed, recovered), re-check settings, and the
+    ticker's timing and error handling (`domain-recheck.test.ts`); end to end on SQLite
+    and Postgres (`sso-recheck.test.ts`): the daily schedule, the grace period, DNS
+    trouble never counting against a domain, a Require-SSO organization staying signed in
+    through a lapse, another organization proving a lapsed domain, two instances claiming
+    the same batch without a duplicate lookup, a result dropped when the challenge
+    changed meanwhile, and, on Postgres, the domain lock
   - the Postgres event relay (`relay.test.ts`): reconnection with backoff, failing fast
     at startup, NOTIFY payloads sized in bytes
   - `VISUA_TEST_DATABASE_URL=postgres://…` runs the server suites on Postgres, each run
@@ -533,11 +564,12 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 7. Known limitations
 
-- SSO domains are proven once. An organization that later loses a domain it verified
-  keeps it until an operator removes the claim: verification is not re-checked
-  periodically. Domains grandfathered by the upgrade, or trusted while
-  `VISUA_SSO_DOMAIN_VERIFICATION=off`, were never proven; on a shared installation, ask
-  their organizations to remove and verify them again.
+- Domains grandfathered by the upgrade, or trusted while `VISUA_SSO_DOMAIN_VERIFICATION=off`,
+  were never proven and are never re-checked; on a shared installation, ask their
+  organizations to remove and verify them again. Domains proven by DNS are re-checked
+  every `VISUA_SSO_DOMAIN_RECHECK_HOURS` (default 24) and lapse after
+  `VISUA_SSO_DOMAIN_RECHECK_GRACE_DAYS` (default 7) without their record; with re-checks
+  off, no record is looked up again and a failing domain never lapses.
 - An organization's identity provider may be on a host the operator allows on a private
   address (`VISUA_OIDC_PRIVATE_ISSUERS`); every organization can then point its connection
   at that host. Allow only the internal providers you run, not `*`, in a shared

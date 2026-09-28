@@ -119,6 +119,8 @@ workspaces only through a membership, and their **role** decides what they can d
 | `VISUA_OIDC_ISSUER`, `VISUA_OIDC_CLIENT_ID`, `VISUA_OIDC_CLIENT_SECRET`, `VISUA_OIDC_NAME` | — | Optional platform identity provider |
 | `VISUA_OIDC_PRIVATE_ISSUERS` | — | Hosts an organization's SSO connection may reach on a private address, e.g. `keycloak.internal,10.0.0.5` (`*` for any). Needed for an internal identity provider; otherwise refused, so a tenant cannot make the server call your internal network. |
 | `VISUA_SSO_DOMAIN_VERIFICATION` | `dns` | `dns`: an SSO connection's email domains route sign-ins and admit people only once proven by a TXT record at `_visua-challenge.<domain>`. `off`: domains are trusted as claimed (single-organization installations). Domains added before this check existed stay verified ("grandfathered"). |
+| `VISUA_SSO_DOMAIN_RECHECK_HOURS` | `24` | How often a domain proven by DNS is looked up again, at most hourly (a positive value below `1` counts as `1`). A domain whose record is missing is shown as failing; still missing after the grace period, it lapses: it admits no one new and another organization can prove it, but its members keep signing in. `0` turns re-checks off (they are off whenever `VISUA_SSO_DOMAIN_VERIFICATION=off`). |
+| `VISUA_SSO_DOMAIN_RECHECK_GRACE_DAYS` | `7` | How long a domain's record may be missing before the domain lapses. |
 | `VISUA_OIDC_TRUST_EMAIL` | — | Set to `1` only if the platform provider verifies every email it asserts but sends no `email_verified` claim. Otherwise an unverified email never links to an existing account. |
 | `VISUA_BOOTSTRAP_OWNER_EMAIL`, `VISUA_BOOTSTRAP_ORG_NAME` | — | First owner of a new installation (or of an unowned upgraded one) |
 | `VISUA_SESSION_HOURS`, `VISUA_SESSION_IDLE_MINUTES` | `12`, `120` | Session lifetime and idle timeout |
@@ -179,7 +181,7 @@ Details: [`docs/architecture.md`](docs/architecture.md). Design system:
 ```sh
 pnpm check           # local CI: every check below, with a summary (--quick: guard, typecheck, SQLite tests)
 pnpm typecheck       # all packages (TypeScript 7)
-pnpm test            # 174 unit, API, storage and auth tests (Vitest; add VISUA_TEST_DATABASE_URL=postgres://… for Postgres)
+pnpm test            # 202 unit, API, storage and auth tests (Vitest; add VISUA_TEST_DATABASE_URL=postgres://… for Postgres)
 pnpm test:e2e        # 22 Playwright end-to-end tests against the production build (WebGL via SwiftShader)
 pnpm screens         # screenshots of every view at 1440×900, 1024×768 and 390×844 into .screens/ (git-ignored)
 pnpm screens --docs  # regenerate the README images in docs/images/

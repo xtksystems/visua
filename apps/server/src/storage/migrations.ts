@@ -4,7 +4,7 @@
  * together cannot race. Version 1 is the baseline: it creates the complete
  * schema and upgrades SQLite databases written before migrations existed.
  */
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { parseJson, type Dialect, type SqlDriver } from "./driver.ts";
 
 export interface Migration {
@@ -154,7 +154,42 @@ const ssoDomainVerification: Migration = {
   },
 };
 
-export const MIGRATIONS: Migration[] = [baseline, tenantSettings, ssoDomainVerification];
+/**
+ * Domains proven by DNS are looked at again periodically (auth/service.ts: recheckDueDomains).
+ * The schedule and a lapse live in each connection's verification record and are mirrored
+ * here for querying and routing. Each DNS-proven domain gets a first re-check spread over
+ * the next day by a stable hash, so an upgrade does not look up every domain at once.
+ */
+const ssoDomainRecheck: Migration = {
+  version: 4,
+  name: "SSO domains re-checked: schedule and lapse columns",
+  async up(db) {
+    await run(db, [
+      `ALTER TABLE sso_domains ADD COLUMN lapsed_at TEXT`,
+      `ALTER TABLE sso_domains ADD COLUMN next_check_at TEXT`,
+      `CREATE INDEX sso_domains_next_check ON sso_domains(next_check_at)`,
+    ]);
+    const start = Date.now();
+    const cast = db.dialect === "postgres" ? "?::jsonb" : "?";
+    for (const row of await db.query<{ id: string; data: unknown }>(`SELECT id, data FROM sso_connections`)) {
+      const connection = parseJson<{ domains?: string[]; verification?: Record<string, { method?: string; verifiedAt?: string; nextCheckAt?: string }> }>(row.data);
+      const verification = { ...(connection.verification ?? {}) };
+      let changed = false;
+      for (const d of connection.domains ?? []) {
+        const v = verification[d];
+        if (!v?.verifiedAt || v.method !== "dns" || v.nextCheckAt) continue;
+        const offset = createHash("sha256").update(`${d}|${row.id}`).digest().readUInt32BE(0) % 86_400_000;
+        const nextCheckAt = new Date(start + offset).toISOString();
+        verification[d] = { ...v, nextCheckAt };
+        await db.execute(`UPDATE sso_domains SET next_check_at = ? WHERE domain = ? AND connection_id = ?`, [nextCheckAt, d.toLowerCase(), row.id]);
+        changed = true;
+      }
+      if (changed) await db.execute(`UPDATE sso_connections SET data = ${cast} WHERE id = ?`, [JSON.stringify({ ...connection, verification }), row.id]);
+    }
+  },
+};
+
+export const MIGRATIONS: Migration[] = [baseline, tenantSettings, ssoDomainVerification, ssoDomainRecheck];
 
 export async function migrate(driver: SqlDriver): Promise<number[]> {
   await driver.execute(`CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL)`);

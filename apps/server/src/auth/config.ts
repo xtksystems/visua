@@ -14,6 +14,9 @@
  *   VISUA_OIDC_TRUST_EMAIL=1    the platform IdP verifies every email it asserts, even without an email_verified claim
  *   VISUA_SSO_DOMAIN_VERIFICATION  dns (default): an SSO connection's email domains route sign-ins only once
  *                               proven by a DNS TXT record; off: trusted as claimed (single-organization installs)
+ *   VISUA_SSO_DOMAIN_RECHECK_HOURS  how often a domain proven by DNS is looked up again (default 24; at least 1:
+ *                               a smaller positive value counts as 1; 0 = never)
+ *   VISUA_SSO_DOMAIN_RECHECK_GRACE_DAYS  how long its record may be missing before the domain lapses (default 7)
  *   VISUA_BOOTSTRAP_OWNER_EMAIL first owner, pre-provisioned when no organization has one
  *   VISUA_BOOTSTRAP_ORG_NAME    name of the organization created for that owner
  *   VISUA_SESSION_HOURS         absolute session lifetime (default 12)
@@ -42,6 +45,10 @@ export interface AuthConfig {
   trustPlatformEmail: boolean;
   /** How SSO connections' email domains are proven: a DNS TXT record, or not at all. */
   ssoDomainVerification: "dns" | "off";
+  /** Hours between re-checks of a DNS-proven SSO domain; 0 turns re-checking off. */
+  domainRecheckHours: number;
+  /** Days a domain's record may be missing before the domain lapses. */
+  domainRecheckGraceDays: number;
   bootstrapOwnerEmail?: string;
   bootstrapOrgName: string;
   sessionHours: number;
@@ -63,6 +70,8 @@ export function loadAuthConfig(env: NodeJS.ProcessEnv = process.env): AuthConfig
     const v = Number(env[key]);
     return Number.isFinite(v) && v > 0 ? v : fallback;
   };
+  const hoursRaw = (env["VISUA_SSO_DOMAIN_RECHECK_HOURS"] ?? "").trim();
+  const hours = Number(hoursRaw);
   return {
     mode,
     publicUrl,
@@ -74,6 +83,8 @@ export function loadAuthConfig(env: NodeJS.ProcessEnv = process.env): AuthConfig
     privateIssuerHosts: (env["VISUA_OIDC_PRIVATE_ISSUERS"] ?? "").split(",").map((h) => h.trim()).filter(Boolean),
     trustPlatformEmail: env["VISUA_OIDC_TRUST_EMAIL"] === "1",
     ssoDomainVerification: env["VISUA_SSO_DOMAIN_VERIFICATION"] === "off" ? "off" : "dns",
+    domainRecheckHours: hoursRaw && Number.isFinite(hours) && hours >= 0 ? (hours > 0 ? Math.max(1, hours) : 0) : 24,
+    domainRecheckGraceDays: number("VISUA_SSO_DOMAIN_RECHECK_GRACE_DAYS", 7),
     bootstrapOwnerEmail: env["VISUA_BOOTSTRAP_OWNER_EMAIL"]?.trim().toLowerCase() || undefined,
     bootstrapOrgName: env["VISUA_BOOTSTRAP_ORG_NAME"]?.trim() || "My organization",
     sessionHours: number("VISUA_SESSION_HOURS", 12),
