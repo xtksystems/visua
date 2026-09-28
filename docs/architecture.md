@@ -306,18 +306,23 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     verified. Migration 3 grandfathered domains claimed before verification existed, and
     `VISUA_SSO_DOMAIN_VERIFICATION=off` trusts domains as claimed.
   - Domains proven by DNS are re-checked on a schedule (`VISUA_SSO_DOMAIN_RECHECK_HOURS`,
-    default daily): a clean negative answer — NXDOMAIN, NODATA, or a TXT set without the
+    default daily, at most hourly): a clean negative answer — NXDOMAIN, NODATA, or a TXT set without the
     expected value — is the only kind of miss that counts against a domain; any other lookup
     error just reschedules the next try. A domain's standing moves from verified to failing
     at its first miss, and from failing to lapsed if it is still missing when its grace
     period (`VISUA_SSO_DOMAIN_RECHECK_GRACE_DAYS`, default a week) ends; found again, it
     recovers to verified. A lapsed domain admits no one new and releases its claim, so
     another organization can prove it, but keeps routing its own members (`byDomain`) so
-    nobody is locked out. Every instance's ticker claims up to 25 due domains under the
-    domain lock with a 15-minute lease, looks each one up outside any transaction, and
-    records the result in its own transaction with an audit entry under the actor "Domain
-    re-check"; a manual Verify clears a failure the same way. Grandfathered and trusted
-    domains were never proven and are never re-checked.
+    nobody is locked out. While another connection holds a lapsed domain, the old one is not
+    looked up (the page shows it as held by another organization); it is looked at again an
+    interval later, so it can recover once that holder is gone. Every instance's ticker
+    claims up to 25 due domains under the domain lock with a 15-minute lease, looks each one
+    up outside any transaction, and records the result in its own transaction, with an
+    audit entry under the actor "Domain re-check" only when the standing changes (failing,
+    lapsed, recovered); a manual Verify clears a failure the same way. Keep the instances'
+    clocks NTP-synced: skew beyond the 15-minute lease only causes a duplicate lookup, since
+    recording an outcome is idempotent. Grandfathered and trusted domains were never proven
+    and are never re-checked.
   - A connection's provider can sign in as any member on its domains, owners included,
     so choosing it (issuer, client, secret, domains; adding or removing a connection) needs
     `tenant.own`. Admins enable, disable and set provisioning. A secret never follows a
@@ -560,7 +565,9 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 - Domains grandfathered by the upgrade, or trusted while `VISUA_SSO_DOMAIN_VERIFICATION=off`,
   were never proven and are never re-checked; on a shared installation, ask their
   organizations to remove and verify them again. Domains proven by DNS are re-checked
-  daily and lapse after a week without their record.
+  every `VISUA_SSO_DOMAIN_RECHECK_HOURS` (default 24) and lapse after
+  `VISUA_SSO_DOMAIN_RECHECK_GRACE_DAYS` (default 7) without their record; with re-checks
+  off, no record is looked up again and a failing domain never lapses.
 - An organization's identity provider may be on a host the operator allows on a private
   address (`VISUA_OIDC_PRIVATE_ISSUERS`); every organization can then point its connection
   at that host. Allow only the internal providers you run, not `*`, in a shared
