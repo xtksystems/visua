@@ -6,7 +6,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { Copy, Eye, RefreshCw } from "lucide-react";
 import { useState } from "react";
-import { StatusChip, toast } from "../components/ui/index.tsx";
+import { copyText, StatusChip, toast } from "../components/ui/index.tsx";
 import { api } from "../lib/api.ts";
 import { shortDate } from "../lib/format.ts";
 
@@ -127,7 +127,11 @@ export function SamlDetails(props: { tenantId: string; connection: { id: string;
     },
     onError: (e: Error) => toast(e.message, "error"),
   });
-  const copy = (text: string, what: string) => void navigator.clipboard?.writeText(text).then(() => toast(`${what} copied`));
+  const cancel = () => {
+    setOpen(false);
+    setXml("");
+    setPreview(undefined);
+  };
   const rows = [
     ["Entity ID (audience)", connection.sp.entityId],
     ["Assertion consumer service URL", connection.sp.acsUrl],
@@ -147,7 +151,7 @@ export function SamlDetails(props: { tenantId: string; connection: { id: string;
       <dl className="stack" style={{ gap: 6, margin: 0 }}>
         {rows.map(([label, value]) => (
           <div key={label} className="row" style={{ gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-            <dt className="muted" style={{ minWidth: 200 }}>
+            <dt className="muted" style={{ flex: "0 0 200px" }}>
               {label}
             </dt>
             <dd style={{ margin: 0, minWidth: 0, flex: "0 1 auto" }}>
@@ -155,7 +159,7 @@ export function SamlDetails(props: { tenantId: string; connection: { id: string;
                 {value}
               </code>
             </dd>
-            <button className="btn btn--quiet btn--sm btn--icon" aria-label={`Copy the ${label.toLowerCase()} of ${connection.name}`} onClick={() => copy(value, label)}>
+            <button className="btn btn--quiet btn--sm btn--icon" aria-label={`Copy the ${label.toLowerCase()} of ${connection.name}`} onClick={() => copyText(value, label)}>
               <Copy size={14} />
             </button>
           </div>
@@ -186,7 +190,7 @@ export function SamlDetails(props: { tenantId: string; connection: { id: string;
             <button className="btn btn--primary" type="submit" disabled={!preview || replace.isPending}>
               Save new metadata
             </button>
-            <button className="btn btn--quiet" type="button" onClick={() => setOpen(false)}>
+            <button className="btn btn--quiet" type="button" onClick={cancel}>
               Cancel
             </button>
           </div>

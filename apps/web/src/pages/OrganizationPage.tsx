@@ -9,7 +9,7 @@ import { Copy, KeyRound, Plus, ShieldCheck, Trash2, UserPlus } from "lucide-reac
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ROLES, ROLE_LABELS, can, roleRank, type ActivityEvent, type Role } from "@visua/core";
-import { Empty, StatusChip, Tabs, toast } from "../components/ui/index.tsx";
+import { copyText, Empty, StatusChip, Tabs, toast } from "../components/ui/index.tsx";
 import { api } from "../lib/api.ts";
 import { ROLE_NAMES, useMe, useResetSession } from "../lib/auth.ts";
 import { shortDate } from "../lib/format.ts";
@@ -456,7 +456,6 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
     },
     onError: (e: Error) => toast(e.message, "error"),
   });
-  const copy = (text: string, what: string) => void navigator.clipboard?.writeText(text).then(() => toast(`${what} copied`));
   const attention = (sso.data?.connections ?? []).flatMap((c) =>
     c.domainStatus.filter((d) => d.record && (d.standing === "pending" || d.standing === "failing" || (d.standing === "lapsed" && !d.takenOver))).map((d) => ({ connection: c, ...d, record: d.record! })),
   );
@@ -580,7 +579,7 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
                     {value}
                   </code>
                 </dd>
-                <button className="btn btn--quiet btn--sm btn--icon" aria-label={`Copy the record ${label.toLowerCase()} for ${p.domain}`} onClick={() => copy(value, `Record ${label.toLowerCase()}`)}>
+                <button className="btn btn--quiet btn--sm btn--icon" aria-label={`Copy the record ${label.toLowerCase()} for ${p.domain}`} onClick={() => copyText(value, `Record ${label.toLowerCase()}`)}>
                   <Copy size={14} />
                 </button>
               </div>
