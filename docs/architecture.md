@@ -300,8 +300,10 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   - A connection's email domains are proven by DNS: each claimed domain gets a token, and
     once `_visua-challenge.<domain>` carries `visua-domain-verification=<token>` an admin
     verifies it (the lookup runs outside any transaction; the result is recorded and
-    audited under the domain lock). Only verified domains route sign-ins (`discover`),
-    link or provision people, and count for "Require SSO". Pending claims from several
+    audited under the domain lock). Verified domains route sign-ins (`discover`), link
+    or provision people, and count for "Require SSO"; a lapsed domain (see below) keeps
+    routing its own members until another connection proves it, but admits no one new.
+    Pending claims from several
     organizations can coexist; a partial unique index lets only one hold a domain
     verified. Migration 3 grandfathered domains claimed before verification existed, and
     `VISUA_SSO_DOMAIN_VERIFICATION=off` trusts domains as claimed.
@@ -482,7 +484,7 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 6. Testing
 
-- `packages/*/test`, `apps/server/test` and `apps/web/test` (Vitest, 199 tests):
+- `packages/*/test`, `apps/server/test` and `apps/web/test` (Vitest, 202 tests):
   - official counts and citations
   - identifier normalization
   - the SOC 2 skeleton and the licensed overlay
