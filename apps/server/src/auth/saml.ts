@@ -6,6 +6,9 @@
  * to its request by the Response's InResponseTo, which a provider that signs only the assertion
  * does not sign. Visua refuses SHA-1 before the library runs and requires the verified assertion
  * itself to answer the request (assertionAnswers).
+ *
+ * Written against node-saml 5.1.0 (pinned): re-read its validatePostResponseAsync and cache calls
+ * before upgrading.
  */
 import { X509Certificate } from "node:crypto";
 import type { Profile } from "@node-saml/node-saml";
