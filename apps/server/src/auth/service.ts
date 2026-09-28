@@ -107,6 +107,8 @@ export const publicConnection = (c: SsoConnection, owners: Record<string, string
 
 /** What identifies a SAML provider: changing any of it is an owner decision. */
 const samlProviderKey = (idp: SamlIdp | undefined) => (idp ? [idp.entityId, idp.ssoUrl, ...idp.certificates.map((c) => c.fingerprint).sort()].join("|") : "");
+/** An SSO connection that is a usable SAML provider: enabled, SAML, with its identity provider set. */
+const enabledSaml = (c: SsoConnection | undefined): c is SsoConnection & { saml: SamlIdp } => !!c && c.enabled && protocolOf(c) === "saml" && !!c.saml;
 /** The first eight bytes of a SHA-256 fingerprint, as audit summaries show it. */
 const shortFingerprint = (f: string) => f.slice(0, 23);
 
@@ -945,8 +947,8 @@ export class AuthService {
 
   private async samlConnection(id: string): Promise<SsoConnection & { saml: SamlIdp }> {
     const c = id ? await this.ids.sso.get(id) : undefined;
-    if (!c || !c.enabled || protocolOf(c) !== "saml" || !c.saml) throw new UnauthorizedError("This SSO connection is not available");
-    return { ...c, saml: c.saml };
+    if (!enabledSaml(c)) throw new UnauthorizedError("This SSO connection is not available");
+    return c;
   }
 
   /**
@@ -1038,8 +1040,8 @@ export class AuthService {
   /** Visua's service-provider metadata for an enabled SAML connection (public: providers fetch it). */
   async samlMetadata(connectionId: string): Promise<string> {
     const c = await this.ids.sso.get(connectionId);
-    if (!c || !c.enabled || protocolOf(c) !== "saml" || !c.saml) throw new NotFoundError("SAML connection not found");
-    return this.samlFor({ ...c, saml: c.saml }).generateServiceProviderMetadata(null, null);
+    if (!enabledSaml(c)) throw new NotFoundError("SAML connection not found");
+    return this.samlFor(c).generateServiceProviderMetadata(null, null);
   }
 
   // -------------------------------------------------------------------------
