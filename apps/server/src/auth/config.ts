@@ -83,7 +83,7 @@ export function loadAuthConfig(env: NodeJS.ProcessEnv = process.env): AuthConfig
     privateIssuerHosts: (env["VISUA_OIDC_PRIVATE_ISSUERS"] ?? "").split(",").map((h) => h.trim()).filter(Boolean),
     trustPlatformEmail: env["VISUA_OIDC_TRUST_EMAIL"] === "1",
     ssoDomainVerification: env["VISUA_SSO_DOMAIN_VERIFICATION"] === "off" ? "off" : "dns",
-    domainRecheckHours: hoursRaw && Number.isFinite(hours) && hours >= 0 ? (hours > 0 ? Math.max(1, hours) : 0) : 24,
+    domainRecheckHours: hoursRaw && !hoursRaw.startsWith("-") && Number.isFinite(hours) ? (hours > 0 ? Math.max(1, hours) : 0) : 24,
     domainRecheckGraceDays: number("VISUA_SSO_DOMAIN_RECHECK_GRACE_DAYS", 7),
     bootstrapOwnerEmail: env["VISUA_BOOTSTRAP_OWNER_EMAIL"]?.trim().toLowerCase() || undefined,
     bootstrapOrgName: env["VISUA_BOOTSTRAP_ORG_NAME"]?.trim() || "My organization",
