@@ -14,7 +14,8 @@
  *   VISUA_OIDC_TRUST_EMAIL=1    the platform IdP verifies every email it asserts, even without an email_verified claim
  *   VISUA_SSO_DOMAIN_VERIFICATION  dns (default): an SSO connection's email domains route sign-ins only once
  *                               proven by a DNS TXT record; off: trusted as claimed (single-organization installs)
- *   VISUA_SSO_DOMAIN_RECHECK_HOURS  how often a domain proven by DNS is looked up again (default 24; 0 = never)
+ *   VISUA_SSO_DOMAIN_RECHECK_HOURS  how often a domain proven by DNS is looked up again (default 24; at least 1:
+ *                               a smaller positive value counts as 1; 0 = never)
  *   VISUA_SSO_DOMAIN_RECHECK_GRACE_DAYS  how long its record may be missing before the domain lapses (default 7)
  *   VISUA_BOOTSTRAP_OWNER_EMAIL first owner, pre-provisioned when no organization has one
  *   VISUA_BOOTSTRAP_ORG_NAME    name of the organization created for that owner
@@ -82,7 +83,7 @@ export function loadAuthConfig(env: NodeJS.ProcessEnv = process.env): AuthConfig
     privateIssuerHosts: (env["VISUA_OIDC_PRIVATE_ISSUERS"] ?? "").split(",").map((h) => h.trim()).filter(Boolean),
     trustPlatformEmail: env["VISUA_OIDC_TRUST_EMAIL"] === "1",
     ssoDomainVerification: env["VISUA_SSO_DOMAIN_VERIFICATION"] === "off" ? "off" : "dns",
-    domainRecheckHours: hoursRaw && Number.isFinite(hours) && hours >= 0 ? hours : 24,
+    domainRecheckHours: hoursRaw && Number.isFinite(hours) && hours >= 0 ? (hours > 0 ? Math.max(1, hours) : 0) : 24,
     domainRecheckGraceDays: number("VISUA_SSO_DOMAIN_RECHECK_GRACE_DAYS", 7),
     bootstrapOwnerEmail: env["VISUA_BOOTSTRAP_OWNER_EMAIL"]?.trim().toLowerCase() || undefined,
     bootstrapOrgName: env["VISUA_BOOTSTRAP_ORG_NAME"]?.trim() || "My organization",

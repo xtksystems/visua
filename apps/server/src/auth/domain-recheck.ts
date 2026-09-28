@@ -21,7 +21,7 @@ export const RETRY_MS = 3_600_000;
 
 export function classifyLookup(result: { records: string[][] } | { error: unknown }, expected: string): { outcome: LookupOutcome; code?: string } {
   if ("records" in result) return { outcome: result.records.some((chunks) => chunks.join("") === expected) ? "found" : "missing" };
-  const code = (result.error as { code?: string }).code;
+  const code = (result.error as { code?: string } | null | undefined)?.code;
   return code === "ENOTFOUND" || code === "ENODATA" ? { outcome: "missing", code } : { outcome: "unknown", code };
 }
 

@@ -23,6 +23,7 @@ describe("classifying a TXT lookup", () => {
     expect(classifyLookup({ error: Object.assign(new Error("x"), { code: "ETIMEOUT" }) }, expected)).toEqual({ outcome: "unknown", code: "ETIMEOUT" });
     expect(classifyLookup({ error: Object.assign(new Error("x"), { code: "ESERVFAIL" }) }, expected).outcome).toBe("unknown");
     expect(classifyLookup({ error: new Error("no code") }, expected).outcome).toBe("unknown");
+    expect(classifyLookup({ error: null }, expected).outcome).toBe("unknown");
   });
 });
 
@@ -88,6 +89,11 @@ describe("re-check settings", () => {
     expect(loadAuthConfig({ VISUA_SSO_DOMAIN_RECHECK_HOURS: "0" }).domainRecheckHours).toBe(0);
     expect(loadAuthConfig({ VISUA_SSO_DOMAIN_RECHECK_HOURS: "-3", VISUA_SSO_DOMAIN_RECHECK_GRACE_DAYS: "soon" })).toMatchObject({ domainRecheckHours: 24, domainRecheckGraceDays: 7 });
     expect(loadAuthConfig({ VISUA_SSO_DOMAIN_RECHECK_HOURS: "6", VISUA_SSO_DOMAIN_RECHECK_GRACE_DAYS: "14" })).toMatchObject({ domainRecheckHours: 6, domainRecheckGraceDays: 14 });
+  });
+  it("re-checks at most hourly: a positive interval below an hour counts as one hour", () => {
+    expect(loadAuthConfig({ VISUA_SSO_DOMAIN_RECHECK_HOURS: "0.25" }).domainRecheckHours).toBe(1);
+    expect(loadAuthConfig({ VISUA_SSO_DOMAIN_RECHECK_HOURS: "0.001" }).domainRecheckHours).toBe(1);
+    expect(loadAuthConfig({ VISUA_SSO_DOMAIN_RECHECK_HOURS: "0" }).domainRecheckHours).toBe(0);
   });
   it("treats a blank value as unset", () => {
     expect(loadAuthConfig({ VISUA_SSO_DOMAIN_RECHECK_HOURS: "" }).domainRecheckHours).toBe(24);

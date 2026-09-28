@@ -9,7 +9,7 @@ import { z } from "zod";
 import { ROLES, ROLE_LABELS, can, type Capability, type Role, type Workspace } from "@visua/core";
 import { NotFoundError, ValidationError, principalContext } from "../services/visua.ts";
 import { randomToken, safeEqual } from "./crypto.ts";
-import { AuthService, ForbiddenError, UnauthorizedError, publicConnection, safeReturnTo, type Principal } from "./service.ts";
+import { AuthService, ForbiddenError, UnauthorizedError, safeReturnTo, type Principal } from "./service.ts";
 
 export type AppEnv = {
   Variables: {
@@ -337,12 +337,16 @@ export function authRoutes(app: Hono<AppEnv>, auth: AuthService): void {
   const SsoPatch = SsoFields.partial();
 
   app.get("/api/tenants/:tenant/sso", need("tenant.manage"), async (c) =>
-    c.json({ redirectUri: auth.redirectUri, connections: (await auth.svc.store.identity.sso.forTenant(c.get("tenantId"))).map(publicConnection) }),
+    c.json({
+      redirectUri: auth.redirectUri,
+      domainRechecks: auth.domainRecheckSchedule,
+      connections: await auth.describeConnections(await auth.svc.store.identity.sso.forTenant(c.get("tenantId"))),
+    }),
   );
 
   app.post("/api/tenants/:tenant/sso", need("tenant.manage"), async (c) => {
     const input = await json(c, SsoSchema);
-    return c.json(publicConnection(await auth.upsertSsoConnection(c.get("tenantId"), input, principalOf(c))), 201);
+    return c.json(await auth.describeConnection(await auth.upsertSsoConnection(c.get("tenantId"), input, principalOf(c))), 201);
   });
 
   app.patch("/api/tenants/:tenant/sso/:id", need("tenant.manage"), async (c) => {
@@ -350,12 +354,12 @@ export function authRoutes(app: Hono<AppEnv>, auth: AuthService): void {
     const existing = await auth.svc.store.identity.sso.get(c.req.param("id"));
     if (!existing || existing.tenantId !== c.get("tenantId")) throw new NotFoundError("SSO connection not found");
     const merged = { name: existing.name, issuer: existing.issuer, clientId: existing.clientId, domains: existing.domains, jitProvisioning: existing.jitProvisioning, defaultRole: existing.defaultRole, enabled: existing.enabled, ...input };
-    return c.json(publicConnection(await auth.upsertSsoConnection(c.get("tenantId"), { ...merged, id: existing.id }, principalOf(c))));
+    return c.json(await auth.describeConnection(await auth.upsertSsoConnection(c.get("tenantId"), { ...merged, id: existing.id }, principalOf(c))));
   });
 
   // Checks the domain's TXT record now; admins may, since proving a domain chooses no provider.
   app.post("/api/tenants/:tenant/sso/:id/domains/:domain/verify", need("tenant.manage"), async (c) =>
-    c.json(publicConnection(await auth.verifySsoDomain(c.get("tenantId"), c.req.param("id"), c.req.param("domain"), principalOf(c)))),
+    c.json(await auth.describeConnection(await auth.verifySsoDomain(c.get("tenantId"), c.req.param("id"), c.req.param("domain"), principalOf(c)))),
   );
 
   app.delete("/api/tenants/:tenant/sso/:id", need("tenant.manage"), async (c) => {

@@ -110,7 +110,8 @@ describe("re-checking SSO domains proven by DNS", () => {
     expect((await trail(client, tenant)).some((e) => e.action === "lapsed" && e.summary.includes("lapse-sso.example"))).toBe(true);
     // Lapsed: a new person is refused, a linked member still gets in, and the domain still routes.
     const stranger = await oidcSignIn(connection.id, { sub: "okta|sam", email: "sam@lapse-sso.example" });
-    expect(decodeURIComponent(stranger.redirect)).toContain("no verified email domain");
+    expect(decodeURIComponent(stranger.redirect)).toContain("no longer admits new people from lapse-sso.example: its DNS proof has lapsed");
+    expect(stranger.me.json?.user).toBeUndefined();
     const again = await oidcSignIn(connection.id, { sub: "okta|rhea", email: "rhea@lapse-sso.example" });
     expect(again.me.json?.user.email).toBe("rhea@lapse-sso.example");
     expect((await new TestClient(app).post<{ connection: string }>("/api/auth/sso/discover", { email: "rhea@lapse-sso.example" })).json.connection).toBe(connection.id);
@@ -158,8 +159,10 @@ describe("re-checking SSO domains proven by DNS", () => {
     txt.delete(old.record.name);
     const t = Date.now();
     for (let d = 1; d <= 9; d++) await recheckAll(new Date(t + d * DAY + 60_000));
-    expect(await status(old.client, old.tenant, old.connection.id)).toMatchObject({ standing: "lapsed" });
+    expect(await status(old.client, old.tenant, old.connection.id)).toMatchObject({ standing: "lapsed", takenOver: false });
     const fresh = await provenOrg("vera@new-owner.example", "moved-sso.example");
+    // Taken over as soon as the other organization proves it, without waiting for a re-check.
+    expect(await status(old.client, old.tenant, old.connection.id)).toMatchObject({ standing: "lapsed", takenOver: true });
     expect((await new TestClient(app).post<{ connection: string }>("/api/auth/sso/discover", { email: "x@moved-sso.example" })).json.connection).toBe(fresh.connection.id);
     // The old record reappears: the old connection is not looked up again and stays lapsed.
     txt.set(old.record.name, [old.record.value]);
@@ -169,6 +172,36 @@ describe("re-checking SSO domains proven by DNS", () => {
     // are the new holder's daily re-checks, one per tick; none is the old connection's.
     expect(lookups.filter((n) => n === old.record.name)).toHaveLength(3);
     expect(await status(old.client, old.tenant, old.connection.id)).toMatchObject({ standing: "lapsed", takenOver: true });
+    // Restoring the old record cannot take it back while the other organization holds it.
+    expect((await old.client.post(`/api/tenants/${old.tenant}/sso/${old.connection.id}/domains/moved-sso.example/verify`)).status).toBe(400);
+  });
+
+  it("gives a taken-over domain back to its old organization once the new holder removes its connection", async () => {
+    const old = await provenOrg("abe@first-holder.example", "handback-sso.example");
+    txt.delete(old.record.name);
+    const t = Date.now();
+    for (let d = 1; d <= 9; d++) await recheckAll(new Date(t + d * DAY + 60_000));
+    const fresh = await provenOrg("bea@second-holder.example", "handback-sso.example");
+    expect(await status(old.client, old.tenant, old.connection.id)).toMatchObject({ standing: "lapsed", takenOver: true });
+    for (let d = 10; d <= 11; d++) await recheckAll(new Date(t + d * DAY + 60_000));
+    expect((await fresh.client.request("DELETE", `/api/tenants/${fresh.tenant}/sso/${fresh.connection.id}`)).status).toBe(204);
+    expect(await status(old.client, old.tenant, old.connection.id)).toMatchObject({ standing: "lapsed", takenOver: false });
+    // The old record is back: a later re-check recovers the old organization's domain.
+    txt.set(old.record.name, [old.record.value]);
+    for (let d = 12; d <= 14; d++) await recheckAll(new Date(t + d * DAY + 60_000));
+    expect(await status(old.client, old.tenant, old.connection.id)).toMatchObject({ standing: "verified", verified: true, takenOver: false });
+    expect((await trail(old.client, old.tenant)).some((e) => e.action === "recovered" && e.summary.includes("handback-sso.example"))).toBe(true);
+  });
+
+  it("tells the organization page how often domains are re-checked", async () => {
+    const { client, tenant } = await provenOrg("cy@schedule.example", "schedule-sso.example");
+    const on = await client.get<{ domainRechecks: unknown }>(`/api/tenants/${tenant}/sso`);
+    expect(on.json.domainRechecks).toEqual({ enabled: true, everyHours: 24 });
+    const offApp = createApp(svc, new AuthService(svc, { ...config, domainRecheckHours: 0 }, { resolveTxt }));
+    const offClient = new TestClient(offApp);
+    await offClient.devLogin("cy@schedule.example");
+    const off = await offClient.get<{ domainRechecks: unknown }>(`/api/tenants/${tenant}/sso`);
+    expect(off.json.domainRechecks).toEqual({ enabled: false, everyHours: 0 });
   });
 
   it("never looks up domains that were not proven by DNS, nor anything when re-checks are off", async () => {

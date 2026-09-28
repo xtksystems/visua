@@ -54,8 +54,12 @@ export const challengeRecord = (domain: string, token: string) => ({ name: `_vis
 /** The domains a connection has proven: the only ones that route sign-ins and admit people. */
 export const verifiedDomains = (c: SsoConnection) => c.domains.filter((d) => !!c.verification?.[d]?.verifiedAt);
 
-/** What the API returns for an SSO connection: never the secret; each domain with its status and record. */
-export const publicConnection = (c: SsoConnection) => {
+/**
+ * What the API returns for an SSO connection: never the secret; each domain with its status and
+ * record. `owners` names, for the connection's lapsed domains, the connection that has proven
+ * each one since (AuthService.describeConnection looks them up).
+ */
+export const publicConnection = (c: SsoConnection, owners: Record<string, string | undefined> = {}) => {
   const { clientSecretSealed, verification, ...rest } = c;
   const domainStatus = c.domains.map((domain) => {
     const v = verification?.[domain];
@@ -70,8 +74,7 @@ export const publicConnection = (c: SsoConnection) => {
       failingSince: v?.failingSince,
       lapsesAt: v?.lapsesAt,
       lapsedAt: v?.lapsedAt,
-      // Only a takeover stops the re-checks of a lapsed domain.
-      takenOver: standing === "lapsed" && !v?.nextCheckAt,
+      takenOver: standing === "lapsed" && !!owners[domain] && owners[domain] !== c.id,
       record: v ? challengeRecord(domain, v.token) : undefined,
     };
   });
@@ -111,9 +114,27 @@ export class AuthService {
     return this.svc.store.identity;
   }
 
-  /** Domains proven by DNS are looked up again on a schedule (VISUA_DOMAIN_RECHECK_HOURS, 0 = off). */
+  /** Domains proven by DNS are looked up again on a schedule (VISUA_SSO_DOMAIN_RECHECK_HOURS, 0 = off). */
   get domainRechecksEnabled(): boolean {
     return this.config.ssoDomainVerification === "dns" && this.config.domainRecheckHours > 0;
+  }
+
+  /** How the organization page describes the re-check schedule. */
+  get domainRecheckSchedule(): { enabled: boolean; everyHours: number } {
+    return { enabled: this.domainRechecksEnabled, everyHours: this.config.domainRecheckHours };
+  }
+
+  /** A connection as the API returns it, with each lapsed domain's current holder looked up. */
+  async describeConnection(c: SsoConnection): Promise<ReturnType<typeof publicConnection>> {
+    const owners: Record<string, string | undefined> = {};
+    for (const d of c.domains) if (c.verification?.[d]?.lapsedAt) owners[d] = await this.ids.sso.domainOwner(d);
+    return publicConnection(c, owners);
+  }
+
+  async describeConnections(list: SsoConnection[]): Promise<ReturnType<typeof publicConnection>[]> {
+    const out: ReturnType<typeof publicConnection>[] = [];
+    for (const c of list) out.push(await this.describeConnection(c));
+    return out;
   }
 
   private get recheckSettings() {
@@ -167,7 +188,8 @@ export class AuthService {
       if (patch.settings?.requireSso) {
         const connections = (await this.ids.sso.forTenant(tenantId)).filter((c) => c.enabled);
         if (!connections.length) throw new ValidationError("Add and enable an SSO connection before requiring SSO");
-        // Only verified domains route sign-ins: without one, nobody could reach the connection.
+        // Verified domains route sign-ins (and lapsed ones, until another connection proves them),
+        // but only a verified one can be required: a lapsed domain admits no one new.
         if (!connections.some((c) => verifiedDomains(c).length)) throw new ValidationError("Verify at least one of your SSO connection's domains before requiring SSO");
       }
       const next: Tenant = { ...t, name: patch.name?.trim() || t.name, settings: { ...t.settings, ...(patch.settings ?? {}) }, updatedAt: now() };
@@ -574,11 +596,13 @@ export class AuthService {
         const c = await this.ids.sso.get(due.connectionId);
         const v = c?.verification?.[due.domain];
         if (!c || !v) continue;
-        // A lapsed domain another connection has proven is not ours to look after any more.
+        // A lapsed domain another connection has proven is not looked up while that one holds it;
+        // it is looked at again an interval later, so it can recover once the holder is gone.
         const owner = v.lapsedAt ? await this.ids.sso.domainOwner(due.domain) : undefined;
-        const { nextCheckAt, ...rest } = v;
-        await this.ids.sso.put({ ...c, verification: { ...c.verification, [due.domain]: owner && owner !== c.id ? rest : { ...v, nextCheckAt: lease } } });
-        if (!owner || owner === c.id) out.push({ connectionId: c.id, domain: due.domain, token: v.token });
+        const held = !!owner && owner !== c.id;
+        const nextCheckAt = held ? new Date(at.getTime() + this.recheckSettings.intervalMs).toISOString() : lease;
+        await this.ids.sso.put({ ...c, verification: { ...c.verification, [due.domain]: { ...v, nextCheckAt } } });
+        if (!held) out.push({ connectionId: c.id, domain: due.domain, token: v.token });
       }
       return out;
     });
@@ -723,7 +747,11 @@ export class AuthService {
       if (!id.email || !id.emailVerified) throw new ForbiddenError("Your identity provider did not share a verified email address");
       // A connection admits new people only from domains its organization has proven.
       const proven = connection ? verifiedDomains(connection) : [];
-      if (connection && !proven.includes(id.email.split("@")[1]!)) {
+      const emailDomain = id.email.split("@")[1]!;
+      if (connection && !proven.includes(emailDomain)) {
+        if (connection.domains.includes(emailDomain) && connection.verification?.[emailDomain]?.lapsedAt) {
+          throw new ForbiddenError(`This sign-in no longer admits new people from ${emailDomain}: its DNS proof has lapsed. Ask an administrator of your organization.`);
+        }
         throw new ForbiddenError(proven.length ? `This sign-in is for ${proven.join(", ")} addresses` : "This SSO connection has no verified email domain yet");
       }
       user = await this.ids.users.getByEmail(id.email);
