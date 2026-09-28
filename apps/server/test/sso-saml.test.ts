@@ -377,7 +377,7 @@ describe("SAML responses Visua refuses", () => {
   });
 
   it("refuses an oversized response however it is sent", async () => {
-    const body = new URLSearchParams({ SAMLResponse: "A".repeat(1_100_000) }).toString();
+    const body = new URLSearchParams({ SAMLResponse: "bm90IHhtbA==", padding: "A".repeat(1_100_000) }).toString();
     // A streamed body carries no Content-Length: the limit must hold without it.
     const stream = new ReadableStream({
       start(controller) {
