@@ -50,8 +50,7 @@ generated from the product, not written by marketing.
 
 ## Next: platform foundations
 
-1. **Identity follow-ups.** SAML and SCIM provisioning; periodic re-checks of verified
-   SSO domains.
+1. **Identity follow-ups.** SAML and SCIM provisioning.
 2. **Evidence file storage.** Object storage for evidence files, content-addressed by
    SHA-256, and Postgres row-level security as a second tenancy guard.
 3. **Connector depth.** Label each connector by automation depth (API-automated,
