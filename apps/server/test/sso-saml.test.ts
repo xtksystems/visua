@@ -163,6 +163,36 @@ describe("SAML connections", () => {
     expect((await admin.patch(`/api/tenants/${tenant}/sso/${connection.id}`, { metadataXml: metadata(["b"]) })).status).toBe(403);
   });
 
+  it("lets admins manage the rest of a SAML connection, never its domains or its removal", async () => {
+    const { client, tenant, connection } = await samlOrg("ivo@manage-saml.example", "manage-saml.example", { prove: false });
+    await client.post(`/api/tenants/${tenant}/members`, { email: "ana@manage-saml.example", role: "admin" });
+    await client.post(`/api/tenants/${tenant}/members`, { email: "val@manage-saml.example", role: "approver" });
+    const admin = await signIn("ana@manage-saml.example");
+    const url = `/api/tenants/${tenant}/sso/${connection.id}`;
+
+    const listed = await admin.get<{ connections: ConnectionJson[] }>(`/api/tenants/${tenant}/sso`);
+    expect(listed.status).toBe(200);
+    expect(listed.json.connections.find((c) => c.id === connection.id)).toMatchObject({ protocol: "saml", saml: { entityId: IDP }, sp: connection.sp });
+    expect((await (await signIn("val@manage-saml.example")).get(`/api/tenants/${tenant}/sso`)).status).toBe(403);
+
+    const renamed = await admin.patch<ConnectionJson & { name: string; jitProvisioning: boolean; defaultRole: string }>(url, { name: "Okta", jitProvisioning: false, defaultRole: "approver" });
+    expect(renamed.status, JSON.stringify(renamed.json)).toBe(200);
+    expect(renamed.json).toMatchObject({ name: "Okta", jitProvisioning: false, defaultRole: "approver", saml: { entityId: IDP } });
+    // The same metadata chooses the same provider, so an admin may send it back unchanged.
+    expect((await admin.patch(url, { metadataXml: metadata() })).status).toBe(200);
+    expect((await admin.patch(url, { defaultRole: "admin" })).status).toBe(400);
+    expect((await admin.patch(url, { domains: ["manage-saml.example", "other-saml.example"] })).status).toBe(403);
+
+    const record = connection.domainStatus[0]!.record!;
+    txt.set(record.name, [record.value]);
+    const verified = await admin.post<ConnectionJson>(`${url}/domains/manage-saml.example/verify`);
+    expect(verified.status, JSON.stringify(verified.json)).toBe(200);
+    expect(verified.json.domainStatus[0]).toMatchObject({ verified: true, standing: "verified" });
+
+    expect((await admin.del(url)).status).toBe(403);
+    expect((await client.del(url)).status).toBe(204);
+  });
+
   it("keeps each connection's protocol", async () => {
     const { client, tenant, connection } = await samlOrg("pia@proto-saml.example", "proto-saml.example", { prove: false });
     const toOidc = await client.patch<{ error: string }>(`/api/tenants/${tenant}/sso/${connection.id}`, { issuer: "https://login.proto-saml.example" });
@@ -363,6 +393,10 @@ describe("SAML responses Visua refuses", () => {
   it("refuses an assertion that does not itself answer the request", async () => {
     // A signed assertion with no InResponseTo of its own, wrapped in a Response naming a fresh request.
     expect(await refusal((req) => response(acsOf(req), sign(assertion({ ...base(req), inResponseTo: null }))))).toBe(
+      "The identity provider's response does not answer a sign-in Visua started. Start again from the Visua sign-in page.",
+    );
+    // A signed assertion answering this request, but addressed to another connection's ACS.
+    expect(await refusal((req) => response(acsOf(req), sign(assertion({ ...base(req), acs: req.acs.replace(org.connection.id, "sso_elsewhere") }))))).toBe(
       "The identity provider's response does not answer a sign-in Visua started. Start again from the Visua sign-in page.",
     );
     // A signed assertion answering someone else's request, wrapped in a Response naming the attacker's.
