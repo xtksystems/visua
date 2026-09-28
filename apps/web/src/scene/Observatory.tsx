@@ -1,10 +1,9 @@
 /**
- * The Observatory canvas: camera, light, fog, bloom and the framework space.
+ * The Observatory canvas: camera, soft daylight, fog and the framework space.
  * Camera: 45° FOV, damped orbit, fly-to on selection, never below the plane.
  */
-import { CameraControls, PerformanceMonitor, Stars } from "@react-three/drei";
+import { CameraControls } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
-import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FogExp2, Sphere, Vector3, type PerspectiveCamera } from "three";
 import { TOKENS } from "./colors.ts";
@@ -125,7 +124,6 @@ export function usePrefersReducedMotion(): boolean {
 
 export function Observatory(props: ObservatoryProps) {
   const reducedMotion = usePrefersReducedMotion();
-  const [effects, setEffects] = useState(true);
   const fogDensity = useMemo(() => 0.55 / Math.max(40, props.layout.radius * 2.4), [props.layout.radius]);
   return (
     <Canvas
@@ -137,20 +135,12 @@ export function Observatory(props: ObservatoryProps) {
     >
       <color attach="background" args={[TOKENS.neutral]} />
       <fogExp2 attach="fog" args={[TOKENS.neutral, fogDensity]} />
-      <hemisphereLight args={[TOKENS.primaryContainer, TOKENS.neutral, 0.9]} />
-      <ambientLight intensity={0.25} />
-      <directionalLight position={[30, 60, 20]} intensity={1.6} />
-      <directionalLight position={[-40, 20, -30]} intensity={0.35} color={TOKENS.primary} />
-      <Stars radius={props.layout.radius * 3} depth={props.layout.radius} count={1400} factor={2.2} saturation={0} fade speed={0} />
-      <FrameworkScene {...props} reducedMotion={reducedMotion} effects={effects} />
+      <hemisphereLight args={[TOKENS.surface, TOKENS.primaryContainer, 1.15]} />
+      <ambientLight intensity={0.45} />
+      <directionalLight position={[30, 60, 20]} intensity={1.65} />
+      <directionalLight position={[-40, 20, -30]} intensity={0.45} color={TOKENS.neutral} />
+      <FrameworkScene {...props} reducedMotion={reducedMotion} />
       <CameraRig layout={props.layout} selectedId={props.selectedId} focusIds={props.focusIds} focusSeq={props.focusSeq} reducedMotion={reducedMotion} />
-      <PerformanceMonitor onDecline={() => setEffects(false)} />
-      {effects && (
-        <EffectComposer multisampling={0}>
-          <Bloom luminanceThreshold={0.8} luminanceSmoothing={0.2} intensity={0.9} mipmapBlur />
-          <Vignette offset={0.28} darkness={0.55} />
-        </EffectComposer>
-      )}
     </Canvas>
   );
 }

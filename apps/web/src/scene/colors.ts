@@ -10,6 +10,7 @@ const hex = (v: string) => new Color(v.slice(0, 7));
 
 export const TOKENS = {
   neutral: hex(c.neutral),
+  surface: hex(c.surface),
   primary: hex(c.primary),
   tertiary: hex(c.tertiary),
   outline: hex(c.outline),
@@ -32,9 +33,10 @@ export const TOKENS = {
 
 /**
  * The overlay lens: one Circuit Copper ramp (AI governance, DESIGN.md), strongest
- * for the highest proposed priority, fading toward the scene's neutral.
+ * for the highest proposed priority, fading gently toward the scene's neutral.
+ * Keep the foundational tier dark enough to read against a light canvas.
  */
-const aiRamp = [0, 0.52, 0.8].map((t) => TOKENS.frameworkAi.clone().lerp(TOKENS.neutral, t));
+const aiRamp = [0, 0.25, 0.5].map((t) => TOKENS.frameworkAi.clone().lerp(TOKENS.neutral, t));
 export const overlayColor = (level: number | undefined) => (level === undefined ? TOKENS.status["not-applicable"] : aiRamp[Math.min(Math.max(level, 1), 3) - 1]!);
 export const overlaySwatch = (level: number) => `#${overlayColor(level).getHexString()}`;
 

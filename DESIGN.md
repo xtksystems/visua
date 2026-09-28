@@ -1,63 +1,62 @@
 ---
 version: alpha
-name: Visua Observatory
+name: Visua
 description: >-
-  The visual identity of Visua, a spatial, AI-first compliance command center.
-  A calm deep-night instrument panel in which frameworks, requirements, tasks,
-  evidence and AI agents become navigable three-dimensional space. Precise,
-  evidence-first, never alarmist.
+  The visual identity of Visua, a spatial compliance workspace. Warm, open
+  surfaces make frameworks, requirements, tasks, evidence and agent work easy to
+  scan in two or three dimensions. Precise, evidence-first, never alarmist.
 colors:
-  # Foundations: "Deep Night" neutrals. The 3D scene sits directly on `neutral`.
-  primary: "#7AA2FF"
-  primary-hover: "#9DBBFF"
-  on-primary: "#07101F"
-  primary-container: "#1A2A4F"
-  on-primary-container: "#D4E1FF"
-  secondary: "#A9B6CC"
-  on-secondary: "#0B1220"
-  tertiary: "#B69CFF"
-  tertiary-hover: "#CBB8FF"
-  on-tertiary: "#140A33"
-  tertiary-container: "#251C4A"
-  on-tertiary-container: "#E4DAFF"
-  neutral: "#070A12"
-  surface: "#0C111C"
-  surface-raised: "#121927"
-  surface-overlay: "#192234"
-  surface-bright: "#222D42"
-  surface-glass: "#0C111CD9"
-  on-surface: "#E6ECF7"
-  on-surface-muted: "#9AA8BF"
-  outline: "#2A364C"
-  outline-strong: "#3D4C68"
-  scene-grid: "#141C2B"
+  # Warm neutrals. The 3D scene sits directly on `neutral`.
+  primary: "#366B53"
+  primary-hover: "#285740"
+  on-primary: "#FFFFFF"
+  primary-container: "#E3F0E7"
+  on-primary-container: "#285740"
+  secondary: "#52665A"
+  on-secondary: "#FFFFFF"
+  tertiary: "#A3553F"
+  tertiary-hover: "#8A432F"
+  on-tertiary: "#FFFFFF"
+  tertiary-container: "#F8EBE5"
+  on-tertiary-container: "#81422F"
+  neutral: "#F7F8F4"
+  surface: "#FFFFFF"
+  surface-raised: "#F2F5F0"
+  surface-overlay: "#FFFFFF"
+  surface-bright: "#E8EEE7"
+  surface-glass: "#FFFFFFE8"
+  on-surface: "#1D3028"
+  on-surface-muted: "#5B6C61"
+  outline: "#D9E1D8"
+  outline-strong: "#BFCFC2"
+  scene-grid: "#DFE7DE"
   # Status semantics: the only colors allowed to encode implementation state.
-  status-not-started: "#8D9BB3"
-  status-not-started-container: "#1A2130"
-  status-in-progress: "#F2B544"
-  status-in-progress-container: "#33270D"
-  status-implemented: "#3CCB8C"
-  status-implemented-container: "#0F2E22"
-  status-verified: "#45D0FF"
-  status-verified-container: "#0B2838"
-  status-at-risk: "#FF6B6B"
-  status-at-risk-container: "#3A1418"
-  status-not-applicable: "#475269"
-  status-not-applicable-container: "#151A24"
-  on-status: "#06090F"
-  error: "#FF6B6B"
-  on-error: "#2B0707"
+  status-not-started: "#607168"
+  status-not-started-container: "#EEF2EE"
+  status-in-progress: "#8A6222"
+  status-in-progress-container: "#FBF1DE"
+  status-implemented: "#2F7350"
+  status-implemented-container: "#E7F3E9"
+  status-verified: "#286C80"
+  status-verified-container: "#E4F2F5"
+  status-at-risk: "#B3473E"
+  status-at-risk-container: "#FBEAE7"
+  status-not-applicable: "#626B65"
+  status-not-applicable-container: "#F0F1EF"
+  on-status: "#FFFFFF"
+  error: "#B3473E"
+  on-error: "#FFFFFF"
   # Framework identity: used only where several frameworks share one view.
-  framework-csf: "#7AA2FF"
-  framework-csf-container: "#16244A"
-  framework-soc2: "#F28FD0"
-  framework-soc2-container: "#3A1531"
-  framework-rmf: "#C5E86C"
-  framework-rmf-container: "#27310F"
-  framework-ai: "#B47825"
-  framework-ai-container: "#211608"
-  framework-law: "#BB55C5"
-  framework-law-container: "#1C091E"
+  framework-csf: "#3E6386"
+  framework-csf-container: "#E9F1F8"
+  framework-soc2: "#805576"
+  framework-soc2-container: "#F5EBF2"
+  framework-rmf: "#57703B"
+  framework-rmf-container: "#EFF3E6"
+  framework-ai: "#97552A"
+  framework-ai-container: "#F8EEE6"
+  framework-law: "#705994"
+  framework-law-container: "#F0ECF7"
 typography:
   display-lg:
     fontFamily: Space Grotesk
@@ -162,7 +161,7 @@ components:
   nav-rail:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.on-surface-muted}"
-    width: 64px
+    width: 220px
   nav-rail-item-active:
     backgroundColor: "{colors.primary-container}"
     textColor: "{colors.on-primary-container}"
@@ -430,7 +429,7 @@ components:
     textColor: "{colors.on-status}"
   scene-node-not-applicable:
     backgroundColor: "{colors.status-not-applicable}"
-    textColor: "{colors.on-surface}"
+    textColor: "{colors.on-status}"
   scene-node-selected:
     backgroundColor: "{colors.primary}"
     textColor: "{colors.on-primary}"
@@ -445,7 +444,7 @@ components:
     height: 32px
 ---
 
-# Visua Observatory — Design System
+# Visua design system
 
 This file is the single source of truth for Visua's visual identity. The YAML
 front matter holds the normative tokens; everything below explains how to apply
@@ -457,84 +456,79 @@ product code — reference the generated token instead.
 
 ## Overview
 
-**Brand personality: "Deep-night observatory, calm instrument panel."**
-Visua is where a security team *sees* its compliance program. The interface
-evokes an astronomical observatory at night: a dark, quiet field of space in
-which every framework, requirement, task and piece of evidence is a luminous
-object that can be approached, inspected and acted upon. Light carries meaning;
-darkness is rest.
+**Brand personality: "A clear view of what matters."** Visua gives a
+security team a calm place to see and move its compliance program forward.
+Warm backgrounds, readable information and restrained color help people find
+the next action without hiding the surrounding context. The spatial view is a
+useful map of the work, and each object has a clear path to its details.
 
 - **Audience:** CISOs, GRC leads, security engineers, auditors and first-time
   founders facing their first SOC 2 — any niche, any cyber-maturity level.
   Novices must never feel lost; experts must never feel slowed down.
-- **Emotional target:** composure and control. Compliance work is stressful;
-  Visua is the calm, precise room where the whole picture becomes legible.
-- **Character:** precise, evidence-first, quietly futuristic. Closer to a
-  flight-control or telescope console than to a marketing dashboard.
-- **Signature:** the 3D *Observatory* canvas is the hero surface. 2D panels
-  float over it as instrument read-outs (HUDs) or dock beside it as the
-  inspector. Every 3D object has a 2D twin in an outline view.
+- **Emotional target:** composure and progress. Compliance work is stressful;
+  Visua makes the whole picture legible and the next step easy to identify.
+- **Character:** precise, evidence-first and quietly approachable. Avoid
+  decorative complexity and product claims that outpace the evidence.
+- **Signature:** the 3D *Observatory* canvas shows relationships between
+  requirements. Clear 2D panels show the details and actions beside it. Every
+  3D object has a 2D twin in an outline view.
 - **AI presence:** agents are colleagues whose work is always visible,
-  attributable (Aurora Violet), cited and reversible — never magic.
+  attributable (terracotta), cited and reversible.
 
 ## Colors
 
-The palette is a set of cool, blue-black neutrals with exactly three chromatic
-roles outside of status: interaction (Observatory Blue), AI agency (Aurora
-Violet) and framework identity (used only when frameworks share a view).
+The palette uses warm, nearly white surfaces and dark forest ink. Color has
+three roles outside of status: interaction (Sage), AI agency (Terracotta) and
+framework identity (used only when frameworks share a view). Large surfaces
+stay neutral so dense information remains readable.
 
-- **Primary — Observatory Blue (#7AA2FF):** the single interaction color:
+- **Primary — Sage (#366B53):** the single interaction color:
   primary buttons, focus rings, selection, the selected 3D node and the active
-  camera target. `primary-hover` (#9DBBFF) is its hover state. Text on primary
-  uses `on-primary` (#07101F).
-- **Secondary — Instrument Slate (#A9B6CC):** secondary actions and citation
-  text; a quieter voice than primary.
-- **Tertiary — Aurora Violet (#B69CFF):** reserved exclusively for AI agent
+  camera target. `primary-hover` (#285740) is its hover state. Text on primary
+  uses white `on-primary` (#FFFFFF). The pale `primary-container` (#E3F0E7)
+  identifies selected filters and navigation without flooding the page.
+- **Secondary — Quiet green (#52665A):** secondary actions and citation text;
+  a quieter voice than primary.
+- **Tertiary — Terracotta (#A3553F):** reserved for AI agent
   presence: agent buttons, agent-authored drafts awaiting approval, agent
-  pulses and particle streams in the scene, the flight recorder. If something
-  is violet, an agent did it or is doing it.
-- **Neutral — Deep Night (#070A12):** the background of space. Surfaces step up
-  in lightness to express layering: `surface` (#0C111C) for docked panels,
-  `surface-raised` (#121927) for cards and inputs, `surface-overlay` (#192234)
-  for popovers and the command palette, `surface-bright` (#222D42) for hover.
-  `surface-glass` (#0C111C at 85% opacity) is used for HUDs over the canvas.
-- **Text:** `on-surface` Starlight (#E6ECF7) for primary text,
-  `on-surface-muted` (#9AA8BF) for metadata. Both exceed WCAG AA on every
-  surface.
+  signals and activity indicators. Pair the color with a label that names the
+  agent or action.
+- **Neutral — Porcelain (#F7F8F4):** the workspace canvas. `surface`
+  (#FFFFFF) is the main panel color; `surface-raised` (#F2F5F0) groups cards
+  and inputs; `surface-overlay` (#FFFFFF) holds popovers and the command
+  palette; `surface-bright` (#E8EEE7) gives hover feedback. `surface-glass`
+  (#FFFFFFE8) keeps labels legible over the 3D canvas.
+- **Text:** `on-surface` Forest Ink (#1D3028) is primary text and
+  `on-surface-muted` (#5B6C61) is secondary text. Both meet WCAG AA on the
+  specified light surfaces.
 - **Status (the only colors that encode implementation state):**
-  - Not started — Dormant Slate (#8D9BB3)
-  - In progress — Solar Amber (#F2B544)
-  - Implemented — Signal Green (#3CCB8C)
-  - Verified (evidence accepted / assessed) — Verified Sky (#45D0FF)
-  - At risk (failing, expired evidence, overdue) — Flare Coral (#FF6B6B)
-  - Not applicable — Dust (#475269)
+  - Not started — Slate (#607168)
+  - In progress — Ochre (#8A6222)
+  - Implemented — Fern (#2F7350)
+  - Verified (evidence accepted or assessed) — Teal (#286C80)
+  - At risk (failing, expired evidence, overdue) — Clay (#B3473E)
+  - Not applicable — Grey (#626B65)
 
   Each status has a `-container` tint for chips; chip text uses the status
-  color itself (or `on-surface-muted` for Not applicable).
-- **Framework identity:** NIST CSF (#7AA2FF), SOC 2 (#F28FD0), NIST RMF /
-  SP 800-53 (#C5E86C), AI governance — NIST AI RMF (Circuit Copper, #B47825),
-  laws — U.S. state AI laws (Statute Orchid, #BB55C5).
-  Used for framework badges and for the planes of the Crosswalk Nexus — never
-  for status. AI governance frameworks are copper, not violet: violet means an
-  agent is acting, copper means a framework about AI. Circuit Copper was chosen
-  by measurement: it sits at least ΔE 16 (OKLab) from every status, framework and
-  agent color and keeps 5:1 contrast on `surface`. Framework hues always travel
-  with a text label, so the one close pair under protanopia (CSF and SOC 2) never
-  carries meaning alone. Statute Orchid was measured the same way against the
-  crowded palette: ΔE 16.6 from Aurora Violet under normal vision and 13.2 under
-  deuteranopia, clear of every status color, 4.7:1 on `surface`. Threat catalogs
-  (MITRE ATLAS, OWASP) get no identity hue: they sit on their own inner ring of
-  the Nexus and use neutral ink, so position, not color, says "threat".
+  color itself (or `on-surface-muted` for Not applicable). Solid status nodes
+  use white labels. These hues are distinct from the action colors and remain
+  legible on the specified light surfaces.
+- **Framework identity:** NIST CSF (#3E6386), SOC 2 (#805576), NIST RMF /
+  SP 800-53 (#57703B), NIST AI RMF (#97552A) and U.S. state AI laws
+  (#705994). Use these colors for framework badges and the Crosswalk Nexus,
+  never for status. Framework color always travels with a text label. Threat
+  catalogs (MITRE ATLAS, OWASP) use neutral ink and an inner Nexus ring, so
+  position and text carry their meaning.
 
 ## Typography
 
 Three families with strict roles:
 
 - **Space Grotesk** (display, headlines, capitalized labels, metrics): its
-  geometric construction gives the instrument-panel voice. Headlines are
-  Semi-Bold with slight negative tracking.
+  geometric construction gives headings a distinct, friendly voice. Headlines
+  are Semi-Bold with slight negative tracking.
 - **IBM Plex Sans** (all body copy, UI labels, form content): institutional,
-  trustworthy and highly legible at 13–16px on dark backgrounds.
+  trustworthy and highly legible at 13–16px on light backgrounds.
 - **IBM Plex Mono** (every requirement identifier and machine value): control
   codes such as `GV.OC-01`, `CC6.1`, `AC-2(1)`, hashes, timestamps and tool
   calls. A requirement ID is always monospace so it is scannable in lists and
@@ -548,13 +542,13 @@ Never use more than two weights on one panel.
 
 ## Layout
 
-A **canvas-first, three-zone** layout:
+A **three-zone** layout keeps navigation and context visible:
 
-1. **Nav rail** (64px, left): primary destinations as icon buttons with
-   tooltips — Observatory, Frameworks, Plan, Evidence, Agents, Policies,
-   Trust, Settings.
+1. **Navigation** (220px, left): labeled destinations and clear groups make
+   Observatory, Frameworks, Plan, Evidence, Agents, Policies, Trust and Settings
+   easy to find. Icons help scanning, but labels remain visible on desktop.
 2. **Canvas** (fluid, center): the 3D Observatory or the 2D view for the current
-   destination. HUD read-outs float over the canvas on a 16px inset.
+   destination. Compact controls sit on a 16px inset over spatial views.
 3. **Inspector** (440px, right, collapsible): details and actions for the
    current selection. It never covers the camera target: the scene re-frames
    when the inspector opens.
@@ -566,17 +560,19 @@ Spacing follows a strict **4px base scale** (`xs` 4, `sm` 8, `md` 12, `lg` 16,
 `xl` 24, `2xl` 32, `3xl` 48, `4xl` 64). Panels use 16px padding; the inspector
 uses 20px; dialogs 24px. Dense data views (tables, outlines) use 40px rows.
 Below 1024px the inspector becomes a bottom sheet and the rail collapses into
-the top bar; the 3D canvas remains available but defaults to the 2D outline on
-touch devices smaller than 768px.
+a labeled navigation drawer available from the top bar; the current section
+stays named in the header. The 3D canvas remains available but defaults to the
+2D outline on touch devices smaller than 768px.
 
 ## Elevation & Depth
 
-Depth in the 2D layer is expressed with **tonal layering**, not shadows: each
-elevation step uses the next lighter surface token plus a 1px `outline`
-(#2A364C) border. Overlays (command palette, dialogs) add a single soft
-ambient shadow (0 24px 64px at 55% black) because they float above the 3D
-canvas. HUD panels over the canvas use `surface-glass` with a 12px backdrop
-blur.
+Depth in the 2D layer comes from **gentle tonal layering**, a 1px `outline`
+(#D9E1D8) border and restrained shadows. The porcelain canvas holds white
+panels; softly tinted raised surfaces group related details within them.
+Overlays (command palette, dialogs) add a soft ambient shadow so their bounds
+remain clear. Panels over the spatial canvas use `surface-glass` with a 12px
+backdrop blur. Borders and shadows mark groups without turning every row into
+a separate card.
 
 ## Spatial System
 
@@ -588,7 +584,7 @@ The 3D Observatory is Visua's signature surface and follows these rules.
   time — never decoration.
 - **Geometry vocabulary** (one shape per object kind, so kind is readable
   without color):
-  - Framework core — a slowly glowing icosahedron at the origin.
+  - Framework core — an icosahedron at the origin with a clear silhouette.
   - Function / family / criteria series — a sector arc with a floating
     `label-caps` title.
   - Category / control — a ring-mounted beacon (low cylinder).
@@ -596,17 +592,16 @@ The 3D Observatory is Visua's signature surface and follows these rules.
     hexagonal prism node. Its height encodes current maturity; a translucent
     ghost prism encodes the target, so the gap is literally visible.
   - Task — a small satellite (octahedron) orbiting its requirement.
-  - Evidence — a crystal (tetrahedron) docked on its requirement; dims as it
-    approaches expiry, turns coral when expired.
-  - Agent — a violet comet with a particle trail travelling along links.
-- **Materials:** physically based, matte (roughness 0.55–0.7, metalness ≤ 0.2).
-  Node base color is the status token; emissive intensity is 0.15 at rest,
-  0.6 when hovered, 1.0 when selected or when an agent is working on it.
-  Bloom is applied only to emissive values above 0.8, so only selection,
-  agent activity and at-risk pulses glow.
+  - Evidence — a crystal (tetrahedron) docked on its requirement; changes to
+    the at-risk color when expired.
+  - Agent — a terracotta marker travelling along links while work is active.
+- **Materials:** physically based and matte (roughness 0.55–0.7, metalness
+  ≤ 0.2).
+  Node base color is the status token. Use an outline, scale or clear selection
+  ring for hover and selection; keep emissive effects subtle on the light scene.
 - **Lighting:** one soft key light, one hemisphere fill tinted from `neutral`
-  to `primary-container`, exponential fog in `neutral` so distant objects
-  recede into space. No hard shadows.
+  to `primary-container`, and gentle atmospheric fade in `neutral` so distant
+  objects recede without losing their silhouettes. No hard shadows.
 - **Camera:** 45° field of view, damped orbit (damping 0.08). Selecting an
   object flies the camera to it in 800ms with ease-in-out. The camera never
   flips below the XZ plane. Double-click frames the object's subtree.
@@ -619,7 +614,7 @@ The 3D Observatory is Visua's signature surface and follows these rules.
   Crosswalk coverage. The active lens is always named in the HUD legend.
 - **Performance budget:** 60 fps on an integrated GPU with the full SP 800-53
   catalog visible; instanced meshes for every repeated object; device pixel
-  ratio capped at 1.75; post-processing disabled automatically below 45 fps.
+  ratio capped at 1.75; no post-processing pass in the light scene.
 
 ## Shapes
 
@@ -641,12 +636,33 @@ happens. When the user prefers reduced motion, camera flights become 150ms
 cross-fades, particles and pulses are replaced by static halos, and idle
 drift is disabled.
 
+## Interaction principles
+
+Each interaction makes its state visible. Keep the page structure stable while
+content, progress and recommendations change within it.
+
+- Keep primary navigation labeled and visible on desktop. Remove duplicate
+  actions before hiding useful information.
+- Show a pressed or pending state immediately after an action. Mark saved,
+  failed and reversible outcomes near the item that changed.
+- Use a skeleton or named loading state when content takes time to appear.
+  Preserve space so the layout does not jump when the result arrives.
+- Keep one clear next action in each task context. Use relevant defaults and
+  recent selections to shorten routine work without rearranging navigation.
+- Surface agent suggestions where they help with the current task. Identify
+  their source and approval state, and keep citations available on demand.
+- Group dense information with headings, alignment and typographic hierarchy.
+  Reveal details on request without hiding the fields needed to decide.
+
 ## Components
 
-- **Buttons:** `button-primary` (Observatory Blue) for the single most
+These component roles keep actions, status and evidence consistent across the
+workspace.
+
+- **Buttons:** `button-primary` (Sage) for the single most
   important action in a view; `button-secondary` for everything else;
   `button-quiet` for tertiary actions in dense panels; `button-agent`
-  (Aurora Violet) for any action that starts or approves AI agent work;
+  (Terracotta) for any action that starts or approves AI agent work;
   `button-danger` only for destructive actions, always confirmed.
 - **Status chips:** `chip-status-*` pair a colored dot, a text label and the
   status color on its container tint — status is never conveyed by color
@@ -655,8 +671,8 @@ drift is disabled.
   facet filters in the HUD and outline.
 - **Requirement code:** `requirement-code` renders IDs (`PR.AA-05`) in mono on a
   raised surface; clicking one always flies the camera to that requirement.
-- **Framework badges:** `badge-framework-csf|soc2|rmf|ai|law` appear wherever items
-  from multiple frameworks are listed together.
+- **Framework badges:** `badge-framework-csf|soc2|rmf|ai|law` appear wherever
+  items from multiple frameworks are listed together.
 - **Agent components:** `badge-agent` marks agent-authored content until a
   human approves it; `agent-step` renders a reasoning step in the flight
   recorder; `agent-step-tool` renders a tool call and its result in mono;
@@ -685,22 +701,24 @@ AI is first-class and fully transparent:
 
 1. Every agent run has a **flight recorder**: goal, plan, each step, each tool
    call with inputs and outputs, citations and the final proposal.
-2. Agents **propose, people dispose**: changes that alter compliance state
-   (statuses, policies, evidence acceptance) are staged as violet drafts and
+2. Changes that alter compliance state (statuses, policies, evidence acceptance)
+   are staged as agent-marked drafts and
    applied only after approval, unless the workspace explicitly grants the
    agent autonomy for that action type.
 3. Claims about a framework must carry a **citation** into the local official
    corpus (document, section, page). No citation, no claim.
 4. Confidence is shown in words (low / medium / high) with the reason, never
    as a bare percentage.
-5. In the scene, agent work is visible: the violet comet travels to the node
-   being worked on and the node pulses until the run ends.
+5. In the scene, an agent marker moves to the node being worked on, and a
+   labeled activity state remains visible until the run ends.
 
 ## Do's and Don'ts
 
+Use these rules when adding or revising a view.
+
 - Do give every 3D view an equivalent, keyboard-navigable 2D outline.
-- Do use Observatory Blue for exactly one primary action per view.
-- Do reserve Aurora Violet for AI agents — nothing else may be violet.
+- Do use Sage for the primary action in a view.
+- Do reserve Terracotta for AI agent activity and actions.
 - Do encode status with color **and** shape/icon **and** text.
 - Do show requirement IDs in IBM Plex Mono and make them navigable.
 - Do cite the official source for every framework statement.
@@ -712,11 +730,12 @@ AI is first-class and fully transparent:
 - Don't hide information only in 3D; don't make 3D the only way to act.
 - Don't show more than four metric tiles in a view, or more than two font
   weights in one panel.
-- Don't use gradients as decoration; the only gradients are fog and glow.
+- Don't use gradients as decoration; use them only when they clarify depth or
+  active spatial content.
 
 ## Accessibility
 
-Visua targets WCAG 2.2 AA. Focus is always visible (2px Observatory Blue ring
+Visua targets WCAG 2.2 AA. Focus is always visible (2px Sage ring
 with 2px offset). Minimum pointer targets are 32px (24px absolute minimum per
 WCAG 2.2). Every 3D interaction has a keyboard path: arrow keys walk
 siblings, Enter drills down, Backspace/Escape goes up, `/` searches, `F` frames

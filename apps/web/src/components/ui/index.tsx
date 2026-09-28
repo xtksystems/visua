@@ -346,7 +346,7 @@ export function frameworkLabel(id: string) {
 
 export { pct };
 
-/** The Visua mark: a V with the agent's violet core and a verified arc. */
+/** The Visua mark: a V with the terracotta agent core and a verified arc. */
 export function Logo({ size = 30 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" aria-label="Visua" role="img">

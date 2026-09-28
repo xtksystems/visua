@@ -1,4 +1,4 @@
-/** App shell: nav rail, top bar, command palette, toasts, live events. */
+/** App shell: labeled sidebar, top bar, command palette, toasts, live events. */
 import {
   Activity,
   BookCheck,
@@ -41,7 +41,7 @@ function RailItem({ to, icon, label, badge, end }: { to: string; icon: ReactNode
   return (
     <NavLink to={to} end={end} className="rail__item" aria-label={label} title={label}>
       {icon}
-      {/* Shown when the rail opens as a menu below 1024px, where there are no tooltips on touch. */}
+      {/* Keep destinations visible on desktop and in the mobile menu. */}
       <span className="rail__label" aria-hidden>
         {label}
       </span>
@@ -52,29 +52,39 @@ function RailItem({ to, icon, label, badge, end }: { to: string; icon: ReactNode
 
 function NavRail({ ws, approvals }: { ws: string; approvals: number }) {
   const base = `/w/${ws}`;
-  const s = 20;
+  const s = 18;
   return (
     <nav className="rail" id="primary-nav" aria-label="Primary">
       <Link to={base} className="rail__logo" aria-label="Visua home">
-        <Logo />
+        <span className="rail__mark"><Logo size={28} /></span>
+        <span className="rail__wordmark">visua<span className="rail__wordmark-dot">.</span></span>
       </Link>
-      <RailItem to={base} end icon={<LayoutDashboard size={s} />} label="Mission control" />
-      <RailItem to={`${base}/observatory`} icon={<Telescope size={s} />} label="Observatory (3D)" />
-      <RailItem to={`${base}/plan`} icon={<ClipboardList size={s} />} label="Plan & tasks" />
-      <RailItem to={`${base}/evidence`} icon={<BookCheck size={s} />} label="Evidence & monitoring" />
-      <RailItem to={`${base}/agents`} icon={<Bot size={s} />} label="Agents & approvals" badge={approvals} />
-      <RailItem to={`${base}/policies`} icon={<FileText size={s} />} label="Policies" />
-      <RailItem to={`${base}/profile`} icon={<Waypoints size={s} />} label="CSF profile & tiers" />
-      <RailItem to={`${base}/crosswalk`} icon={<GitCompareArrows size={s} />} label="Crosswalk nexus" />
-      <RailItem to={`${base}/soc2`} icon={<ShieldCheck size={s} />} label="SOC 2 program" />
-      <RailItem to={`${base}/rmf`} icon={<Network size={s} />} label="RMF program" />
-      <RailItem to={`${base}/ai`} icon={<BrainCircuit size={s} />} label="AI governance (AI RMF)" />
-      <RailItem to={`${base}/laws`} icon={<Scale size={s} />} label="State AI laws" />
-      <RailItem to={`${base}/threats`} icon={<Radar size={s} />} label="AI threats (ATLAS, OWASP)" />
-      <RailItem to={`${base}/reports`} icon={<Activity size={s} />} label="Reports, audit trail & trust" />
+      <div className="rail__group">
+        <span className="rail__section">Workspace</span>
+        <RailItem to={base} end icon={<LayoutDashboard size={s} />} label="Overview" />
+        <RailItem to={`${base}/plan`} icon={<ClipboardList size={s} />} label="Action plan" />
+        <RailItem to={`${base}/evidence`} icon={<BookCheck size={s} />} label="Evidence" />
+        <RailItem to={`${base}/agents`} icon={<Bot size={s} />} label="Agents" badge={approvals} />
+        <RailItem to={`${base}/policies`} icon={<FileText size={s} />} label="Policies" />
+        <RailItem to={`${base}/reports`} icon={<Activity size={s} />} label="Reports & trust" />
+      </div>
+      <div className="rail__group">
+        <span className="rail__section">Explore</span>
+        <RailItem to={`${base}/observatory`} icon={<Telescope size={s} />} label="Observatory" />
+        <RailItem to={`${base}/profile`} icon={<Waypoints size={s} />} label="CSF profile & tiers" />
+        <RailItem to={`${base}/crosswalk`} icon={<GitCompareArrows size={s} />} label="Crosswalk nexus" />
+        <RailItem to={`${base}/soc2`} icon={<ShieldCheck size={s} />} label="SOC 2 program" />
+        <RailItem to={`${base}/rmf`} icon={<Network size={s} />} label="RMF program" />
+        <RailItem to={`${base}/ai`} icon={<BrainCircuit size={s} />} label="AI governance" />
+        <RailItem to={`${base}/laws`} icon={<Scale size={s} />} label="State AI laws" />
+        <RailItem to={`${base}/threats`} icon={<Radar size={s} />} label="AI threats" />
+      </div>
       <span className="rail__spacer" />
-      <RailItem to={`${base}/organization`} icon={<Building2 size={s} />} label="Organization: members, SSO & API tokens" />
-      <RailItem to={`${base}/settings`} icon={<Settings size={s} />} label="Settings" />
+      <div className="rail__group rail__group--footer">
+        <span className="rail__section">Manage</span>
+        <RailItem to={`${base}/organization`} icon={<Building2 size={s} />} label="Organization" />
+        <RailItem to={`${base}/settings`} icon={<Settings size={s} />} label="Settings" />
+      </div>
     </nav>
   );
 }
@@ -313,7 +323,7 @@ function CommandPalette({ ws }: { ws: string }) {
     }
     const base = `/w/${ws}`;
     const nav: [string, string][] = [
-      ["Mission control", base],
+      ["Overview", base],
       ...allFrameworks().map((f): [string, string] => [`Observatory — ${f.shortName}${f.family === "threat" ? " coverage in 3D" : ""}`, `${base}/observatory/${f.id}`]),
       ["Plan & tasks", `${base}/plan`],
       ["Evidence & monitoring", `${base}/evidence`],

@@ -1,4 +1,4 @@
-/** Live agent activity from SSE: drives violet comets in the scene and the activity ticker. */
+/** Live agent activity from SSE: drives terracotta comets in the scene and the activity ticker. */
 import { create } from "zustand";
 import type { AgentStep } from "@visua/core";
 

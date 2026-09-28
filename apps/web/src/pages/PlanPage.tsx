@@ -1,6 +1,7 @@
 /** Plan: board (drag between statuses), timeline, and task execution. */
 import { Bot, CalendarRange, Columns3, Plus, Sparkles, Wand2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useRunAgent } from "../components/inspector/Inspector.tsx";
 import { AgentBadge, CodeTag, Dialog, Empty, Segmented, toast } from "../components/ui/index.tsx";
@@ -8,7 +9,7 @@ import { api } from "../lib/api.ts";
 import { TASK_STATUS_LABEL, codeOf, frameworkOf, shortDate } from "../lib/format.ts";
 import { badgeOf } from "../lib/frameworks.ts";
 import { Markdown } from "../lib/markdown.tsx";
-import { useTasks, useWorkspace, useWsMutation } from "../lib/queries.ts";
+import { keys, useTasks, useWorkspace, useWsMutation } from "../lib/queries.ts";
 import type { Task } from "../lib/types.ts";
 import { split } from "../lib/media.ts";
 
@@ -20,11 +21,11 @@ const PRIORITY_COLOR: Record<string, string> = {
   low: "var(--color-status-not-started)",
 };
 
-function TaskCard({ task, onOpen }: { task: Task; onOpen: () => void }) {
+function TaskCard({ task, onOpen, saving }: { task: Task; onOpen: () => void; saving: boolean }) {
   const done = task.checklist.filter((c) => c.done).length;
   const overdue = task.status !== "done" && task.dueDate && task.dueDate < new Date().toISOString().slice(0, 10);
   return (
-    <div className="card" draggable onDragStart={(e) => e.dataTransfer.setData("text/task", task.id)} onClick={onOpen} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && onOpen()}>
+    <div className="card" draggable={!saving} aria-busy={saving} onDragStart={(e) => e.dataTransfer.setData("text/task", task.id)} onClick={onOpen} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && onOpen()}>
       <div className="row" style={{ alignItems: "flex-start", gap: 8 }}>
         <span style={{ width: 3, alignSelf: "stretch", borderRadius: 2, background: PRIORITY_COLOR[task.priority] }} title={`${task.priority} priority`} />
         <div style={{ flex: 1, minWidth: 0, fontWeight: 500 }}>{task.title}</div>
@@ -39,12 +40,13 @@ function TaskCard({ task, onOpen }: { task: Task; onOpen: () => void }) {
         {task.checklist.length ? <span>· {done}/{task.checklist.length}</span> : null}
         {task.dueDate ? <span style={{ color: overdue ? "var(--color-status-at-risk)" : undefined }}>· due {shortDate(task.dueDate)}</span> : null}
         {task.assignee?.type === "agent" ? <AgentBadge label="agent" /> : task.assignee ? <span>· {task.assignee.name.split(" (")[0]}</span> : null}
+        {saving && <span className="card__saving">Saving…</span>}
       </div>
     </div>
   );
 }
 
-function TaskDialog({ task, onClose }: { task: Task; onClose: () => void }) {
+function TaskDialog({ task, onClose, saving = false }: { task: Task; onClose: () => void; saving?: boolean }) {
   const { ws = "" } = useParams();
   const run = useRunAgent();
   const update = useWsMutation(ws, (patch: Partial<Task>) =>
@@ -94,7 +96,7 @@ function TaskDialog({ task, onClose }: { task: Task; onClose: () => void }) {
           <dl className="kv">
             <dt>Status</dt>
             <dd>
-              <select className="select" value={task.status} onChange={(e) => setStatus(e.target.value as Task["status"])}>
+              <select className="select" value={task.status} disabled={saving} onChange={(e) => setStatus(e.target.value as Task["status"])}>
                 {COLUMNS.map((c) => (
                   <option key={c} value={c}>
                     {TASK_STATUS_LABEL[c]}
@@ -201,6 +203,7 @@ function Timeline({ tasks, onOpen }: { tasks: Task[]; onOpen: (t: Task) => void 
 
 export function PlanPage() {
   const { ws = "" } = useParams();
+  const queryClient = useQueryClient();
   const { data: tasks = [] } = useTasks(ws);
   const workspace = useWorkspace(ws);
   const run = useRunAgent();
@@ -209,11 +212,37 @@ export function PlanPage() {
   const [over, setOver] = useState<string | null>(null);
   const [framework, setFramework] = useState("all");
   const [newTitle, setNewTitle] = useState("");
-  const move = useWsMutation(ws, (v: { id: string; status: Task["status"] }) => api.patch(`/workspaces/${encodeURIComponent(ws)}/tasks/${v.id}`, { status: v.status }));
+  const pendingMovesRef = useRef<Record<string, Task["status"]>>({});
+  const [pendingMoves, setPendingMoves] = useState<Record<string, Task["status"]>>({});
+  const clearPendingMove = (id: string) => {
+    const next = { ...pendingMovesRef.current };
+    delete next[id];
+    pendingMovesRef.current = next;
+    setPendingMoves(next);
+  };
+  const move = useMutation({
+    mutationFn: (v: { id: string; status: Task["status"] }) => api.patch<{ task: Task }>(`/workspaces/${encodeURIComponent(ws)}/tasks/${v.id}`, { status: v.status }),
+    onSuccess: ({ task }, { id }) => {
+      queryClient.setQueryData<Task[]>(keys.tasks(ws), (current) => current?.map((item) => item.id === id ? task : item));
+      void Promise.allSettled([
+        queryClient.invalidateQueries({ queryKey: ["ws", ws] }),
+        queryClient.invalidateQueries({ queryKey: keys.workspaces }),
+      ]).then(() => clearPendingMove(id));
+    },
+    onError: (error, { id }) => {
+      clearPendingMove(id);
+      toast(`Could not move task: ${(error as Error).message}`, "error");
+      void queryClient.invalidateQueries({ queryKey: ["ws", ws] });
+    },
+  });
   const plan = useWsMutation(ws, (fw: string) => api.post<Task[]>(`/workspaces/${encodeURIComponent(ws)}/plan`, { framework: fw, maxTasks: 10 }));
   const create = useWsMutation(ws, (title: string) => api.post(`/workspaces/${encodeURIComponent(ws)}/tasks`, { title, status: "todo" }));
-  const filtered = useMemo(() => (framework === "all" ? tasks : tasks.filter((t) => t.requirementIds.some((id) => frameworkOf(id) === framework))), [tasks, framework]);
-  const current = open ? tasks.find((t) => t.id === open.id) ?? open : null;
+  const filtered = useMemo(() => (framework === "all" ? tasks : tasks.filter((t) => t.requirementIds.some((id) => frameworkOf(id) === framework))).map((task) => {
+    const status = pendingMoves[task.id];
+    return status ? { ...task, status } : task;
+  }), [tasks, framework, pendingMoves]);
+  const selectedTask = open ? tasks.find((t) => t.id === open.id) ?? open : null;
+  const current = selectedTask ? { ...selectedTask, status: pendingMoves[selectedTask.id] ?? selectedTask.status } : null;
   const primary = workspace.data?.frameworks[0]?.id ?? "nist-csf-2.0";
   return (
     <div className="page">
@@ -235,13 +264,15 @@ export function PlanPage() {
           />
           <button
             className="btn"
+            disabled={plan.isPending}
             onClick={() =>
               plan.mutate(primary, {
                 onSuccess: (created) => toast(created.length ? `Planned ${created.length} task(s) from official guidance` : "Every gap already has an open task"),
+                onError: (error) => toast(`Could not generate plan: ${(error as Error).message}`, "error"),
               })
             }
           >
-            <Wand2 size={14} /> Generate plan
+            <Wand2 size={14} /> {plan.isPending ? "Generating…" : "Generate plan"}
           </button>
           <button className="btn btn--agent" onClick={() => run("planner", "Plan the next sprint of work for our highest-priority gaps", { framework: primary })}>
             <Sparkles size={14} /> Plan with agent
@@ -266,12 +297,15 @@ export function PlanPage() {
           style={{ minWidth: 0, maxWidth: "100%" }}
           onSubmit={(e) => {
             e.preventDefault();
-            if (newTitle.trim()) create.mutate(newTitle.trim(), { onSuccess: () => setNewTitle("") });
+            if (newTitle.trim()) create.mutate(newTitle.trim(), {
+              onSuccess: () => { setNewTitle(""); toast("Task added to To do"); },
+              onError: (error) => toast(`Could not add task: ${(error as Error).message}`, "error"),
+            });
           }}
         >
-          <input className="input" style={{ width: 280, maxWidth: "100%", minWidth: 0 }} placeholder="Quick add a task…" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
-          <button className="btn btn--icon" aria-label="Add task">
-            <Plus size={15} />
+          <input className="input" style={{ width: 280, maxWidth: "100%", minWidth: 0 }} aria-label="Task title" placeholder="Quick add a task…" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
+          <button className="btn btn--icon" aria-label={create.isPending ? "Adding task" : "Add task"} disabled={create.isPending || !newTitle.trim()}>
+            {create.isPending ? <span className="btn__spinner" aria-hidden /> : <Plus size={15} />}
           </button>
         </form>
       </div>
@@ -291,7 +325,15 @@ export function PlanPage() {
                 onDrop={(e) => {
                   const id = e.dataTransfer.getData("text/task");
                   setOver(null);
-                  if (id) move.mutate({ id, status: col });
+                  if (!id || tasks.find((task) => task.id === id)?.status === col) return;
+                  if (pendingMovesRef.current[id]) {
+                    toast("This task is still saving its previous move");
+                    return;
+                  }
+                  const next = { ...pendingMovesRef.current, [id]: col };
+                  pendingMovesRef.current = next;
+                  setPendingMoves(next);
+                  move.mutate({ id, status: col });
                 }}
                 aria-label={TASK_STATUS_LABEL[col]}
               >
@@ -302,7 +344,7 @@ export function PlanPage() {
                   </span>
                 </div>
                 {items.map((t) => (
-                  <TaskCard key={t.id} task={t} onOpen={() => setOpen(t)} />
+                  <TaskCard key={t.id} task={t} saving={!!pendingMoves[t.id]} onOpen={() => setOpen(t)} />
                 ))}
               </section>
             );
@@ -318,7 +360,7 @@ export function PlanPage() {
           </Empty>
         </div>
       )}
-      {current && <TaskDialog task={current} onClose={() => setOpen(null)} />}
+      {current && <TaskDialog task={current} saving={!!pendingMoves[current.id]} onClose={() => setOpen(null)} />}
     </div>
   );
 }

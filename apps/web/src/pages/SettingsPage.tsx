@@ -54,7 +54,7 @@ const AUTONOMY: [ProposalType, string, string][] = [
   ["set-applicability", "Scope decisions", "Marking requirements not applicable. Recommended: keep human approval."],
 ];
 
-/** A switch; agent autonomy switches use the agent tone (Aurora Violet is reserved for agent activity). */
+/** A switch; agent autonomy switches use the terracotta agent tone. */
 function Toggle({ checked, onChange, label, tone = "primary" }: { checked: boolean; onChange: (v: boolean) => void; label: string; tone?: "primary" | "agent" }) {
   const on = tone === "agent" ? "var(--color-tertiary)" : "var(--color-primary)";
   const knob = tone === "agent" ? "var(--color-on-tertiary)" : "var(--color-on-primary)";

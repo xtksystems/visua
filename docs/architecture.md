@@ -3,7 +3,8 @@
 Visua has five layers. The official corpus is ingested into normalized framework
 graphs. A domain engine scores a workspace against those graphs. Agents read through a
 narrow host contract and *propose* changes. An API persists state and streams events.
-A web client renders all of it as navigable 3D space with a 2D twin.
+The web client presents an overview and action plan alongside 3D maps with 2D paths.
+For the user workflow, see [Using the workspace](workspace.md).
 
 ```
 corpus/                     official publications, manifests (SHA-256, license), structure notes
@@ -207,7 +208,7 @@ states, scores, tasks, evidence, policies, connectors, registry) and change thin
 through `propose()`. The host decides from the workspace's autonomy settings whether a
 proposal is applied at once or waits in the approvals inbox. Every step (plan, thought,
 tool call, citation, proposal, message) is written to the run's **flight recorder** and
-streamed over SSE. The 3D scene shows agent activity as violet comets on the
+streamed over SSE. The 3D scene shows agent activity in terracotta on the
 requirements being touched.
 
 **Agents.** Copilot, Assessor, Planner, Policy Author, Evidence Collector, Crosswalk
@@ -386,18 +387,34 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 5. Web (`apps/web`)
 
-- **Shell.** A rail with Mission control, Observatory, Plan, Evidence, Agents, Policies,
-  Profile, Crosswalk, SOC 2, RMF, AI governance, State AI laws, AI threats, Reports,
-  Organization and Settings. It also has a command palette
+The web client presents a light workspace with labeled navigation, readable
+status colors and a 2D path through every spatial view.
+
+- **Shell.** A 220px labeled sidebar groups the primary destinations under
+  Workspace, Explore and Manage. It includes Overview, Action plan, Evidence,
+  Agents, Policies, Reports & trust, Observatory, CSF profile & tiers, Crosswalk
+  nexus, SOC 2 program, RMF program, AI governance, State AI laws, AI threats,
+  Organization and Settings. The shell also has a command palette
   (⌘K: search requirements or ask the copilot), a live approvals badge and toasts.
-  - Below 1024px the rail folds into a menu opened from the top bar (DESIGN.md › Layout)
-    and the inspector becomes a bottom sheet with a handle. Two-pane pages stack below
+  - Below 1024px the sidebar folds into a labeled menu opened from the top bar,
+    as described in [the design layout](../DESIGN.md#layout), and the inspector
+    becomes a bottom sheet with a handle. Two-pane pages stack below
     900px; Agents and Policies show one pane at a time. No page, panel or table scrolls
     sideways at 1024px or on a phone (the ATLAS matrix scrolls within itself): a table's
     secondary columns hide when its panel is narrow (container queries on `.table-box`)
     or the screen is a phone, the FIPS 199 editor becomes one card per row, and chart
     rows wrap.
   - Breakpoints live in `lib/media.ts` (`NARROW`, `PHONE`, `split()`) and `global.css`.
+- **Overview and action plan.** Overview groups the primary framework's
+  readiness, gaps, evidence coverage, and pending decisions above framework
+  cards and next actions. It shows placeholders while the workspace loads.
+  The action plan offers a framework filter, board, timeline, quick add,
+  generated tasks, and agent planning. On the board, a pending status move is
+  held by task ID and layered over query results so event-driven refreshes
+  cannot briefly restore the old column. The card shows a saving state and
+  cannot be dragged again until the request settles. A failed request clears
+  only that task's pending move, returns the card to its previous status, and
+  shows an error toast.
 - **Observatory.** Instanced hex prisms in two layouts:
   - *constellation*: radial sectors per top-level group
   - *readiness terrain*: a honeycomb
@@ -406,16 +423,15 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   satellites, evidence crystals and agent comets orbit the prisms. The five lenses
   recolor the scene without moving anything.
 
-  CameraControls fly to a selection. Bloom and vignette are applied under a performance
-  monitor. A selection compiles no shaders: the programs only the selection halo, its path
-  and agent comets use are compiled while the scene loads (the real components, drawn for
-  a few frames hidden inside the core, then kept hidden so their programs stay alive, and
-  drawn again when the performance monitor drops post-processing, since drawing straight
-  to the screen needs other programs), and
-  line points are memoized, because drei's `Line` disposes its material whenever its points
-  change and three.js then deletes the shared program. Units out of scope (an undecided law's obligations, controls outside the
-  baseline) shrink to small dots; nodes with no unit below them (ATLAS's mitigations)
-  stay in the outline and the inspector but take no place in the scene.
+  CameraControls fly to a selection. The light scene uses matte materials without
+  bloom or vignette. The selection halo, its path and agent comets warm their shader
+  programs while the scene loads: the real components draw for a few frames inside
+  the opaque core, then stay mounted so the first selection does not compile them.
+  Line points are memoized because drei's `Line` disposes its material when its
+  points change, which deletes the shared program in three.js. Units out of scope
+  (an undecided law's obligations, controls outside the baseline) shrink to small
+  dots; nodes with no unit below them (ATLAS's mitigations) stay in the outline
+  and inspector but take no place in the scene.
 
   *Labels* are drawn in screen space (`scene/ScreenLabels.tsx`): code-sm and label-caps
   at 11–13px, placed by priority whenever the camera moves, and hidden rather than drawn
@@ -432,7 +448,8 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   stage), and the legend collapses to the lens name and swatches.
 
   Below 1024px the outline opens over the scene; phones open the Observatory on its
-  outline with the 3D scene one tap away (DESIGN.md › Layout).
+  outline with the 3D scene one tap away, as described in
+  [the design layout](../DESIGN.md#layout).
 
   The outline is a full 2D twin with tree semantics and keyboard control (←/→ siblings,
   Enter drill in, Esc up, F frame, L lens, / filter). Deep links use `?select=`.
@@ -449,8 +466,9 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
   Labels use the same screen-space layer (framework names with an identity swatch, the
   threat ring's codes once a pillar is in focus) and the camera frames the ring around
-  the HUD. Arcs are batched into a few draw calls by width, opacity and dash style (the
-  focused pillar's arcs are drawn again on top). Below 1024px the scene and its details
+  the HUD. Arcs are batched into a few draw calls by width and dash style. Focusing
+  a pillar hides unrelated arcs and draws its own links in framework color. Below
+  1024px the scene and its details
   stack as one scrolling page.
 - **Threat views.** The Threats page shows the ATLAS matrix (tactics as columns,
   techniques colored by coverage, with glyphs), the OWASP LLM Top 10 by edition, the
@@ -474,13 +492,15 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   - *SOC 2*: scope, observation window, DC 200 checklist, readiness by series
   - *RMF*: lifecycle, FIPS 199, tailoring, authorization, readiness by family
 - **Build.** Vite (rolldown) splits the bundle with code-splitting groups: packages in
-  `vendor`, the 3D stack (three.js, react-three-fiber, drei, postprocessing) in `three`,
+  `vendor`, the 3D stack (three.js, react-three-fiber, drei) in `three`,
   loaded only by the Observatory and the Nexus. Pages are lazy routes.
 - **Design system.** All colors, type, spacing, radii and component tokens come from
   `DESIGN.md`, compiled by `packages/design` into CSS variables and typed tokens.
+  The palette uses a warm porcelain canvas, white surfaces, forest ink and sage
+  interaction color.
   - Status colors are semantic and always come with a glyph.
   - Framework hues identify frameworks.
-  - Aurora Violet is reserved for AI.
+  - Terracotta is reserved for AI activity and actions.
 
 ## 6. Testing
 
@@ -545,18 +565,21 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     previous one (the camera controls leave its world matrix to the renderer), and shown
     and hidden by opacity, a compositor change, so a busy machine never draws new
     positions over old raster
-- `e2e/` (Playwright, 22 tests) runs against the production bundle served by the API,
-  with an in-memory seeded database and WebGL on SwiftShader. It covers Home and Mission
-  control's program links, the Observatory and its 2D twin, the Nexus, RMF, SOC 2, AI
-  governance, an agent run with citations, the trust center and its per-framework
+- `e2e/` (Playwright, 21 tests) runs against the production bundle served by the API,
+  with an in-memory seeded database and WebGL on SwiftShader. It covers the
+  Overview and its program links, the Observatory and its 2D twin, the Nexus,
+  RMF, SOC 2, AI governance, an agent run with citations, the trust center and
+  its per-framework
   choice, persona sign-in, a viewer's read-only view, tenant separation, organization
   administration, the threat views (ATLAS matrix and its keyboard navigation, the
   coverage inspector and its link filter, OWASP editions, the Nexus threat ring), a
-  threat catalog in the Observatory, no shader compiled by a selection in the Observatory (with post-processing and after slow frames drop it), the State AI laws page (roles deciding scope, the
+  threat catalog in the Observatory, no shader compiled by a selection in the
+  Observatory, the State AI laws page (roles deciding scope, the
   timeline and its list view, obligations in 3D), and layout: labels in the 3D scenes
   stay inside the canvas and clear of the HUD and of each other at 1440 and 1024
-  pixels, the rail folds into a menu on a phone, no page, panel or table scrolls sideways
-  at 1024 pixels or on a phone, and the Observatory opens on its outline on a phone.
+  pixels, the sidebar folds into a menu on a phone, no page, panel or table
+  scrolls sideways at 1024 pixels or on a phone, and the Observatory opens on
+  its outline on a phone.
 - `pnpm screens` (`scripts/screens.ts`) photographs every view at 1440×900, 1024×768
   and 390×844 into the git-ignored `.screens/` folder, with a contact sheet and a
   report of horizontal overflow and console errors; `--docs` regenerates the README
