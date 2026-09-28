@@ -404,9 +404,14 @@ export class LoginFlows extends Repo {
     const [row] = await this.db.query<{ data: unknown; expires_at: string }>(`DELETE FROM login_flows WHERE state_hash = ? RETURNING data, expires_at`, [stateHash]);
     return row && row.expires_at >= now() ? parseJson<T>(row.data) : undefined;
   }
-  /** An OpenID Connect flow, single use. */
-  take(stateHash: string): Promise<LoginFlow | undefined> {
-    return this.consume<LoginFlow>(stateHash);
+  /**
+   * An OpenID Connect flow, single use. The caller-controlled `state` could otherwise name a
+   * SAML row (`kind` set): that row is still consumed (single use holds), but never returned
+   * as an OIDC flow.
+   */
+  async take(stateHash: string): Promise<LoginFlow | undefined> {
+    const flow = await this.consume<StoredFlow>(stateHash);
+    return flow && !("kind" in flow) ? flow : undefined;
   }
   /** Reads a flow without consuming it (node-saml's cache lookups). */
   async peek<T extends StoredFlow>(stateHash: string): Promise<T | undefined> {

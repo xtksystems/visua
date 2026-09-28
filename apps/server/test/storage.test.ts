@@ -335,4 +335,10 @@ describe(`login flows (${db.dialect})`, () => {
     expect(await flows().take("flow-take")).toMatchObject({ connection: "platform", nonce: "n" });
     expect(await flows().take("flow-take")).toBeUndefined();
   });
+
+  it("does not let take() consume a SAML row, but still spends it", async () => {
+    await flows().put("flow-take-saml", { kind: "saml-cache", value: "v", createdAt: new Date().toISOString() }, inMinutes(10));
+    expect(await flows().take("flow-take-saml")).toBeUndefined();
+    expect(await flows().peek("flow-take-saml")).toBeUndefined();
+  });
 });
