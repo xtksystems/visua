@@ -4,6 +4,7 @@
  * /api/tenants routes.
  */
 import type { Context, Hono, MiddlewareHandler } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { z } from "zod";
 import { ROLES, ROLE_LABELS, can, type Capability, type Role, type Workspace } from "@visua/core";
@@ -34,6 +35,8 @@ const PUBLIC_ROUTES = [
 ];
 /** The SAML assertion consumer service: the identity provider's cross-site form POST. */
 const SAML_ACS = /^\/api\/auth\/saml\/[^/]+\/acs$/;
+/** The largest SAML response the ACS reads (a form body; responses are a few KB). */
+const SAML_ACS_MAX_BYTES = 1_048_576;
 
 export const cookieName = (auth: AuthService) => (auth.config.secureCookies ? "__Host-visua_session" : "visua_session");
 /** Pre-auth cookie that binds an OpenID Connect flow to the browser that started it. */
@@ -286,17 +289,20 @@ export function authRoutes(app: Hono<AppEnv>, auth: AuthService): void {
   });
 
   // Exempt from the origin and CSRF checks (csrfProtection); creates no session.
-  app.post("/api/auth/saml/:id/acs", async (c) => {
-    try {
-      if (Number(c.req.header("content-length") ?? 0) > 1_048_576) throw new UnauthorizedError("The sign-in response is missing or too large");
-      const form = await c.req.parseBody();
-      const samlResponse = typeof form["SAMLResponse"] === "string" ? form["SAMLResponse"] : "";
-      const code = await auth.acceptSamlResponse(c.req.param("id"), samlResponse);
-      return c.redirect(`/api/auth/saml/finish?code=${encodeURIComponent(code)}`, 303);
-    } catch (err) {
-      return signInFailed(c, err, "SAML response", 303);
-    }
-  });
+  app.post(
+    "/api/auth/saml/:id/acs",
+    bodyLimit({ maxSize: SAML_ACS_MAX_BYTES, onError: (c) => signInFailed(c, new UnauthorizedError("The sign-in response is missing or too large"), "SAML response", 303) }),
+    async (c) => {
+      try {
+        const form = await c.req.parseBody();
+        const samlResponse = typeof form["SAMLResponse"] === "string" ? form["SAMLResponse"] : "";
+        const code = await auth.acceptSamlResponse(c.req.param("id"), samlResponse);
+        return c.redirect(`/api/auth/saml/finish?code=${encodeURIComponent(code)}`, 303);
+      } catch (err) {
+        return signInFailed(c, err, "SAML response", 303);
+      }
+    },
+  );
 
   // Reached through the ACS's 303: a top-level GET, so the browser sends the Lax flow cookie. The
   // redirect chain began at the provider, so Sec-Fetch-Site is "cross-site": not checked here.

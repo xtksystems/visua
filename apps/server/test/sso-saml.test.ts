@@ -8,7 +8,7 @@ import { AuthService } from "../src/auth/service.ts";
 import { createService } from "../src/context.ts";
 import { TestClient } from "./client.ts";
 import { testDatabase } from "./db.ts";
-import { assertion, fingerprint, KEYS, readRequest, response, sign, type TestKey } from "./saml-idp.ts";
+import { assertion, encryptedResponse, fingerprint, KEYS, readRequest, response, sign, type TestKey } from "./saml-idp.ts";
 import { oktaMetadata } from "./saml-samples.ts";
 
 process.env["VISUA_AGENT_MODE"] = "offline";
@@ -299,5 +299,148 @@ describe("SAML sign-in", () => {
     expect((await client.get(`/api/tenants/${tenant}`)).status).toBe(404);
     const owner = await samlSignIn(connection.id, { nameId: "gil@req-saml.example" });
     expect(owner.me?.activeTenant).toMatchObject({ id: tenant, role: "owner" });
+  });
+});
+
+describe("SAML responses Visua refuses", () => {
+  const VERIFY_FAILED = "The identity provider's response could not be verified. Start again.";
+  let org: Awaited<ReturnType<typeof samlOrg>>;
+  const acsOf = (req: Flow["request"]) => ({ issuer: IDP, acs: req.acs, inResponseTo: req.id });
+  const base = (req: Flow["request"], nameId = "mal@forge-saml.example") => ({ issuer: IDP, audience: req.issuer, acs: req.acs, inResponseTo: req.id, nameId });
+  /** Post a forged response for a fresh request; returns the sign-in page's error (empty when accepted). */
+  async function refusal(forge: (req: Flow["request"]) => string) {
+    const flow = await startSaml(org.connection.id);
+    const acs = await postAcs(org.connection.id, forge(flow.request));
+    return loginError(acs.headers.get("location") ?? "");
+  }
+
+  beforeAll(async () => {
+    org = await samlOrg("fred@forge-saml.example", "forge-saml.example");
+  });
+
+  it("refuses unsigned assertions, unknown keys, wrong audiences and expired or early assertions", async () => {
+    expect(await refusal((req) => response(acsOf(req), assertion(base(req))))).toBe(VERIFY_FAILED);
+    expect(await refusal((req) => response(acsOf(req), sign(assertion(base(req)), "rogue")))).toBe(VERIFY_FAILED);
+    expect(await refusal((req) => response(acsOf(req), sign(assertion({ ...base(req), audience: "https://other.example/sp" }))))).toBe(VERIFY_FAILED);
+    const past = new Date(Date.now() - 20 * 60_000);
+    expect(await refusal((req) => response(acsOf(req), sign(assertion({ ...base(req), issuedAt: past, notOnOrAfter: new Date(past.getTime() + 5 * 60_000) }))))).toBe(VERIFY_FAILED);
+    expect(await refusal((req) => response(acsOf(req), sign(assertion({ ...base(req), notBefore: new Date(Date.now() + 10 * 60_000) }))))).toBe(VERIFY_FAILED);
+  });
+
+  it("refuses a response from another issuer, even signed with the connection's key", async () => {
+    expect(await refusal((req) => response({ ...acsOf(req), issuer: "https://evil.example" }, sign(assertion({ ...base(req), issuer: "https://evil.example" }))))).toBe(
+      "The response was issued by another identity provider",
+    );
+  });
+
+  it("refuses IdP-initiated responses and requests Visua never issued", async () => {
+    expect(await refusal((req) => response({ ...acsOf(req), inResponseTo: null }, sign(assertion({ ...base(req), inResponseTo: null }))))).toBe(VERIFY_FAILED);
+    expect(await refusal((req) => response({ ...acsOf(req), inResponseTo: "_never" }, sign(assertion({ ...base(req), inResponseTo: "_never" }))))).toBe(VERIFY_FAILED);
+  });
+
+  it("refuses an assertion that does not itself answer the request", async () => {
+    // A signed assertion with no InResponseTo of its own, wrapped in a Response naming a fresh request.
+    expect(await refusal((req) => response(acsOf(req), sign(assertion({ ...base(req), inResponseTo: null }))))).toBe(
+      "The identity provider's response does not answer a sign-in Visua started. Start again from the Visua sign-in page.",
+    );
+    // A signed assertion answering someone else's request, wrapped in a Response naming the attacker's.
+    const victim = await startSaml(org.connection.id);
+    const captured = sign(assertion(base(victim.request, "victim@forge-saml.example")));
+    expect(await refusal((req) => response(acsOf(req), captured))).not.toBe("");
+  });
+
+  it("refuses replays, signature wrapping, SHA-1 and encrypted assertions", async () => {
+    const flow = await startSaml(org.connection.id);
+    const once = answer(flow.request, { nameId: "rae@forge-saml.example" });
+    expect((await postAcs(org.connection.id, once)).headers.get("location")).toMatch(/^\/api\/auth\/saml\/finish\?code=/);
+    expect(loginError((await postAcs(org.connection.id, once)).headers.get("location")!)).not.toBe("");
+    // A signed assertion with an injected unsigned one beside it, or around it.
+    expect(await refusal((req) => response(acsOf(req), sign(assertion(base(req))), assertion(base(req, "fred@forge-saml.example"))))).toBe(VERIFY_FAILED);
+    expect(
+      await refusal((req) => {
+        const evil = assertion(base(req, "fred@forge-saml.example"));
+        return response(acsOf(req), evil.replace("</saml:Subject>", `</saml:Subject>${sign(assertion(base(req)))}`));
+      }),
+    ).toBe(VERIFY_FAILED);
+    expect(await refusal((req) => answer(req, { nameId: "rae@forge-saml.example" }, { algorithm: "sha1" }))).toBe(
+      "The SAML response is signed with an algorithm Visua does not accept: use RSA-SHA256",
+    );
+    expect(await refusal((req) => encryptedResponse(acsOf(req)))).toBe(
+      "Encrypted assertions are not supported: turn assertion encryption off for Visua in your identity provider",
+    );
+  });
+
+  it("refuses a person without an email address", async () => {
+    expect(await refusal((req) => response(acsOf(req), sign(assertion({ ...base(req), nameId: "00u9", nameIdFormat: "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent" }))))).toBe(
+      "Your identity provider did not share an email address",
+    );
+  });
+
+  it("refuses an oversized response however it is sent", async () => {
+    const body = new URLSearchParams({ SAMLResponse: "A".repeat(1_100_000) }).toString();
+    // A streamed body carries no Content-Length: the limit must hold without it.
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode(body));
+        controller.close();
+      },
+    });
+    const res = await app.request(`/api/auth/saml/${org.connection.id}/acs`, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded", origin: "https://idp.test", "sec-fetch-site": "cross-site" },
+      body: stream,
+      duplex: "half",
+    } as RequestInit);
+    expect(res.status).toBe(303);
+    expect(loginError(res.headers.get("location")!)).toBe("The sign-in response is missing or too large");
+  });
+});
+
+describe("SAML certificates, domains and instances", () => {
+  it("accepts either of two stored certificates during a rotation, then only the one kept", async () => {
+    const { client, tenant, connection } = await samlOrg("hal@rot2-saml.example", "rot2-saml.example", { certs: ["a", "b"] });
+    expect((await samlSignIn(connection.id, { nameId: "x@rot2-saml.example" }, { key: "a" })).me?.user.email).toBe("x@rot2-saml.example");
+    expect((await samlSignIn(connection.id, { nameId: "y@rot2-saml.example" }, { key: "b" })).me?.user.email).toBe("y@rot2-saml.example");
+    await client.patch(`/api/tenants/${tenant}/sso/${connection.id}`, { metadataXml: metadata(["b"]) });
+    expect((await samlSignIn(connection.id, { nameId: "x@rot2-saml.example" }, { key: "a" })).me).toBeNull();
+    expect((await samlSignIn(connection.id, { nameId: "x@rot2-saml.example" }, { key: "b" })).me?.user.email).toBe("x@rot2-saml.example");
+  });
+
+  it("admits no one new from a pending or lapsed domain, and keeps linked members signing in", async () => {
+    const pending = await samlOrg("ian@pend-saml.example", "pend-saml.example", { prove: false });
+    const refused = await samlSignIn(pending.connection.id, { nameId: "new@pend-saml.example" });
+    expect(loginError(refused.redirect)).toBe("This SSO connection has no verified email domain yet");
+    const { connection } = await samlOrg("jo@lapse-saml.example", "lapse-saml.example");
+    expect((await samlSignIn(connection.id, { nameId: "kim@lapse-saml.example" })).me?.user.email).toBe("kim@lapse-saml.example");
+    const stored = (await svc.store.identity.sso.get(connection.id))!;
+    const v = stored.verification!["lapse-saml.example"]!;
+    await svc.store.identity.sso.put({ ...stored, verification: { "lapse-saml.example": { token: v.token, method: "dns", lapsedAt: new Date().toISOString() } } });
+    const stranger = await samlSignIn(connection.id, { nameId: "lee@lapse-saml.example" });
+    expect(loginError(stranger.redirect)).toContain("no longer admits new people from lapse-saml.example");
+    expect((await samlSignIn(connection.id, { nameId: "kim@lapse-saml.example" })).me?.user.email).toBe("kim@lapse-saml.example");
+  });
+
+  it("keeps each connection's people apart even with the same entity ID", async () => {
+    const first = await samlOrg("max@first-saml.example", "first-saml.example");
+    expect((await samlSignIn(first.connection.id, { nameId: "nia@first-saml.example" })).me?.user.email).toBe("nia@first-saml.example");
+    // Another organization pastes metadata naming the same provider entity, with a key it holds.
+    const second = await samlOrg("oto@second-saml.example", "second-saml.example", { certs: ["rogue"] });
+    const intruder = await samlSignIn(second.connection.id, { nameId: "nia@first-saml.example" }, { key: "rogue" });
+    expect(loginError(intruder.redirect)).toBe("This sign-in is for second-saml.example addresses");
+    expect(intruder.me).toBeNull();
+  });
+
+  it("completes on another instance, and accepts a response replayed to two instances once", async () => {
+    const { connection } = await samlOrg("pat@multi-saml.example", "multi-saml.example");
+    const other = createApp(svc, new AuthService(svc, config, { resolveTxt }));
+    const flow = await startSaml(connection.id);
+    const acs = await postAcs(connection.id, answer(flow.request, { nameId: "quin@multi-saml.example" }), other);
+    expect((await finish(flow, acs)).me?.user.email).toBe("quin@multi-saml.example");
+
+    const again = await startSaml(connection.id);
+    const copy = answer(again.request, { nameId: "rhea@multi-saml.example" });
+    const results = await Promise.all([postAcs(connection.id, copy, app), postAcs(connection.id, copy, other)]);
+    const codes = results.map((r) => r.headers.get("location") ?? "").filter((l) => l.startsWith("/api/auth/saml/finish?code="));
+    expect(codes).toHaveLength(1);
   });
 });

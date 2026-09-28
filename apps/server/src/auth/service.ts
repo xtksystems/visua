@@ -23,7 +23,7 @@ import type { AuthConfig } from "./config.ts";
 import { applyOutcome, classifyLookup, standingOf, type LookupOutcome, type RecheckEvent } from "./domain-recheck.ts";
 import { randomToken, safeEqual, seal, sha256, unseal } from "./crypto.ts";
 import { guardedFetch, privateAddressCause, privateHostAllowed, refusedLiteral } from "./egress.ts";
-import { certificateStanding, NAMEID_EMAIL, parseIdpMetadata, samlIdentity, type CertificateStanding } from "./saml.ts";
+import { assertionAnswers, certificateStanding, NAMEID_EMAIL, parseIdpMetadata, precheckResponse, samlIdentity, type CertificateStanding } from "./saml.ts";
 
 export class UnauthorizedError extends Error {}
 export class ForbiddenError extends Error {}
@@ -952,6 +952,10 @@ export class AuthService {
   async acceptSamlResponse(connectionId: string, samlResponse: string): Promise<string> {
     const c = await this.samlConnection(connectionId);
     if (!samlResponse || samlResponse.length > SAML_RESPONSE_MAX) throw new UnauthorizedError("The sign-in response is missing or too large");
+    const xml = Buffer.from(samlResponse, "base64").toString("utf8");
+    // What node-saml 5.1.0 does not refuse: a DOCTYPE, encrypted assertions, SHA-1 (saml.ts).
+    const refused = precheckResponse(xml);
+    if (refused) throw new UnauthorizedError(refused);
     let profile: Profile | null;
     try {
       ({ profile } = await this.samlFor(c).validatePostResponseAsync({ SAMLResponse: samlResponse }));
@@ -961,8 +965,15 @@ export class AuthService {
       throw new UnauthorizedError("The identity provider's response could not be verified. Start again.");
     }
     if (!profile) throw new UnauthorizedError("The identity provider sent no sign-in");
+    // node-saml checks the Issuer only on logout messages; the verified assertion's must be this provider.
+    if (profile.issuer !== c.saml.entityId) throw new UnauthorizedError("The response was issued by another identity provider");
     const requestId = typeof profile["inResponseTo"] === "string" ? profile["inResponseTo"] : "";
-    const flow = requestId ? await this.ids.loginFlows.consume<SamlRequestFlow>(sha256(`saml-request:${requestId}`)) : undefined;
+    // The Response's InResponseTo is not covered by an assertion-only signature: the signed
+    // assertion itself must answer the request, at this connection's ACS.
+    if (!requestId || !assertionAnswers(profile.getAssertionXml?.() ?? "", requestId, this.samlUrls(c.id).acsUrl)) {
+      throw new UnauthorizedError("The identity provider's response does not answer a sign-in Visua started. Start again from the Visua sign-in page.");
+    }
+    const flow = await this.ids.loginFlows.consume<SamlRequestFlow>(sha256(`saml-request:${requestId}`));
     if (!flow || flow.kind !== "saml-request" || flow.connection !== c.id) throw new UnauthorizedError("This sign-in expired or was already used. Start again.");
     const person = samlIdentity(profile);
     if (!person.subject) throw new UnauthorizedError("The identity provider did not name the person signing in (no NameID)");
