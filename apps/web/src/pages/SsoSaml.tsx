@@ -5,7 +5,7 @@
  */
 import { useMutation } from "@tanstack/react-query";
 import { Copy, Eye, RefreshCw } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { copyText, StatusChip, toast } from "../components/ui/index.tsx";
 import { api } from "../lib/api.ts";
 import { shortDate } from "../lib/format.ts";
@@ -52,9 +52,16 @@ function Certificates({ list }: { list: SamlCertificate[] }) {
 /** Paste a provider's metadata, then read it back before saving (the server stores nothing). */
 export function SamlMetadataField(props: { tenantId: string; id: string; value: string; onChange: (value: string) => void; preview?: SamlPreview; onPreview: (preview: SamlPreview | undefined) => void }) {
   const { tenantId, id, value, onChange, preview, onPreview } = props;
+  // Holds the textarea's current value so a preview that resolves after the text changed again
+  // (edited while "Read metadata" was in flight) is not applied: only a preview of what is still
+  // on screen is shown, and only that one can enable saving.
+  const valueRef = useRef(value);
+  valueRef.current = value;
   const read = useMutation({
-    mutationFn: () => api.post<SamlPreview>(`/tenants/${tenantId}/sso/saml/preview`, { metadataXml: value }),
-    onSuccess: (p) => onPreview(p),
+    mutationFn: (xml: string) => api.post<SamlPreview>(`/tenants/${tenantId}/sso/saml/preview`, { metadataXml: xml }),
+    onSuccess: (p, xml) => {
+      if (xml === valueRef.current) onPreview(p);
+    },
     onError: (e: Error) => {
       onPreview(undefined);
       toast(e.message, "error");
@@ -71,6 +78,7 @@ export function SamlMetadataField(props: { tenantId: string; id: string; value: 
           required
           spellCheck={false}
           value={value}
+          readOnly={read.isPending}
           placeholder={'<md:EntityDescriptor entityID="…">'}
           onChange={(e) => {
             onChange(e.target.value);
@@ -80,7 +88,7 @@ export function SamlMetadataField(props: { tenantId: string; id: string; value: 
         <span className="field__hint">From your provider's application for Visua: Okta “Identity Provider metadata”, Entra ID “Federation Metadata XML”, AD FS FederationMetadata.xml.</span>
       </div>
       <div>
-        <button type="button" className="btn" disabled={!value.trim() || read.isPending} onClick={() => read.mutate()}>
+        <button type="button" className="btn" disabled={!value.trim() || read.isPending} onClick={() => read.mutate(value)}>
           <Eye size={15} aria-hidden /> Read metadata
         </button>
       </div>
