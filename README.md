@@ -88,9 +88,11 @@ workspaces only through a membership, and their **role** decides what they can d
 | Auditor | read everything, export reports and verify the audit trail |
 | Viewer | read dashboards and the 3D views |
 
-- **Single sign-on.** Each organization can connect its own OpenID Connect provider
-  (Okta, Microsoft Entra ID, Google Workspace, Keycloak…): authorization code flow with
-  PKCE, state and nonce, bound to the browser that started it. People are routed to it
+- **Single sign-on.** Each organization can connect its own identity provider (Okta,
+  Microsoft Entra ID, Google Workspace, AD FS, Keycloak…) over OpenID Connect
+  (authorization code flow with PKCE, state and nonce) or SAML 2.0 (from pasted
+  metadata; signed assertions, SHA-256, certificate rotation), always bound to the
+  browser that started the sign-in. People are routed to it
   by email domain once the organization proves the domain with a DNS TXT record, can be
   provisioned on first sign-in with a default role, and their sessions reach that
   organization only. The first organization to prove a domain holds it. Whoever controls a connection's provider can

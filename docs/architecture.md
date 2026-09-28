@@ -297,6 +297,27 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     the addresses the socket will use, so DNS rebinding cannot bypass it, and responses are
     capped at 1 MB. Literal private addresses and `localhost` are refused when the issuer is
     saved. The platform provider is the operator's own configuration and is not filtered.
+  - SAML 2.0 connections (`auth/saml.ts`, `@node-saml/node-saml`) are set up from the
+    provider's pasted metadata (at most 256 KB, read with `@xmldom/xmldom`; no DOCTYPE, one
+    entity, an https HTTP-Redirect sign-in URL, at least one signing certificate). The
+    owner previews what was read before saving; pasting new metadata rotates certificates
+    in place and the trail names the fingerprints added and removed. Visua's side per
+    connection: entity ID `<VISUA_PUBLIC_URL>/api/auth/saml/<id>`, ACS `…/acs` (HTTP-POST)
+    and public metadata `…/metadata`. Sign-in: `/api/auth/saml/start` stores a single-use
+    request (10 minutes, `login_flows`, browser-bound by the `visua_saml` cookie) and
+    redirects with an unsigned AuthnRequest; the provider POSTs the response to the ACS,
+    which is the only route exempt from the cross-site guard and the CSRF token. The ACS
+    refuses DOCTYPEs, encrypted assertions and SHA-1 before node-saml validates the
+    signature (assertion signed, every stored certificate trusted), audience, time
+    (60 s skew, 5 minutes), and the request. It then requires the verified assertion's own
+    Issuer and its bearer `SubjectConfirmationData` (`InResponseTo`, `Recipient`) to match,
+    consumes the stored request with one `DELETE … RETURNING` (a response counts once on
+    every instance), and parks the person under a one-time code (2 minutes).
+    `/api/auth/saml/finish` checks the browser's cookie and opens a session
+    (`saml:<connectionId>`, scoped to the organization). Identities are keyed
+    `saml:<connectionId>` + NameID, so another organization pasting the same entity ID
+    reaches no one; the email comes from an email NameID or the `email`/`mail`/claims
+    attributes and is treated as verified, as for OpenID Connect organization connections.
   - A connection's email domains are proven by DNS: each claimed domain gets a token, and
     once `_visua-challenge.<domain>` carries `visua-domain-verification=<token>` an admin
     verifies it (the lookup runs outside any transaction; the result is recorded and
@@ -484,7 +505,7 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 6. Testing
 
-- `packages/*/test`, `apps/server/test` and `apps/web/test` (Vitest, 202 tests):
+- `packages/*/test`, `apps/server/test` and `apps/web/test` (Vitest, 238 tests):
   - official counts and citations
   - identifier normalization
   - the SOC 2 skeleton and the licensed overlay
@@ -529,6 +550,17 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     refusals, the response cap), DNS proof of SSO domains before they route or admit
     anyone, first-to-prove ownership, and the upgrade that grandfathers existing domains
     (`storage.test.ts`)
+  - SAML (`saml.test.ts`, pure): Okta-, Entra- and AD FS-shaped metadata and its refusals,
+    certificate standing, the response pre-check (SHA-1, DOCTYPE, encryption), the
+    assertion answering its request, identity attributes.
+  - SAML connections and sign-in on SQLite and Postgres (`sso-saml.test.ts`, with a test
+    identity provider signing with committed test-only keys): preview, owner-only setup,
+    Visua's metadata, rotation, protocol kept; start → ACS → finish scoped to the
+    organization; browser binding and one-time codes; the ACS-only exemption; discovery;
+    Require SSO; refusals (unsigned, unknown key, audience, Issuer, time, unsolicited,
+    unknown request, replay, wrapping, SHA-1, encrypted, an assertion not answering the
+    request, no email); pending and lapsed domains; the same entity ID in two
+    organizations; two instances.
   - re-checking SSO domains proven by DNS: classifying a lookup, the standings a re-check
     moves a domain through (failing, lapsed, recovered), re-check settings, and the
     ticker's timing and error handling (`domain-recheck.test.ts`); end to end on SQLite
@@ -545,7 +577,7 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     previous one (the camera controls leave its world matrix to the renderer), and shown
     and hidden by opacity, a compositor change, so a busy machine never draws new
     positions over old raster
-- `e2e/` (Playwright, 22 tests) runs against the production bundle served by the API,
+- `e2e/` (Playwright, 24 tests) runs against the production bundle served by the API,
   with an in-memory seeded database and WebGL on SwiftShader. It covers Home and Mission
   control's program links, the Observatory and its 2D twin, the Nexus, RMF, SOC 2, AI
   governance, an agent run with citations, the trust center and its per-framework
@@ -574,8 +606,11 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   address (`VISUA_OIDC_PRIVATE_ISSUERS`); every organization can then point its connection
   at that host. Allow only the internal providers you run, not `*`, in a shared
   installation.
-- SAML and SCIM provisioning are not implemented; OpenID Connect covers the major
-  identity providers.
+- SAML v1 limits: sign-in starts at Visua (no IdP-initiated sign-in; a dashboard tile can
+  link to the Visua sign-in page), no single logout (signing out ends the Visua session
+  only), no encrypted assertions and no signed AuthnRequests (both would need a Visua key
+  per installation), metadata is pasted (never fetched from a URL), and the platform
+  provider (`VISUA_OIDC_*`) stays OpenID Connect. SCIM provisioning is not implemented.
 - The demo's historical assessment levels are written to storage in bulk when it is
   seeded (they are history, not changes anyone made); everything after seeding goes
   through `VisuaService` and the audit trail.
