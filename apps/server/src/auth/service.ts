@@ -90,7 +90,7 @@ function recheckSummary(event: RecheckEvent, domain: string, record: string, con
 }
 
 /** How many due domains one tick claims. */
-export const RECHECK_BATCH = 25;
+const RECHECK_BATCH = 25;
 /** How long a claimed re-check is hidden from other instances while it is looked up. */
 const LEASE_MS = 15 * 60_000;
 
@@ -103,11 +103,13 @@ export class AuthService {
   readonly config: AuthConfig;
   private readonly oidcConfigs = new Map<string, { config: oidc.Configuration; at: number }>();
   private readonly resolveTxt: ResolveTxt;
+  private readonly recheckBatch: number;
 
-  constructor(svc: VisuaService, config: AuthConfig, deps: { resolveTxt?: ResolveTxt } = {}) {
+  constructor(svc: VisuaService, config: AuthConfig, deps: { resolveTxt?: ResolveTxt; recheckBatch?: number } = {}) {
     this.svc = svc;
     this.config = config;
     this.resolveTxt = deps.resolveTxt ?? resolveTxtWithTimeout;
+    this.recheckBatch = deps.recheckBatch ?? RECHECK_BATCH;
   }
 
   private get ids() {
@@ -581,33 +583,56 @@ export class AuthService {
   }
 
   /**
-   * Re-check SSO domains proven by DNS that are due at `at` (every server instance calls this
-   * from its ticker). Claims up to RECHECK_BATCH due domains under the domain lock, pushing each
-   * one's next check out by a lease so other instances skip it; looks each up outside any
-   * transaction; records each result in its own transaction. Returns how many were claimed.
+   * Re-check every SSO domain proven by DNS that is due at `at`, one batch after another until
+   * a batch comes back short (every server instance calls this from its ticker). Returns how
+   * many domains were looked up.
    */
+  async recheckAllDue(at: Date = new Date()): Promise<number> {
+    let total = 0;
+    for (;;) {
+      const { taken, claimed } = await this.recheckBatchDue(at);
+      total += claimed;
+      // A batch of domains held by other organizations looks nothing up, but more may be due.
+      if (taken < this.recheckBatch) return total;
+    }
+  }
+
+  /** One batch of recheckAllDue; returns how many domains were looked up. */
   async recheckDueDomains(at: Date = new Date()): Promise<number> {
-    if (!this.domainRechecksEnabled) return 0;
+    return (await this.recheckBatchDue(at)).claimed;
+  }
+
+  /**
+   * Claims up to a batch of due domains under the domain lock, pushing each one's next check out
+   * by a lease so other instances skip it (or by an interval, for a lapsed domain another
+   * connection holds); looks each claimed one up outside any transaction; records each result in
+   * its own transaction. Returns how many due domains it moved forward and how many it looked up.
+   */
+  private async recheckBatchDue(at: Date): Promise<{ taken: number; claimed: number }> {
+    if (!this.domainRechecksEnabled) return { taken: 0, claimed: 0 };
     const lease = new Date(at.getTime() + LEASE_MS).toISOString();
+    let taken = 0;
     const claimed = await this.svc.store.atomic(async () => {
       await this.svc.store.lock("sso-domains");
       const out: { connectionId: string; domain: string; token: string }[] = [];
-      for (const due of await this.ids.sso.dueForRecheck(at.toISOString(), RECHECK_BATCH)) {
-        const c = await this.ids.sso.get(due.connectionId);
-        const v = c?.verification?.[due.domain];
+      for (const next of await this.ids.sso.dueForRecheck(at.toISOString(), this.recheckBatch)) {
+        const c = await this.ids.sso.get(next.connectionId);
+        const v = c?.verification?.[next.domain];
         if (!c || !v) continue;
         // A lapsed domain another connection has proven is not looked up while that one holds it;
         // it is looked at again an interval later, so it can recover once the holder is gone.
-        const owner = v.lapsedAt ? await this.ids.sso.domainOwner(due.domain) : undefined;
+        const owner = v.lapsedAt ? await this.ids.sso.domainOwner(next.domain) : undefined;
         const held = !!owner && owner !== c.id;
         const nextCheckAt = held ? new Date(at.getTime() + this.recheckSettings.intervalMs).toISOString() : lease;
-        await this.ids.sso.put({ ...c, verification: { ...c.verification, [due.domain]: { ...v, nextCheckAt } } });
-        if (!held) out.push({ connectionId: c.id, domain: due.domain, token: v.token });
+        await this.ids.sso.put({ ...c, verification: { ...c.verification, [next.domain]: { ...v, nextCheckAt } } });
+        // Only rows moved forward count: one left due would come back in every batch.
+        taken++;
+        if (!held) out.push({ connectionId: c.id, domain: next.domain, token: v.token });
       }
       return out;
     });
     for (const claim of claimed) await this.recordRecheck(claim, (await this.lookupChallenge(claim.domain, claim.token)).outcome, at);
-    return claimed.length;
+    return { taken, claimed: claimed.length };
   }
 
   private async recordRecheck(claim: { connectionId: string; domain: string; token: string }, outcome: LookupOutcome, at: Date): Promise<void> {

@@ -318,8 +318,9 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     nobody is locked out. While another connection holds a lapsed domain, the old one is not
     looked up (the page shows it as held by another organization); it is looked at again an
     interval later, so it can recover once that holder is gone. Every instance's ticker
-    claims up to 25 due domains under the domain lock with a 15-minute lease, looks each one
-    up outside any transaction, and records the result in its own transaction, with an
+    claims due domains in batches of 25 under the domain lock with a 15-minute lease (until
+    a batch comes back short), looks each one up outside any transaction, and records the
+    result in its own transaction, with an
     audit entry under the actor "Domain re-check" only when the standing changes (failing,
     lapsed, recovered); a manual Verify clears a failure the same way. Keep the instances'
     clocks NTP-synced: skew beyond the 15-minute lease only causes a duplicate lookup, since
@@ -535,7 +536,8 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     and Postgres (`sso-recheck.test.ts`): the daily schedule, the grace period, DNS
     trouble never counting against a domain, a Require-SSO organization staying signed in
     through a lapse, another organization proving a lapsed domain, two instances claiming
-    the same batch without a duplicate lookup, a result dropped when the challenge
+    the same batch without a duplicate lookup, a batch of held domains not ending the
+    tick, a result dropped when the challenge
     changed meanwhile, and, on Postgres, the domain lock
   - the Postgres event relay (`relay.test.ts`): reconnection with backoff, failing fast
     at startup, NOTIFY payloads sized in bytes
