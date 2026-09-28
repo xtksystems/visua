@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="http://www.okta.com/exkVisuaE2E">
+  <md:IDPSSODescriptor WantAuthnRequestsSigned="false" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+    <md:KeyDescriptor use="signing"><ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#"><ds:X509Data><ds:X509Certificate>MIIDJTCCAg2gAwIBAgIUA7Os04QJvI6WdQfelIxdvqXpiUMwDQYJKoZIhvcNAQELBQAwIjEgMB4GA1UEAwwXVmlzdWEgU0FNTCB0ZXN0IChpZHAtYSkwHhcNMjYwOTI4MDM0MTI4WhcNNDYwOTIzMDM0MTI4WjAiMSAwHgYDVQQDDBdWaXN1YSBTQU1MIHRlc3QgKGlkcC1hKTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMExR5swAyw+JjO+0+ySWz5cPICXRbwBNI7SFK5xSks0UusvfnWBd560wKimDJxER3lim8Vc8AvTURBtx4SvMXzC7FAw9krj7DwfYvUkWuuaCq+1+css4FzBFM74lS6YxTp26KfGhiek0CM8KBmH0rihn44i0Q9tM5VoacfeKhq+Iwk6Y/6AYBjn9yunHu8jB/g4gsIqdvywQG3YrlP62l/wley5wHm4J88j43OHBWn2y8NXFa3fteLw636uADXxQIfhHPr9DIU0L94gPvJ0shSgMH6ivJUOrcpQZ9NNNv8nMOj+cV2/lP/6Cki7ItYdkjtXW4eBcDbE+ZV8RDSEHekCAwEAAaNTMFEwHQYDVR0OBBYEFKIfuh3iMmnD3zQUOtrHk9Tpy/2bMB8GA1UdIwQYMBaAFKIfuh3iMmnD3zQUOtrHk9Tpy/2bMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAC/rTD+BhqPCbNjh06kxMK4zEBkcOq0XkmIf/5WlW0EiiNJJbYbUtBbTq9Rcm0zdS/KpTYJ3ep24xQKWlqgY6TczpO5Kzr4TRYbJ8GKr1qKG70Lf4qHlSi6wtW8dtjjmRfF1WkW0mSV09/gntfm8kkF6SEQpjH4mhrVk4vkyzTchbHirGuSIeQ+Qi01tnyh/c9fTRTF/ZlyVHjqECRN6ZZueSc4x8P7Ib9ehgsKWUVsBnrdQ/xRvxtdRwEdEWPzvWJkw2hlbekpV/WBWNEhTrXUXcgzxh+3vVNQfIiFAr1XTJPOySyBmOXDvBj9TnmFkdclsR1zNAImJZUflPdqwod0=</ds:X509Certificate></ds:X509Data></ds:KeyInfo></md:KeyDescriptor>
+    <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</md:NameIDFormat>
+    <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://idp.test/app/visua/sso/saml"/>
+    <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://idp.test/app/visua/sso/saml"/>
+  </md:IDPSSODescriptor>
+</md:EntityDescriptor>

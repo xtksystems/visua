@@ -11,7 +11,8 @@ import { api, ApiError, setCsrfToken } from "../lib/api.ts";
 import { ROLE_NAMES, useAuthConfig, useResetSession, type Me } from "../lib/auth.ts";
 
 const safe = (to: string | null) => (to && to.startsWith("/") && !to.startsWith("//") ? to : "/");
-const startUrl = (connection: string, returnTo: string) => `/api/auth/oidc/start?connection=${encodeURIComponent(connection)}&returnTo=${encodeURIComponent(returnTo)}`;
+const startUrl = (connection: string, returnTo: string, protocol: "oidc" | "saml" = "oidc") =>
+  `/api/auth/${protocol}/start?connection=${encodeURIComponent(connection)}&returnTo=${encodeURIComponent(returnTo)}`;
 
 export function LoginPage() {
   const [params] = useSearchParams();
@@ -30,8 +31,8 @@ export function LoginPage() {
     setError("");
     setBusy(true);
     try {
-      const found = await api.post<{ connection: string }>("/auth/sso/discover", { email });
-      window.location.assign(startUrl(found.connection, returnTo));
+      const found = await api.post<{ connection: string; protocol?: "oidc" | "saml" }>("/auth/sso/discover", { email });
+      window.location.assign(startUrl(found.connection, returnTo, found.protocol));
     } catch (err) {
       setError(err instanceof ApiError && err.status === 404 ? "There is no single sign-on for this address. Ask your administrator how your organization signs in to Visua." : (err as Error).message);
       setBusy(false);

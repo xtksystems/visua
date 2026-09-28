@@ -9,11 +9,12 @@ import { Copy, KeyRound, Plus, ShieldCheck, Trash2, UserPlus } from "lucide-reac
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ROLES, ROLE_LABELS, can, roleRank, type ActivityEvent, type Role } from "@visua/core";
-import { Empty, StatusChip, Tabs, toast } from "../components/ui/index.tsx";
+import { copyText, Empty, StatusChip, Tabs, toast } from "../components/ui/index.tsx";
 import { api } from "../lib/api.ts";
 import { ROLE_NAMES, useMe, useResetSession } from "../lib/auth.ts";
 import { shortDate } from "../lib/format.ts";
 import { useWorkspace } from "../lib/queries.ts";
+import { SamlDetails, SamlMetadataField, type SamlPreview, type SamlSide } from "./SsoSaml.tsx";
 
 interface Member {
   id: string;
@@ -33,11 +34,16 @@ interface Token {
   revokedAt?: string;
   lastUsedAt?: string;
 }
-interface Connection {
+/** An SSO connection as GET /sso returns it: the protocol decides which provider fields are set. */
+type Connection = ConnectionBase &
+  (
+    | { protocol: "oidc"; issuer: string; clientId: string }
+    /** The provider as its metadata described it, and what to enter in it. */
+    | { protocol: "saml"; saml: SamlPreview; sp: SamlSide }
+  );
+interface ConnectionBase {
   id: string;
   name: string;
-  issuer: string;
-  clientId: string;
   hasClientSecret: boolean;
   domains: string[];
   /** Each domain's proof: only verified domains route sign-ins and admit people. */
@@ -69,7 +75,7 @@ interface DomainRechecks {
   everyHours: number;
 }
 const every = (hours: number) => (hours === 24 ? "every day" : hours === 1 ? "every hour" : `every ${hours} hours`);
-function DomainChip({ d, rechecks }: { d: Connection["domainStatus"][number]; rechecks?: DomainRechecks }) {
+function DomainChip({ d, rechecks }: { d: ConnectionBase["domainStatus"][number]; rechecks?: DomainRechecks }) {
   // With re-checks off, a failing domain never lapses: no date to announce.
   if (d.standing === "failing") return <StatusChip status="at-risk" label={rechecks?.enabled === false ? "Record missing" : `Record missing · lapses ${shortDate(d.lapsesAt)}`} />;
   if (d.standing === "lapsed") return <StatusChip status="at-risk" label={d.takenOver ? "Held by another organization" : "Lapsed · admits no one new"} />;
@@ -347,7 +353,7 @@ function Tokens({ tenantId, role }: { tenantId: string; role: Role }) {
             <code className="secret" style={{ flex: 1 }}>
               {created.token}
             </code>
-            <button className="btn btn--sm" onClick={() => void navigator.clipboard?.writeText(created.token).then(() => toast("Token copied"))} aria-label="Copy token">
+            <button className="btn btn--sm" onClick={() => copyText(created.token, "Token")} aria-label="Copy token">
               <Copy size={14} />
             </button>
           </div>
@@ -405,36 +411,35 @@ function Tokens({ tenantId, role }: { tenantId: string; role: Role }) {
   );
 }
 
-const emptyConnection = { name: "", issuer: "", clientId: "", clientSecret: "", domains: "", jitProvisioning: false, defaultRole: "viewer" as Role };
+const emptyConnection = { protocol: "oidc" as "oidc" | "saml", name: "", issuer: "", clientId: "", clientSecret: "", metadataXml: "", domains: "", jitProvisioning: false, defaultRole: "viewer" as Role };
 
 function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void }) {
   const qc = useQueryClient();
   const sso = useQuery({ queryKey: ["tenant", tenant.id, "sso"], queryFn: () => api.get<{ redirectUri: string; domainRechecks: DomainRechecks; connections: Connection[] }>(`/tenants/${tenant.id}/sso`) });
   const [form, setForm] = useState(emptyConnection);
+  const [preview, setPreview] = useState<SamlPreview>();
   const done = () => {
     void qc.invalidateQueries({ queryKey: ["tenant", tenant.id, "sso"] });
     onChange();
   };
   const save = useMutation({
-    mutationFn: () =>
-      api.post(`/tenants/${tenant.id}/sso`, {
-        name: form.name || "Single sign-on",
-        issuer: form.issuer,
-        clientId: form.clientId,
-        clientSecret: form.clientSecret || undefined,
-        domains: form.domains.split(/[\s,]+/).filter(Boolean),
-        jitProvisioning: form.jitProvisioning,
-        defaultRole: form.defaultRole,
-      }),
+    mutationFn: () => {
+      const shared = { name: form.name || "Single sign-on", domains: form.domains.split(/[\s,]+/).filter(Boolean), jitProvisioning: form.jitProvisioning, defaultRole: form.defaultRole };
+      return api.post(
+        `/tenants/${tenant.id}/sso`,
+        form.protocol === "saml" ? { protocol: "saml", ...shared, metadataXml: form.metadataXml } : { ...shared, issuer: form.issuer, clientId: form.clientId, clientSecret: form.clientSecret || undefined },
+      );
+    },
     onSuccess: () => {
       toast("SSO connection added");
       setForm(emptyConnection);
+      setPreview(undefined);
       done();
     },
     onError: (e: Error) => toast(e.message, "error"),
   });
   const update = useMutation({
-    mutationFn: (v: { id: string; patch: Partial<Connection> }) => api.patch(`/tenants/${tenant.id}/sso/${v.id}`, v.patch),
+    mutationFn: (v: { id: string; patch: Partial<Pick<ConnectionBase, "enabled">> }) => api.patch(`/tenants/${tenant.id}/sso/${v.id}`, v.patch),
     onSuccess: done,
     onError: (e: Error) => toast(e.message, "error"),
   });
@@ -451,7 +456,6 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
     },
     onError: (e: Error) => toast(e.message, "error"),
   });
-  const copy = (text: string, what: string) => void navigator.clipboard?.writeText(text).then(() => toast(`${what} copied`));
   const attention = (sso.data?.connections ?? []).flatMap((c) =>
     c.domainStatus.filter((d) => d.record && (d.standing === "pending" || d.standing === "failing" || (d.standing === "lapsed" && !d.takenOver))).map((d) => ({ connection: c, ...d, record: d.record! })),
   );
@@ -471,8 +475,9 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
           How it works
         </h2>
         <p className="muted" style={{ margin: 0 }}>
-          Connect your identity provider (Okta, Microsoft Entra ID, Google Workspace, Keycloak…) with OpenID Connect. Once you prove a domain with a DNS record, people
-          whose email is in it are sent to your provider when they sign in. Sessions it creates reach this organization only. Register this redirect URI with your provider:
+          Connect your identity provider (Okta, Microsoft Entra ID, Google Workspace, AD FS, Keycloak…) with OpenID Connect or SAML 2.0. Once you prove a domain with a DNS
+          record, people whose email is in it are sent to your provider when they sign in. Sessions it creates reach this organization only. For OpenID Connect, register
+          this redirect URI with your provider:
         </p>
         <code className="secret">{sso.data?.redirectUri ?? "…"}</code>
       </div>
@@ -494,9 +499,10 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
                   <td>
                     <div className="stack" style={{ gap: 2 }}>
                       <strong>{c.name}</strong>
-                      <span className="mono muted" style={{ fontSize: 12 }}>
-                        {c.issuer} · {c.clientId}
-                        {c.hasClientSecret ? " · secret stored (encrypted)" : " · public client"}
+                      <span className="mono muted" style={{ fontSize: 12, overflowWrap: "anywhere" }}>
+                        {c.protocol === "saml"
+                          ? `SAML · ${c.saml.entityId}`
+                          : `${c.issuer} · ${c.clientId}${c.hasClientSecret ? " · secret stored (encrypted)" : " · public client"}`}
                       </span>
                     </div>
                   </td>
@@ -573,7 +579,7 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
                     {value}
                   </code>
                 </dd>
-                <button className="btn btn--quiet btn--sm btn--icon" aria-label={`Copy the record ${label.toLowerCase()} for ${p.domain}`} onClick={() => copy(value, `Record ${label.toLowerCase()}`)}>
+                <button className="btn btn--quiet btn--sm btn--icon" aria-label={`Copy the record ${label.toLowerCase()} for ${p.domain}`} onClick={() => copyText(value, `Record ${label.toLowerCase()}`)}>
                   <Copy size={14} />
                 </button>
               </div>
@@ -586,6 +592,9 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
           </div>
         </section>
       ))}
+      {(sso.data?.connections ?? []).map((c) =>
+        c.protocol === "saml" ? <SamlDetails key={`saml-${c.id}`} tenantId={tenant.id} connection={{ id: c.id, name: c.name, saml: c.saml, sp: c.sp }} owner={owner} onChange={done} /> : null,
+      )}
       {!owner && (
         <div className="panel muted" role="note">
           Only owners add, remove or re-point identity providers: whoever controls a provider can sign in as any member on its domains, owners included. Admins can
@@ -602,25 +611,48 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
         }}
       >
         <h2 className="section-title" style={{ margin: 0 }}>
-          Add an OpenID Connect provider
+          Add an identity provider
         </h2>
+        <fieldset className="row" style={{ gap: 16, border: 0, padding: 0, margin: 0, flexWrap: "wrap" }}>
+          <legend className="muted" style={{ fontSize: 13, marginBottom: 6 }}>
+            Protocol
+          </legend>
+          {(["oidc", "saml"] as const).map((p) => (
+            <label key={p} className="row" style={{ gap: 6 }}>
+              <input
+                type="radio"
+                name="sso-protocol"
+                checked={form.protocol === p}
+                onChange={() => {
+                  setForm({ ...form, protocol: p });
+                  setPreview(undefined);
+                }}
+              />
+              {p === "oidc" ? "OpenID Connect" : "SAML 2.0"}
+            </label>
+          ))}
+        </fieldset>
         <div className="grid grid--2" style={{ gap: 12 }}>
           <div className="field">
             <label htmlFor="sso-name">Name</label>
             <input id="sso-name" className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Okta" />
           </div>
-          <div className="field">
-            <label htmlFor="sso-issuer">Issuer URL</label>
-            <input id="sso-issuer" className="input" required value={form.issuer} onChange={(e) => setForm({ ...form, issuer: e.target.value })} placeholder="https://login.example.com/" />
-          </div>
-          <div className="field">
-            <label htmlFor="sso-client">Client ID</label>
-            <input id="sso-client" className="input" required value={form.clientId} onChange={(e) => setForm({ ...form, clientId: e.target.value })} />
-          </div>
-          <div className="field">
-            <label htmlFor="sso-secret">Client secret</label>
-            <input id="sso-secret" className="input" type="password" autoComplete="off" value={form.clientSecret} onChange={(e) => setForm({ ...form, clientSecret: e.target.value })} placeholder="Leave empty for a public client (PKCE)" />
-          </div>
+          {form.protocol === "oidc" && (
+            <>
+              <div className="field">
+                <label htmlFor="sso-issuer">Issuer URL</label>
+                <input id="sso-issuer" className="input" required value={form.issuer} onChange={(e) => setForm({ ...form, issuer: e.target.value })} placeholder="https://login.example.com/" />
+              </div>
+              <div className="field">
+                <label htmlFor="sso-client">Client ID</label>
+                <input id="sso-client" className="input" required value={form.clientId} onChange={(e) => setForm({ ...form, clientId: e.target.value })} />
+              </div>
+              <div className="field">
+                <label htmlFor="sso-secret">Client secret</label>
+                <input id="sso-secret" className="input" type="password" autoComplete="off" value={form.clientSecret} onChange={(e) => setForm({ ...form, clientSecret: e.target.value })} placeholder="Leave empty for a public client (PKCE)" />
+              </div>
+            </>
+          )}
           <div className="field">
             <label htmlFor="sso-domains">Email domains</label>
             <input id="sso-domains" className="input" required value={form.domains} onChange={(e) => setForm({ ...form, domains: e.target.value })} placeholder="example.com, example.co.uk" />
@@ -636,8 +668,11 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
             </div>
           </div>
         </div>
+        {form.protocol === "saml" && (
+          <SamlMetadataField tenantId={tenant.id} id="sso-metadata" value={form.metadataXml} onChange={(v) => setForm({ ...form, metadataXml: v })} preview={preview} onPreview={setPreview} />
+        )}
         <div>
-          <button className="btn btn--primary" type="submit" disabled={save.isPending}>
+          <button className="btn btn--primary" type="submit" disabled={save.isPending || (form.protocol === "saml" && !preview)}>
             <Plus size={15} aria-hidden /> Add connection
           </button>
         </div>

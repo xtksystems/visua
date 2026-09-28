@@ -187,7 +187,9 @@ export function guardedFetch(allow: (host: string) => boolean): CustomFetch {
             }
             const empty = options.method === "HEAD" || [204, 205, 304].includes(status);
             const raw = Buffer.concat(chunks);
-            resolve(new Response(empty ? null : decode(raw, res.headers["content-encoding"]), { status, statusText: res.statusMessage, headers }));
+            // A copy in a plain Uint8Array: the DOM lib's BodyInit (pulled in by @xmldom/xmldom's types) does not accept Buffer.
+            const body = empty ? null : new Uint8Array(decode(raw, res.headers["content-encoding"]));
+            resolve(new Response(body, { status, statusText: res.statusMessage, headers }));
           } catch (err) {
             reject(err);
           }

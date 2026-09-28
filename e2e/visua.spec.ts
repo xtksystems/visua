@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
 
 const WS = "/w/northwind-health";
 const MORGAN = "morgan.lee@northwind-health.example";
@@ -287,9 +288,50 @@ test("organization admin: members, roles and a one-time API token", async ({ pag
   await page.getByLabel("Token name").fill("CI evidence upload");
   await page.getByRole("button", { name: "Create token" }).click();
   await expect(page.getByRole("status").filter({ hasText: "will not be shown again" })).toContainText("vsa_");
+  // A refused clipboard says so, instead of failing silently while the token is on screen once.
+  await page.evaluate(() => (navigator.clipboard.writeText = () => Promise.reject(new Error("denied"))));
+  await page.getByRole("button", { name: "Copy token" }).click();
+  await expect(page.getByText("Could not copy the token: select it and copy it by hand")).toBeVisible();
   await page.getByRole("tab", { name: "Audit trail" }).click();
   await expect(page.getByText("Chain intact")).toBeVisible();
   expect(errors).toEqual([]);
+});
+
+test("single sign-on: an owner adds a SAML connection from pasted metadata and sees what to enter in the provider", async ({ page }) => {
+  const errors = watchErrors(page);
+  await signIn(page);
+  await page.goto(`${WS}/organization`);
+  await page.getByRole("tab", { name: "Single sign-on" }).click();
+  await page.getByRole("radio", { name: "SAML 2.0" }).check();
+  await page.getByLabel("Name", { exact: true }).fill("Okta (SAML)");
+  await page.getByLabel("Identity provider metadata (XML)").fill(readFileSync(new URL("../apps/server/test/fixtures/saml/okta-metadata.xml", import.meta.url), "utf8"));
+  await expect(page.getByRole("button", { name: "Add connection" })).toBeDisabled();
+  await page.getByRole("button", { name: "Read metadata" }).click();
+  const read = page.getByRole("group", { name: "Read from the metadata" });
+  await expect(read).toContainText("http://www.okta.com/exkVisuaE2E");
+  await expect(read).toContainText("Valid until");
+  await page.getByLabel("Email domains").fill("saml.northwind-health.example");
+  await page.getByRole("button", { name: "Add connection" }).click();
+  const details = page.getByRole("region", { name: "SAML: “Okta (SAML)”" });
+  await expect(details).toContainText(/\/api\/auth\/saml\/sso_[^/]+\/acs/);
+  await expect(details).toContainText(/\/api\/auth\/saml\/sso_[^/]+\/metadata/);
+  await expect(details.getByRole("list", { name: "Signing certificates" })).toContainText("Valid until");
+  await expect(page.getByRole("row").filter({ hasText: "Okta (SAML)" })).toContainText("SAML · http://www.okta.com/exkVisuaE2E");
+  expect(errors).toEqual([]);
+});
+
+test("sign-in: an address on a SAML connection's domain is sent to the SAML start", async ({ page }) => {
+  // The e2e server cannot prove a domain by DNS: discovery is answered here as the server would.
+  await page.route("**/api/auth/sso/discover", (route) => route.fulfill({ json: { connection: "sso_e2e", name: "Okta (SAML)", protocol: "saml" } }));
+  let started = "";
+  await page.route("**/api/auth/saml/start**", (route) => {
+    started = route.request().url();
+    return route.fulfill({ status: 200, contentType: "text/plain", body: "started" });
+  });
+  await page.goto("/login?returnTo=%2Fw%2Fnorthwind-health");
+  await page.getByLabel("Work email").fill("someone@saml.northwind-health.example");
+  await page.getByRole("button", { name: /Continue with single sign-on/ }).click();
+  await expect.poll(() => started).toContain("/api/auth/saml/start?connection=sso_e2e&returnTo=%2Fw%2Fnorthwind-health");
 });
 
 test("threat views: ATLAS matrix, coverage from linked requirements, and the Nexus threat ring", async ({ page }) => {

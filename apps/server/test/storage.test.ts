@@ -307,3 +307,38 @@ describe(`SSO domain re-check columns (${db.dialect})`, () => {
     }
   });
 });
+
+describe(`login flows (${db.dialect})`, () => {
+  const flows = () => svc.store.identity.loginFlows;
+  const inMinutes = (m: number) => new Date(Date.now() + m * 60_000).toISOString();
+  const oidcFlow = { connection: "platform", codeVerifier: "v", nonce: "n", returnTo: "/", createdAt: new Date().toISOString() };
+
+  it("hands a flow to exactly one of several concurrent consumers", async () => {
+    await flows().put("flow-race", oidcFlow, inMinutes(10));
+    const got = await Promise.all([1, 2, 3, 4].map(() => flows().consume("flow-race")));
+    expect(got.filter(Boolean)).toHaveLength(1);
+    expect(await flows().consume("flow-race")).toBeUndefined();
+  });
+
+  it("never returns an expired flow, and peeks without consuming", async () => {
+    await flows().put("flow-old", oidcFlow, inMinutes(-1));
+    expect(await flows().peek("flow-old")).toBeUndefined();
+    expect(await flows().consume("flow-old")).toBeUndefined();
+    await flows().put("flow-peek", { kind: "saml-cache", value: "2026-09-27T00:00:00.000Z", createdAt: new Date().toISOString() }, inMinutes(10));
+    expect(await flows().peek("flow-peek")).toMatchObject({ kind: "saml-cache", value: "2026-09-27T00:00:00.000Z" });
+    expect(await flows().consume("flow-peek")).toMatchObject({ kind: "saml-cache" });
+    expect(await flows().peek("flow-peek")).toBeUndefined();
+  });
+
+  it("keeps the OpenID Connect take() single use", async () => {
+    await flows().put("flow-take", oidcFlow, inMinutes(10));
+    expect(await flows().take("flow-take")).toMatchObject({ connection: "platform", nonce: "n" });
+    expect(await flows().take("flow-take")).toBeUndefined();
+  });
+
+  it("does not let take() consume a SAML row, but still spends it", async () => {
+    await flows().put("flow-take-saml", { kind: "saml-cache", value: "v", createdAt: new Date().toISOString() }, inMinutes(10));
+    expect(await flows().take("flow-take-saml")).toBeUndefined();
+    expect(await flows().peek("flow-take-saml")).toBeUndefined();
+  });
+});

@@ -322,6 +322,13 @@ export const useToasts = create<ToastState>((set) => ({
 }));
 export const toast = (text: string, kind?: Toast["kind"]) => useToasts.getState().push(text, kind);
 
+/** Copy text to the clipboard, with a toast either way: `what` names the thing copied, lowercased in the failure message. */
+export const copyText = (text: string, what: string) =>
+  void (navigator.clipboard?.writeText(text) ?? Promise.reject(new Error("no clipboard"))).then(
+    () => toast(`${what} copied`),
+    () => toast(`Could not copy the ${what.toLowerCase()}: select it and copy it by hand`, "error"),
+  );
+
 export function Toasts() {
   const toasts = useToasts((s) => s.toasts);
   const dismiss = useToasts((s) => s.dismiss);

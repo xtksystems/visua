@@ -12,9 +12,11 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.1.1",
+    "@node-saml/node-saml": "5.1.0",
     "@visua/agents": "workspace:*",
     "@visua/core": "workspace:*",
     "@visua/frameworks": "workspace:*",
+    "@xmldom/xmldom": "^0.8.15",
     "hono": "^4.13.9",
     "openid-client": "^6.8.8",
     "pg": "^8.23.0",

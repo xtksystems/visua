@@ -16,7 +16,7 @@ export interface SessionRecord {
   activeTenantId?: string;
   /** When set, the session may only access this tenant (login through that tenant's SSO). */
   tenantScope?: string;
-  /** "dev", "oidc:platform", "oidc:<connectionId>". */
+  /** "dev", "oidc:platform", "oidc:<connectionId>", "saml:<connectionId>". */
   method: string;
   csrf: string;
   userAgent?: string;
@@ -40,14 +40,38 @@ export interface ApiTokenRecord {
   lastUsedAt?: string;
 }
 
+/** A signing certificate from an identity provider's SAML metadata. */
+export interface SamlCertificate {
+  pem: string;
+  /** When it expires (ISO). */
+  notAfter: string;
+  /** SHA-256, colon-separated hex (as `X509Certificate.fingerprint256`). */
+  fingerprint: string;
+}
+
+/** A SAML identity provider as its metadata describes it. */
+export interface SamlIdp {
+  /** Its entity ID: the Issuer of its assertions. */
+  entityId: string;
+  /** Its SingleSignOnService location for the HTTP-Redirect binding. */
+  ssoUrl: string;
+  /** Every signing certificate it lists (more than one during a rotation). */
+  certificates: SamlCertificate[];
+}
+
 export interface SsoConnection {
   id: string;
   tenantId: string;
   name: string;
-  issuer: string;
-  clientId: string;
+  /** Missing on connections created before SAML existed: read it with protocolOf(). */
+  protocol?: "oidc" | "saml";
+  /** OpenID Connect only (always set on OIDC connections). */
+  issuer?: string;
+  clientId?: string;
   /** AES-256-GCM sealed with the server secret; never returned by the API. */
   clientSecretSealed?: string;
+  /** SAML only (always set on SAML connections): the identity provider from its metadata. */
+  saml?: SamlIdp;
   /** Email domains the connection claims. Only verified ones route and admit people. */
   domains: string[];
   /** Per claimed domain: its DNS challenge and, once proven, how and when. */
@@ -59,6 +83,9 @@ export interface SsoConnection {
   createdAt: string;
   updatedAt: string;
 }
+
+/** A connection's protocol: connections stored before SAML existed are OpenID Connect. */
+export const protocolOf = (c: Pick<SsoConnection, "protocol">): "oidc" | "saml" => c.protocol ?? "oidc";
 
 /**
  * Proof that an organization controls an email domain: a TXT record carrying `token` at
@@ -91,6 +118,36 @@ export interface LoginFlow {
   binding?: string;
   createdAt: string;
 }
+
+/** Visua's side of a SAML AuthnRequest, keyed by `saml-request:<request id>` (single use, 10 minutes). */
+export interface SamlRequestFlow {
+  kind: "saml-request";
+  connection: string;
+  requestId: string;
+  returnTo: string;
+  /** SHA-256 of the pre-auth cookie of the browser that started the sign-in. */
+  binding: string;
+  createdAt: string;
+}
+
+/** A verified SAML response waiting for its browser, keyed by `saml-code:<one-time code>` (single use, 2 minutes). */
+export interface SamlResultFlow {
+  kind: "saml-result";
+  connection: string;
+  returnTo: string;
+  binding: string;
+  identity: { issuer: string; subject: string; email: string; name: string };
+  createdAt: string;
+}
+
+/** node-saml's record of a request id (its cache provider), keyed by `saml-cache:<request id>`. */
+export interface SamlCacheEntry {
+  kind: "saml-cache";
+  value: string;
+  createdAt: string;
+}
+
+export type StoredFlow = LoginFlow | SamlRequestFlow | SamlResultFlow | SamlCacheEntry;
 
 class Tenants extends Repo {
   async get(id: string): Promise<Tenant | undefined> {
@@ -335,18 +392,31 @@ class SsoConnections extends Repo {
   }
 }
 
-class LoginFlows extends Repo {
-  async put(stateHash: string, flow: LoginFlow, expiresAt: string): Promise<void> {
+export class LoginFlows extends Repo {
+  async put(stateHash: string, flow: StoredFlow, expiresAt: string): Promise<void> {
     await this.db.execute(`INSERT INTO login_flows (state_hash, data, expires_at) VALUES (?, ${this.J}, ?)`, [stateHash, JSON.stringify(flow), expiresAt]);
   }
-  /** Single use: returns the flow and deletes it. */
+  /**
+   * Single use: deletes the row and returns what it held, in one statement, so of several
+   * concurrent callers (on any instance) exactly one gets it. Expired flows return undefined.
+   */
+  async consume<T extends StoredFlow = LoginFlow>(stateHash: string): Promise<T | undefined> {
+    const [row] = await this.db.query<{ data: unknown; expires_at: string }>(`DELETE FROM login_flows WHERE state_hash = ? RETURNING data, expires_at`, [stateHash]);
+    return row && row.expires_at >= now() ? parseJson<T>(row.data) : undefined;
+  }
+  /**
+   * An OpenID Connect flow, single use. The caller-controlled `state` could otherwise name a
+   * SAML row (`kind` set): that row is still consumed (single use holds), but never returned
+   * as an OIDC flow.
+   */
   async take(stateHash: string): Promise<LoginFlow | undefined> {
-    return this.store.atomic(async () => {
-      const [row] = await this.db.query<{ data: unknown; expires_at: string }>(`SELECT data, expires_at FROM login_flows WHERE state_hash = ?`, [stateHash]);
-      if (!row) return undefined;
-      await this.db.execute(`DELETE FROM login_flows WHERE state_hash = ?`, [stateHash]);
-      return row.expires_at < now() ? undefined : parseJson<LoginFlow>(row.data);
-    });
+    const flow = await this.consume<StoredFlow>(stateHash);
+    return flow && !("kind" in flow) ? flow : undefined;
+  }
+  /** Reads a flow without consuming it (node-saml's cache lookups). */
+  async peek<T extends StoredFlow>(stateHash: string): Promise<T | undefined> {
+    const [row] = await this.db.query<{ data: unknown; expires_at: string }>(`SELECT data, expires_at FROM login_flows WHERE state_hash = ?`, [stateHash]);
+    return row && row.expires_at >= now() ? parseJson<T>(row.data) : undefined;
   }
   async purgeExpired(at = now()): Promise<number> {
     return this.db.execute(`DELETE FROM login_flows WHERE expires_at < ?`, [at]);

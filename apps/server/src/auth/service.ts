@@ -13,15 +13,17 @@
  */
 import { randomBytes } from "node:crypto";
 import { Resolver } from "node:dns/promises";
+import { SAML, SamlStatusError, ValidateInResponseTo, type CacheItem, type CacheProvider, type Profile } from "@node-saml/node-saml";
 import * as oidc from "openid-client";
 import { ROLE_CAPABILITIES, can, newId, roleRank, slugify, type Capability, type Membership, type Role, type Tenant, type TenantSettings, type User } from "@visua/core";
-import type { ApiTokenRecord, DomainVerification, SessionRecord, SsoConnection } from "../storage/index.ts";
-import { DEFAULT_TENANT_ID } from "../storage/index.ts";
+import type { ApiTokenRecord, DomainVerification, LoginFlows, SamlCacheEntry, SamlIdp, SamlRequestFlow, SamlResultFlow, SessionRecord, SsoConnection } from "../storage/index.ts";
+import { DEFAULT_TENANT_ID, protocolOf } from "../storage/index.ts";
 import { NotFoundError, ValidationError, type Principal as AuditPrincipal, type VisuaService } from "../services/visua.ts";
 import type { AuthConfig } from "./config.ts";
 import { applyOutcome, classifyLookup, standingOf, type LookupOutcome, type RecheckEvent } from "./domain-recheck.ts";
 import { randomToken, safeEqual, seal, sha256, unseal } from "./crypto.ts";
 import { guardedFetch, privateAddressCause, privateHostAllowed, refusedLiteral } from "./egress.ts";
+import { assertionAnswers, certificateStanding, NAMEID_EMAIL, parseIdpMetadata, precheckResponse, samlIdentity, type CertificateStanding } from "./saml.ts";
 
 export class UnauthorizedError extends Error {}
 export class ForbiddenError extends Error {}
@@ -37,15 +39,22 @@ const addMinutes = (min: number, from = Date.now()) => new Date(from + min * 60_
 
 export const userLabel = (u: Pick<User, "name" | "email">) => `${u.name} <${u.email}>`;
 
-export interface SsoConnectionInput {
+interface SsoShared {
   name: string;
-  issuer: string;
-  clientId: string;
-  clientSecret?: string;
   domains: string[];
   jitProvisioning?: boolean;
   defaultRole?: Role;
   enabled?: boolean;
+}
+
+/** A connection as its owner enters it: an OpenID Connect client, or SAML metadata (kept as is when an update omits it). */
+export type SsoConnectionInput = (SsoShared & { protocol?: "oidc"; issuer: string; clientId: string; clientSecret?: string }) | (SsoShared & { protocol: "saml"; metadataXml?: string });
+
+/** Visua's side of a SAML connection: what its owner enters in the identity provider. */
+export interface SamlSide {
+  entityId: string;
+  acsUrl: string;
+  metadataUrl: string;
 }
 
 /** The TXT record that proves control of a domain for one SSO connection. */
@@ -54,13 +63,21 @@ export const challengeRecord = (domain: string, token: string) => ({ name: `_vis
 /** The domains a connection has proven: the only ones that route sign-ins and admit people. */
 export const verifiedDomains = (c: SsoConnection) => c.domains.filter((d) => !!c.verification?.[d]?.verifiedAt);
 
+/** A signing certificate as the API returns it: no PEM, and whether it expires soon. */
+export const publicCertificate = (c: { fingerprint: string; notAfter: string }): { fingerprint: string; notAfter: string; standing: CertificateStanding } => ({
+  fingerprint: c.fingerprint,
+  notAfter: c.notAfter,
+  standing: certificateStanding(c.notAfter),
+});
+
 /**
- * What the API returns for an SSO connection: never the secret; each domain with its status and
- * record. `owners` names, for the connection's lapsed domains, the connection that has proven
- * each one since (AuthService.describeConnection looks them up).
+ * What the API returns for an SSO connection: never the secret or certificate bodies; each
+ * domain with its status and record. `owners` names, for the connection's lapsed domains, the
+ * connection that has proven each one since (AuthService.describeConnection looks them up);
+ * `sp` is Visua's side of a SAML connection.
  */
-export const publicConnection = (c: SsoConnection, owners: Record<string, string | undefined> = {}) => {
-  const { clientSecretSealed, verification, ...rest } = c;
+export const publicConnection = (c: SsoConnection, owners: Record<string, string | undefined> = {}, sp?: SamlSide) => {
+  const { clientSecretSealed, verification, saml, ...rest } = c;
   const domainStatus = c.domains.map((domain) => {
     const v = verification?.[domain];
     const standing = standingOf(v);
@@ -78,8 +95,56 @@ export const publicConnection = (c: SsoConnection, owners: Record<string, string
       record: v ? challengeRecord(domain, v.token) : undefined,
     };
   });
-  return { ...rest, hasClientSecret: !!clientSecretSealed, domainStatus };
+  return {
+    ...rest,
+    protocol: protocolOf(c),
+    hasClientSecret: !!clientSecretSealed,
+    saml: saml ? { entityId: saml.entityId, ssoUrl: saml.ssoUrl, certificates: saml.certificates.map(publicCertificate) } : undefined,
+    sp,
+    domainStatus,
+  };
 };
+
+/** What identifies a SAML provider: changing any of it is an owner decision. */
+const samlProviderKey = (idp: SamlIdp | undefined) => (idp ? [idp.entityId, idp.ssoUrl, ...idp.certificates.map((c) => c.fingerprint).sort()].join("|") : "");
+/** An SSO connection that is a usable SAML provider: enabled, SAML, with its identity provider set. */
+const enabledSaml = (c: SsoConnection | undefined): c is SsoConnection & { saml: SamlIdp } => !!c && c.enabled && protocolOf(c) === "saml" && !!c.saml;
+/** The first eight bytes of a SHA-256 fingerprint, as audit summaries show it. */
+const shortFingerprint = (f: string) => f.slice(0, 23);
+
+/** Signing certificates a metadata update adds and removes, and how the audit summary says so. */
+function certificateChanges(before: SamlIdp | undefined, after: SamlIdp | undefined): { added: string[]; removed: string[]; summary: string } {
+  const had = new Set(before?.certificates.map((c) => c.fingerprint));
+  const has = new Set(after?.certificates.map((c) => c.fingerprint));
+  const added = [...has].filter((f) => !had.has(f));
+  const removed = [...had].filter((f) => !has.has(f));
+  if (!before || (!added.length && !removed.length)) return { added, removed, summary: "" };
+  const parts = [added.length ? `added: ${added.map(shortFingerprint).join(", ")}` : "", removed.length ? `removed: ${removed.map(shortFingerprint).join(", ")}` : ""].filter(Boolean);
+  return { added, removed, summary: `; signing certificates ${parts.join("; ")}` };
+}
+
+/**
+ * Whether a metadata update changes the provider itself (entity ID or sign-in URL) and how the
+ * audit summary and data say so. Identity links are keyed to the entity ID (resolveIdentity /
+ * acceptSamlResponse): a changed entity ID starts new links, so this is called out on its own,
+ * separately from a certificate rotation.
+ */
+function providerChanges(before: SamlIdp | undefined, after: SamlIdp | undefined): { summary: string; data: Record<string, string> } {
+  if (!before || !after) return { summary: "", data: {} };
+  const data: Record<string, string> = {};
+  const parts: string[] = [];
+  if (before.entityId !== after.entityId) {
+    parts.push(`; identity provider ${before.entityId} → ${after.entityId}`);
+    data["entityIdBefore"] = before.entityId;
+    data["entityIdAfter"] = after.entityId;
+  }
+  if (before.ssoUrl !== after.ssoUrl) {
+    parts.push(`; sign-in URL ${before.ssoUrl} → ${after.ssoUrl}`);
+    data["ssoUrlBefore"] = before.ssoUrl;
+    data["ssoUrlAfter"] = after.ssoUrl;
+  }
+  return { summary: parts.join(""), data };
+}
 
 const day = (iso: string | undefined) => (iso ? iso.slice(0, 10) : "");
 function recheckSummary(event: RecheckEvent, domain: string, record: string, connection: string, v: DomainVerification): string {
@@ -97,6 +162,40 @@ const LEASE_MS = 15 * 60_000;
 /** TXT lookups for domain verification (replaceable in tests). */
 export type ResolveTxt = (name: string) => Promise<string[][]>;
 const resolveTxtWithTimeout: ResolveTxt = (name) => new Resolver({ timeout: 5000, tries: 2 }).resolveTxt(name);
+
+/** A base64 SAML response larger than this is refused unread. */
+const SAML_RESPONSE_MAX = 1_000_000;
+
+/**
+ * node-saml's record of the requests Visua issued, in the database so any instance can
+ * validate a response (`saml-cache:<request id>`, 10 minutes). node-saml 5.1.0 reads then
+ * removes an id in two calls; Visua's own single-use request flow (`saml-request:<id>`,
+ * consumed after validation) is what makes a response count once. consumeAsync serves
+ * node-saml versions that use it.
+ */
+class SamlRequestCache implements CacheProvider {
+  readonly flows: LoginFlows;
+  constructor(flows: LoginFlows) {
+    this.flows = flows;
+  }
+  private key(id: string) {
+    return sha256(`saml-cache:${id}`);
+  }
+  async saveAsync(key: string, value: string): Promise<CacheItem> {
+    const createdAt = Date.now();
+    await this.flows.put(this.key(key), { kind: "saml-cache", value, createdAt: new Date(createdAt).toISOString() }, addMinutes(10));
+    return { value, createdAt };
+  }
+  async getAsync(key: string): Promise<string | null> {
+    return (await this.flows.peek<SamlCacheEntry>(this.key(key)))?.value ?? null;
+  }
+  async removeAsync(key: string | null): Promise<string | null> {
+    return key ? ((await this.flows.consume<SamlCacheEntry>(this.key(key)))?.value ?? null) : null;
+  }
+  async consumeAsync(key: string): Promise<string | null> {
+    return this.removeAsync(key);
+  }
+}
 
 export class AuthService {
   readonly svc: VisuaService;
@@ -128,7 +227,7 @@ export class AuthService {
   async describeConnection(c: SsoConnection): Promise<ReturnType<typeof publicConnection>> {
     const owners: Record<string, string | undefined> = {};
     for (const d of c.domains) if (c.verification?.[d]?.lapsedAt) owners[d] = await this.ids.sso.domainOwner(d);
-    return publicConnection(c, owners);
+    return publicConnection(c, owners, protocolOf(c) === "saml" ? this.samlUrls(c.id) : undefined);
   }
 
   async describeConnections(list: SsoConnection[]): Promise<ReturnType<typeof publicConnection>[]> {
@@ -293,7 +392,7 @@ export class AuthService {
     if (!m) return undefined;
     const tenant = await this.ids.tenants.get(tenantId);
     if (tenant?.settings.requireSso) {
-      const own = (await this.ids.sso.forTenant(tenantId)).filter((c) => c.enabled).map((c) => `oidc:${c.id}`);
+      const own = (await this.ids.sso.forTenant(tenantId)).filter((c) => c.enabled).map((c) => `${protocolOf(c)}:${c.id}`);
       if (own.length && !own.includes(principal.session.method)) return undefined;
     }
     return m.role;
@@ -449,22 +548,14 @@ export class AuthService {
   /**
    * Create or change an SSO connection. Whoever controls a connection's identity provider
    * can sign in as any member on its domains, owners included: choosing the provider
-   * (issuer, client, secret, domains) is an owner decision. Admins manage the rest.
+   * (OIDC issuer, client, secret; SAML entity, sign-in URL, certificates) and the domains is
+   * an owner decision. Admins manage the rest. A connection keeps its protocol.
    */
   async upsertSsoConnection(tenantId: string, input: SsoConnectionInput & { id?: string }, by: Principal): Promise<SsoConnection> {
     if (!(await this.can(by, tenantId, "tenant.manage"))) throw new ForbiddenError("Configuring SSO requires the admin or owner role");
-    if (this.config.mode === "oidc" && this.config.secretIsDefault && input.clientSecret) throw new ValidationError("Set VISUA_SECRET on the server before storing SSO client secrets");
-    let issuer: URL;
-    try {
-      issuer = new URL(input.issuer.trim());
-    } catch {
-      throw new ValidationError("The issuer must be a URL, e.g. https://login.example.com/");
-    }
-    if (issuer.protocol !== "https:" && !this.config.allowHttpIssuers) throw new ValidationError("The issuer must use https");
-    // Names are checked again at every request, on the addresses they resolve to (egress.ts).
-    if (refusedLiteral(issuer, privateHostAllowed(this.config.privateIssuerHosts))) {
-      throw new ValidationError("The issuer is a private or local address. The server operator can allow an internal identity provider with VISUA_OIDC_PRIVATE_ISSUERS.");
-    }
+    const protocol = input.protocol ?? "oidc";
+    const oidcPartner = input.protocol === "saml" ? undefined : this.oidcPartner(input);
+    const samlPartner = input.protocol === "saml" && input.metadataXml !== undefined ? parseIdpMetadata(input.metadataXml, { allowHttp: this.config.allowHttpIssuers }) : undefined;
     const domains = [...new Set(input.domains.map((d) => d.trim().toLowerCase().replace(/^@/, "")).filter(Boolean))];
     if (!domains.length) throw new ValidationError("List at least one email domain this connection signs in");
     if (domains.some((d) => !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(d))) throw new ValidationError("Email domains look like example.com");
@@ -474,9 +565,15 @@ export class AuthService {
       await this.svc.store.lock("sso-domains");
       const existing = input.id ? await this.ids.sso.get(input.id) : undefined;
       if (input.id && (!existing || existing.tenantId !== tenantId)) throw new NotFoundError("SSO connection not found");
-      const issuerUrl = issuer.toString().replace(/\/$/, "");
+      if (existing && protocolOf(existing) !== protocol) throw new ValidationError("A connection keeps its protocol: add another connection for the other one");
+      const saml = samlPartner ?? existing?.saml;
+      if (protocol === "saml" && !saml) throw new ValidationError("Paste your identity provider's SAML metadata");
       const providerChanged =
-        !existing || existing.issuer !== issuerUrl || existing.clientId !== input.clientId.trim() || !!input.clientSecret || existing.domains.join(",") !== domains.join(",");
+        !existing ||
+        existing.domains.join(",") !== domains.join(",") ||
+        (oidcPartner
+          ? existing.issuer !== oidcPartner.issuer || existing.clientId !== oidcPartner.clientId || !!oidcPartner.clientSecret
+          : samlProviderKey(existing.saml) !== samlProviderKey(saml));
       if (providerChanged && !(await this.can(by, tenantId, "tenant.own"))) {
         throw new ForbiddenError("Only owners choose an SSO connection's identity provider, client and domains: whoever controls it can sign in as any member");
       }
@@ -504,14 +601,19 @@ export class AuthService {
         verification[d] = existing?.verification?.[d] ?? { token: randomBytes(16).toString("hex"), ...(trusted ? { verifiedAt: ts, method: "trusted" as const } : {}) };
       }
       // A stored secret belongs to its provider: a new issuer or client needs its own.
-      const samePartner = !!existing && existing.issuer === issuerUrl && existing.clientId === input.clientId.trim();
+      const samePartner = !!existing && !!oidcPartner && existing.issuer === oidcPartner.issuer && existing.clientId === oidcPartner.clientId;
       const connection: SsoConnection = {
         id: existing?.id ?? newId("sso"),
         tenantId,
         name: input.name.trim() || "Single sign-on",
-        issuer: issuerUrl,
-        clientId: input.clientId.trim(),
-        clientSecretSealed: input.clientSecret ? seal(input.clientSecret, this.config.secret) : samePartner ? existing.clientSecretSealed : undefined,
+        protocol,
+        ...(oidcPartner
+          ? {
+              issuer: oidcPartner.issuer,
+              clientId: oidcPartner.clientId,
+              clientSecretSealed: oidcPartner.clientSecret ? seal(oidcPartner.clientSecret, this.config.secret) : samePartner ? existing?.clientSecretSealed : undefined,
+            }
+          : { saml }),
         domains,
         verification,
         jitProvisioning: input.jitProvisioning ?? existing?.jitProvisioning ?? false,
@@ -520,20 +622,48 @@ export class AuthService {
         createdAt: existing?.createdAt ?? ts,
         updatedAt: ts,
       };
-      if (!connection.clientId) throw new ValidationError("The client id is required");
       await this.ids.sso.put(connection);
       this.oidcConfigs.delete(connection.id);
       const pending = domains.filter((d) => !verification[d]!.verifiedAt);
+      const certificates = certificateChanges(existing?.saml, saml);
+      const provider = providerChanges(existing?.saml, saml);
       await this.audit(
         tenantId,
         by,
         existing ? "updated" : "created",
         "sso-connection",
         connection.id,
-        `SSO connection “${connection.name}” ${existing ? "updated" : "added"} for ${domains.join(", ")}${pending.length ? ` (awaiting DNS verification: ${pending.join(", ")})` : ""}`,
+        `SSO connection “${connection.name}” ${existing ? "updated" : "added"} for ${domains.join(", ")}${pending.length ? ` (awaiting DNS verification: ${pending.join(", ")})` : ""}${certificates.summary}${provider.summary}`,
+        protocol === "saml" ? { protocol, certificatesAdded: certificates.added, certificatesRemoved: certificates.removed, ...provider.data } : undefined,
       );
       return connection;
     });
+  }
+
+  /** An OpenID Connect provider as entered: a public https issuer (unless the operator allows otherwise) and a client id. */
+  private oidcPartner(input: { issuer: string; clientId: string; clientSecret?: string }): { issuer: string; clientId: string; clientSecret?: string } {
+    if (this.config.mode === "oidc" && this.config.secretIsDefault && input.clientSecret) throw new ValidationError("Set VISUA_SECRET on the server before storing SSO client secrets");
+    let issuer: URL;
+    try {
+      issuer = new URL(input.issuer.trim());
+    } catch {
+      throw new ValidationError("The issuer must be a URL, e.g. https://login.example.com/");
+    }
+    if (issuer.protocol !== "https:" && !this.config.allowHttpIssuers) throw new ValidationError("The issuer must use https");
+    // Names are checked again at every request, on the addresses they resolve to (egress.ts).
+    if (refusedLiteral(issuer, privateHostAllowed(this.config.privateIssuerHosts))) {
+      throw new ValidationError("The issuer is a private or local address. The server operator can allow an internal identity provider with VISUA_OIDC_PRIVATE_ISSUERS.");
+    }
+    const clientId = input.clientId.trim();
+    if (!clientId) throw new ValidationError("The client id is required");
+    return { issuer: issuer.toString().replace(/\/$/, ""), clientId, clientSecret: input.clientSecret };
+  }
+
+  /** Read pasted metadata without saving anything (the settings page confirms it first). Owners only. */
+  async previewSamlMetadata(tenantId: string, xml: string, by: Principal) {
+    if (!(await this.can(by, tenantId, "tenant.own"))) throw new ForbiddenError("Only owners choose an SSO connection's identity provider");
+    const idp = parseIdpMetadata(xml, { allowHttp: this.config.allowHttpIssuers });
+    return { entityId: idp.entityId, ssoUrl: idp.ssoUrl, certificates: idp.certificates.map(publicCertificate) };
   }
 
   /**
@@ -644,12 +774,12 @@ export class AuthService {
     });
   }
 
-  /** Where an email address signs in: its organization's SSO, else the platform provider. */
-  async discover(email: string): Promise<{ connection: string; name: string } | undefined> {
+  /** Where an email address signs in: its organization's SSO (with its protocol), else the platform provider. */
+  async discover(email: string): Promise<{ connection: string; name: string; protocol: "oidc" | "saml" } | undefined> {
     const domain = email.trim().toLowerCase().split("@")[1];
     const c = domain ? await this.ids.sso.byDomain(domain) : undefined;
-    if (c?.enabled) return { connection: c.id, name: c.name };
-    if (this.config.platform) return { connection: PLATFORM, name: this.config.platform.name };
+    if (c?.enabled) return { connection: c.id, name: c.name, protocol: protocolOf(c) };
+    if (this.config.platform) return { connection: PLATFORM, name: this.config.platform.name, protocol: "oidc" };
     return undefined;
   }
 
@@ -664,9 +794,7 @@ export class AuthService {
   private async oidcFor(connectionId: string): Promise<{ config: oidc.Configuration; connection?: SsoConnection }> {
     const connection = connectionId === PLATFORM ? undefined : await this.ids.sso.get(connectionId);
     if (connectionId !== PLATFORM && (!connection || !connection.enabled)) throw new UnauthorizedError("This SSO connection is not available");
-    const settings = connection
-      ? { issuer: connection.issuer, clientId: connection.clientId, clientSecret: connection.clientSecretSealed ? unseal(connection.clientSecretSealed, this.config.secret) : undefined }
-      : this.config.platform;
+    const settings = connection ? oidcSettings(connection, this.config.secret) : this.config.platform;
     if (!settings) throw new UnauthorizedError("No identity provider is configured");
     const cached = this.oidcConfigs.get(connectionId);
     if (cached && Date.now() - cached.at < 3_600_000) return { config: cached.config, connection };
@@ -783,6 +911,140 @@ export class AuthService {
   }
 
   // -------------------------------------------------------------------------
+  // SAML 2.0
+  // -------------------------------------------------------------------------
+
+  /** Visua's entity ID, assertion consumer service and metadata URL for a SAML connection. */
+  samlUrls(connectionId: string): SamlSide {
+    const entityId = `${this.config.publicUrl}/api/auth/saml/${connectionId}`;
+    return { entityId, acsUrl: `${entityId}/acs`, metadataUrl: `${entityId}/metadata` };
+  }
+
+  /** node-saml for one connection. `requestId` fixes the ID of the AuthnRequest it builds. */
+  private samlFor(c: SsoConnection & { saml: SamlIdp }, opts: { requestId?: string } = {}): SAML {
+    const urls = this.samlUrls(c.id);
+    const requestId = opts.requestId;
+    return new SAML({
+      entryPoint: c.saml.ssoUrl,
+      issuer: urls.entityId,
+      audience: urls.entityId,
+      callbackUrl: urls.acsUrl,
+      idpCert: c.saml.certificates.map((x) => x.pem),
+      idpIssuer: c.saml.entityId,
+      identifierFormat: NAMEID_EMAIL,
+      // Asking for PasswordProtectedTransport makes providers refuse MFA and passwordless sign-ins.
+      disableRequestedAuthnContext: true,
+      wantAssertionsSigned: true,
+      wantAuthnResponseSigned: false,
+      validateInResponseTo: ValidateInResponseTo.always,
+      requestIdExpirationPeriodMs: 10 * 60_000,
+      cacheProvider: new SamlRequestCache(this.ids.loginFlows),
+      acceptedClockSkewMs: 60_000,
+      maxAssertionAgeMs: 5 * 60_000,
+      ...(requestId ? { generateUniqueId: () => requestId } : {}),
+    });
+  }
+
+  private async samlConnection(id: string): Promise<SsoConnection & { saml: SamlIdp }> {
+    const c = id ? await this.ids.sso.get(id) : undefined;
+    if (!enabledSaml(c)) throw new UnauthorizedError("This SSO connection is not available");
+    return c;
+  }
+
+  /**
+   * Build the AuthnRequest (HTTP-Redirect binding) and remember it: node-saml's record of its
+   * id, and Visua's single-use flow (10 minutes) bound to the browser that started it, whose
+   * pre-auth cookie value is `browser`. RelayState carries nothing.
+   */
+  async startSamlLogin(connectionId: string, returnTo = "/", browser = ""): Promise<string> {
+    if (!browser) throw new UnauthorizedError("Sign-in could not be started in this browser");
+    const c = await this.samlConnection(connectionId);
+    const requestId = `_${randomBytes(20).toString("hex")}`;
+    await this.ids.loginFlows.purgeExpired();
+    await this.ids.loginFlows.put(
+      sha256(`saml-request:${requestId}`),
+      { kind: "saml-request", connection: c.id, requestId, returnTo: safeReturnTo(returnTo), binding: sha256(browser), createdAt: now() },
+      addMinutes(10),
+    );
+    return this.samlFor(c, { requestId }).getAuthorizeUrlAsync("", undefined, {});
+  }
+
+  /**
+   * The assertion consumer service: validate a response for one connection, take the request it
+   * answers (single use, on any instance), and keep the person it names under a one-time code
+   * (2 minutes) for the browser that started the sign-in. Creates no session: the provider's
+   * cross-site POST carries no Lax cookie, so the finish step checks the browser.
+   */
+  async acceptSamlResponse(connectionId: string, samlResponse: string): Promise<string> {
+    const c = await this.samlConnection(connectionId);
+    if (!samlResponse || samlResponse.length > SAML_RESPONSE_MAX) throw new UnauthorizedError("The sign-in response is missing or too large");
+    const xml = Buffer.from(samlResponse, "base64").toString("utf8");
+    // What node-saml 5.1.0 does not refuse: a DOCTYPE, encrypted assertions, SHA-1 (saml.ts).
+    const refused = precheckResponse(xml);
+    if (refused) throw new UnauthorizedError(refused);
+    let profile: Profile | null;
+    try {
+      ({ profile } = await this.samlFor(c).validatePostResponseAsync({ SAMLResponse: samlResponse }));
+    } catch (err) {
+      if (err instanceof SamlStatusError) throw new UnauthorizedError("The identity provider refused the sign-in");
+      console.warn(`[visua] SAML response refused for connection ${c.id}: ${(err as Error).message}`);
+      throw new UnauthorizedError("The identity provider's response could not be verified. Start again.");
+    }
+    if (!profile) throw new UnauthorizedError("The identity provider sent no sign-in");
+    // node-saml checks the Issuer only on logout messages; the verified assertion's must be this provider.
+    if (profile.issuer !== c.saml.entityId) throw new UnauthorizedError("The response was issued by another identity provider");
+    const requestId = typeof profile["inResponseTo"] === "string" ? profile["inResponseTo"] : "";
+    // The Response's InResponseTo is not covered by an assertion-only signature: the signed
+    // assertion itself must answer the request, at this connection's ACS.
+    if (!requestId || !assertionAnswers(profile.getAssertionXml?.() ?? "", requestId, this.samlUrls(c.id).acsUrl)) {
+      throw new UnauthorizedError("The identity provider's response does not answer a sign-in Visua started. Start again from the Visua sign-in page.");
+    }
+    const flow = await this.ids.loginFlows.consume<SamlRequestFlow>(sha256(`saml-request:${requestId}`));
+    if (!flow || flow.kind !== "saml-request" || flow.connection !== c.id) throw new UnauthorizedError("This sign-in expired or was already used. Start again.");
+    const person = samlIdentity(profile);
+    if (!person.subject) throw new UnauthorizedError("The identity provider did not name the person signing in (no NameID)");
+    if (!person.email) throw new ForbiddenError("Your identity provider did not share an email address");
+    const code = randomToken(32);
+    await this.ids.loginFlows.put(
+      sha256(`saml-code:${code}`),
+      {
+        kind: "saml-result",
+        connection: c.id,
+        returnTo: flow.returnTo,
+        binding: flow.binding,
+        // Keyed to the connection and its provider entity ID: an entity ID alone is only a string
+        // another organization could paste too. Replacing a connection's metadata with another
+        // provider (a new entity ID) therefore starts new links; people re-link by verified-domain
+        // email, as when an OIDC issuer changes. Certificate rotation and a changed sign-in URL
+        // keep the same key, so existing links survive them.
+        identity: { issuer: `saml:${c.id}|${c.saml.entityId}`, subject: person.subject, email: person.email, name: person.name ?? person.email.split("@")[0]! },
+        createdAt: now(),
+      },
+      addMinutes(2),
+    );
+    return code;
+  }
+
+  /** The browser that started the sign-in comes back with its code: map the person to a member and open a session. */
+  async finishSamlLogin(code: string, userAgent?: string, browser = ""): Promise<{ token: string; returnTo: string }> {
+    const result = code ? await this.ids.loginFlows.consume<SamlResultFlow>(sha256(`saml-code:${code}`)) : undefined;
+    if (!result || result.kind !== "saml-result") throw new UnauthorizedError("This sign-in link expired or was already used. Start again.");
+    if (!browser || !safeEqual(result.binding, sha256(browser))) throw new UnauthorizedError("This sign-in was started in another browser. Start again.");
+    const c = await this.samlConnection(result.connection);
+    // The organization's own provider: its email is treated as verified, as for OIDC organization connections.
+    const user = await this.svc.store.atomic(() => this.resolveIdentity({ ...result.identity, emailVerified: true }, c));
+    const { token } = await this.createSession(user, `saml:${c.id}`, { tenantScope: c.tenantId, userAgent });
+    return { token, returnTo: result.returnTo };
+  }
+
+  /** Visua's service-provider metadata for an enabled SAML connection (public: providers fetch it). */
+  async samlMetadata(connectionId: string): Promise<string> {
+    const c = await this.ids.sso.get(connectionId);
+    if (!enabledSaml(c)) throw new NotFoundError("SAML connection not found");
+    return this.samlFor(c).generateServiceProviderMetadata(null, null);
+  }
+
+  // -------------------------------------------------------------------------
   // Developer sign-in and bootstrap
   // -------------------------------------------------------------------------
 
@@ -859,6 +1121,12 @@ async function explained<T>(request: Promise<T>): Promise<T> {
     if (refused) throw new UnauthorizedError(refused.message);
     throw err;
   }
+}
+
+/** An organization's OpenID Connect client; SAML connections never start an OIDC flow. */
+function oidcSettings(c: SsoConnection, secret: string): { issuer: string; clientId: string; clientSecret?: string } {
+  if (protocolOf(c) !== "oidc" || !c.issuer || !c.clientId) throw new UnauthorizedError("This SSO connection is not available");
+  return { issuer: c.issuer, clientId: c.clientId, clientSecret: c.clientSecretSealed ? unseal(c.clientSecretSealed, secret) : undefined };
 }
 
 /**
