@@ -63,8 +63,15 @@ const PROOF: Record<string, string> = {
   grandfathered: "Verified before DNS checks",
   trusted: "Trusted (checks off)",
 };
-function DomainChip({ d }: { d: Connection["domainStatus"][number] }) {
-  if (d.standing === "failing") return <StatusChip status="at-risk" label={`Record missing · lapses ${shortDate(d.lapsesAt)}`} />;
+/** How often this installation looks proven domains up again (GET /sso). */
+interface DomainRechecks {
+  enabled: boolean;
+  everyHours: number;
+}
+const every = (hours: number) => (hours === 24 ? "every day" : hours === 1 ? "every hour" : `every ${hours} hours`);
+function DomainChip({ d, rechecks }: { d: Connection["domainStatus"][number]; rechecks?: DomainRechecks }) {
+  // With re-checks off, a failing domain never lapses: no date to announce.
+  if (d.standing === "failing") return <StatusChip status="at-risk" label={rechecks?.enabled === false ? "Record missing" : `Record missing · lapses ${shortDate(d.lapsesAt)}`} />;
   if (d.standing === "lapsed") return <StatusChip status="at-risk" label={d.takenOver ? "Held by another organization" : "Lapsed · admits no one new"} />;
   if (d.standing === "pending") return <StatusChip status="in-progress" label="Awaiting DNS proof" />;
   return <StatusChip status="verified" label={PROOF[d.method ?? "dns"]} />;
@@ -402,7 +409,7 @@ const emptyConnection = { name: "", issuer: "", clientId: "", clientSecret: "", 
 
 function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void }) {
   const qc = useQueryClient();
-  const sso = useQuery({ queryKey: ["tenant", tenant.id, "sso"], queryFn: () => api.get<{ redirectUri: string; connections: Connection[] }>(`/tenants/${tenant.id}/sso`) });
+  const sso = useQuery({ queryKey: ["tenant", tenant.id, "sso"], queryFn: () => api.get<{ redirectUri: string; domainRechecks: DomainRechecks; connections: Connection[] }>(`/tenants/${tenant.id}/sso`) });
   const [form, setForm] = useState(emptyConnection);
   const done = () => {
     void qc.invalidateQueries({ queryKey: ["tenant", tenant.id, "sso"] });
@@ -498,7 +505,7 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
                       {c.domainStatus.map((d) => (
                         <li key={d.domain} className="row" style={{ gap: 8, flexWrap: "wrap" }}>
                           <span className="mono">{d.domain}</span>
-                          <DomainChip d={d} />
+                          <DomainChip d={d} rechecks={sso.data.domainRechecks} />
                         </li>
                       ))}
                     </ul>
@@ -533,9 +540,19 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
             {p.standing === "pending" && (
               <>Until then, nobody is sent to “{p.connection.name}” for this domain, and it admits no one from it. Add this TXT record at your DNS provider, then verify. Another organization can claim the domain too; the first to prove it holds it.</>
             )}
-            {p.standing === "failing" && (
-              <>Visua looks at this record again every day and has not found it since {shortDate(p.failingSince)}. Unless it is back by {shortDate(p.lapsesAt)}, the domain lapses: “{p.connection.name}” then admits no one new from it, and another organization can prove it. People who already sign in with it keep doing so.</>
-            )}
+            {p.standing === "failing" &&
+              (sso.data?.domainRechecks.enabled === false ? (
+                <>
+                  Visua has not found this record since {shortDate(p.failingSince)}. Re-checks are off on this installation, so the domain will not lapse on its own, and “{p.connection.name}”
+                  keeps admitting people from it. Restore this TXT record, then verify.
+                </>
+              ) : (
+                <>
+                  Visua looks at this record again {every(sso.data?.domainRechecks.everyHours ?? 24)} and has not found it since {shortDate(p.failingSince)}. Unless it is back by{" "}
+                  {shortDate(p.lapsesAt)}, the domain lapses: “{p.connection.name}” then admits no one new from it, and another organization can prove it. Until then it keeps
+                  admitting people as usual. People who already sign in with it keep doing so either way.
+                </>
+              ))}
             {p.standing === "lapsed" && (
               <>Since {shortDate(p.lapsedAt)}, “{p.connection.name}” admits no one new from this domain, and another organization can prove it. People who already sign in with it still can. Restore this TXT record, then verify.</>
             )}
