@@ -23,6 +23,7 @@ export type {
   SsoConnection,
   StoredFlow,
 } from "./identity.ts";
+export { protocolOf } from "./identity.ts";
 export { DEFAULT_TENANT_ID } from "./migrations.ts";
 export type { Dialect, SqlDriver } from "./driver.ts";
 

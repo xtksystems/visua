@@ -63,10 +63,15 @@ export interface SsoConnection {
   id: string;
   tenantId: string;
   name: string;
-  issuer: string;
-  clientId: string;
+  /** Missing on connections created before SAML existed: read it with protocolOf(). */
+  protocol?: "oidc" | "saml";
+  /** OpenID Connect only (always set on OIDC connections). */
+  issuer?: string;
+  clientId?: string;
   /** AES-256-GCM sealed with the server secret; never returned by the API. */
   clientSecretSealed?: string;
+  /** SAML only (always set on SAML connections): the identity provider from its metadata. */
+  saml?: SamlIdp;
   /** Email domains the connection claims. Only verified ones route and admit people. */
   domains: string[];
   /** Per claimed domain: its DNS challenge and, once proven, how and when. */
@@ -78,6 +83,9 @@ export interface SsoConnection {
   createdAt: string;
   updatedAt: string;
 }
+
+/** A connection's protocol: connections stored before SAML existed are OpenID Connect. */
+export const protocolOf = (c: Pick<SsoConnection, "protocol">): "oidc" | "saml" => c.protocol ?? "oidc";
 
 /**
  * Proof that an organization controls an email domain: a TXT record carrying `token` at

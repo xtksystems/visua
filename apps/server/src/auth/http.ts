@@ -8,8 +8,10 @@ import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { z } from "zod";
 import { ROLES, ROLE_LABELS, can, type Capability, type Role, type Workspace } from "@visua/core";
 import { NotFoundError, ValidationError, principalContext } from "../services/visua.ts";
+import { protocolOf } from "../storage/index.ts";
 import { randomToken, safeEqual } from "./crypto.ts";
-import { AuthService, ForbiddenError, UnauthorizedError, safeReturnTo, type Principal } from "./service.ts";
+import { METADATA_MAX } from "./saml.ts";
+import { AuthService, ForbiddenError, UnauthorizedError, safeReturnTo, type Principal, type SsoConnectionInput } from "./service.ts";
 
 export type AppEnv = {
   Variables: {
@@ -24,7 +26,12 @@ export const CSRF_HEADER = "x-visua-csrf";
 const SAFE = new Set(["GET", "HEAD", "OPTIONS"]);
 
 /** Routes that answer without a signed-in principal. */
-const PUBLIC_ROUTES = [/^\/api\/health$/, /^\/api\/auth\/(config|me|dev\/login|oidc\/start|oidc\/callback|sso\/discover|logout)$/, /^\/api\/trust\//];
+const PUBLIC_ROUTES = [
+  /^\/api\/health$/,
+  /^\/api\/auth\/(config|me|dev\/login|oidc\/start|oidc\/callback|sso\/discover|logout)$/,
+  /^\/api\/auth\/saml\/[^/]+\/metadata$/,
+  /^\/api\/trust\//,
+];
 
 export const cookieName = (auth: AuthService) => (auth.config.secureCookies ? "__Host-visua_session" : "visua_session");
 /** Pre-auth cookie that binds an OpenID Connect flow to the browser that started it. */
@@ -175,6 +182,12 @@ const capabilityRole = (capability: Capability) => ROLE_LABELS[[...ROLES].revers
 
 const RoleSchema = z.enum(ROLES);
 
+function parse<T extends z.ZodType>(schema: T, body: unknown): z.infer<T> {
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) throw new ValidationError(z.prettifyError(parsed.error));
+  return parsed.data;
+}
+
 async function json<T extends z.ZodType>(c: Context, schema: T): Promise<z.infer<T>> {
   let body: unknown;
   try {
@@ -182,9 +195,7 @@ async function json<T extends z.ZodType>(c: Context, schema: T): Promise<z.infer
   } catch {
     throw new ValidationError("Request body must be JSON");
   }
-  const parsed = schema.safeParse(body);
-  if (!parsed.success) throw new ValidationError(z.prettifyError(parsed.error));
-  return parsed.data;
+  return parse(schema, body);
 }
 
 export function authRoutes(app: Hono<AppEnv>, auth: AuthService): void {
@@ -244,6 +255,11 @@ export function authRoutes(app: Hono<AppEnv>, auth: AuthService): void {
       return c.redirect(`/login?error=${encodeURIComponent(message)}`, 302);
     }
   });
+
+  // Identity providers fetch this (public, like the entity ID it names).
+  app.get("/api/auth/saml/:id/metadata", async (c) =>
+    c.body(await auth.samlMetadata(c.req.param("id")), 200, { "content-type": "application/samlmetadata+xml; charset=utf-8" }),
+  );
 
   app.post("/api/auth/logout", async (c) => {
     const p = c.get("principal");
@@ -322,19 +338,27 @@ export function authRoutes(app: Hono<AppEnv>, auth: AuthService): void {
     return c.body(null, 204);
   });
 
-  const SsoFields = z.object({
-    name: z.string().max(120),
-    issuer: z.string().min(1).max(500),
-    clientId: z.string().min(1).max(300),
-    clientSecret: z.string().max(2000).optional(),
+  const SsoShared = {
+    name: z.string().max(120).default("Single sign-on"),
     domains: z.array(z.string().max(200)).min(1).max(50),
     jitProvisioning: z.boolean().optional(),
     defaultRole: RoleSchema.optional(),
     enabled: z.boolean().optional(),
-  });
-  const SsoSchema = SsoFields.extend({ name: SsoFields.shape.name.default("Single sign-on") });
+  };
+  const OidcCreate = z.object({ protocol: z.literal("oidc").optional(), ...SsoShared, issuer: z.string().min(1).max(500), clientId: z.string().min(1).max(300), clientSecret: z.string().max(2000).optional() });
+  const SamlCreate = z.object({ protocol: z.literal("saml"), ...SsoShared, metadataXml: z.string().min(1).max(METADATA_MAX) });
   // An update changes only the fields it sends (no defaults: a missing name keeps the current one).
-  const SsoPatch = SsoFields.partial();
+  const SsoPatch = z.object({
+    name: z.string().max(120),
+    domains: SsoShared.domains,
+    jitProvisioning: z.boolean(),
+    defaultRole: RoleSchema,
+    enabled: z.boolean(),
+    issuer: z.string().min(1).max(500),
+    clientId: z.string().min(1).max(300),
+    clientSecret: z.string().max(2000),
+    metadataXml: z.string().min(1).max(METADATA_MAX),
+  }).partial();
 
   app.get("/api/tenants/:tenant/sso", need("tenant.manage"), async (c) =>
     c.json({
@@ -345,16 +369,30 @@ export function authRoutes(app: Hono<AppEnv>, auth: AuthService): void {
   );
 
   app.post("/api/tenants/:tenant/sso", need("tenant.manage"), async (c) => {
-    const input = await json(c, SsoSchema);
+    const body = await json(c, z.looseObject({ protocol: z.enum(["oidc", "saml"]).optional() }));
+    const input: SsoConnectionInput = body.protocol === "saml" ? parse(SamlCreate, body) : parse(OidcCreate, body);
     return c.json(await auth.describeConnection(await auth.upsertSsoConnection(c.get("tenantId"), input, principalOf(c))), 201);
   });
 
+  app.post("/api/tenants/:tenant/sso/saml/preview", need("tenant.own"), async (c) => {
+    const input = await json(c, z.object({ metadataXml: z.string().min(1).max(METADATA_MAX) }));
+    return c.json(await auth.previewSamlMetadata(c.get("tenantId"), input.metadataXml, principalOf(c)));
+  });
+
   app.patch("/api/tenants/:tenant/sso/:id", need("tenant.manage"), async (c) => {
-    const input = await json(c, SsoPatch);
+    const { metadataXml, issuer, clientId, clientSecret, ...rest } = await json(c, SsoPatch);
     const existing = await auth.svc.store.identity.sso.get(c.req.param("id"));
     if (!existing || existing.tenantId !== c.get("tenantId")) throw new NotFoundError("SSO connection not found");
-    const merged = { name: existing.name, issuer: existing.issuer, clientId: existing.clientId, domains: existing.domains, jitProvisioning: existing.jitProvisioning, defaultRole: existing.defaultRole, enabled: existing.enabled, ...input };
-    return c.json(await auth.describeConnection(await auth.upsertSsoConnection(c.get("tenantId"), { ...merged, id: existing.id }, principalOf(c))));
+    const shared = { name: existing.name, domains: existing.domains, jitProvisioning: existing.jitProvisioning, defaultRole: existing.defaultRole, enabled: existing.enabled, ...rest };
+    let input: SsoConnectionInput;
+    if (protocolOf(existing) === "saml") {
+      if (issuer !== undefined || clientId !== undefined || clientSecret !== undefined) throw new ValidationError("A SAML connection has no issuer or client: paste new metadata to change its provider");
+      input = { protocol: "saml", ...shared, metadataXml };
+    } else {
+      if (metadataXml !== undefined) throw new ValidationError("An OpenID Connect connection takes no SAML metadata");
+      input = { protocol: "oidc", ...shared, issuer: issuer ?? existing.issuer ?? "", clientId: clientId ?? existing.clientId ?? "", clientSecret };
+    }
+    return c.json(await auth.describeConnection(await auth.upsertSsoConnection(c.get("tenantId"), { ...input, id: existing.id }, principalOf(c))));
   });
 
   // Checks the domain's TXT record now; admins may, since proving a domain chooses no provider.
