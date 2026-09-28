@@ -353,7 +353,7 @@ function Tokens({ tenantId, role }: { tenantId: string; role: Role }) {
             <code className="secret" style={{ flex: 1 }}>
               {created.token}
             </code>
-            <button className="btn btn--sm" onClick={() => void navigator.clipboard?.writeText(created.token).then(() => toast("Token copied"))} aria-label="Copy token">
+            <button className="btn btn--sm" onClick={() => copyText(created.token, "Token")} aria-label="Copy token">
               <Copy size={14} />
             </button>
           </div>

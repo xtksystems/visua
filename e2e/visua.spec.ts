@@ -288,6 +288,10 @@ test("organization admin: members, roles and a one-time API token", async ({ pag
   await page.getByLabel("Token name").fill("CI evidence upload");
   await page.getByRole("button", { name: "Create token" }).click();
   await expect(page.getByRole("status").filter({ hasText: "will not be shown again" })).toContainText("vsa_");
+  // A refused clipboard says so, instead of failing silently while the token is on screen once.
+  await page.evaluate(() => (navigator.clipboard.writeText = () => Promise.reject(new Error("denied"))));
+  await page.getByRole("button", { name: "Copy token" }).click();
+  await expect(page.getByText("Could not copy the token: select it and copy it by hand")).toBeVisible();
   await page.getByRole("tab", { name: "Audit trail" }).click();
   await expect(page.getByText("Chain intact")).toBeVisible();
   expect(errors).toEqual([]);
