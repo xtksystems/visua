@@ -34,16 +34,16 @@ interface Token {
   revokedAt?: string;
   lastUsedAt?: string;
 }
-interface Connection {
+/** An SSO connection as GET /sso returns it: the protocol decides which provider fields are set. */
+type Connection = ConnectionBase &
+  (
+    | { protocol: "oidc"; issuer: string; clientId: string }
+    /** The provider as its metadata described it, and what to enter in it. */
+    | { protocol: "saml"; saml: SamlPreview; sp: SamlSide }
+  );
+interface ConnectionBase {
   id: string;
   name: string;
-  protocol: "oidc" | "saml";
-  /** OpenID Connect only. */
-  issuer?: string;
-  clientId?: string;
-  /** SAML only: the provider as its metadata described it, and what to enter in it. */
-  saml?: SamlPreview;
-  sp?: SamlSide;
   hasClientSecret: boolean;
   domains: string[];
   /** Each domain's proof: only verified domains route sign-ins and admit people. */
@@ -75,7 +75,7 @@ interface DomainRechecks {
   everyHours: number;
 }
 const every = (hours: number) => (hours === 24 ? "every day" : hours === 1 ? "every hour" : `every ${hours} hours`);
-function DomainChip({ d, rechecks }: { d: Connection["domainStatus"][number]; rechecks?: DomainRechecks }) {
+function DomainChip({ d, rechecks }: { d: ConnectionBase["domainStatus"][number]; rechecks?: DomainRechecks }) {
   // With re-checks off, a failing domain never lapses: no date to announce.
   if (d.standing === "failing") return <StatusChip status="at-risk" label={rechecks?.enabled === false ? "Record missing" : `Record missing · lapses ${shortDate(d.lapsesAt)}`} />;
   if (d.standing === "lapsed") return <StatusChip status="at-risk" label={d.takenOver ? "Held by another organization" : "Lapsed · admits no one new"} />;
@@ -439,7 +439,7 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
     onError: (e: Error) => toast(e.message, "error"),
   });
   const update = useMutation({
-    mutationFn: (v: { id: string; patch: Partial<Connection> }) => api.patch(`/tenants/${tenant.id}/sso/${v.id}`, v.patch),
+    mutationFn: (v: { id: string; patch: Partial<Pick<ConnectionBase, "enabled">> }) => api.patch(`/tenants/${tenant.id}/sso/${v.id}`, v.patch),
     onSuccess: done,
     onError: (e: Error) => toast(e.message, "error"),
   });
@@ -501,7 +501,7 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
                       <strong>{c.name}</strong>
                       <span className="mono muted" style={{ fontSize: 12, overflowWrap: "anywhere" }}>
                         {c.protocol === "saml"
-                          ? `SAML · ${c.saml?.entityId ?? ""}`
+                          ? `SAML · ${c.saml.entityId}`
                           : `${c.issuer} · ${c.clientId}${c.hasClientSecret ? " · secret stored (encrypted)" : " · public client"}`}
                       </span>
                     </div>
@@ -593,7 +593,7 @@ function Sso({ tenant, onChange }: { tenant: TenantInfo; onChange: () => void })
         </section>
       ))}
       {(sso.data?.connections ?? []).map((c) =>
-        c.protocol === "saml" && c.saml && c.sp ? <SamlDetails key={`saml-${c.id}`} tenantId={tenant.id} connection={{ id: c.id, name: c.name, saml: c.saml, sp: c.sp }} owner={owner} onChange={done} /> : null,
+        c.protocol === "saml" ? <SamlDetails key={`saml-${c.id}`} tenantId={tenant.id} connection={{ id: c.id, name: c.name, saml: c.saml, sp: c.sp }} owner={owner} onChange={done} /> : null,
       )}
       {!owner && (
         <div className="panel muted" role="note">
