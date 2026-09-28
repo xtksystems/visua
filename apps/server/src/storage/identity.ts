@@ -40,6 +40,25 @@ export interface ApiTokenRecord {
   lastUsedAt?: string;
 }
 
+/** A signing certificate from an identity provider's SAML metadata. */
+export interface SamlCertificate {
+  pem: string;
+  /** When it expires (ISO). */
+  notAfter: string;
+  /** SHA-256, colon-separated hex (as `X509Certificate.fingerprint256`). */
+  fingerprint: string;
+}
+
+/** A SAML identity provider as its metadata describes it. */
+export interface SamlIdp {
+  /** Its entity ID: the Issuer of its assertions. */
+  entityId: string;
+  /** Its SingleSignOnService location for the HTTP-Redirect binding. */
+  ssoUrl: string;
+  /** Every signing certificate it lists (more than one during a rotation). */
+  certificates: SamlCertificate[];
+}
+
 export interface SsoConnection {
   id: string;
   tenantId: string;
