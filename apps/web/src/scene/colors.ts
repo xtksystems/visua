@@ -11,6 +11,7 @@ const hex = (v: string) => new Color(v.slice(0, 7));
 export const TOKENS = {
   neutral: hex(c.neutral),
   surface: hex(c.surface),
+  surfaceBright: hex(c["surface-bright"]),
   primary: hex(c.primary),
   tertiary: hex(c.tertiary),
   outline: hex(c.outline),

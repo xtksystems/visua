@@ -1749,8 +1749,13 @@ p {
   text-transform: uppercase;
 }
 .scene-label--selected {
-  color: var(--color-on-surface);
+  color: var(--color-on-primary-container);
   font-size: 13px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-xs);
+  background: var(--color-primary-container);
+  text-shadow: none;
 }
 .scene-label.is-active .scene-label__title {
   color: var(--color-primary);

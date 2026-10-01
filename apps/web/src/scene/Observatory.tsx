@@ -6,6 +6,7 @@ import { CameraControls } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FogExp2, Sphere, Vector3, type PerspectiveCamera } from "three";
+import { DemandCameraControls } from "./demandRendering.ts";
 import { TOKENS } from "./colors.ts";
 import { FrameworkScene, heightFor, type SceneProps } from "./FrameworkScene.tsx";
 import type { Layout } from "./layout.ts";
@@ -96,6 +97,7 @@ function CameraRig({ layout, selectedId, focusIds, focusSeq, reducedMotion }: { 
   return (
     <CameraControls
       ref={controls}
+      impl={DemandCameraControls}
       makeDefault
       minDistance={2.5}
       maxDistance={layout.radius * 8}
@@ -127,6 +129,7 @@ export function Observatory(props: ObservatoryProps) {
   const fogDensity = useMemo(() => 0.55 / Math.max(40, props.layout.radius * 2.4), [props.layout.radius]);
   return (
     <Canvas
+      frameloop="demand"
       dpr={[1, 1.75]}
       camera={{ fov: 45, near: 0.1, far: 4000, position: [0, 40, 60] }}
       gl={{ antialias: true, powerPreference: "high-performance", preserveDrawingBuffer: true }}
@@ -135,9 +138,9 @@ export function Observatory(props: ObservatoryProps) {
     >
       <color attach="background" args={[TOKENS.neutral]} />
       <fogExp2 attach="fog" args={[TOKENS.neutral, fogDensity]} />
-      <hemisphereLight args={[TOKENS.surface, TOKENS.primaryContainer, 1.15]} />
-      <ambientLight intensity={0.45} />
-      <directionalLight position={[30, 60, 20]} intensity={1.65} />
+      <hemisphereLight args={[TOKENS.surface, TOKENS.primaryContainer, 0.85]} />
+      <ambientLight intensity={0.25} />
+      <directionalLight position={[30, 60, 20]} intensity={2.1} />
       <directionalLight position={[-40, 20, -30]} intensity={0.45} color={TOKENS.neutral} />
       <FrameworkScene {...props} reducedMotion={reducedMotion} />
       <CameraRig layout={props.layout} selectedId={props.selectedId} focusIds={props.focusIds} focusSeq={props.focusSeq} reducedMotion={reducedMotion} />

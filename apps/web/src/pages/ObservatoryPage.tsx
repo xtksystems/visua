@@ -415,8 +415,8 @@ export function ObservatoryPage() {
                 </div>
                 <div className="muted" style={{ fontSize: 11, marginTop: 8, maxWidth: 230 }}>
                   {threat
-                    ? `Height = coverage level · glass = gap to full coverage · small dots: no link in your frameworks${fw === "mitre-atlas" ? " · mitigations are listed in each technique's inspector" : ""}`
-                    : "Height = current level · glass = gap to target · small dots: out of scope · ◆ task · ▲ evidence"}
+                    ? `Height = coverage level · outlined glass = full coverage gap · ${view === "constellation" ? "outer arc" : "beacon ring"} = coverage · small dots: no link in your frameworks${fw === "mitre-atlas" ? " · mitigations are listed in each technique's inspector" : ""}`
+                    : `Height = current level · outlined glass = target gap · ${view === "constellation" ? "outer arc" : "beacon ring"} = readiness · small dots: out of scope · ◆ task · ▲ evidence`}
                 </div>
               </>
             )}

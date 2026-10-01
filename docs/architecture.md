@@ -456,20 +456,34 @@ status colors and a 2D path through every spatial view.
 - **Crosswalk Nexus.** Frameworks sit as sectors on one ring and requirement groups as
   pillars. Pillar height is log(units) and color is group status. Arcs bundle the
   unit-level mappings, with width ∝ √count and a color gradient from the source
-  framework to the target. Selecting a group flies the camera behind it, animates its
-  arcs and lists every mapping with live status. A searchable group list is the
+  framework to the target. The home view aggregates counts by framework pair and
+  mapping set; selecting a group restores its exact group-to-group connections,
+  flies the camera behind it, and lists every mapping with live status. A searchable group list is the
   keyboard path. An inner **threat ring** holds ATLAS tactics, the OWASP entries and
   the NIST AI 100-2 objectives in neutral ink (threat catalogs have no identity hue);
   their pillars take the status color of their pooled coverage, and their arcs bundle
   the threat links onto requirement groups. A threat arc shows the status of its
-  strongest link: final solid, draft dashed, unreviewed dotted.
+  strongest link: final solid, draft dashed, unreviewed densely dotted, and
+  superseded sparsely dotted. Patterns restart at each relationship; selection
+  does not animate them. Parallel publication sets use separate curve lanes.
 
   Labels use the same screen-space layer (framework names with an identity swatch, the
   threat ring's codes once a pillar is in focus) and the camera frames the ring around
-  the HUD. Arcs are batched into a few draw calls by width and dash style. Focusing
+  the HUD. Arcs are batched into a few draw calls by width and dash style.
+  Pillars and their footprints use one instanced field per shape; sector grounds
+  and rails are batched. Focus dims instance colors without transparent sorting. Focusing
   a pillar hides unrelated arcs and draws its own links in framework color. Below
   1024px the scene and its details
   stack as one scrolling page.
+- **Demand rendering.** Both 3D canvases stop drawing when idle. Camera controls,
+  height transitions, and active agent work request frames while moving. DOM
+  mutation, resize, scroll, and font observers wake labels and camera framing
+  when panels change. Scene label writes are excluded from mutation wakeups.
+  Camera deltas are capped after idle so a new flight still eases in. Completed
+  agent runs remove comet subscriptions. Use `node scripts/scene-profile.ts
+  --url http://localhost:8787 --out .screens/profile.json` against a seeded
+  development server to count WebGL draw calls and idle frames with SwiftShader;
+  these counts do not measure hardware GPU frame rate.
 - **Threat views.** The Threats page shows the ATLAS matrix (tactics as columns,
   techniques colored by coverage, with glyphs), the OWASP LLM Top 10 by edition, the
   OWASP Agentic Top 10 and the NIST AI 100-2 attacks by objective. A link filter (all

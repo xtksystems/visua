@@ -123,6 +123,120 @@ test("Observatory compiles its shaders before the first selection, not on it", a
   await selections();
 });
 
+test("reduced-motion Observatory keeps a static agent cue and still idle scenes", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => {
+    class SceneEvents extends EventTarget {
+      constructor() {
+        super();
+        (window as unknown as { sceneEvents: EventTarget }).sceneEvents = this;
+      }
+      close() {}
+    }
+    Object.defineProperty(window, "EventSource", { value: SceneEvents });
+  });
+  await signIn(page);
+  const errors = watchErrors(page);
+  await page.goto(`${WS}/observatory/nist-csf-2.0`);
+  await expect(page.locator('.scene-label--sector[data-shown="true"]').first()).toBeVisible();
+  const frame = () => page.evaluate(async () => {
+    for (let i = 0; i < 8; i++) await new Promise(requestAnimationFrame);
+    return document.querySelector<HTMLCanvasElement>(".observatory__canvas canvas")!.toDataURL();
+  });
+  const idle = await frame();
+  expect(await frame()).toBe(idle);
+  // No hot nodes: activity must remain visible at the core, even without comets.
+  await page.evaluate(() => {
+    (window as unknown as { sceneEvents: EventTarget }).sceneEvents.dispatchEvent(new MessageEvent("visua", {
+      data: JSON.stringify({ type: "agent.run.updated", data: { id: "visual-fixture", agent: "copilot", status: "running" } }),
+    }));
+  });
+  const active = await frame();
+  expect(active).not.toBe(idle);
+  expect(await frame()).toBe(active);
+  await page.getByRole("button", { name: "Terrain", exact: true }).click();
+  const terrain = await frame();
+  expect(terrain).not.toBe(active);
+  expect(await frame()).toBe(terrain);
+  expect(errors).toEqual([]);
+});
+
+test("3D views sleep when idle and wake for selection, layout and agent activity", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.addInitScript(() => {
+    const w = window as unknown as { renderedFrames: number; sceneEvents: EventTarget };
+    w.renderedFrames = 0;
+    const clear = WebGL2RenderingContext.prototype.clear;
+    WebGL2RenderingContext.prototype.clear = function (mask) {
+      w.renderedFrames++;
+      return clear.call(this, mask);
+    };
+    class SceneEvents extends EventTarget {
+      constructor() { super(); w.sceneEvents = this; }
+      close() {}
+    }
+    Object.defineProperty(window, "EventSource", { value: SceneEvents });
+  });
+  await signIn(page);
+  const errors = watchErrors(page);
+  const frames = () => page.evaluate(() => (window as unknown as { renderedFrames: number }).renderedFrames);
+  const sleep = async () => {
+    let previous = -1, still = 0;
+    await expect.poll(async () => {
+      const now = await frames();
+      still = now === previous && now > 0 ? still + 1 : 0;
+      previous = now;
+      return still;
+    }, { timeout: 30_000, intervals: [250] }).toBeGreaterThanOrEqual(12);
+    const before = await frames();
+    await page.waitForTimeout(500);
+    expect(await frames()).toBe(before);
+    return before;
+  };
+  await page.goto(`${WS}/crosswalk`);
+  await expect(page.locator('.scene-label--sector[data-shown="true"]').first()).toBeVisible();
+  const home = await sleep();
+  await page.getByRole("textbox", { name: "Find a requirement group" }).fill("PR.AA");
+  await page.getByRole("listitem").filter({ hasText: "PR.AA" }).first().click();
+  await expect(page).toHaveURL(/group=nist-csf-2\.0%3APR\.AA/);
+  expect(await sleep()).toBeGreaterThan(home);
+  await page.goto(`${WS}/observatory/nist-csf-2.0`);
+  await expect(page.locator('.scene-label--sector[data-shown="true"]').first()).toBeVisible();
+  await expect(page.locator(".hud-stats")).toBeVisible();
+  // Let initial shader warmup finish before measuring idle; software GPU work
+  // can pause the first few draws even though data and labels are already ready.
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    for (let i = 0; i < 8; i++) await new Promise(requestAnimationFrame);
+  });
+  const constellation = await sleep();
+  await page.getByRole("group", { name: "Lens", exact: true }).getByRole("button", { name: "Evidence", exact: true }).click();
+  expect(await sleep()).toBeGreaterThan(constellation);
+  await page.getByRole("button", { name: "Terrain", exact: true }).click();
+  expect(await sleep()).toBeGreaterThan(constellation);
+  await page.evaluate(() => {
+    const events = (window as unknown as { sceneEvents: EventTarget }).sceneEvents;
+    for (const event of [
+      { type: "agent.run.updated", data: { id: "wake-fixture", agent: "copilot", status: "running" } },
+      { type: "agent.step", data: { runId: "wake-fixture", agent: "copilot", step: { id: "wake-step", at: new Date().toISOString(), type: "thought", title: "Checking", nodeIds: ["nist-csf-2.0:PR.AA-01"] } } },
+    ]) events.dispatchEvent(new MessageEvent("visua", { data: JSON.stringify(event) }));
+  });
+  const active = await frames();
+  await expect.poll(frames).toBeGreaterThan(active + 3);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const reduced = await sleep();
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect.poll(frames).toBeGreaterThan(reduced + 3);
+  await page.evaluate(() => {
+    (window as unknown as { sceneEvents: EventTarget }).sceneEvents.dispatchEvent(new MessageEvent("visua", {
+      data: JSON.stringify({ type: "agent.run.updated", data: { id: "wake-fixture", agent: "copilot", status: "completed" } }),
+    }));
+  });
+  await sleep();
+  expect(errors).toEqual([]);
+});
+
 test("Crosswalk Nexus selects a group and lists authoritative mappings", async ({ page }) => {
   await signIn(page);
   const errors = watchErrors(page);

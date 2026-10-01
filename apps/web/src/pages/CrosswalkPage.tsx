@@ -223,7 +223,7 @@ function Overview({ data, onSelect }: { data: NexusData; onSelect: (id: string) 
         <div className="eyebrow">Crosswalk Nexus</div>
         <h2 style={{ fontSize: 17, margin: "2px 0 6px" }}>Do the work once, see where it counts</h2>
         <p className="muted" style={{ fontSize: 13 }}>
-          {total.toLocaleString()} unit-level mappings from {data.sets.length} sets connect {data.frameworks.length} frameworks. Pillars are requirement groups (height = number of units, color = status); arcs bundle the mappings between two groups (width = count).
+          {total.toLocaleString()} unit-level mappings from {data.sets.length} sets connect {data.frameworks.length} frameworks. Pillars are requirement groups (height = number of units, color = status); overview arcs group mappings by framework (width = count). Select a pillar to trace its group-level connections.
         </p>
       </div>
       <div className="stack" style={{ gap: 8 }}>
@@ -369,13 +369,16 @@ export function CrosswalkPage() {
               </button>
             )}
           </div>
+          <div className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+            {selected || hovered ? "Group connections · width shows mapping count" : "Framework connections · select a pillar to explore"}
+          </div>
           {showThreats && ring.data && ring.data.catalogs.length > 0 && (
             <div className="row row--wrap" style={{ gap: 12, marginTop: 8, fontSize: 11.5 }} role="group" aria-label="Threat link status on arcs">
               <span className="muted">Threat links</span>
-              {(["final", "draft", "unreviewed"] as const).map((st) => (
+              {(["final", "draft", "unreviewed", "superseded"] as const).map((st) => (
                 <span key={st} className="row" style={{ gap: 5 }} title={LINK_STATUS_HELP[st]}>
                   <svg width="22" height="6" aria-hidden>
-                    <line x1="1" y1="3" x2="21" y2="3" stroke="var(--color-on-surface-muted)" strokeWidth="2" strokeLinecap="round" strokeDasharray={st === "final" ? undefined : st === "draft" ? "6 3" : "0.5 4"} />
+                    <line x1="1" y1="3" x2="21" y2="3" stroke="var(--color-on-surface-muted)" strokeWidth="2" strokeLinecap="round" strokeDasharray={st === "final" ? undefined : st === "draft" ? "6 3" : st === "unreviewed" ? "1 3" : "1 7"} />
                   </svg>
                   {LINK_STATUS_LABEL[st]}
                 </span>

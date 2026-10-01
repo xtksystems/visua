@@ -59,6 +59,9 @@ and the 3D scene is one tap away.
 
 **Crosswalk nexus** shows how groups in different frameworks relate. Select a
 group to hide unrelated links and see its mappings in the detail panel. The
+opening view summarizes connections between frameworks; selecting a group
+shows its individual connections. Solid, dashed, densely dotted, and sparsely
+dotted threat links indicate final, draft, unreviewed, and superseded sources. The
 searchable group list provides a 2D path through the same information. The
 inner threat ring shows published links from threat catalogs to requirement
 groups. A mapping suggests where work may apply; each requirement still needs
