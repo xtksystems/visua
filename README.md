@@ -63,6 +63,24 @@ the local corpus, run `pnpm ingest`.
 Production-style run: `pnpm build && pnpm start`. The API serves the built web app on
 :8787.
 
+### Local Docker deployment
+
+Docker Compose builds the web app and starts the API at <http://localhost:8787>:
+
+```sh
+docker compose up -d --build
+docker compose ps
+```
+
+Open the URL and choose a demo persona. The Compose setup binds only to this Mac,
+uses password-less developer sign-in and offline agent playbooks, and keeps the
+SQLite database in the `visua-data` Docker volume. The volume remains when you
+stop the app with `docker compose down`.
+
+If port 8787 is occupied, set `VISUA_HOST_PORT` before starting Compose; for
+example, `VISUA_HOST_PORT=8788 docker compose up -d --build` opens the app at
+<http://localhost:8788>. Use `docker compose logs -f visua` to inspect startup.
+
 ### AI engine
 
 | Variable | Default | Meaning |

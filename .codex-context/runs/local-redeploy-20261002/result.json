@@ -1,0 +1,16 @@
+{
+  "status": "complete",
+  "updated_utc": "2026-10-02T06:27:49.955355+00:00",
+  "head": "5c497c3316a746d1671245b02e3bfe6394b9d9d2",
+  "url": "http://localhost:8787",
+  "target": "existing Docker Compose visua service",
+  "command": "docker compose up -d --build --wait --wait-timeout 180",
+  "verification": [
+    "Container healthy",
+    "HTTP /api/health 200",
+    "Nexus and Observatory visible in Playwright with no page errors",
+    "Container Nexus.tsx and demandRendering.ts SHA256 match workspace"
+  ],
+  "persistent_volume": "visua_visua-data retained",
+  "scope": "local only; no public hosting or merge"
+}

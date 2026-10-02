@@ -1,0 +1,9 @@
+{
+  "pid": 24858,
+  "process_group_id": 24858,
+  "started_utc": "2026-10-01T03:00:07.740502+00:00",
+  "binary": "/Users/artem/.local/share/claude/versions/2.1.286",
+  "request_sha256": "b85d8b3a28ab218f4e32643638cd1d3cc03c9dfa68561c7994f10fa2043568fc",
+  "brief_sha256": "2063344ddecbfdd33a5655eeee73b353cd13982c0c029a030bec782a606a78a6",
+  "identity_note": "Verify a still-running process before signaling; stored PIDs may be reused."
+}
