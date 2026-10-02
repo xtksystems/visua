@@ -1,0 +1,21 @@
+{
+  "run_id": "app-review-20261002",
+  "node_id": "security",
+  "input_sha256": "f48e31528fcca7cb72e89ef94a3614030d8a79f5b97fb54f513b1a730a35014b",
+  "status": "complete",
+  "summary": "security Opus 5.5 review complete and reconciled; supported findings and qualifications recorded in final review and phase plan.",
+  "evidence": [
+    "security/result.json: raw findings and coverage",
+    "security/run.json: successful subscription-only run and reported model usage",
+    "review-adjudication.json: integration decisions",
+    "../../../../docs/reviews/full-app-review-2026-10-02.md: source-supported synthesis"
+  ],
+  "limitations": [
+    "Packet-only review: no code, test or deployment was executed here. The lead reported the typecheck result and '214 passed / 2 skipped' on SQLite; I did not verify them. Every finding is a source inference.",
+    "Files outside the packet were not reviewed: packages/agents/src/tools.ts, claude.ts and mode.ts (so whether agents emit set-rmf or unrestricted create-evidence proposals is unconfirmed), apps/server/package.json and its start/dev scripts (so the NODE_ENV and bind behaviour of `pnpm start` is inferred), most web pages, e2e specs, and packages/frameworks.",
+    "The default listen address of @hono/node-server when no hostname is passed is assumed to be all interfaces; confirm before acting on that part of the dev-mode finding.",
+    "Postgres behaviour (advisory-lock ordering, CREATE TABLE IF NOT EXISTS races at concurrent first start, pool exhaustion from per-event NOTIFY) was reasoned about, not run. One possible lock-order inversion was not elevated: addMember takes the organization lock then the user lock, while JIT sign-in takes the user lock then the organization lock (service.ts:228-230 vs 743-771). It would surface as a detected deadlock and one failed request.",
+    "Lower-priority observations left out of the 12: an approver can enable SP 800-53 through `rmf/categorize`, which calls enableFramework without requiring the framework to be enabled (visua.ts:560-577); CSV exports do not neutralise formula-leading cells (exports.ts:10-14); malformed percent-encodings in corpus and requirement paths raise URIError and return 500 (app.ts:341,417); expired sessions are never purged; unauthenticated `/api/auth/oidc/start` writes a login-flow row and triggers discovery per request; health does not probe the database.",
+    "No assessment of corpus licensing exposure, legal-corpus freshness, Claude runtime behaviour, 3D or performance claims, or production infrastructure; those are out of this lens or scope."
+  ]
+}

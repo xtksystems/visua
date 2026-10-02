@@ -1,0 +1,212 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "Security/platform lane, read-only from the packet at commit 1dc5ed1. Nothing was executed; every finding is a source inference with a reproducible trigger.\n\nThe tenancy core is sound. I found no route that reaches another organization's workspace data: `workspaceAccess` returns 404 across tenants and every by-id lookup re-checks `workspaceId`. Mutations, audit entries and revision bumps share one transaction, and the OIDC flow is carefully built.\n\nThe risks sit at the edges of that core. Four are launch blockers for any hosted or shared deployment:\n\n- **Production first start.** With the README's production command, the demo is seeded and the bootstrap owner gets no organization, so they cannot sign in.\n- **Fail-open auth default.** Unless `NODE_ENV=production` is set, the server runs password-less developer sign-in, and it listens without a loopback bind.\n- **Connector egress.** Connectors have none of the egress guard built for identity providers: a tenant admin can aim the server at internal addresses and at arbitrary server filesystem paths.\n- **Evidence integrity.** A contributor can relink accepted evidence to other requirements and extend its validity without re-review.\n\nThe remaining findings are medium severity and matter mainly for multi-instance or multi-tenant hosting:\n\n- Agent runs live in process memory, so restart orphans them and cross-instance cancel does not stop them.\n- An open SSE stream is never re-authorized.\n- Autonomy and `set-rmf` proposals can carry an authorization decision or accepted evidence with no person deciding.\n- The OIDC configuration cache is per instance and can trust a replaced provider for up to an hour.\n- API tokens can mint tokens, outlive their creator and bypass Require SSO.\n- Deleting a workspace erases its audit chain.\n- There are no request-size or rate limits, and the public trust endpoint is heavy.\n- A new session's default organization is implicit and can be steered by another organization.\n\nRecommended next phase: a \"hosted pilot\" slice rather than more frameworks. One real organization on Postgres with SSO brings up a fresh install, connects a guarded connector, has evidence reviewed immutably, runs an agent that survives a restart, and exports an audit pack whose chain verifies. That workflow closes the four blockers and is the precondition for roadmap items 2 (evidence storage) and 3 (connector depth).",
+  "coverage": [
+    "API surface and capability gates: apps/server/src/app.ts (all routes), auth/http.ts (authenticate, CSRF, workspaceAccess, tenantAccess, need), packages/core/src/access.ts",
+    "Identity: auth/service.ts (sessions, API tokens, memberships, SSO connections, OIDC start/finish, resolveIdentity, devLogin, bootstrap), auth/config.ts, auth/crypto.ts, storage/identity.ts",
+    "SSO domain verification and re-check: auth/domain-recheck.ts, recheck-ticker.ts, recheckDueDomains/recordRecheck, migrations 3 and 4, and their tests",
+    "Egress: auth/egress.ts (guardedFetch, address classes, DNS-time check), connectors/web-posture.ts, connectors/repo-scan.ts",
+    "Transactional integrity: services/visua.ts (mutate, log, chain hash, verifyAuditTrail, score cache, proposals, applyProposal, connectors, agent run lifecycle), storage/store.ts, driver.ts, sqlite.ts, postgres.ts, migrations.ts",
+    "Event relay and live events: bus.ts, storage/events.ts (LISTEN/NOTIFY, compaction, reconnect), SSE route, apps/web/src/lib/events.ts",
+    "Read services for tenancy leaks: views.ts, exports.ts, threats.ts, crosswalk.ts, laws.ts, overlays.ts, soc2.ts, ai.ts, and the public trust center route",
+    "Local and production operation: apps/server/src/index.ts, context.ts, seed/demo.ts, seed/cli.ts, Dockerfile, compose.yaml, .dockerignore, scripts/check.ts, README environment tables",
+    "Server tests read as specification of intended behaviour: api, auth, storage, relay, egress, domain-recheck, sso-recheck",
+    "Web client auth plumbing: lib/api.ts, lib/auth.ts, App.tsx, OrganizationPage.tsx"
+  ],
+  "findings": [
+    {
+      "severity": "high",
+      "location": "apps/server/src/index.ts:30-34; apps/server/src/seed/demo.ts:63-80; apps/server/src/auth/service.ts:829-845; README.md:92,147-154",
+      "mechanism": "Launch blocker for production bring-up. Demo seeding is on unless `VISUA_SEED=0` and runs before `auth.bootstrap()`. On an empty production database the seed creates the Northwind Health and Contoso Bank organizations, each with an owner. `bootstrap()` then finds no ownerless organization and a non-empty tenant list, so it creates the bootstrap user but gives it no organization or membership. Trigger: run the README production command on a fresh Postgres database. The bootstrap owner's first platform sign-in is refused (\"You have no access to Visua yet\"), while the install holds demo personas, a demo workspace with a public trust center at `/api/trust/northwind-health`, and a repo-scan run against the server's own directory.",
+      "evidence": "index.ts:30 `if (process.env[\"VISUA_SEED\"] !== \"0\" && (await svc.store.workspaces.list()).length === 0)` calls `seedDemo`, then line 34 calls `auth.bootstrap()`. service.ts:836-843 grants ownership only when `owners(t.id) === 0` and creates the organization only `if (!tenants.length)`. finishLogin's platform path throws when `memberships.forUser(user.id)` is empty (service.ts:773-775). The README production example sets no `VISUA_SEED`, and its table lists the default as on. demo.ts:112 enables the trust center; demo.ts:328-329 runs repo-scan on `REPO_ROOT`. Source inference; not executed.",
+      "recommendation": "Seed the demo only in dev auth mode or on an explicit `VISUA_SEED=1`, and refuse it when `NODE_ENV=production`. Make `bootstrap()` create the bootstrap organization whenever the bootstrap user has no membership. Add a test that boots an empty database with production-style config and asserts the bootstrap owner can complete a mock-IdP sign-in and that no demo tenant exists."
+    },
+    {
+      "severity": "high",
+      "location": "apps/server/src/connectors/web-posture.ts:18-20,50-56,76,128,151; apps/server/src/connectors/repo-scan.ts:56-58,89-139; apps/server/src/app.ts:550-555; apps/server/src/services/visua.ts:1189-1209,1230-1270",
+      "mechanism": "Launch blocker for shared hosting. Connectors make server-side requests and filesystem reads to tenant-chosen targets with none of the protections `auth/egress.ts` applies to identity providers. Trigger: an organization admin or admin-role API token creates a web-posture connector with a URL such as `http://169.254.169.254` or `internal-host:5432`, and any contributor runs it. The server fetches it with redirects followed, opens a TLS socket to the chosen host and port, and stores status, final URL, redirect location, security headers and certificate subject/issuer as check results readable by the tenant. A repo-scan connector accepts any absolute path on the Visua server. It reports whether paths exist, CI workflow file names, and which files contain secret patterns (for example an Anthropic key in a `.env`). The synchronous walk reads up to 4,000 files of up to 512 KB on the event loop, stalling every tenant. Passing checks are also filed at once as accepted evidence, so a tenant can produce accepted repository-hygiene evidence from the operator's own checkout.",
+      "evidence": "web-posture.ts:19 uses plain `fetch(url, \u2026)`; line 55 sets `redirect: \"follow\"`; line 76 fetches `http://${url.host}/`; line 128 calls `tlsDetails(url.hostname, Number(url.port || 443))`; `observed` carries `finalUrl`, `location`, headers and issuer. repo-scan.ts:57 `resolve(String(config[\"path\"] ?? \".\"))` has no root restriction; lines 119-131 use `readFileSync` and report `${f.kind} in ${f.file}`. app.ts:550 comments that configuring connectors \"is an admin action\", but that admin belongs to the tenant, not the operator. visua.ts:1264 files evidence with reviewer `system:connector`. By contrast egress.ts refuses non-public addresses at DNS-lookup time.",
+      "recommendation": "Route every connector HTTP and TLS call through a shared guarded-egress module: public addresses only, checked on the resolved socket address, redirects re-validated, body and time caps. Restrict repo-scan to operator-allowlisted roots (an environment variable), off by default when `NODE_ENV=production`; move the walk off the event loop and return finding counts rather than file names outside the tenant's own root. Add per-connector run concurrency and rate limits."
+    },
+    {
+      "severity": "high",
+      "location": "apps/server/src/auth/config.ts:62; apps/server/src/index.ts:57; apps/server/src/auth/service.ts:790-808; apps/server/src/auth/http.ts:27,115,200-215",
+      "mechanism": "Fail-open authentication default. Any start where `NODE_ENV` is not exactly `production` and `VISUA_AUTH_MODE` is unset runs in dev mode. `POST /api/auth/dev/login` then opens a session for any email with no credential, including existing owners, and `GET /api/auth/config` lists persona emails without authentication. The server calls `serve({ fetch, port })` with no hostname, so on a laptop or host without the Compose loopback mapping, the API is likely reachable from the network. Trigger: `pnpm build && pnpm start` (the README's \"production-style run\") or `pnpm dev` on a shared network; a peer posts an owner's email to dev login and holds full owner capability, including the connector abilities above. In dev mode the Origin allowlist is also skipped.",
+      "evidence": "config.ts:62 resolves mode to `oidc` only if `VISUA_AUTH_MODE === \"oidc\" || production`, otherwise `dev`. service.ts:793 `ensureUser(email, name)` returns an existing user and line 806 creates a session for it. http.ts:27 lists `dev/login` and `config` as public routes; http.ts:115 applies the origin check only when `mode === \"oidc\"`. index.ts:57 passes no hostname; index.ts:63 only logs \"never expose this server\". compose.yaml:5 is the only loopback binding in the packet. Whether `@hono/node-server` binds all interfaces by default, and whether the server's `start` script sets `NODE_ENV`, are inferences: `apps/server/package.json` is not in the packet.",
+      "recommendation": "Make dev sign-in opt-in (`VISUA_AUTH_MODE=dev` set explicitly), not the fallback. In dev mode bind to 127.0.0.1 unless `VISUA_HOST` is set, and refuse to start dev mode on a non-loopback bind without an explicit override. Have `pnpm start` set or require `NODE_ENV=production`, with a startup error rather than a log line."
+    },
+    {
+      "severity": "high",
+      "location": "apps/server/src/app.ts:167-173,520-528; apps/server/src/services/visua.ts:1059-1072; packages/core/src/status.ts:19-23,67-72",
+      "mechanism": "Breaks the evidence acceptance and freshness contract. `PATCH /evidence/:id` without a `decision` needs only the `work.write` floor and replaces `title`, `requirementIds` and `validUntil` on evidence of any status, leaving `status: accepted` and the original reviewer and hash untouched. Trigger: a contributor or contributor-role API token patches an accepted item with `{ requirementIds: [<any requirements>], validUntil: \"2099-01-01\" }`. The accepted evidence now counts as valid for requirements no approver reviewed it against and never expires. That raises evidence coverage (published on the trust center), clears expired-evidence at-risk status, and satisfies the valid-evidence condition for \"verified\". It applies equally to connector evidence, which is meant to be filed only from the recorded check, and to policy evidence. `validUntil` is an unvalidated string, so a non-date value never expires either.",
+      "evidence": "app.ts:521-527 calls `requireCapability(c, \"work.approve\")` only inside `if (input.decision)`, otherwise `svc.updateEvidence(...)`. visua.ts:1064-1066 builds `next = { ...prev, ...changes }` with no status reset or re-review. status.ts:19-23 treats evidence as valid when `status === \"accepted\"` and `validUntil` is not in the past. api.test.ts:807-808 confirms `validUntil` can be extended on an accepted item with the status unchanged (performed there by an owner; the route has no extra gate for contributors).",
+      "recommendation": "Make accepted evidence immutable in what it attests. A change to `requirementIds` or `validUntil` on accepted or rejected evidence should either require `work.approve` or reset the item to `pending-review` and clear `reviewedBy`. Never allow these edits on `source: connector` evidence. Validate `validUntil` as an ISO date and record old and new values in the audit entry. Add a role test covering a contributor relinking accepted evidence."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/server/src/services/visua.ts:172,1344-1354,1357-1366,1368-1378,1380-1416,1527-1553; apps/server/src/index.ts (no shutdown or startup recovery)",
+      "mechanism": "Agent runs exist only in one process's memory. Restart: a deploy, crash or SIGTERM while a run is queued or running leaves it in that state permanently. Nothing sweeps it at startup, the workspace summary keeps counting it as running, and unflushed flight-recorder steps are lost. Multi-instance: cancelling a run through instance B marks it cancelled but aborts only B's local controller, so the run on instance A keeps calling the model and connectors. `createProposal` does not check run status, so a cancelled run can still file proposals, which apply immediately under autonomy. `deleteWorkspace` has the same local-only abort. There is no per-workspace or per-organization cap on concurrent runs, so any contributor can start unlimited Claude-backed runs.",
+      "evidence": "visua.ts:172 `private readonly running = new Map<string, AbortController>()`. visua.ts:1373 `this.store.afterCommit(() => this.running.get(runId)?.abort())`. visua.ts:1388 guards only the run row against overwrite after cancellation. visua.ts:1528-1550 creates and auto-applies proposals with no run lookup. index.ts registers no signal handler and performs no reconciliation of non-terminal runs.",
+      "recommendation": "Give runs a durable lease: owner instance id plus heartbeat column. At startup and periodically, fail or requeue runs whose lease expired. Have the executing instance poll the run row (or listen on the relay) for cancellation, and reject `createProposal` when the run is not running. Add a SIGTERM handler that aborts local runs, flushes recorders and closes the store. Enforce per-workspace concurrency and a token budget."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/server/src/app.ts:612-645; apps/server/src/bus.ts:45,52-67; apps/server/src/services/visua.ts:1035,1098,228; apps/web/src/lib/events.ts:13-31",
+      "mechanism": "The SSE stream authorizes once, at connect. Trigger: a member opens `/api/workspaces/:ws/events`; an admin removes them, their session expires, or the owner turns on Require SSO. The open stream keeps delivering every workspace event until the client disconnects. The payloads are whole entities: evidence including up to 2 MB of content, policy bodies, activity events, agent steps. The per-connection queue is unbounded, so a stalled client grows server memory. In the other direction, the web client never refetches on (re)connect, so events missed during an EventSource reconnect or a Postgres listener reconnect leave the interface stale until the next event.",
+      "evidence": "app.ts:613-644 captures `ws` once and loops `while (open)` with no principal or role re-check; `queue: string[]` has no cap. visua.ts:1035 `this.emit(ws.id, \"evidence.created\", evidence)` sends the full entity. events.ts registers only the `visua` listener; the server's `ready` event (app.ts:627) is ignored. storage/events.ts:61 sends NOTIFY fire-and-forget, and reconnection (lines 109-118) has no replay.",
+      "recommendation": "Re-check `auth.roleIn` on each keep-alive tick (already every 15 s) and close the stream when access is gone. Cap the queue and drop to a \"resync\" event on overflow. Send identifiers and types rather than entity bodies; the client already refetches. Invalidate the workspace's queries on `ready` so reconnects self-heal."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/server/src/app.ts:101,195,588-591; apps/server/src/services/visua.ts:1492-1525,1550,1560,1633-1651,1667-1672",
+      "mechanism": "The proposal pipeline has paths where a restricted decision lands without the checks the direct routes enforce. Autonomy accepts any proposal type: the schema is a free string-to-boolean record. An admin can enable `set-rmf`, `create-evidence`, `review-evidence` or `set-applicability`, after which a proposal of that type is applied immediately by actor \"autonomy\". `set-rmf` has no pre-check and spreads its payload into the RMF settings. A proposal can therefore set the authorization decision (ATO), the baseline, or tailoring entries without a rationale. The audit trail records only a generic \"Updated SP 800-53\" entry, not the \"authorized\" or \"tailored\" entries the dedicated routes write. A non-check `create-evidence` proposal is filed as accepted with `reviewedBy` set to the approving actor, which is \"autonomy\" when auto-applied. Approval-time `edits` are an unvalidated record merged over the payload. Whether any agent tool emits `set-rmf` today cannot be confirmed: `tools.ts` is not in the packet. The service accepts it regardless.",
+      "evidence": "app.ts:101 `autonomy: z.record(z.string(), z.boolean())`. visua.ts:1550 `if (ws.autonomy[proposal.type]) return this.decideProposal(ws.id, proposal.id, \"approved\", \"autonomy\")`. visua.ts:1522 `default: return` covers `set-rmf` and `review-evidence`. visua.ts:1670 spreads `...(payload as Partial<RmfSettings>)` into `rmf`. visua.ts:1641-1642 sets `status: \"accepted\", reviewedBy: actor`. Compare `setAuthorization` (visua.ts:793-800) and `tailorControl` (visua.ts:598), which validate and log. CLAUDE.md:65-67 forbids agents making authorization decisions or marking anything verified.",
+      "recommendation": "Validate autonomy keys against an allowlist of low-risk types (`create-task`, `update-task`, `create-policy` as draft) and refuse autonomy for `set-rmf`, `review-evidence`, `set-applicability` and non-check `create-evidence`. Restrict `set-rmf` to a zod-validated subset that excludes `authorization` and requires a rationale for tailoring, or route it through `categorizeSystem`/`tailorControl` so the audit entries match. Validate `edits` per proposal type. File agent-authored evidence as `pending-review`."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/server/src/auth/service.ts:104,525,642,664-681",
+      "mechanism": "Multi-instance staleness in the SSO trust decision. Discovered OIDC configuration (issuer metadata, client id, unsealed client secret) is cached per process for an hour, keyed by connection id only. Changing or deleting a connection clears the cache on the instance that handled the request and nowhere else. Trigger on Postgres with two instances: an owner re-points a connection away from a compromised identity provider or rotates its client through instance A. For up to an hour instance B completes sign-ins against the old issuer's endpoints and keys with the old secret, admitting whoever controls the old provider as any member on the connection's domains. The same applies to a changed client id.",
+      "evidence": "service.ts:671-672: `const cached = this.oidcConfigs.get(connectionId); if (cached && Date.now() - cached.at < 3_600_000) return { config: cached.config, connection };` The current `connection` row is read at line 665 and its `enabled` flag honoured, but `settings.issuer`/`clientId` are not compared with the cached configuration. Invalidation at lines 525 and 642 is `this.oidcConfigs.delete(...)` on the local map only.",
+      "recommendation": "Key the cache on connection id plus `updatedAt` (or a hash of issuer, client id and sealed secret) so any instance discards a stale entry when the row changes; the row is already read on every call. Add a two-instance test that changes the issuer on one and starts a login on the other."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/server/src/auth/service.ts:288-290,402-443; apps/server/src/auth/http.ts:296-323,347-368; apps/server/src/app.ts:398-401",
+      "mechanism": "API tokens are standing credentials with nearly the reach of their role and no tie to a person. A token's role is returned before the membership and Require-SSO checks, so tokens work under Require SSO by construction. An admin-role token can create further admin tokens, add admin members, enable or disable SSO connections and delete workspaces. A token is not invalidated when the member who created it is removed or demoted, and expiry is optional. Trigger: an admin creates an admin token with no expiry and uses it to mint a second one; the admin is then removed. Both tokens still work, and revoking the first leaves the second.",
+      "evidence": "service.ts:290 `if (principal.kind === \"token\") return principal.token.tenantId === tenantId ? principal.token.role : undefined;` precedes the `requireSso` check at lines 295-298. `createApiToken` (lines 403-406) authorizes via `roleIn(by, \u2026)` for any principal kind; only `POST /api/tenants` rejects tokens (http.ts:271). `resolveApiToken` (lines 428-435) checks hash, revocation and expiry, never `createdBy`. `expiresInDays` is optional (http.ts:314). auth.test.ts:430-437 shows an admin token operating in a Require-SSO organization.",
+      "recommendation": "Deny tokens the `tenant.manage` operations (members, tokens, SSO) and workspace deletion, or cap tokens at approver and require a user session for those routes. Require an expiry with a maximum lifetime. Revoke or flag tokens when their creator loses `tenant.manage`. State in the Require-SSO setting that tokens are exempt, or let owners opt tokens out."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/server/src/storage/store.ts:334-342; apps/server/src/services/visua.ts:234-243,344-359; apps/server/src/app.ts:398-401",
+      "mechanism": "The tamper-evident trail can be removed wholesale through the API. `DELETE /api/workspaces/:ws` needs `workspace.configure` (an admin or an admin token) and hard-deletes the workspace's entire activity chain along with evidence, proposals and runs. One line remains on the organization trail, with no head hash, event count or export of what was destroyed. Verification recomputes the chain from genesis to whatever the last row is, so deleting the newest events directly in storage also verifies as valid: no head is anchored outside the table. Trigger: an admin deletes a workspace after an unfavourable approval history; the organization trail shows only that the workspace and its data were deleted.",
+      "evidence": "store.ts:337 iterates `[\u2026 this.runs, this.proposals, this.activity]` calling `deleteWorkspace(id)`. visua.ts:352 logs only the workspace name. visua.ts:236-242 starts at `GENESIS` and returns `valid: true` with the last hash it finds.",
+      "recommendation": "Make workspace deletion a soft delete (archived, read-only, hidden) with owner-only purge after a retention period. Record the final chain head and event count in the organization trail entry. Periodically anchor each chain head, for example into the organization chain or an exported signed checkpoint, so tail truncation is detectable."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/server/src/app.ts:163,193-195,213-223,675-691; apps/server/src/auth/http.ts:27,209-222; apps/server/src/services/views.ts:198-245; apps/server/src/services/visua.ts:833-838",
+      "mechanism": "No request-size or rate limits, and expensive reads sit on hot and public paths. Bodies are read in full by `c.req.json()` before schema limits apply, including on the unauthenticated dev-login and SSO-discover routes. Connector config, run input and proposal edits are unbounded records. The public, uncached trust centre endpoint runs the full workspace summary on every request: all tasks, all proposals, the last 50 runs with every recorded step, all policy bodies, 100 checks, and a score per framework on a cache miss. Evidence content (up to 2 MB each) is stored inline, and `evidence.list` loads every item in full on each score recompute, inspector open, state bundle and export. Check results and activity grow without retention. Trigger: a script requesting `/api/trust/<slug>` in a loop, or a workspace with a few hundred uploaded evidence items, degrades the instance for every tenant.",
+      "evidence": "No `bodyLimit` or rate-limit middleware appears in app.ts:254-265. app.ts:678 calls `workspaceSummary(svc, ws)` for anonymous callers; views.ts:222-228 lists tasks, proposals, `runs.recent(ws.id, 50)` and policies. visua.ts:833-838 loads `evidence.list` and `checks.list` unfiltered. visua.ts:150-154 rewrites the whole run document for every step.",
+      "recommendation": "Add `hono/body-limit` globally (about 3 MB) with small limits on public routes, plus per-IP and per-principal rate limits on sign-in, discover and trust. Serve the trust centre from a short-TTL cached projection built from counts. Store evidence content out of the JSON document (roadmap item 2) and have list queries select metadata only. Cap or page checks, and move run steps to their own rows."
+    },
+    {
+      "severity": "low",
+      "location": "apps/server/src/auth/service.ts:225-238,321-325,346-360; apps/server/src/storage/identity.ts:149-155; apps/server/src/app.ts:367-382",
+      "mechanism": "A session's default organization is implicit and can be influenced by another organization. Sessions not created through an organization's SSO start with no active organization, so the active one falls back to the member's earliest-created organization. Any admin can add any email as a member without that person's consent. Trigger: an admin of an older organization adds a consultant as admin there. The consultant's next platform or developer session lists and creates workspaces in that organization by default, so a workspace they believe is in their own organization, and its uploaded evidence, lands in the other tenant unless they notice and switch. No isolation boundary is crossed; the risk is misdirected data. The same read-modify-write on the session row lets a concurrent idle-time refresh overwrite a just-made organization switch.",
+      "evidence": "service.ts:354 sets `activeTenantId: opts.tenantScope` (undefined for platform and dev sign-ins). service.ts:324 returns `list.find(...) ?? list[0]`. identity.ts:151 orders by `t.created_at ASC`. auth.test.ts:160-161 notes the member must switch explicitly. `resolveSession` (service.ts:381-384) writes back the whole session object it read earlier.",
+      "recommendation": "Persist an explicit default organization per user (their last chosen one) and require an explicit choice when a session has several organizations and none selected. Have `POST /api/workspaces` take the organization id explicitly. Treat added memberships as invitations the person accepts. Update `last_seen_at` with a column-only statement."
+    }
+  ],
+  "limitations": [
+    "Packet-only review: no code, test or deployment was executed here. The lead reported the typecheck result and '214 passed / 2 skipped' on SQLite; I did not verify them. Every finding is a source inference.",
+    "Files outside the packet were not reviewed: packages/agents/src/tools.ts, claude.ts and mode.ts (so whether agents emit set-rmf or unrestricted create-evidence proposals is unconfirmed), apps/server/package.json and its start/dev scripts (so the NODE_ENV and bind behaviour of `pnpm start` is inferred), most web pages, e2e specs, and packages/frameworks.",
+    "The default listen address of @hono/node-server when no hostname is passed is assumed to be all interfaces; confirm before acting on that part of the dev-mode finding.",
+    "Postgres behaviour (advisory-lock ordering, CREATE TABLE IF NOT EXISTS races at concurrent first start, pool exhaustion from per-event NOTIFY) was reasoned about, not run. One possible lock-order inversion was not elevated: addMember takes the organization lock then the user lock, while JIT sign-in takes the user lock then the organization lock (service.ts:228-230 vs 743-771). It would surface as a detected deadlock and one failed request.",
+    "Lower-priority observations left out of the 12: an approver can enable SP 800-53 through `rmf/categorize`, which calls enableFramework without requiring the framework to be enabled (visua.ts:560-577); CSV exports do not neutralise formula-leading cells (exports.ts:10-14); malformed percent-encodings in corpus and requirement paths raise URIError and return 500 (app.ts:341,417); expired sessions are never purged; unauthenticated `/api/auth/oidc/start` writes a login-flow row and triggers discovery per request; health does not probe the database.",
+    "No assessment of corpus licensing exposure, legal-corpus freshness, Claude runtime behaviour, 3D or performance claims, or production infrastructure; those are out of this lens or scope."
+  ],
+  "strengths": [
+    "Tenant gate is uniform: `workspaceAccess` resolves workspace then role and returns 404 with no role (http.ts:130-142). Every by-id lookup in the service re-checks `workspaceId` (tasks, evidence, policies, risks, runs, proposals, connectors, checks). Collections are keyed by id only, so this discipline matters and is consistently applied.",
+    "Capability checks sit on the server per route (`need`, `requireCapability`), including field-level escalation for applicability, verification and status override (app.ts:425) and for policy approval and evidence review. The actor is always the resolved principal, with `actorId` taken from AsyncLocalStorage.",
+    "Transactional design holds together: `mutate` takes a per-workspace lock and re-reads on Postgres; audit append, revision bump and the change share one transaction; a unique (workspace_id, seq) index prevents chain forks; events publish only after commit; proposal application runs in a savepoint; uncommitted scores are never cached (visua.ts:841).",
+    "OIDC is carefully built: PKCE, state and nonce; single-use hashed flow state bound to a pre-auth browser cookie; Sec-Fetch-Site checks on start; tenant-scoped sessions for organization connections; owner-only provider changes; secrets sealed with AES-256-GCM and never inherited by a new issuer; verified-email linking rules.",
+    "IdP egress guard is the right shape: non-public address classes including embedded IPv4 forms, the check performed in the socket's own DNS lookup (rebinding-safe), redirects not followed, 1 MB response cap, operator allowlist. It is a ready model for connectors.",
+    "SSO domain proof and re-check are robust across instances: claims under a lock with a lease, lookups outside transactions, results dropped when the challenge token changed, DNS trouble never counted as a miss, a partial unique index for verified ownership, and migrations that grandfather without lockout.",
+    "Session and token hygiene: random tokens stored only as SHA-256 hashes, HttpOnly SameSite=Lax `__Host-` cookies, absolute and idle timeouts, per-session CSRF token compared in constant time, sign-in responses excluded from compression, tokens never owner and shown once.",
+    "Connector-to-evidence integrity for agents: an agent's connector run files nothing; approval rebuilds evidence solely from the stored check result, with a hash; approval-time edits cannot alter it (visua.ts:1277-1300,1628-1632).",
+    "Corpus file serving checks relative path, `.local` in any case, and realpath to defeat symlinks; HTML is served under a sandbox CSP.",
+    "The test suites pin these behaviours on both SQLite and Postgres (per-run schema), including two-instance concurrency, relay reconnection and legacy upgrades. `pnpm check` adds a licensing guard and a throwaway Postgres."
+  ],
+  "opportunities": [
+    {
+      "priority": "now",
+      "outcome": "Production bring-up contract (launch blocker). A fresh install with the documented production environment starts with no demo data and a working bootstrap owner. Auth mode fails closed: dev sign-in only when explicitly requested, with a loopback bind. The process shuts down cleanly on SIGTERM, and readiness reflects database health.",
+      "evidence": "Findings 1 and 3: index.ts:30-34 seeds before bootstrap and bootstrap skips when demo tenants exist; config.ts:62 falls back to dev; index.ts:57 has no hostname and no signal handling; `/api/health` (app.ts:268) does not touch the store.",
+      "acceptance": "An automated test boots an empty Postgres schema with README production variables and a mock IdP. It asserts zero demo tenants, bootstrap owner sign-in succeeds and can create a workspace, `POST /api/auth/dev/login` returns 403, and starting with neither `NODE_ENV=production` nor an explicit `VISUA_AUTH_MODE` either refuses or binds loopback only. A SIGTERM during an agent run leaves no run in `running`. README and compose.yaml are updated to match.",
+      "dependencies": [
+        "Decision on the default for VISUA_SEED outside dev mode",
+        "apps/server start script (not in packet)",
+        "Mock IdP test harness (exists in apps/server/test)"
+      ]
+    },
+    {
+      "priority": "now",
+      "outcome": "Evidence that stays what the approver accepted (launch blocker for any trust claim). Accepted evidence is immutable in its links and validity unless re-reviewed. Content is stored content-addressed outside the JSON document. Agent- and autonomy-originated evidence is never auto-accepted.",
+      "evidence": "Finding 4 (visua.ts:1059-1072, app.ts:520-528), finding 7 (visua.ts:1633-1647), finding 11 (inline 2 MB content loaded by every score). Roadmap 'Next' item 2 already plans object storage keyed by SHA-256.",
+      "acceptance": "Role test: a contributor's PATCH of `requirementIds` or `validUntil` on accepted evidence returns 403 or returns the item to pending-review, with an audit entry holding before and after values. Connector evidence rejects relinking. The stored SHA-256 is verified against the blob on read. Evidence list queries return metadata only. Scoring a workspace with 500 evidence items issues no content reads.",
+      "dependencies": [
+        "Storage migration 5 (evidence metadata/content split)",
+        "Object or blob store choice for SQLite and Postgres",
+        "Product decision: re-review vs approver-only edit"
+      ]
+    },
+    {
+      "priority": "now",
+      "outcome": "One guarded egress and filesystem policy for all connectors (launch blocker for shared hosting, and a prerequisite for roadmap connector depth). Connectors reach only public addresses or operator-allowlisted hosts and paths, run off the event loop with time and size caps, and are labelled by automation depth.",
+      "evidence": "Finding 2: web-posture and repo-scan use plain `fetch`, `tls.connect` and `fs` with tenant-supplied targets, while auth/egress.ts already implements the needed checks for identity providers. Roadmap item 3 adds cloud and IdP connectors that will hold credentials.",
+      "acceptance": "Egress tests equivalent to egress.test.ts pass for connector requests: literal and DNS-resolved private addresses refused, redirects re-checked, response cap enforced. Repo-scan refuses paths outside `VISUA_CONNECTOR_PATHS` and is disabled by default in production. A connector run cannot block the event loop for more than a set bound in a load test. Connector secrets, when introduced, are sealed like SSO secrets.",
+      "dependencies": [
+        "Extract auth/egress.ts into a shared module",
+        "Operator configuration for allowed hosts and paths",
+        "Worker thread or child process for filesystem scans"
+      ]
+    },
+    {
+      "priority": "next",
+      "outcome": "Durable, bounded agent runs. Runs survive or fail cleanly across restarts and instances, cancellation works from any instance, cancelled runs cannot file proposals, and each workspace has a concurrency and spend ceiling. Autonomy is limited to an explicit allowlist of low-risk proposal types.",
+      "evidence": "Finding 5 (in-memory `running` map, no reconciliation, local-only abort) and finding 7 (free-form autonomy keys, unvalidated set-rmf and edits).",
+      "acceptance": "Two-instance Postgres test: start a run on A, cancel via B, and no further steps or proposals appear after the next heartbeat. Kill-and-restart test: no run remains queued or running after startup reconciliation, and an audit entry records the interruption. Autonomy PATCH with `set-rmf` or `review-evidence` returns 400. A `set-rmf` proposal carrying `authorization` fails validation. Concurrency limit returns 429.",
+      "dependencies": [
+        "Run lease/heartbeat columns (migration)",
+        "Review of packages/agents/src/tools.ts proposal types",
+        "Product decision on which proposal types may ever be autonomous"
+      ]
+    },
+    {
+      "priority": "next",
+      "outcome": "Live events that respect access and self-heal. SSE streams close when access ends, carry identifiers instead of entity bodies, and the client resynchronises after any gap.",
+      "evidence": "Finding 6: one-time authorization at connect, full evidence and policy payloads on the bus, unbounded per-connection queue, no client refetch on `ready`, fire-and-forget NOTIFY with no replay.",
+      "acceptance": "Test: remove a member with an open stream, and the stream ends within one keep-alive interval with no further events delivered. Event payloads stay under a fixed size without `partial`. Simulated relay drop followed by reconnect leaves the web cache consistent (the client invalidates on `ready`). Queue overflow emits a single resync event.",
+      "dependencies": [
+        "Web client change in apps/web/src/lib/events.ts",
+        "Agreement that clients always refetch entities by id"
+      ]
+    },
+    {
+      "priority": "next",
+      "outcome": "Second tenancy guard in the database. Workspace-scoped tables carry `tenant_id` with foreign keys, Postgres row-level security is keyed on a per-transaction tenant setting, and an automated cross-tenant probe runs over every route.",
+      "evidence": "Tenancy is enforced only in application code: document tables have no tenant column or foreign key to workspaces (migrations.ts:62-67), and `Collection.get(id)` is unscoped (store.ts:28-31). Roadmap item 2 already names RLS.",
+      "acceptance": "With RLS enabled, a deliberately removed `workspaceId` check in a test build still returns no rows across tenants. A generated test enumerates all `/api/workspaces/:ws/*` and `/api/tenants/:tenant/*` routes with a second organization's ids and asserts 404. SQLite keeps the application checks, plus the same route-enumeration test.",
+      "dependencies": [
+        "Migration adding tenant_id and backfill",
+        "Transaction wrapper setting the tenant context per request",
+        "Postgres role without BYPASSRLS for the application"
+      ]
+    },
+    {
+      "priority": "later",
+      "outcome": "Audit trail with retention and external anchoring. Workspaces are archived rather than erased, chain heads are checkpointed into the organization trail and exportable, and an auditor can verify a checkpoint offline.",
+      "evidence": "Finding 10: workspace deletion removes the activity chain (store.ts:334-342), and verification cannot detect tail truncation (visua.ts:234-243). Roadmap item 9 (auditor workspace) depends on a trail auditors can rely on.",
+      "acceptance": "Deleting a workspace leaves its chain verifiable by owners and auditors for the retention period and records head hash and count on the organization trail. Removing the last N activity rows in storage makes `activity/verify` fail against the latest checkpoint. An exported checkpoint file verifies with a standalone script.",
+      "dependencies": [
+        "Retention policy decision",
+        "Checkpoint schedule (the ticker pattern from domain re-checks can be reused)",
+        "Evidence storage split (for archived content)"
+      ]
+    },
+    {
+      "priority": "later",
+      "outcome": "Operational guardrails for hosting: request-size and rate limits, token lifecycle rules, a cached trust centre projection, secret rotation, and basic metrics.",
+      "evidence": "Finding 11 (no limits, heavy public endpoint), finding 9 (token minting, no mandatory expiry, exempt from Require SSO), finding 8 (per-instance OIDC cache). crypto.ts:14 derives one key from `VISUA_SECRET` with no versioned rotation path beyond the `v1` prefix.",
+      "acceptance": "Oversized bodies return 413 before parsing. Sign-in, discover and trust routes return 429 under a scripted burst. Tokens cannot call member, token or SSO routes and always carry an expiry. A changed SSO issuer is honoured by a second instance on the next request. Sealed values can be re-sealed under a new secret with both accepted during rotation. Request, run and relay counters are exposed.",
+      "dependencies": [
+        "Choice of rate-limit store shared across instances (Postgres or in-memory per instance)",
+        "Key-versioning scheme for sealed secrets",
+        "Owner-facing documentation of token scope"
+      ]
+    }
+  ]
+}

@@ -46,8 +46,9 @@ There is no hosted CI configuration in this checkout. Local checks run through
 
 The existing Docker Compose service runs at <http://localhost:8787>, bound to
 this Mac with developer sign-in and offline agents. Its SQLite database persists
-in `visua_visua-data`. The Docker files and README setup instructions are local,
-uncommitted work. On October 2, 2026, rebuilding the service with visualization
+in `visua_visua-data`. The Docker files, README setup instructions, and project
+context were committed and pushed as `1dc5ed1`. On October 2, 2026, rebuilding
+the service with visualization
 commit `5c497c3` passed health and browser smoke checks; see the
 [deployment record](runs/local-redeploy-20261002/result.json).
 
@@ -56,3 +57,8 @@ commit `5c497c3` passed health and browser smoke checks; see the
 No public deployment, production operational runbook, or ownership registry was
 verified. Local render-work profiles are recorded in the visualization run;
 they do not establish production performance.
+
+The [full app review](../docs/reviews/full-app-review-2026-10-02.md) records
+confirmed evidence, startup, connector, and workflow defects. The proposed
+[next phase](../docs/development-phase-2.md) addresses trustworthy evidence
+operations for a hosted pilot; it has not been implemented.
