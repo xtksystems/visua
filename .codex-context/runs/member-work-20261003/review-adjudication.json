@@ -18,5 +18,5 @@
     }
   ],
   "integration_label_fixes": "Explicit member and search accessible names; date display only appends noon to calendar days.",
-  "verification": "Final independent frozen adjudication complete/pass with 32 matching source pins; focused11 browser cases passed; full check running."
+  "verification": "Final frozen independent review complete/pass with 32 matching pins; focused 11 browser cases pass; full check all 7 lanes passed on 249 unchanged pins; Docker delivery passed."
 }

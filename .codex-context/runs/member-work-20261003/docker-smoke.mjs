@@ -20,6 +20,15 @@ try {
  const me=await login.json();
  csrf=me.csrf;
  const headers={'x-visua-csrf':csrf};
+ const existing=await (await context.request.get('/api/workspaces')).json();
+ result.checks.existingAuditChains=[];
+ for(const item of existing){
+  const response=await context.request.get(`/api/workspaces/${item.workspace.id}/activity/verify`);
+  expect(response.ok()).toBe(true);
+  const verification=await response.json();
+  expect(verification.valid).toBe(true);
+  result.checks.existingAuditChains.push({valid:verification.valid,events:verification.events});
+ }
  const created=await context.request.post('/api/workspaces',{headers,data:{name:`Deployment smoke ${Date.now()}`,frameworks:['nist-csf-2.0'],profile:{industry:'saas',size:'11-50'}}});
  expect(created.status()).toBe(201);
  workspace=(await created.json()).workspace;

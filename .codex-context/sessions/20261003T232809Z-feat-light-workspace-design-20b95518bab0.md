@@ -2,50 +2,49 @@
 system: "codex-context"
 session_id: "20261003T232809Z-feat-light-workspace-design-20b95518bab0"
 created_utc: "2026-10-03T23:28:09+00:00"
-updated_utc: "2026-10-03T23:28:09+00:00"
+updated_utc: "2026-10-04T00:25:50.615783+00:00"
 task: "Member assignment, due dates, My work, commit/push and Docker update"
-status: "active"
+status: "complete"
 repo_root: "/Users/artem/visua"
 worktree_id: "fbce6dbefa7b12a8"
 branch: "feat/light-workspace-design"
-head: "c8a1ed06a8043fe725381ccccd89779b6a3498e0"
+head: "2ca9631d1a6c8ec26d8c3fae21aaad69a7389ec9"
 ---
 
-# Active handoff
+# Completed handoff
 
-User: do next task, commit/push, update Docker. Preserve authorization across
-compaction: prior handoff no-deploy restrictions no longer apply.
+Completed the user's next-task, commit/push and Docker update request.
+[Task](../tasks/member-work-20261003.md), [run](../runs/member-work-20261003/plan.json),
+and [delivery](../runs/member-work-20261003/delivery-result.json) contain acceptance evidence.
 
-Task: [member work](../tasks/member-work-20261003.md). Run:
-[plan](../runs/member-work-20261003/plan.json). Context pressure unknown.
+Implemented stable member assignment, external owners, calendar dates, editable
+requirement links, and My work. Preserved model licensing provenance through
+relinking. Original server/Plan workers and three review attempts are complete;
+all seven run nodes accepted, fan-in and independent final adjudication passed.
+No workers or checks remain running. Context pressure was not exposed.
 
-Original workers complete. /root/member_server resumed for licensing-fix node;
-/root/member_review first pass complete/findings; /root/member_plan_ui complete.
-Disjoint ownership
-in immutable briefs. Root added picker, principal-keyed personal queries,
-inspector explicit member/due drafts, live invalidations, demo real member IDs,
-9 new browser cases, initial docs. pnpm typecheck and strict new E2E TS passed
-as early feedback, before final worker edits. Required integration still pending.
+Full pnpm check passed all seven lanes: 382 SQLite cases (two PostgreSQL-only
+skips), 384 PostgreSQL cases, and 91 browser cases including 11 new cases.
+All 249 checked source pins stayed unchanged. Review fixes and focused checks
+are recorded in the task and run, including earlier failed browser-label attempts.
 
-Next: collect workers; run focused browser/API feedback; snapshot and independent
-review; fix findings and full pnpm check. Then curate safe source/test/context
-files (exclude runtime trace/data), commit/push origin branch, SQLite backup,
-docker compose up -d --build, verify health/readiness/source/browser/data counts.
-Current Docker visua-visua-1 still old image; volume visua_visua-data untouched.
-Focused browser session 83736 completed (8 passed/1 failed label) pending collection;
-no root server active expected; typecheck session24431 exit0 output log.
-Root fixed selector labels, core UTC due-day and evidence/check events; new tests
-now11 cases. Await licensing fix, adjudicate3 findings, full pnpm check.
+Source commit `2ca9631` includes this package and the five pre-existing completed
+milestone 1 packages. It is pushed to `origin/feat/light-workspace-design`.
+Local Docker is healthy at <http://localhost:8787>; image revision and 142 runtime
+source pins match that commit. The existing `visua_visua-data` volume and original
+workspace/evidence content, tasks, states, identity tables and 88 historical
+events remain. Backup integrity and copied-host SHA-256 verified; backup is in
+the volume and ignored `data/deployment-backups/member-work-20261003-backup.db`.
 
-Latest checkpoint: original workers complete, licensing worker complete; root
-fixed same-document source identity predicate and legacy date display. Final
-review complete/pass with 32 stable pins; all review findings resolved. Full
-check session69128 running on stable source (full-check-source.json), SQLite
-382 pass/2 skips, Postgres passed, 91 browser cases underway. Focused11 browser
-cases pass, strict spec TS pass; helper labels fixed after earlier feedback.
-No further source edits planned. Docker revision build label and context
-exclusion added; no live service changes yet. Full-check completion then
-safe staging/commit/push, build Docker with code commit label, stop/SQLite
-VACUUM backup in volume plus ignored host data/deployment-backups, up --no-build,
-readiness/source/row/browser smoke, finalize context delivery commit/push.
-Local Git excludes two generated prior keyboard trace folders; source unaffected.
+Migration 5 archives 18 previous approvals and returns them to pending review;
+all original decision details and artifact content survive. It appends 18 audit
+events; the 97-event workspace chain verifies. Live browser smoke passed and its
+fixture was removed; organization audit retains the fixture deletion event.
+
+This note's HEAD identifies deployed source. A final documentation/evidence
+commit follows it and is pushed separately; application source remains identical.
+No requested work remains and no PR was requested. Next development action is
+milestone 2 package 2: evidence metadata/content separation with authorized blob
+uploads/downloads and local/hosted storage adapters. Await a new development
+request before starting that package. Local deployment uses developer sign-in
+and offline agents; hosted pilot work remains open.

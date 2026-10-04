@@ -233,3 +233,9 @@ editable links with retained model licensing provenance, and My work.
 The full local check passes all seven lanes: 382 SQLite tests (two
 PostgreSQL-only skips), 384 PostgreSQL tests, and 91 browser cases. Other phase
 packages remain open; starting another package requires a development request.
+The accumulated packages were committed and pushed as `2ca9631`; local Docker
+was rebuilt and verified on October 4, 2026 UTC. Its database backup, preserved
+records, valid audit chain, and live assignment flow are recorded in the
+[delivery result](../.codex-context/runs/member-work-20261003/delivery-result.json).
+Migration 5 retains the previous decisions on 18 legacy approvals and returns
+those records to pending review because they lack the new artifact binding.

@@ -55,6 +55,17 @@ the service with visualization
 commit `5c497c3` passed health and browser smoke checks; see the
 [deployment record](runs/local-redeploy-20261002/result.json).
 
+On October 4, 2026 UTC, the service was rebuilt from pushed source commit
+`2ca9631`, including the five milestone 1 packages and owned work. The image's
+revision label and 142 runtime source hashes match that commit. Readiness,
+assignment/date/link/My work browser smoke, and audit-chain verification pass.
+The original SQLite volume, workspace content, tasks, requirement states,
+tenants, memberships, evidence content, and all 88 historical events remain.
+A consistent backup is retained in the volume and under ignored
+`data/deployment-backups/`. Migration 5 archives all 18 legacy approvals and
+returns them to pending review; their decision details remain available.
+See the [delivery record](runs/member-work-20261003/delivery-result.json).
+
 ## Unknowns
 
 No public deployment, production operational runbook, or ownership registry was
@@ -92,4 +103,4 @@ relinking and governs model licensing. Calendar tasks become overdue after the
 UTC day. Full local checks pass 382 SQLite, 384 PostgreSQL, and 91 browser cases.
 Next is evidence metadata/content separation with authorized blob storage.
 Other reviewed defects and phase packages remain open. The running local Docker
-service still uses its October 2 source; these packages have not been redeployed.
+service includes the completed packages at source commit `2ca9631`.

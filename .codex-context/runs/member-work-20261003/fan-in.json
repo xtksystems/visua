@@ -1,0 +1,54 @@
+{
+  "run_id": "member-work-20261003",
+  "expected_nodes": 7,
+  "accepted_nodes": 7,
+  "snapshot_checked_files": 249,
+  "stale_sources": [],
+  "nodes": [
+    {
+      "id": "server",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "plan-ui",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "root",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "review",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "licensing-fix",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "fix-review",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "final-review",
+      "status": "complete",
+      "issues": []
+    }
+  ],
+  "ready_for_integration": true,
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "verification-summary.json: all 7 lanes passed on 249 unchanged source pins",
+      "final-review.json and review-adjudication.json: independent findings resolved",
+      "delivery-result.json: source commit pushed, healthy revision-labeled image, verified consistent backup, preserved records/history, valid audit chain, live browser smoke and fixture cleanup"
+    ]
+  },
+  "complete": true
+}

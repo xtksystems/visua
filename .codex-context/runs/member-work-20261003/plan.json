@@ -286,12 +286,14 @@
         "server",
         "plan-ui"
       ],
-      "status": "running",
-      "accepted": false,
+      "status": "complete",
+      "accepted": true,
       "input": "root-brief.txt",
       "input_sha256": "b851de6cc0f2c477e3dbeac57dc3d70e7a2d232c5bd73dfe99c88589ff93c9c0",
       "result": "root-result.json",
-      "worker": "/root"
+      "worker": "/root",
+      "returned": true,
+      "result_sha256": "adb3548d1dea207536f516e86cd32d56293554622615936f3a3d01580992a972"
     },
     {
       "id": "review",
@@ -355,11 +357,11 @@
     }
   ],
   "integration": {
-    "status": "pending",
+    "status": "passed",
     "evidence": [
-      "verification-summary.json: all7 lanes passed on249 unchanged source pins",
-      "final-review.json and review-adjudication.json: initial and followup findings resolved",
-      "Docker commit/push/rebuild/backup/live checks pending"
+      "verification-summary.json: all 7 lanes passed on 249 unchanged source pins",
+      "final-review.json and review-adjudication.json: independent findings resolved",
+      "delivery-result.json: source commit pushed, healthy revision-labeled image, verified consistent backup, preserved records/history, valid audit chain, live browser smoke and fixture cleanup"
     ]
   }
 }
