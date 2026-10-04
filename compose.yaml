@@ -1,0 +1,32 @@
+services:
+  visua:
+    build:
+      context: .
+      args:
+        VISUA_REVISION: "${VISUA_REVISION:-unknown}"
+    ports:
+      - "127.0.0.1:${VISUA_HOST_PORT:-8787}:8787"
+    environment:
+      NODE_ENV: development
+      VISUA_PORT: "8787"
+      VISUA_HOST: "0.0.0.0"
+      VISUA_PUBLIC_URL: "http://localhost:${VISUA_HOST_PORT:-8787}"
+      VISUA_AUTH_MODE: dev
+      VISUA_AGENT_MODE: offline
+      VISUA_DATABASE_URL: /app/data/visua.db
+      VISUA_BLOB_STORE: local
+      VISUA_BLOB_DIR: /app/data/blobs
+    volumes:
+      - visua-data:/app/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/api/ready').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    init: true
+    stop_grace_period: 15s
+    restart: unless-stopped
+
+volumes:
+  visua-data:

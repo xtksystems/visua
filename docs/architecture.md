@@ -3,7 +3,8 @@
 Visua has five layers. The official corpus is ingested into normalized framework
 graphs. A domain engine scores a workspace against those graphs. Agents read through a
 narrow host contract and *propose* changes. An API persists state and streams events.
-A web client renders all of it as navigable 3D space with a 2D twin.
+The web client presents an overview and action plan alongside 3D maps with 2D paths.
+For the user workflow, see [Using the workspace](workspace.md).
 
 ```
 corpus/                     official publications, manifests (SHA-256, license), structure notes
@@ -200,6 +201,24 @@ stay local.
   lands in the audit trail. A generative system brings the Generative AI Profile into
   scope.
 
+Member assignments use stable organization user IDs: `RequirementState.ownerUserId`
+for requirements and a `person` task assignee's `id`. The service checks current
+membership in the workspace tenant and records the member's stored name. The
+legacy `owner` label remains an external-owner path; explicit `external` task
+assignees carry a label without granting identity or access. Optional fields
+live in existing JSON records; this package needs no additional database
+migration. Clearing an assignment or date removes its field.
+
+Requirement due dates and task start/due dates accept calendar-valid `YYYY-MM-DD`
+values. Calendar due dates become overdue on the following UTC day. A task
+due date cannot precede its start date. Task link edits accept
+assessable requirements from enabled workspace frameworks and retain the task's
+original source citation. A server-owned `contentRequirementIds` pool retains
+original and later linked requirement IDs for model licensing checks even after
+links are removed; known licensed source documents retain a withholding fallback.
+Assignment, date, and link changes record before/after
+snapshots in the same transaction as the workspace audit event.
+
 ## 3. Agents (`packages/agents`)
 
 **Contract.** Agents never touch storage. They read through `AgentHost` (workspace,
@@ -207,7 +226,7 @@ states, scores, tasks, evidence, policies, connectors, registry) and change thin
 through `propose()`. The host decides from the workspace's autonomy settings whether a
 proposal is applied at once or waits in the approvals inbox. Every step (plan, thought,
 tool call, citation, proposal, message) is written to the run's **flight recorder** and
-streamed over SSE. The 3D scene shows agent activity as violet comets on the
+streamed over SSE. The 3D scene shows agent activity in terracotta on the
 requirements being touched.
 
 **Agents.** Copilot, Assessor, Planner, Policy Author, Evidence Collector, Crosswalk
@@ -252,6 +271,28 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 4. Server (`apps/server`)
 
+The entry point delegates resource ownership to `src/server.ts`. Startup
+validates authentication and listener settings before opening storage, runs
+first-owner bootstrap, and seeds demo workspaces only when configured. The
+default enables seeding in non-production developer mode. If startup fails
+after seeding launches detached work, cleanup drains it before closing storage,
+using the same deadline as ordinary shutdown. Developer mode binds
+to loopback; local Compose explicitly overrides the container listener while
+keeping its published port on loopback.
+
+`/api/health` reports liveness without database access. `/api/ready` runs a SQL
+probe and returns `503` on database failure, a one-second wait timeout, or
+shutdown. Concurrent probes share one pending query. Neither endpoint resolves
+cookies or bearer tokens, so a stale credential cannot break a health check.
+
+On `SIGINT` or `SIGTERM`, the listener stops accepting connections and existing
+responses close their connections after completion. New application work is
+refused, and SSE streams close immediately. Shutdown waits for HTTP requests,
+active SSO domain checks, and this instance's detached agent executions before
+closing the relay and store. `VISUA_SHUTDOWN_MS` bounds the whole drain and
+resource close; a timeout forces remaining sockets closed and exits with code
+`1`. Durable agent recovery after interruption remains separate work.
+
 - **Storage** (`src/storage/`). One async driver interface with two backends, chosen by
   `VISUA_DATABASE_URL`: embedded SQLite (`node:sqlite`, the default, for local use,
   demos and tests) and PostgreSQL (`pg`, for production and several server instances).
@@ -259,6 +300,16 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     Postgres): workspaces, requirement states, tasks, evidence, policies, risks,
     connectors, checks, agent runs, proposals and activity, plus the tenancy and
     identity tables.
+  - Evidence metadata lives in `evidence`; inline `content` and `data` live in
+    `evidence_content`. Migration 6 moves existing bodies without changing
+    evidence IDs, hashes, review statuses and history, dates, row timestamps, or
+    audit events. The split and all later body writes are transactional on both
+    backends. Evidence and workspace deletion remove inline body rows.
+  - `EvidenceCollection.get()`, `list()`, `recent()`, and `update()` explicitly
+    hydrate inline bodies for internal and export compatibility.
+    `metadataList()` reads only metadata rows, without a body join. The HTTP
+    evidence listing and scoring use that path; evidence events omit inline
+    `content` and `data`.
   - Versioned migrations run at startup under a lock, so several instances can start
     together. Version 1 also upgrades SQLite databases written before migrations
     existed (their workspaces move to a default organization).
@@ -273,7 +324,7 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   with one role each, federated identities keyed by issuer and subject, sessions, API
   tokens and per-organization SSO connections.
   - Middleware resolves the principal (bearer API token or session cookie), requires
-    one for every `/api` route except health, sign-in and public trust centers, checks
+    one for every `/api` route except health/readiness, sign-in and public trust centers, checks
     the CSRF token and origin on writes, and sets security headers.
   - Every `/api/workspaces/:ws` route resolves the workspace, then the principal's role
     in the workspace's organization. No role means 404, so other tenants' workspaces do
@@ -341,6 +392,70 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   event is written in the same transaction as the change it records, under the
   workspace lock, and a unique `(workspace_id, seq)` index means the chain can never
   fork. `GET /activity/verify` recomputes the chain and reports the first broken link.
+- **Evidence approvals.** The service computes inline artifact SHA-256 from a
+  canonical JSON envelope containing content and/or structured data, or the
+  immutable connector observation. A file's hash identifies its verified raw
+  bytes. Every decision appends a server-owned history entry with the hash,
+  requirement set, collection date, and expiry. Current acceptance requires the
+  latest decision to match those fields and the active reviewer/time.
+  Protected edits clear active review
+  metadata and return the item to review; descriptive edits preserve approval.
+  Connector content, raw data, and observation time cannot be amended.
+  Mutations audit before/after metadata and hashes without duplicating raw
+  artifacts. All writes, decisions, revisions, and events share the transaction.
+  Migration 5 recomputes current artifact digests, archives legacy decisions
+  without inventing a scope, and returns
+  unbound accepted items to review, with an audit event in the same transaction.
+  Stop older application writers when upgrading the evidence contract.
+  Dates must be real `YYYY-MM-DD` calendar dates or timezone-qualified ISO
+  timestamps. Date-only collection begins at midnight UTC and date-only expiry
+  ends at `23:59:59.999` UTC; expiry cannot precede collection. Malformed, future,
+  expired, or unbound records cannot satisfy current verification.
+  `PATCH /api/workspaces/:ws/evidence/:id` takes either metadata/artifact edits
+  or a decision plus `expectedScope` copied from the inspected record's
+  `sha256`, `requirementIds`, `collectedAt`, and optional `validUntil`. Stale
+  decisions and mixed edit/review requests return `400`. The detail dialog keeps
+  its inspected snapshot even when live queries refresh the underlying row. Use `validUntil: null`
+  to remove expiry. Agent review proposals capture the inspected scope when
+  created; approval edits cannot replace it or a connector proposal's check id.
+- **File evidence** (`src/blobs/`). Uploads create an immutable, server-owned
+  `artifact` reference with an ID, SHA-256, byte size, and media type. The
+  canonical tenant and workspace scope every storage operation; `fileName`
+  remains a display label and never selects a storage path. File bytes never
+  enter evidence `content` or `data`.
+  - `POST /api/workspaces/:ws/evidence/files` takes multipart fields `file` and
+    `metadata` (JSON), with exactly one nonempty file and a 10 MiB file size
+    limit. Metadata must link at least one assessable requirement in an enabled
+    framework. The server allows four concurrent uploads, limits multipart
+    buffering to 10 MiB plus 64 KiB of form overhead, and cancels body reads
+    after 30 seconds. Blob operations have a 15-second deadline.
+  - `createFileEvidence()` validates metadata before storage, writes and reads
+    back the bytes, and verifies SHA-256 and size before opening the SQL
+    metadata/audit transaction. It then rereads the workspace and checks current
+    authorization. Uploads start `pending-review`. Failures before a metadata
+    write attempt trigger best-effort blob cleanup. Once publication begins,
+    errors retain bytes because a successful COMMIT may lose its acknowledgement.
+    Cleanup failures and uncertain transaction outcomes can leave orphan bytes.
+  - `GET /api/workspaces/:ws/evidence/:id` explicitly hydrates an inline body;
+    file detail contains metadata only. The `/file` suffix downloads verified
+    bytes as an attachment with `application/octet-stream`, `nosniff`, and
+    `private, no-store`. Download and file review verify SHA-256 and size
+    outside SQL transactions, then reread the workspace, reference, and review
+    scope and recheck current authorization under locks without writing session
+    or token usage timestamps. Missing or corrupt
+    bytes block the operation.
+  - File references and bytes cannot be edited. Upload a new evidence item to
+    replace a file. Date and link edits retain the reference and invalidate
+    acceptance as usual. File review through nested proposal approval is
+    refused because storage I/O cannot run inside its database transaction;
+    people review files directly. Agents have no file-reading tool.
+  - Local storage defaults to `<repo>/data/blobs`. Compose explicitly uses
+    `/app/data/blobs` in the same `visua-data` volume as SQLite. S3 uses private
+    scoped object keys and the AWS SDK's standard credential chain. Bucket
+    creation, access policy, encryption, backup, lifecycle, retention, and
+    physical garbage collection belong to the operator. Workspace deletion
+    removes metadata but does not delete physical blobs. See the
+    [storage environment settings](../README.md#evidence-file-storage).
 - **Live events across instances.** On Postgres, every instance LISTENs on one channel
   per schema and NOTIFYs it with each event it publishes, so a browser connected to any
   instance sees changes made through any other. Events over NOTIFY's 8,000-byte limit
@@ -378,6 +493,26 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   passing results become hashed evidence at once; when an agent runs one (`run_checks`),
   it proposes each passing result as evidence, and approval files it from the recorded
   check (edits cannot change what the check observed).
+  Both kinds enter a shared four-run limit per server process and receive a
+  30-second abort signal. Excess runs fail with HTTP 503; a cancelled run keeps
+  its slot until its underlying work stops. The run's asynchronous work scope
+  tracks DNS callbacks even when an aborted HTTP/TLS request settles earlier.
+  This keeps
+  resolver work bounded when DNS stalls. Network calls remain outside the
+  check/evidence/audit transaction. Public web requests reuse the identity
+  provider egress guard, with no private-host exception: literals and every
+  connection-time DNS answer are checked for HTTP and direct TLS. Redirects
+  are checked individually, capped at five, and cannot downgrade HTTPS.
+  Network operations stop after 12 seconds; encoded and decoded response
+  bodies are capped at 1 MiB.
+  Repository roots come from the operator's `VISUA_REPO_SCAN_ROOTS` JSON array.
+  The default is this project only in non-production developer mode, and an
+  empty allowlist in hosted/OIDC mode. Scans skip symlinks and special files,
+  use bounded asynchronous reads, and mark incomplete secret scans as warnings.
+  Limits are 15 seconds, 4,000 visited entries, 512,000 bytes per file, and
+  32 MiB total reads. Roots must be on an operator-controlled filesystem;
+  portable Node filesystem APIs cannot make all parent-directory operations
+  atomic against a malicious concurrent directory replacement.
 - **Exports.**
   - CSF Organizational Profile (NIST template columns)
   - action plan, evidence index and SOC 2 PBC list (CSV)
@@ -386,18 +521,53 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 5. Web (`apps/web`)
 
-- **Shell.** A rail with Mission control, Observatory, Plan, Evidence, Agents, Policies,
-  Profile, Crosswalk, SOC 2, RMF, AI governance, State AI laws, AI threats, Reports,
-  Organization and Settings. It also has a command palette
+The web client presents a light workspace with labeled navigation, readable
+status colors and a 2D path through every spatial view.
+
+- **Shell.** A 220px labeled sidebar groups the primary destinations under
+  Workspace, Explore and Manage. It includes Overview, My work, Action plan, Evidence,
+  Agents, Policies, Reports & trust, Observatory, CSF profile & tiers, Crosswalk
+  nexus, SOC 2 program, RMF program, AI governance, State AI laws, AI threats,
+  Organization and Settings. The shell also has a command palette
   (⌘K: search requirements or ask the copilot), a live approvals badge and toasts.
-  - Below 1024px the rail folds into a menu opened from the top bar (DESIGN.md › Layout)
-    and the inspector becomes a bottom sheet with a handle. Two-pane pages stack below
+  - The shell resolves URL ids or slugs before mounting workspace pages. Query
+    keys, writes, and SSE subscriptions use the canonical workspace id.
+    Connections refresh cached state when opened or reconnected. Live agent
+    activity clears on workspace or session changes; obsolete streams cannot
+    restore it. Failed workspace loads keep the URL and offer retry.
+  - The inspector's query and draft lifetime is keyed by workspace and
+    requirement. Owner changes use explicit Save/Cancel; dirty owner input
+    survives a same-requirement refresh or failed save. Selection changes reset
+    tabs and dialogs and suppress late callbacks from the previous selection.
+    Failed detail loads offer retry without consuming the requirement URL.
+    Mutation controls follow server capabilities, and a shared error handler
+    reports failures unless a hook supplies its own handler.
+  - Below 1024px the sidebar folds into a labeled menu opened from the top bar,
+    as described in [the design layout](../DESIGN.md#layout), and the inspector
+    becomes a bottom sheet with a handle. Two-pane pages stack below
     900px; Agents and Policies show one pane at a time. No page, panel or table scrolls
     sideways at 1024px or on a phone (the ATLAS matrix scrolls within itself): a table's
     secondary columns hide when its panel is narrow (container queries on `.table-box`)
     or the screen is a phone, the FIPS 199 editor becomes one card per row, and chart
     rows wrap.
   - Breakpoints live in `lib/media.ts` (`NARROW`, `PHONE`, `split()`) and `global.css`.
+- **Overview and action plan.** Overview groups the primary framework's
+  readiness, gaps, evidence coverage, and pending decisions above framework
+  cards and next actions. It shows placeholders while the workspace loads.
+  The action plan offers a framework filter, board, timeline, quick add,
+  generated tasks, and agent planning. On the board, a pending status move is
+  held by task ID and layered over query results so event-driven refreshes
+  cannot briefly restore the old column. The card shows a saving state and
+  cannot be dragged again until the request settles. A failed request clears
+  only that task's pending move, returns the card to its previous status, and
+  shows an error toast.
+- **Evidence.** The ledger loads metadata; opening an item loads a separate
+  detail snapshot for review. **Upload evidence** collects the file, title,
+  description, kind, dates, and linked requirements. It retains the draft on
+  failure and opens detail after verified publication. File detail shows the
+  name, size, media type, and hash, with **Download file** for local inspection.
+  Upload and review controls follow capabilities. Stored files are downloaded
+  as attachments rather than rendered in the page.
 - **Observatory.** Instanced hex prisms in two layouts:
   - *constellation*: radial sectors per top-level group
   - *readiness terrain*: a honeycomb
@@ -406,16 +576,15 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   satellites, evidence crystals and agent comets orbit the prisms. The five lenses
   recolor the scene without moving anything.
 
-  CameraControls fly to a selection. Bloom and vignette are applied under a performance
-  monitor. A selection compiles no shaders: the programs only the selection halo, its path
-  and agent comets use are compiled while the scene loads (the real components, drawn for
-  a few frames hidden inside the core, then kept hidden so their programs stay alive, and
-  drawn again when the performance monitor drops post-processing, since drawing straight
-  to the screen needs other programs), and
-  line points are memoized, because drei's `Line` disposes its material whenever its points
-  change and three.js then deletes the shared program. Units out of scope (an undecided law's obligations, controls outside the
-  baseline) shrink to small dots; nodes with no unit below them (ATLAS's mitigations)
-  stay in the outline and the inspector but take no place in the scene.
+  CameraControls fly to a selection. The light scene uses matte materials without
+  bloom or vignette. The selection halo, its path and agent comets warm their shader
+  programs while the scene loads: the real components draw for a few frames inside
+  the opaque core, then stay mounted so the first selection does not compile them.
+  Line points are memoized because drei's `Line` disposes its material when its
+  points change, which deletes the shared program in three.js. Units out of scope
+  (an undecided law's obligations, controls outside the baseline) shrink to small
+  dots; nodes with no unit below them (ATLAS's mitigations) stay in the outline
+  and inspector but take no place in the scene.
 
   *Labels* are drawn in screen space (`scene/ScreenLabels.tsx`): code-sm and label-caps
   at 11–13px, placed by priority whenever the camera moves, and hidden rather than drawn
@@ -432,26 +601,54 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   stage), and the legend collapses to the lens name and swatches.
 
   Below 1024px the outline opens over the scene; phones open the Observatory on its
-  outline with the 3D scene one tap away (DESIGN.md › Layout).
+  outline with the 3D scene one tap away, as described in
+  [the design layout](../DESIGN.md#layout).
 
-  The outline is a full 2D twin with tree semantics and keyboard control (←/→ siblings,
-  Enter drill in, Esc up, F frame, L lens, / filter). Deep links use `?select=`.
+  The outline is a full 2D twin with named, leveled tree rows and one managed tab
+  stop. Focus follows explicit tree navigation; deep links reveal ancestors
+  without taking focus from forms. Shortcuts run only on focused rows or the
+  canvas (arrows walk siblings, Enter drills in, Backspace/Escape goes up,
+  F frames, L changes lenses, / filters). Forms, HUD controls, modifiers, and
+  modals do not steer the scene. Deep links use `?select=`; requirement code
+  links and palette results navigate to that requirement's canonical workspace
+  and framework. Palette selection uses the URL rather than a delayed callback.
+
+  Shared tabs provide one selected tab stop, wrapping Left/Right and Home/End,
+  and stable tab/panel associations. Inactive panels retain their associations
+  while unmounting their content. `lib/modal.ts` manages dialog and palette
+  focus entry, Tab trapping, topmost Escape, and connected trigger restoration;
+  changing an onClose callback does not restart the focus lifetime.
 - **Crosswalk Nexus.** Frameworks sit as sectors on one ring and requirement groups as
   pillars. Pillar height is log(units) and color is group status. Arcs bundle the
   unit-level mappings, with width ∝ √count and a color gradient from the source
-  framework to the target. Selecting a group flies the camera behind it, animates its
-  arcs and lists every mapping with live status. A searchable group list is the
+  framework to the target. The home view aggregates counts by framework pair and
+  mapping set; selecting a group restores its exact group-to-group connections,
+  flies the camera behind it, and lists every mapping with live status. A searchable group list is the
   keyboard path. An inner **threat ring** holds ATLAS tactics, the OWASP entries and
   the NIST AI 100-2 objectives in neutral ink (threat catalogs have no identity hue);
   their pillars take the status color of their pooled coverage, and their arcs bundle
   the threat links onto requirement groups. A threat arc shows the status of its
-  strongest link: final solid, draft dashed, unreviewed dotted.
+  strongest link: final solid, draft dashed, unreviewed densely dotted, and
+  superseded sparsely dotted. Patterns restart at each relationship; selection
+  does not animate them. Parallel publication sets use separate curve lanes.
 
   Labels use the same screen-space layer (framework names with an identity swatch, the
   threat ring's codes once a pillar is in focus) and the camera frames the ring around
-  the HUD. Arcs are batched into a few draw calls by width, opacity and dash style (the
-  focused pillar's arcs are drawn again on top). Below 1024px the scene and its details
+  the HUD. Arcs are batched into a few draw calls by width and dash style.
+  Pillars and their footprints use one instanced field per shape; sector grounds
+  and rails are batched. Focus dims instance colors without transparent sorting. Focusing
+  a pillar hides unrelated arcs and draws its own links in framework color. Below
+  1024px the scene and its details
   stack as one scrolling page.
+- **Demand rendering.** Both 3D canvases stop drawing when idle. Camera controls,
+  height transitions, and active agent work request frames while moving. DOM
+  mutation, resize, scroll, and font observers wake labels and camera framing
+  when panels change. Scene label writes are excluded from mutation wakeups.
+  Camera deltas are capped after idle so a new flight still eases in. Completed
+  agent runs remove comet subscriptions. Use `node scripts/scene-profile.ts
+  --url http://localhost:8787 --out .screens/profile.json` against a seeded
+  development server to count WebGL draw calls and idle frames with SwiftShader;
+  these counts do not measure hardware GPU frame rate.
 - **Threat views.** The Threats page shows the ATLAS matrix (tactics as columns,
   techniques colored by coverage, with glyphs), the OWASP LLM Top 10 by edition, the
   OWASP Agentic Top 10 and the NIST AI 100-2 attacks by objective. A link filter (all
@@ -474,17 +671,27 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   - *SOC 2*: scope, observation window, DC 200 checklist, readiness by series
   - *RMF*: lifecycle, FIPS 199, tailoring, authorization, readiness by family
 - **Build.** Vite (rolldown) splits the bundle with code-splitting groups: packages in
-  `vendor`, the 3D stack (three.js, react-three-fiber, drei, postprocessing) in `three`,
+  `vendor`, the 3D stack (three.js, react-three-fiber, drei) in `three`,
   loaded only by the Observatory and the Nexus. Pages are lazy routes.
 - **Design system.** All colors, type, spacing, radii and component tokens come from
   `DESIGN.md`, compiled by `packages/design` into CSS variables and typed tokens.
+  The palette uses a warm porcelain canvas, white surfaces, forest ink and sage
+  interaction color.
   - Status colors are semantic and always come with a glyph.
   - Framework hues identify frameworks.
-  - Aurora Violet is reserved for AI.
+  - Terracotta is reserved for AI activity and actions.
+
+`GET /api/workspaces/:ws/members` exposes member IDs and names within the workspace
+access boundary. `GET /api/workspaces/:ws/my-work` matches assignments to the
+signed-in user's stable ID, never to a display label or API-token actor. The web
+query key includes workspace and principal identity. Task and state events
+invalidate personal work as well as the corresponding shared views. Task detail
+forms keep explicit Save/Cancel drafts per workspace/task; same-task refreshes
+preserve edited fields, while switching tasks discards them.
 
 ## 6. Testing
 
-- `packages/*/test`, `apps/server/test` and `apps/web/test` (Vitest, 202 tests):
+- `packages/*/test`, `apps/server/test` and `apps/web/test` (Vitest):
   - official counts and citations
   - identifier normalization
   - the SOC 2 skeleton and the licensed overlay
@@ -492,6 +699,14 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   - API flows: onboarding, RMF categorize/tailor/OSCAL, SOC 2 scoping and DC 200,
     Nexus bundles
   - all eight offline agents, autonomy, connectors, evidence hashing
+  - file evidence (`evidence-files.test.ts`, `evidence-content.test.ts`): upload
+    and download access, immutable references, byte verification, stale review
+    scope, authorization changes during I/O, failed-publication cleanup, and
+    migration 6 body separation with unchanged approvals and audit history
+  - private blob adapters (`blob-store.test.ts`): local persistence and file
+    integrity, tenant/workspace isolation, bounded reads, and S3-compatible
+    PUT/GET/DELETE through actual SDK-signed requests to a mock HTTP service;
+    these tests do not deploy to or validate an actual cloud provider
   - integrity guardrails: N/A rationale, scope preservation (documented exclusions
     survive every scope change), audit-chain tamper detection, no plan-as-evidence, and
     assessments refused on threat catalogs, frameworks a workspace has not enabled and
@@ -545,18 +760,21 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     previous one (the camera controls leave its world matrix to the renderer), and shown
     and hidden by opacity, a compositor change, so a busy machine never draws new
     positions over old raster
-- `e2e/` (Playwright, 22 tests) runs against the production bundle served by the API,
-  with an in-memory seeded database and WebGL on SwiftShader. It covers Home and Mission
-  control's program links, the Observatory and its 2D twin, the Nexus, RMF, SOC 2, AI
-  governance, an agent run with citations, the trust center and its per-framework
+- `e2e/` (Playwright, 21 tests) runs against the production bundle served by the API,
+  with an in-memory seeded database and WebGL on SwiftShader. It covers the
+  Overview and its program links, the Observatory and its 2D twin, the Nexus,
+  RMF, SOC 2, AI governance, an agent run with citations, the trust center and
+  its per-framework
   choice, persona sign-in, a viewer's read-only view, tenant separation, organization
   administration, the threat views (ATLAS matrix and its keyboard navigation, the
   coverage inspector and its link filter, OWASP editions, the Nexus threat ring), a
-  threat catalog in the Observatory, no shader compiled by a selection in the Observatory (with post-processing and after slow frames drop it), the State AI laws page (roles deciding scope, the
+  threat catalog in the Observatory, no shader compiled by a selection in the
+  Observatory, the State AI laws page (roles deciding scope, the
   timeline and its list view, obligations in 3D), and layout: labels in the 3D scenes
   stay inside the canvas and clear of the HUD and of each other at 1440 and 1024
-  pixels, the rail folds into a menu on a phone, no page, panel or table scrolls sideways
-  at 1024 pixels or on a phone, and the Observatory opens on its outline on a phone.
+  pixels, the sidebar folds into a menu on a phone, no page, panel or table
+  scrolls sideways at 1024 pixels or on a phone, and the Observatory opens on
+  its outline on a phone.
 - `pnpm screens` (`scripts/screens.ts`) photographs every view at 1440×900, 1024×768
   and 390×844 into the git-ignored `.screens/` folder, with a contact sheet and a
   report of horizontal overflow and console errors; `--docs` regenerates the README
@@ -564,6 +782,10 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 7. Known limitations
 
+- File cleanup before publication is best effort; uncertain commit outcomes
+  retain bytes. Both can leave orphan files. Workspace deletion removes metadata and inline SQL bodies but retains
+  physical blobs. Operators manage retention and garbage collection; Visua
+  does not provision S3 buckets or their policies and lifecycle rules.
 - Domains grandfathered by the upgrade, or trusted while `VISUA_SSO_DOMAIN_VERIFICATION=off`,
   were never proven and are never re-checked; on a shared installation, ask their
   organizations to remove and verify them again. Domains proven by DNS are re-checked

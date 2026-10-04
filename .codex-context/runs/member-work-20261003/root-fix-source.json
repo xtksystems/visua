@@ -1,0 +1,10 @@
+{
+  "reason": "Root corrected exact accessible search name, UTC calendar due-day boundary, evidence/check personal-work invalidation; added calendar core and completed/mobile/link-remove/live-evidence regressions. Licensing worker owns separate changes. Initial review snapshot retained.",
+  "files": {
+    "apps/web/src/pages/PlanPage.tsx": "f5b593e91ac9e24bfec37058226d966ea0b58fa143514194b7977517e7a6c8ad",
+    "apps/web/src/lib/events.ts": "b7886cc808303f93b5e90b26c10cb73c085d87ffec6bbe2d5ca0e91fb4f486c3",
+    "packages/core/src/status.ts": "1b9c1f2ebf40e36fc0c1578d4cf28702ba349e20ae18279a26c8c7eccac8cabe",
+    "packages/core/test/core.test.ts": "76c56c24410dfb536febb723bcdb3489c3d317d803a77037221ab2140979c448",
+    "e2e/member-work.spec.ts": "bad7700c213cc56ea0b32f5a6371c3f108efc098ce9fd2b7675edb74118d6b0a"
+  }
+}

@@ -4,11 +4,13 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { evidenceReviewScope, type Evidence } from "@visua/core";
 import { FrameworkRegistry, REPO_ROOT } from "@visua/frameworks";
 import { createApp } from "../src/app.ts";
 import { loadAuthConfig } from "../src/auth/config.ts";
 import { AuthService } from "../src/auth/service.ts";
 import { CONNECTOR_KINDS } from "../src/connectors/index.ts";
+import { CONNECTOR_CONCURRENCY, withConnectorBudget } from "../src/connectors/limits.ts";
 import { createService } from "../src/context.ts";
 import { seedDemo } from "../src/seed/demo.ts";
 import { lawsOverview } from "../src/services/laws.ts";
@@ -730,12 +732,33 @@ describe("evidence, monitoring and exports", () => {
   it("runs the repository hygiene connector against this repository", async () => {
     const con = await api<{ id: string }>("POST", `/api/workspaces/${wsId}/connectors`, { kind: "repo-scan", config: { path: REPO_ROOT } });
     expect(con.status).toBe(201);
-    const results = await api<{ checkId: string; outcome: string; requirementIds: string[] }[]>("POST", `/api/workspaces/${wsId}/connectors/${con.json.id}/run`);
+    const results = await api<{ checkId: string; outcome: string; requirementIds: string[]; observed: { complete?: boolean; findings?: unknown[] } }[]>("POST", `/api/workspaces/${wsId}/connectors/${con.json.id}/run`);
     expect(results.json.find((r) => r.checkId === "lockfile")?.outcome).toBe("pass");
-    expect(results.json.find((r) => r.checkId === "secrets")?.outcome).toBe("pass");
+    const secrets = results.json.find((r) => r.checkId === "secrets")!;
+    expect(secrets.observed.findings).toEqual([]);
+    // Generated framework JSON can exceed the per-file limit; partial scans cannot pass.
+    expect(secrets.outcome).toBe(secrets.observed.complete ? "pass" : "warn");
     expect(results.json.some((r) => r.requirementIds.length > 0)).toBe(true);
     // A person's run files each passing, linked check as machine-verified evidence.
     for (const r of results.json.filter((x) => x.outcome === "pass" && x.requirementIds.length)) expect(r).toHaveProperty("evidenceId");
+  });
+
+  it("returns 503 and records an audited failure when connector capacity is full", async () => {
+    const con = await api<{ id: string }>("POST", `/api/workspaces/${wsId}/connectors`, { kind: "repo-scan", name: "Capacity check", config: { path: REPO_ROOT } });
+    let finish!: () => void;
+    const held = new Promise<void>((resolve) => { finish = resolve; });
+    const running = Array.from({ length: CONNECTOR_CONCURRENCY }, () => withConnectorBudget(() => held));
+    try {
+      const rejected = await api<{ error: string }>("POST", `/api/workspaces/${wsId}/connectors/${con.json.id}/run`);
+      expect(rejected.status).toBe(503);
+      expect(rejected.json.error).toMatch(/already active/);
+      const activity = await api<{ summary: string }[]>("GET", `/api/workspaces/${wsId}/activity?limit=1`);
+      expect(activity.json[0]!.summary).toMatch(/^Connector “Capacity check” failed/);
+      expect((await api<{ valid: boolean }>("GET", `/api/workspaces/${wsId}/activity/verify`)).json.valid).toBe(true);
+    } finally {
+      finish();
+      await Promise.all(running);
+    }
   });
 
   it("has an agent propose its passing checks as evidence, filed from the recorded check on approval", async () => {
@@ -798,14 +821,14 @@ describe("evidence, monitoring and exports", () => {
   });
 
   it("accepts uploaded evidence with a content hash and review", async () => {
-    const ev = await api<{ id: string; sha256: string; status: string }>("POST", `/api/workspaces/${wsId}/evidence`, { title: "Access review Q3", kind: "attestation", requirementIds: ["PR.AA-05"], content: "Reviewed 42 accounts; 3 removed." });
+    const ev = await api<Evidence>("POST", `/api/workspaces/${wsId}/evidence`, { title: "Access review Q3", kind: "attestation", requirementIds: ["PR.AA-05"], content: "Reviewed 42 accounts; 3 removed." });
     expect(ev.json.sha256).toHaveLength(64);
     expect(ev.json.status).toBe("pending-review");
-    const reviewed = await api<{ status: string }>("PATCH", `/api/workspaces/${wsId}/evidence/${ev.json.id}`, { decision: "accepted" });
+    const reviewed = await api<{ status: string }>("PATCH", `/api/workspaces/${wsId}/evidence/${ev.json.id}`, { decision: "accepted", expectedScope: evidenceReviewScope(ev.json) });
     expect(reviewed.json.status).toBe("accepted");
     // Changing one field leaves the others as they were.
     const extended = await api<{ title: string; requirementIds: string[]; validUntil: string }>("PATCH", `/api/workspaces/${wsId}/evidence/${ev.json.id}`, { validUntil: "2027-12-31" });
-    expect(extended.json).toMatchObject({ title: "Access review Q3", requirementIds: ["nist-csf-2.0:PR.AA-05"], validUntil: "2027-12-31" });
+    expect(extended.json).toMatchObject({ title: "Access review Q3", requirementIds: ["nist-csf-2.0:PR.AA-05"], validUntil: "2027-12-31T23:59:59.999Z", status: "pending-review" });
   });
 
   it("exports the CSF Organizational Profile with the official template columns", async () => {
@@ -884,7 +907,7 @@ describe("demo seed", () => {
   beforeAll(async () => {
     await seedDemo(svc, auth);
     await morgan.devLogin("morgan.lee@northwind-health.example");
-  });
+  }, 60_000); // The seed performs two repository scans, each bounded at 15 seconds.
   it("creates a realistic, deterministic demo workspace", async () => {
     const res = await morgan.get<{ workspace: { name: string }; frameworks: { id: string; readiness: number }[]; approvals: number; access: { role: string } }>("/api/workspaces/northwind-health");
     expect(res.json.access.role).toBe("owner");

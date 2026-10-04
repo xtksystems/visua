@@ -1,0 +1,19 @@
+{
+  "run_id": "selection-roles-20261003",
+  "node_id": "selection-fix-review",
+  "input_sha256": "6df36f0758058eb66f16aaf607d0fd302bdfed18e085e428ed4315acd54e7725",
+  "status": "complete",
+  "summary": "All four original findings are fixed by source inspection; no remaining supported findings in the bounded affected flows. All 61 pins matched start/end, and the root-owned log reports 8 passing regressions.",
+  "evidence": [
+    "selection-fix-review.json: complete/pass adversarial review with fixed finding dispositions and concrete coverage.",
+    "selection-fix-review-evidence.json: start/end source binding and root regression-log provenance.",
+    "review-regressions-after.log: eight affected-flow cases passed; execution belongs to root.",
+    "Report sha256: 6022251e328b781441e8d4e9e1d54687a0f53a1cae06a14c103813a168005a0d",
+    "Evidence sha256: 66e9d59d7268f43c9c9c1dd333369bbdc0c7e766d0bcdbbc1d6acbd8b448fbe1"
+  ],
+  "limitations": [
+    "This is an adjudication follow-up with inherited original findings and intended fixes, not a fresh generic independent review.",
+    "Reviewer performed source analysis and artifact inspection only; no builds, tests, server/browser execution or external-provider calls were run by this reviewer. The root-supplied regression log reports 8 passed; this review did not independently establish its built-bundle digest.",
+    "Full project check is owned by root and was not assessed in this bounded affected-flow review. Runtime provider/model identity remains unknown."
+  ]
+}

@@ -58,6 +58,9 @@ export interface AuthConfig {
 const DEV_SECRET = "visua-development-secret-do-not-use-in-production";
 
 export function loadAuthConfig(env: NodeJS.ProcessEnv = process.env): AuthConfig {
+  if (env["VISUA_AUTH_MODE"] !== undefined && !["dev", "oidc"].includes(env["VISUA_AUTH_MODE"])) {
+    throw new Error("VISUA_AUTH_MODE must be dev or oidc.");
+  }
   const production = env["NODE_ENV"] === "production";
   const mode: AuthMode = env["VISUA_AUTH_MODE"] === "dev" ? "dev" : env["VISUA_AUTH_MODE"] === "oidc" || production ? "oidc" : "dev";
   if (production && mode === "dev") throw new Error("VISUA_AUTH_MODE=dev is refused when NODE_ENV=production: developer sign-in has no password.");

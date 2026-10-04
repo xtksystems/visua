@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { lazy, Suspense, useEffect, type ReactNode } from "react";
-import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { QueryError } from "./components/ui/QueryError.tsx";
 import { Shell } from "./components/shell/Shell.tsx";
 import { onUnauthorized } from "./lib/api.ts";
 import { meKey, useMe } from "./lib/auth.ts";
@@ -11,6 +12,7 @@ import { LoginPage } from "./pages/LoginPage.tsx";
 const ObservatoryPage = lazy(() => import("./pages/ObservatoryPage.tsx").then((m) => ({ default: m.ObservatoryPage })));
 const HomePage = lazy(() => import("./pages/HomePage.tsx").then((m) => ({ default: m.HomePage })));
 const PlanPage = lazy(() => import("./pages/PlanPage.tsx").then((m) => ({ default: m.PlanPage })));
+const MyWorkPage = lazy(() => import("./pages/MyWorkPage.tsx").then((m) => ({ default: m.MyWorkPage })));
 const EvidencePage = lazy(() => import("./pages/EvidencePage.tsx").then((m) => ({ default: m.EvidencePage })));
 const AgentsPage = lazy(() => import("./pages/AgentsPage.tsx").then((m) => ({ default: m.AgentsPage })));
 const PoliciesPage = lazy(() => import("./pages/PoliciesPage.tsx").then((m) => ({ default: m.PoliciesPage })));
@@ -28,15 +30,16 @@ const TrustPage = lazy(() => import("./pages/TrustPage.tsx").then((m) => ({ defa
 const OrganizationPage = lazy(() => import("./pages/OrganizationPage.tsx").then((m) => ({ default: m.OrganizationPage })));
 
 function Landing() {
-  const { data, isLoading } = useWorkspaces();
+  const { data, isLoading, error, refetch } = useWorkspaces();
   const me = useMe();
   const navigate = useNavigate();
   const canCreate = !!me.data?.activeTenant?.capabilities.includes("workspace.configure");
   useEffect(() => {
-    if (isLoading || !data) return;
+    if (isLoading || error || !data) return;
     if (data.length) navigate(`/w/${data[0]!.workspace.slug}`, { replace: true });
     else if (canCreate) navigate("/onboarding", { replace: true });
-  }, [data, isLoading, navigate, canCreate]);
+  }, [data, isLoading, error, navigate, canCreate]);
+  if (error) return <QueryError title="Unable to load workspaces" error={error} retry={() => refetch()} />;
   if (data && !data.length && !canCreate) {
     return (
       <div className="login">
@@ -57,6 +60,7 @@ function RequireSignIn({ children }: { children: ReactNode }) {
   const location = useLocation();
   useEffect(() => onUnauthorized(() => qc.setQueryData(meKey, null)), [qc]);
   if (me.isLoading) return <div className="page muted">Loading Visua…</div>;
+  if (me.error) return <QueryError title="Unable to check your session" error={me.error} retry={() => me.refetch()} />;
   if (!me.data) return <Navigate to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`} replace />;
   return <>{children}</>;
 }
@@ -77,6 +81,7 @@ export function App() {
             <Route path="observatory" element={<ObservatoryPage />} />
             <Route path="observatory/:fw" element={<ObservatoryPage />} />
             <Route path="plan" element={<PlanPage />} />
+            <Route path="my-work" element={<MyWorkPage />} />
             <Route path="evidence" element={<EvidencePage />} />
             <Route path="agents" element={<AgentsPage />} />
             <Route path="agents/:runId" element={<AgentsPage />} />
@@ -93,7 +98,7 @@ export function App() {
             <Route path="settings" element={<SettingsPage />} />
             <Route path="organization" element={<OrganizationPage />} />
           </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<div className="page stack" role="alert"><h1>Page not found</h1><p className="muted">This destination is unavailable.</p><Link className="btn" to="/">Workspaces</Link></div>} />
         </Routes>
       </Suspense>
     </BrowserRouter>

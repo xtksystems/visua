@@ -147,4 +147,20 @@ describe("the re-check ticker", () => {
     expect(logged[0]).toContain("database gone");
     stop();
   });
+
+  it("waits for an active lookup when stopped and schedules no more lookups", async () => {
+    vi.useFakeTimers();
+    let release!: () => void;
+    const run = vi.fn(() => new Promise<void>((done) => { release = done; }));
+    const stop = startDomainRechecks(run, { firstMs: 1, everyMs: 10 });
+    await vi.advanceTimersByTimeAsync(1);
+    let drained = false;
+    const stopping = stop().then(() => { drained = true; });
+    await vi.advanceTimersByTimeAsync(100);
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(drained).toBe(false);
+    release();
+    await stopping;
+    expect(drained).toBe(true);
+  });
 });

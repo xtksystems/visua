@@ -1,0 +1,17 @@
+{
+  "run_id": "member-work-20261003",
+  "node_id": "final-review",
+  "input_sha256": "59c503a039597c815972de6a2f48a06388f279b43dbf86886e38b7bf1fc30026",
+  "status": "complete",
+  "summary": "No supported remaining finding within the final locator/provenance/task-projection and legacy-date-label scope. Exact nonempty source locator plus document and optional page now prevents the same-document/different-criterion fallback bypass. All 32 pinned sources remained unchanged during this final pass.",
+  "evidence": [
+    "final-review.json",
+    "final-review-source-check.json",
+    "Eight synthetic licensing scenarios across list_tasks/workspaceContext/get_requirement; offline/permitted bypass and two date display cases."
+  ],
+  "limitations": [
+    "Narrow final affected-path adjudication with inherited first-pass findings; this is not a fresh whole-package review.",
+    "Executed only read-only source inspection and pure synthetic in-memory fixtures. Broad server/browser/integration acceptance is owned by root; this reviewer did not run builds, servers, browser tests, network/model calls, Git operations, or source edits.",
+    "Lost provenance cannot be reconstructed when neither original source classification nor available historical licensed node text remains; the reviewed fixes conservatively cover retained classified source and available historical content IDs."
+  ]
+}

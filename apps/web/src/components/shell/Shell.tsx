@@ -1,4 +1,4 @@
-/** App shell: nav rail, top bar, command palette, toasts, live events. */
+/** App shell: labeled sidebar, top bar, command palette, toasts, live events. */
 import {
   Activity,
   BookCheck,
@@ -24,15 +24,18 @@ import {
   Telescope,
   Waypoints,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 import { api, setCsrfToken } from "../../lib/api.ts";
-import { ROLE_NAMES, useMe, useResetSession } from "../../lib/auth.ts";
+import { ROLE_NAMES, useCan, useMe, useResetSession } from "../../lib/auth.ts";
 import { initials } from "../../pages/LoginPage.tsx";
 import { useWorkspaceEvents } from "../../lib/events.ts";
 import { truncate } from "../../lib/format.ts";
+import { useModalFocus } from "../../lib/modal.ts";
 import { allFrameworks, threatCatalogs } from "../../lib/frameworks.ts";
-import { useMeta, useSearch, useWorkspace, useWorkspaces } from "../../lib/queries.ts";
+import { useMeta, useSearch, useWorkspace, useWorkspaceRoute, useWorkspaces } from "../../lib/queries.ts";
+import { WorkspaceContext, useWorkspaceId } from "../../lib/workspace.ts";
+import { QueryError } from "../ui/QueryError.tsx";
 import { useAgentActivity } from "../../state/agentActivity.ts";
 import { useUi } from "../../state/ui.ts";
 import { AgentBadge, FrameworkBadge, Logo, toast, Toasts } from "../ui/index.tsx";
@@ -41,7 +44,7 @@ function RailItem({ to, icon, label, badge, end }: { to: string; icon: ReactNode
   return (
     <NavLink to={to} end={end} className="rail__item" aria-label={label} title={label}>
       {icon}
-      {/* Shown when the rail opens as a menu below 1024px, where there are no tooltips on touch. */}
+      {/* Keep destinations visible on desktop and in the mobile menu. */}
       <span className="rail__label" aria-hidden>
         {label}
       </span>
@@ -52,29 +55,40 @@ function RailItem({ to, icon, label, badge, end }: { to: string; icon: ReactNode
 
 function NavRail({ ws, approvals }: { ws: string; approvals: number }) {
   const base = `/w/${ws}`;
-  const s = 20;
+  const s = 18;
   return (
     <nav className="rail" id="primary-nav" aria-label="Primary">
       <Link to={base} className="rail__logo" aria-label="Visua home">
-        <Logo />
+        <span className="rail__mark"><Logo size={28} /></span>
+        <span className="rail__wordmark">visua<span className="rail__wordmark-dot">.</span></span>
       </Link>
-      <RailItem to={base} end icon={<LayoutDashboard size={s} />} label="Mission control" />
-      <RailItem to={`${base}/observatory`} icon={<Telescope size={s} />} label="Observatory (3D)" />
-      <RailItem to={`${base}/plan`} icon={<ClipboardList size={s} />} label="Plan & tasks" />
-      <RailItem to={`${base}/evidence`} icon={<BookCheck size={s} />} label="Evidence & monitoring" />
-      <RailItem to={`${base}/agents`} icon={<Bot size={s} />} label="Agents & approvals" badge={approvals} />
-      <RailItem to={`${base}/policies`} icon={<FileText size={s} />} label="Policies" />
-      <RailItem to={`${base}/profile`} icon={<Waypoints size={s} />} label="CSF profile & tiers" />
-      <RailItem to={`${base}/crosswalk`} icon={<GitCompareArrows size={s} />} label="Crosswalk nexus" />
-      <RailItem to={`${base}/soc2`} icon={<ShieldCheck size={s} />} label="SOC 2 program" />
-      <RailItem to={`${base}/rmf`} icon={<Network size={s} />} label="RMF program" />
-      <RailItem to={`${base}/ai`} icon={<BrainCircuit size={s} />} label="AI governance (AI RMF)" />
-      <RailItem to={`${base}/laws`} icon={<Scale size={s} />} label="State AI laws" />
-      <RailItem to={`${base}/threats`} icon={<Radar size={s} />} label="AI threats (ATLAS, OWASP)" />
-      <RailItem to={`${base}/reports`} icon={<Activity size={s} />} label="Reports, audit trail & trust" />
+      <div className="rail__group">
+        <span className="rail__section">Workspace</span>
+        <RailItem to={base} end icon={<LayoutDashboard size={s} />} label="Overview" />
+        <RailItem to={`${base}/plan`} icon={<ClipboardList size={s} />} label="Action plan" />
+        <RailItem to={`${base}/my-work`} icon={<Users size={s} />} label="My work" />
+        <RailItem to={`${base}/evidence`} icon={<BookCheck size={s} />} label="Evidence" />
+        <RailItem to={`${base}/agents`} icon={<Bot size={s} />} label="Agents" badge={approvals} />
+        <RailItem to={`${base}/policies`} icon={<FileText size={s} />} label="Policies" />
+        <RailItem to={`${base}/reports`} icon={<Activity size={s} />} label="Reports & trust" />
+      </div>
+      <div className="rail__group">
+        <span className="rail__section">Explore</span>
+        <RailItem to={`${base}/observatory`} icon={<Telescope size={s} />} label="Observatory" />
+        <RailItem to={`${base}/profile`} icon={<Waypoints size={s} />} label="CSF profile & tiers" />
+        <RailItem to={`${base}/crosswalk`} icon={<GitCompareArrows size={s} />} label="Crosswalk nexus" />
+        <RailItem to={`${base}/soc2`} icon={<ShieldCheck size={s} />} label="SOC 2 program" />
+        <RailItem to={`${base}/rmf`} icon={<Network size={s} />} label="RMF program" />
+        <RailItem to={`${base}/ai`} icon={<BrainCircuit size={s} />} label="AI governance" />
+        <RailItem to={`${base}/laws`} icon={<Scale size={s} />} label="State AI laws" />
+        <RailItem to={`${base}/threats`} icon={<Radar size={s} />} label="AI threats" />
+      </div>
       <span className="rail__spacer" />
-      <RailItem to={`${base}/organization`} icon={<Building2 size={s} />} label="Organization: members, SSO & API tokens" />
-      <RailItem to={`${base}/settings`} icon={<Settings size={s} />} label="Settings" />
+      <div className="rail__group rail__group--footer">
+        <span className="rail__section">Manage</span>
+        <RailItem to={`${base}/organization`} icon={<Building2 size={s} />} label="Organization" />
+        <RailItem to={`${base}/settings`} icon={<Settings size={s} />} label="Settings" />
+      </div>
     </nav>
   );
 }
@@ -208,9 +222,9 @@ function TopBar({ ws }: { ws: string }) {
           {data?.frameworks.map((f) => <FrameworkBadge key={f.id} frameworkId={f.id} />)}
         </span>
       </div>
-      <button className="topbar__search" onClick={() => openPalette()} aria-label="Search or ask the copilot">
+      <button className="topbar__search" onClick={() => openPalette()} aria-label={readOnly ? "Search requirements" : "Search or ask the copilot"}>
         <Search size={15} />
-        <span className="topbar__search-text">Search requirements or ask the copilot…</span>
+        <span className="topbar__search-text">{readOnly ? "Search requirements…" : "Search requirements or ask the copilot…"}</span>
         <span className="kbd">⌘K</span>
       </button>
       <AgentPulse ws={ws} />
@@ -240,28 +254,36 @@ interface PaletteItem {
 }
 
 function CommandPalette({ ws }: { ws: string }) {
+  const workspaceId = useWorkspaceId();
+  const canWrite = useCan("work.write");
+  const canConfigure = useCan("workspace.configure");
   const open = useUi((s) => s.paletteOpen);
   const initial = useUi((s) => s.paletteQuery);
   const close = useUi((s) => s.closePalette);
-  const focus = useUi((s) => s.focus);
   const navigate = useNavigate();
   const [q, setQ] = useState(initial);
   const [active, setActive] = useState(0);
+  const [passage, setPassage] = useState<{ quote: string; documentTitle: string; page?: number } | null>(null);
   const input = useRef<HTMLInputElement>(null);
+  const dialog = useRef<HTMLDivElement>(null);
+  const paletteId = useId();
+  const listId = `${paletteId}-results`;
   const search = useSearch(q);
+  useModalFocus(dialog, close, { open, initialFocusRef: input });
 
   useEffect(() => {
     if (open) {
       setQ(initial);
       setActive(0);
-      setTimeout(() => input.current?.focus(), 10);
+      setPassage(null);
     }
   }, [open, initial]);
 
   const ask = async (agent: string, goal: string, input: Record<string, unknown> = {}) => {
+    if (!canWrite) return;
     close();
     try {
-      await api.post(`/workspaces/${encodeURIComponent(ws)}/runs`, { agent, goal, input });
+      await api.post(`/workspaces/${encodeURIComponent(workspaceId)}/runs`, { agent, goal, input });
       toast(`${agent === "copilot" ? "Copilot" : agent} is working on it — follow along in Agents.`, "agent");
       navigate(`/w/${ws}/agents`);
     } catch (err) {
@@ -272,10 +294,11 @@ function CommandPalette({ ws }: { ws: string }) {
   const items = useMemo<PaletteItem[]>(() => {
     const out: PaletteItem[] = [];
     const text = q.trim();
-    if (text.length > 2) {
+    const results = text.length >= 2 && !search.isPlaceholderData ? search.data : undefined;
+    if (canWrite && text.length > 2) {
       out.push({ key: "ask", group: "Copilot", label: <span>Ask the copilot: “{truncate(text, 70)}”</span>, hint: "↵", run: () => void ask("copilot", text) });
     }
-    for (const n of search.data?.nodes ?? []) {
+    for (const n of results?.nodes ?? []) {
       out.push({
         key: n.id,
         group: "Requirements",
@@ -290,12 +313,11 @@ function CommandPalette({ ws }: { ws: string }) {
         ),
         run: () => {
           close();
-          navigate(`/w/${ws}/observatory/${n.framework}`);
-          setTimeout(() => focus([n.id]), 60);
+          navigate(`/w/${workspaceId}/observatory/${n.framework}?select=${encodeURIComponent(n.id)}`);
         },
       });
     }
-    for (const p of (search.data?.passages ?? []).slice(0, 3)) {
+    for (const p of (results?.passages ?? []).slice(0, 3)) {
       out.push({
         key: `${p.documentId}-${p.page}-${p.quote.slice(0, 10)}`,
         group: "Official corpus",
@@ -308,14 +330,15 @@ function CommandPalette({ ws }: { ws: string }) {
             </span>
           </span>
         ),
-        run: () => void ask("copilot", text || p.quote),
+        run: () => setPassage(p),
       });
     }
     const base = `/w/${ws}`;
     const nav: [string, string][] = [
-      ["Mission control", base],
+      ["Overview", base],
       ...allFrameworks().map((f): [string, string] => [`Observatory — ${f.shortName}${f.family === "threat" ? " coverage in 3D" : ""}`, `${base}/observatory/${f.id}`]),
       ["Plan & tasks", `${base}/plan`],
+      ["My work", `${base}/my-work`],
       ["Evidence & monitoring", `${base}/evidence`],
       ["Agents & approvals", `${base}/agents`],
       ["Policies", `${base}/policies`],
@@ -327,7 +350,7 @@ function CommandPalette({ ws }: { ws: string }) {
       ["State AI laws", `${base}/laws`],
       ...threatCatalogs().map((f): [string, string] => [`AI threats — ${f.name}`, `${base}/threats/${f.id}`]),
       ["Reports & trust center", `${base}/reports`],
-      ["New workspace", "/onboarding"],
+      ...(canConfigure ? [["New workspace", "/onboarding"] as [string, string]] : []),
     ];
     for (const [label, to] of nav) {
       if (text && !label.toLowerCase().includes(text.toLowerCase())) continue;
@@ -341,50 +364,68 @@ function CommandPalette({ ws }: { ws: string }) {
       ["crosswalk-analyst", "Project our CSF progress onto other frameworks", "Crosswalk Analyst"],
     ];
     for (const [agent, goal, name] of agents) {
+      if (!canWrite) continue;
       if (text && !`${name} ${goal}`.toLowerCase().includes(text.toLowerCase())) continue;
       out.push({ key: `agent-${agent}`, group: "Run an agent", label: <span className="row"><AgentBadge label={name} /> {goal}</span>, run: () => void ask(agent, goal) });
     }
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, search.data, ws]);
+  }, [q, search.data, search.isPlaceholderData, ws, workspaceId, canWrite, canConfigure]);
+
+  const activeIndex = Math.max(0, Math.min(active, items.length - 1));
+  useEffect(() => {
+    if (open && items.length) document.getElementById(`${listId}-${activeIndex}`)?.scrollIntoView({ block: "nearest" });
+  }, [open, activeIndex, items, listId]);
 
   if (!open) return null;
   const onKey = (e: React.KeyboardEvent) => {
+    if (e.nativeEvent.isComposing) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setActive((a) => Math.min(items.length - 1, a + 1));
+      setActive(Math.min(Math.max(0, items.length - 1), activeIndex + 1));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setActive((a) => Math.max(0, a - 1));
+      setActive(Math.max(0, activeIndex - 1));
     } else if (e.key === "Enter") {
       e.preventDefault();
-      items[active]?.run();
-    } else if (e.key === "Escape") close();
+      items[activeIndex]?.run();
+    }
   };
   let lastGroup = "";
   return (
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && close()}>
-      <div className="palette" role="dialog" aria-label="Command palette">
+      <div ref={dialog} tabIndex={-1} className="palette" role="dialog" aria-modal="true" aria-label="Command palette">
         <input
           ref={input}
           className="palette__input"
-          placeholder="Search GV.OC-01, CC6.1, AC-2… or ask anything"
+          placeholder={canWrite ? "Search GV.OC-01, CC6.1, AC-2… or ask anything" : "Search GV.OC-01, CC6.1, AC-2…"}
           value={q}
           onChange={(e) => {
             setQ(e.target.value);
             setActive(0);
+            setPassage(null);
           }}
           onKeyDown={onKey}
-          aria-activedescendant={items[active]?.key}
+          role="combobox"
+          aria-label="Search requirements and commands"
+          aria-autocomplete="list"
+          aria-expanded="true"
+          aria-controls={listId}
+          aria-activedescendant={items.length ? `${listId}-${activeIndex}` : undefined}
         />
-        <div className="palette__list" role="listbox">
+        {passage && <section className="panel stack" aria-label="Official passage" style={{ margin: 12 }}>
+          <strong>{passage.documentTitle}{passage.page ? `, p. ${passage.page}` : ""}</strong>
+          <blockquote style={{ margin: 0 }}>{passage.quote}</blockquote>
+          <button className="btn btn--quiet" onClick={() => setPassage(null)}>Close passage</button>
+        </section>}
+        <div id={listId} className="palette__list" role="listbox" aria-label="Requirements and commands">
           {items.map((item, i) => {
             const header = item.group !== lastGroup ? <div className="palette__group eyebrow">{item.group}</div> : null;
             lastGroup = item.group;
             return (
               <div key={item.key}>
                 {header}
-                <button id={item.key} role="option" aria-selected={i === active} className="palette__item" onMouseEnter={() => setActive(i)} onClick={() => item.run()}>
+                <button id={`${listId}-${i}`} tabIndex={-1} role="option" aria-selected={i === activeIndex} className="palette__item" onMouseEnter={() => setActive(i)} onClick={() => item.run()}>
                   {item.label}
                   {item.hint ? <span className="kbd">{item.hint}</span> : null}
                 </button>
@@ -400,21 +441,29 @@ function CommandPalette({ ws }: { ws: string }) {
 
 export function Shell() {
   const { ws = "" } = useParams();
-  const { data, error } = useWorkspace(ws);
+  const route = useWorkspaceRoute(ws);
+  const summary = useWorkspace(route.data?.workspace.id);
+  const data = summary.data;
   // Framework families, names and pages come from /api/meta: pages render once it has loaded.
   const meta = useMeta();
   const openPalette = useUi((s) => s.openPalette);
   const navOpen = useUi((s) => s.navOpen);
   const setNav = useUi((s) => s.setNav);
-  const navigate = useNavigate();
   const location = useLocation();
   useWorkspaceEvents(data?.workspace.id);
+  // A workspace switch must not retain another workspace's inspected selection.
+  const select = useUi((s) => s.select);
+  useLayoutEffect(() => {
+    select(null);
+    useAgentActivity.getState().setWorkspace(data?.workspace.id);
+  }, [data?.workspace.id, select]);
+  useLayoutEffect(() => () => useAgentActivity.getState().reset(), []);
 
   // The menu closes when a destination is chosen, on Escape, and when the window grows past it.
   useEffect(() => setNav(false), [location.pathname, setNav]);
   useEffect(() => {
     if (!navOpen) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setNav(false);
+    const onKey = (e: KeyboardEvent) => !e.defaultPrevented && e.key === "Escape" && setNav(false);
     const wide = window.matchMedia("(min-width: 1025px)");
     const onWide = () => wide.matches && setNav(false);
     window.addEventListener("keydown", onKey);
@@ -429,19 +478,18 @@ export function Shell() {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        openPalette();
+        if (!document.querySelector('[role="dialog"][aria-modal="true"]')) openPalette();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [openPalette]);
 
-  useEffect(() => {
-    if (error) navigate("/");
-  }, [error, navigate]);
-
-  if (!meta.data) return <div className="page muted">{meta.error ? `Visua could not load: ${(meta.error as Error).message}` : "Loading Visua…"}</div>;
+  if (route.error || summary.error) return <QueryError title="Unable to open this workspace" error={route.error ?? summary.error} retry={() => route.error ? route.refetch() : summary.refetch()}><Link className="btn" to="/">Workspaces</Link></QueryError>;
+  if (meta.error) return <QueryError title="Unable to load Visua" error={meta.error} retry={() => meta.refetch()} />;
+  if (!data || !meta.data) return <div className="page muted">Loading Visua…</div>;
   return (
+    <WorkspaceContext.Provider key={data.workspace.id} value={{ id: data.workspace.id, slug: data.workspace.slug, route: ws }}>
     <div className={`shell ${navOpen ? "shell--nav-open" : ""}`}>
       <NavRail ws={ws} approvals={data?.approvals ?? 0} />
       {navOpen && <div className="shell__backdrop" onClick={() => setNav(false)} aria-hidden />}
@@ -452,5 +500,6 @@ export function Shell() {
       <CommandPalette ws={ws} />
       <Toasts />
     </div>
+    </WorkspaceContext.Provider>
   );
 }

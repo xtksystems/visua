@@ -1,0 +1,62 @@
+{
+  "status": "passed",
+  "database": "isolated SQLite in memory",
+  "checks": [
+    {
+      "case": "artifact_shape_alias_refused",
+      "reviewStatus": 200,
+      "editStatus": 200,
+      "changedSha": true,
+      "editState": "pending-review",
+      "staleReviewStatus": 400
+    },
+    {
+      "case": "connector_recipe_and_immutability_preserved",
+      "sha256": "4ce42e3ddcaf3403fad01499841c5e88ef05fdf1388302d21315931c3ca2b903",
+      "rejectedProtectedChanges": 3,
+      "auditValid": true
+    },
+    {
+      "case": "legacy_accepted_reviewable",
+      "migrationState": "pending-review",
+      "migratedHash": "e108ba6fe44f1cc9d1d4dd369bfbe90874dff139f2fc7acff531ffdc35c05000",
+      "archivedDecisions": 1,
+      "renewedReviewValid": true,
+      "auditBeforeAfter": true
+    },
+    {
+      "case": "legacy_rejected_reviewable",
+      "migrationState": "rejected",
+      "migratedHash": "d9521312f1f477a8e4f0c020ccefde5cdae40007b734c9fe504d572ac78c1060",
+      "archivedDecisions": 1,
+      "renewedReviewValid": true,
+      "auditBeforeAfter": true
+    },
+    {
+      "case": "legacy_pending-review_reviewable",
+      "migrationState": "pending-review",
+      "migratedHash": "2132613b9d4112f13a78b65a23d615660e53f9d1ee5d0b860874d7787d65ca65",
+      "archivedDecisions": 0,
+      "renewedReviewValid": true,
+      "auditBeforeAfter": true
+    },
+    {
+      "case": "migration_idempotent_and_missing_artifact_refused",
+      "idempotent": true,
+      "noArtifactHash": null,
+      "noArtifactAcceptanceRefused": true,
+      "auditValid": true
+    }
+  ],
+  "command": "node --disable-warning=ExperimentalWarning .codex-context/runs/evidence-binding-20261003/fix-review-reproduction.ts",
+  "cwd": "/Users/artem/visua",
+  "exit_code": 0,
+  "focused_suite": {
+    "command": "pnpm exec vitest run apps/server/test/evidence-binding.test.ts",
+    "exit_code": 0,
+    "files_passed": 1,
+    "tests_passed": 19,
+    "duration_seconds": 1.53,
+    "database": "isolated SQLite"
+  }
+}

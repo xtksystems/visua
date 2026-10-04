@@ -2,13 +2,12 @@
  * The framework space: every object encodes data (DESIGN.md › Spatial System).
  * Units of work are instanced hex prisms (height = current level) topped with
  * translucent "gap glass" up to the target level; groups are beacons; tasks
- * orbit as satellites; evidence docks as crystals; agents travel as comets.
+ * occupy satellite slots; evidence docks as crystals; agents travel as comets.
  */
 import { Line } from "@react-three/drei";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import { memo, useLayoutEffect, useMemo, useRef } from "react";
+import { memo, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import {
-  AdditiveBlending,
   BufferGeometry,
   Color,
   CylinderGeometry,
@@ -27,6 +26,8 @@ import type { FrameworkStateBundle } from "../lib/types.ts";
 import { useAgentActivity } from "../state/agentActivity.ts";
 import type { Lens } from "../state/ui.ts";
 import { TOKENS, unitColor } from "./colors.ts";
+import { SpatialGround } from "./SpatialGround.tsx";
+import { hexRimGeometry } from "./spatialGeometry.ts";
 import type { Layout, Vec3 } from "./layout.ts";
 import { ScreenLabels, type ScreenLabel } from "./ScreenLabels.tsx";
 
@@ -45,6 +46,9 @@ export interface SceneProps {
 
 const tmp = new Object3D();
 const tmpColor = new Color();
+const rimGeometry = hexRimGeometry();
+const targetRimGeometry = hexRimGeometry(0.8);
+const beaconGeometry = new CylinderGeometry(1, 1, 1, 32, 1).translate(0, 0.5, 0);
 const hexGeometry = new CylinderGeometry(1, 1, 1, 6, 1);
 hexGeometry.translate(0, 0.5, 0);
 
@@ -57,6 +61,8 @@ export function heightFor(level: number, view: Layout["view"]) {
 function UnitField({ layout, state, lens, onHover, onSelect, reducedMotion }: SceneProps) {
   const mesh = useRef<InstancedMesh>(null);
   const glass = useRef<InstancedMesh>(null);
+  const targets = useRef<InstancedMesh>(null);
+  const crowns = useRef<InstancedMesh>(null);
   const ids = layout.units;
   const count = ids.length;
   const shown = useRef<Float32Array>(new Float32Array(count));
@@ -65,6 +71,7 @@ function UnitField({ layout, state, lens, onHover, onSelect, reducedMotion }: Sc
   // Units out of scope (not applicable, or no link for a threat) shrink to small dots so the ones that count stand out.
   const widths = useRef<Float32Array>(new Float32Array(count).fill(1));
   const animating = useRef(true);
+  const invalidate = useThree((s) => s.invalidate);
 
   // Targets for heights whenever state changes.
   useLayoutEffect(() => {
@@ -84,7 +91,11 @@ function UnitField({ layout, state, lens, onHover, onSelect, reducedMotion }: Sc
     if (shown.current.length !== count) shown.current = new Float32Array(g);
     if (reducedMotion) shown.current = new Float32Array(g);
     animating.current = true;
-  }, [ids, state, count, layout.view, reducedMotion]);
+    invalidate();
+  }, [ids, state, count, layout.view, reducedMotion, invalidate]);
+
+  // The layout can change with the same number of units; always rewrite transforms.
+  useLayoutEffect(() => { animating.current = true; invalidate(); }, [layout, invalidate]);
 
   // Colors per lens.
   useLayoutEffect(() => {
@@ -93,16 +104,19 @@ function UnitField({ layout, state, lens, onHover, onSelect, reducedMotion }: Sc
     ids.forEach((id, i) => {
       unitColor(lens, state?.units[id], tmpColor);
       m.setColorAt(i, tmpColor);
+      crowns.current?.setColorAt(i, tmpColor.lerp(TOKENS.onSurface, 0.22));
     });
     if (m.instanceColor) m.instanceColor.needsUpdate = true;
-  }, [ids, state, lens]);
+    if (crowns.current?.instanceColor) crowns.current.instanceColor.needsUpdate = true;
+    invalidate();
+  }, [ids, state, lens, invalidate]);
 
   useFrame((_, dt) => {
     const m = mesh.current;
     const gl = glass.current;
     if (!m || !gl || !animating.current) return;
     let moving = false;
-    const k = Math.min(1, dt * 6);
+    const k = Math.min(dt, 1 / 30) * 6;
     for (let i = 0; i < count; i++) {
       const cur = shown.current[i] ?? 0;
       const tgt = goal.current[i] ?? 0;
@@ -110,22 +124,35 @@ function UnitField({ layout, state, lens, onHover, onSelect, reducedMotion }: Sc
       if (next !== tgt) moving = true;
       shown.current[i] = next;
       const p = layout.positions.get(ids[i]!)!;
-      const r = layout.cell * (widths.current[i] ?? 1);
+      const r = layout.cell * (layout.view === "terrain" ? 0.9 : 1) * (widths.current[i] ?? 1);
+      tmp.rotation.set(0, 0, 0);
       tmp.position.set(p[0], 0, p[2]);
       tmp.scale.set(r, next, r);
       tmp.updateMatrix();
       m.setMatrixAt(i, tmp.matrix);
       const top = tops.current[i] ?? next;
-      const gapH = Math.max(0.0001, top - next);
+      const gapH = Math.max(0, top - next);
       tmp.position.set(p[0], next, p[2]);
-      tmp.scale.set(r * 0.98, gapH, r * 0.98);
+      tmp.scale.set(gapH > 0.002 ? r * 0.98 : 0, gapH, gapH > 0.002 ? r * 0.98 : 0);
       tmp.updateMatrix();
       gl.setMatrixAt(i, tmp.matrix);
+      tmp.position.set(p[0], top + 0.008, p[2]);
+      tmp.scale.setScalar(top > (goal.current[i] ?? 0) + 0.002 ? r * 0.98 : 0);
+      tmp.updateMatrix();
+      targets.current?.setMatrixAt(i, tmp.matrix);
+      tmp.position.y = next + 0.006;
+      tmp.scale.setScalar(r);
+      tmp.updateMatrix();
+      crowns.current?.setMatrixAt(i, tmp.matrix);
     }
     m.instanceMatrix.needsUpdate = true;
     gl.instanceMatrix.needsUpdate = true;
+    if (targets.current) targets.current.instanceMatrix.needsUpdate = true;
+    if (crowns.current) crowns.current.instanceMatrix.needsUpdate = true;
+    // Raycasting also uses this sphere during layout/height transitions.
     m.computeBoundingSphere();
     animating.current = moving;
+    if (moving) invalidate();
   });
 
   const handleMove = (e: ThreeEvent<PointerEvent>) => {
@@ -146,10 +173,16 @@ function UnitField({ layout, state, lens, onHover, onSelect, reducedMotion }: Sc
   return (
     <group>
       <instancedMesh ref={mesh} args={[hexGeometry, undefined, count]} onPointerMove={handleMove} onPointerOut={handleOut} onClick={handleClick} frustumCulled={false}>
-        <meshStandardMaterial roughness={0.6} metalness={0.12} emissiveIntensity={0.15} toneMapped />
+        <meshStandardMaterial roughness={0.62} metalness={0.08} flatShading />
       </instancedMesh>
-      <instancedMesh ref={glass} args={[hexGeometry, undefined, count]} raycast={() => null} frustumCulled={false}>
-        <meshStandardMaterial color={TOKENS.primary} emissive={TOKENS.primary} emissiveIntensity={0.25} transparent opacity={0.2} roughness={0.2} metalness={0} depthWrite={false} />
+      <instancedMesh ref={glass} renderOrder={1} args={[hexGeometry, undefined, count]} raycast={() => null} frustumCulled={false}>
+        <meshStandardMaterial color={TOKENS.primary} transparent opacity={0.12} roughness={0.7} metalness={0} depthWrite={false} />
+      </instancedMesh>
+      <instancedMesh ref={targets} renderOrder={2} args={[targetRimGeometry, undefined, count]} raycast={() => null} frustumCulled={false}>
+        <meshBasicMaterial color={TOKENS.primary} transparent opacity={0.55} depthWrite={false} />
+      </instancedMesh>
+      <instancedMesh ref={crowns} args={[rimGeometry, undefined, count]} raycast={() => null} frustumCulled={false}>
+        <meshBasicMaterial polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-4} />
       </instancedMesh>
     </group>
   );
@@ -158,6 +191,7 @@ function UnitField({ layout, state, lens, onHover, onSelect, reducedMotion }: Sc
 // ---------------------------------------------------------------------------
 
 function Beacons({ layout, state, onSelect, onHover }: SceneProps) {
+  const invalidate = useThree((s) => s.invalidate);
   const hubs = layout.hubs;
   const mids = layout.mids.filter((id) => layout.positions.has(id) && layout.view === "constellation");
   const hubMesh = useRef<InstancedMesh>(null);
@@ -167,6 +201,7 @@ function Beacons({ layout, state, onSelect, onHover }: SceneProps) {
       if (!mesh) return;
       list.forEach((id, i) => {
         const p = layout.positions.get(id) ?? [0, 0, 0];
+        tmp.rotation.set(0, 0, 0);
         tmp.position.set(p[0], 0, p[2]);
         tmp.scale.set(radius, height, radius);
         tmp.updateMatrix();
@@ -181,7 +216,8 @@ function Beacons({ layout, state, onSelect, onHover }: SceneProps) {
     };
     place(hubMesh.current, hubs, layout.view === "terrain" ? 0.9 : 1.15, 0.5);
     place(midMesh.current, mids, 0.5, 0.28);
-  }, [layout, state, hubs, mids]);
+    invalidate();
+  }, [layout, state, hubs, mids, invalidate]);
 
   const click = (list: string[]) => (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
@@ -199,13 +235,13 @@ function Beacons({ layout, state, onSelect, onHover }: SceneProps) {
   return (
     <group>
       {hubs.length > 0 && (
-        <instancedMesh key={`h${hubs.length}`} ref={hubMesh} args={[hexGeometry, undefined, hubs.length]} onClick={click(hubs)} onPointerMove={move(hubs)} onPointerOut={out}>
-          <meshStandardMaterial roughness={0.45} metalness={0.25} />
+        <instancedMesh key={`h${hubs.length}`} ref={hubMesh} args={[beaconGeometry, undefined, hubs.length]} onClick={click(hubs)} onPointerMove={move(hubs)} onPointerOut={out}>
+          <meshStandardMaterial roughness={0.68} metalness={0.06} />
         </instancedMesh>
       )}
       {mids.length > 0 && (
-        <instancedMesh key={`m${mids.length}`} ref={midMesh} args={[new CylinderGeometry(1, 1, 1, 24, 1).translate(0, 0.5, 0), undefined, mids.length]} onClick={click(mids)} onPointerMove={move(mids)} onPointerOut={out}>
-          <meshStandardMaterial roughness={0.5} metalness={0.2} />
+        <instancedMesh key={`m${mids.length}`} ref={midMesh} args={[beaconGeometry, undefined, mids.length]} onClick={click(mids)} onPointerMove={move(mids)} onPointerOut={out}>
+          <meshStandardMaterial roughness={0.7} metalness={0.05} />
         </instancedMesh>
       )}
     </group>
@@ -232,10 +268,11 @@ function Links({ layout }: { layout: Layout }) {
     g.setAttribute("position", new Float32BufferAttribute(pts, 3));
     return g;
   }, [layout]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
   if (layout.view === "terrain") return null;
   return (
     <lineSegments geometry={geometry} raycast={() => null}>
-      <lineBasicMaterial color={TOKENS.outlineStrong} transparent opacity={0.55} />
+      <lineBasicMaterial color={TOKENS.outlineStrong} transparent opacity={0.78} />
     </lineSegments>
   );
 }
@@ -248,7 +285,6 @@ function Rings({ layout }: { layout: Layout }) {
       const p = layout.positions.get(id);
       if (p) radii.add(Math.round(Math.hypot(p[0], p[2]) * 10) / 10);
     }
-    radii.add(layout.sectors[0]?.radius ?? 0);
     return [...radii].filter((r) => r > 0);
   }, [layout]);
   return (
@@ -256,67 +292,44 @@ function Rings({ layout }: { layout: Layout }) {
       {rings.map((r) => (
         <mesh key={r} raycast={() => null}>
           <ringGeometry args={[r - 0.03, r + 0.03, 192]} />
-          <meshBasicMaterial color={TOKENS.grid} transparent opacity={0.9} />
+          <meshBasicMaterial color={TOKENS.grid} transparent opacity={0.95} />
         </mesh>
       ))}
     </group>
   );
 }
 
-/**
- * A billboard that hides itself when the camera comes closer than `near`, so
- * large sector titles never fill the foreground after a fly-in.
- */
-function Sectors({ layout, state, selectedId }: SceneProps) {
-  // Stable per layout: drei's Line disposes its material whenever its points change, and three.js
-  // then deletes the shared shader program, re-linked (blocking) on the next frame.
-  const arcs = useMemo(
-    () =>
-      layout.sectors.map((s) => {
-        const points: Vec3[] = [];
-        const steps = 48;
-        for (let i = 0; i <= steps; i++) {
-          const a = s.start + ((s.end - s.start) * i) / steps;
-          points.push([Math.cos(a) * s.radius, 0.02, Math.sin(a) * s.radius]);
-        }
-        return points;
-      }),
-    [layout],
-  );
-  if (layout.view !== "constellation") return null;
-  return (
-    <group>
-      {layout.sectors.map((s, i) => {
-        const g = state?.groups[s.id];
-        const color = g ? TOKENS.status[g.status] : TOKENS.outlineStrong;
-        const active = selectedId === s.id;
-        return <Line key={s.id} points={arcs[i]!} color={active ? TOKENS.primary : color} lineWidth={active ? 3 : 1.5} transparent opacity={active ? 1 : 0.55} />;
-      })}
-    </group>
-  );
-}
-
 // ---------------------------------------------------------------------------
 
-function Core({ active }: { active: boolean }) {
+function Core({ active, reducedMotion }: { active: boolean; reducedMotion: boolean }) {
+  const invalidate = useThree((s) => s.invalidate);
+  // Motion preferences can change while active without changing any Three props.
+  useLayoutEffect(() => invalidate(), [active, reducedMotion, invalidate]);
   const ref = useRef<Mesh>(null);
-  const geometry = useMemo(() => new IcosahedronGeometry(1.4, 1), []);
-  useFrame(({ clock }) => {
+  const geometry = useMemo(() => new IcosahedronGeometry(1.4, 0), []);
+  useFrame(({ clock, invalidate }, dt) => {
     if (!ref.current) return;
-    ref.current.rotation.y += active ? 0.01 : 0;
+    if (active && !reducedMotion) invalidate();
+    ref.current.rotation.y += active && !reducedMotion ? Math.min(dt, 0.1) * 0.6 : 0;
     const mat = ref.current.material as unknown as { emissiveIntensity: number };
-    mat.emissiveIntensity = active ? 0.9 + Math.sin(clock.elapsedTime * 3) * 0.4 : 0.35;
+    mat.emissiveIntensity = active ? (reducedMotion ? 0.18 : 0.18 + Math.sin(clock.elapsedTime * 3) * 0.06) : 0.04;
   });
   return (
-    <mesh ref={ref} geometry={geometry} position={[0, 1.6, 0]} raycast={() => null}>
-      <meshStandardMaterial color={TOKENS.primaryContainer} emissive={TOKENS.primary} emissiveIntensity={0.35} roughness={0.35} metalness={0.3} flatShading />
-    </mesh>
+    <group>
+      <mesh ref={ref} geometry={geometry} position={[0, 1.6, 0]} raycast={() => null}>
+        <meshStandardMaterial color={TOKENS.primary} emissive={active ? TOKENS.tertiary : TOKENS.primary} emissiveIntensity={0.04} roughness={0.58} metalness={0.12} flatShading />
+      </mesh>
+      <mesh visible={active} position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
+        <ringGeometry args={[1.8, 2.05, 64]} />
+        <meshBasicMaterial color={TOKENS.tertiary} toneMapped={false} />
+      </mesh>
+    </group>
   );
 }
 
 /** Selection halo + highlighted ancestry path. */
 function Selection({ layout, selectedId, state }: SceneProps) {
-  // The ancestry path changes with the selection only (see Sectors on why points stay stable).
+  // Keep points stable until selection changes to avoid rebuilding the line material.
   const path = useMemo(() => {
     const out: Vec3[] = [];
     let cur = selectedId ? layout.byId.get(selectedId) : undefined;
@@ -338,20 +351,21 @@ function Selection({ layout, selectedId, state }: SceneProps) {
   return (
     <group>
       <mesh position={[p[0], 0.04, p[2]]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
-        <ringGeometry args={[r * 0.82, r, 6]} />
-        <meshBasicMaterial color={new Color(TOKENS.primary).multiplyScalar(2.2)} toneMapped={false} />
+        <ringGeometry args={[r * 0.82, r, 6, 1, Math.PI / 6]} />
+        <meshBasicMaterial color={TOKENS.primary} toneMapped={false} />
       </mesh>
       <mesh position={[p[0], h + 0.05, p[2]]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
-        <ringGeometry args={[r * 0.55, r * 0.62, 6]} />
-        <meshBasicMaterial color={new Color(TOKENS.primary).multiplyScalar(1.6)} toneMapped={false} transparent opacity={0.8} />
+        <ringGeometry args={[r * 0.55, r * 0.62, 6, 1, Math.PI / 6]} />
+        <meshBasicMaterial color={TOKENS.primary} toneMapped={false} transparent opacity={0.7} />
       </mesh>
       {layout.view === "constellation" && path.length > 1 && <Line points={path} color={TOKENS.primary} lineWidth={2.2} />}
     </group>
   );
 }
 
-/** Tasks as satellites orbiting their requirement (up to three per unit). */
-function Satellites({ layout, state, reducedMotion }: SceneProps) {
+/** Open tasks occupy fixed satellite slots; only active agent work moves. */
+function Satellites({ layout, state }: SceneProps) {
+  const invalidate = useThree((s) => s.invalidate);
   const ref = useRef<InstancedMesh>(null);
   const slots = useMemo(() => {
     const out: { p: Vec3; k: number; n: number; h: number }[] = [];
@@ -365,12 +379,11 @@ function Satellites({ layout, state, reducedMotion }: SceneProps) {
     return out;
   }, [layout, state]);
   const geometry = useMemo(() => new OctahedronGeometry(0.13, 0), []);
-  useFrame(({ clock }) => {
+  useLayoutEffect(() => {
     const m = ref.current;
     if (!m) return;
-    const t = reducedMotion ? 0 : clock.elapsedTime * 0.8;
     slots.forEach((s, i) => {
-      const a = t + (s.k / s.n) * Math.PI * 2;
+      const a = (s.k / s.n) * Math.PI * 2;
       const rr = layout.cell * 1.55;
       tmp.position.set(s.p[0] + Math.cos(a) * rr, s.h + 0.25, s.p[2] + Math.sin(a) * rr);
       tmp.rotation.set(0, a, 0);
@@ -379,17 +392,19 @@ function Satellites({ layout, state, reducedMotion }: SceneProps) {
       m.setMatrixAt(i, tmp.matrix);
     });
     m.instanceMatrix.needsUpdate = true;
-  });
+    invalidate();
+  }, [slots, layout, invalidate]);
   if (!slots.length) return null;
   return (
     <instancedMesh key={slots.length} ref={ref} args={[geometry, undefined, slots.length]} raycast={() => null} frustumCulled={false}>
-      <meshStandardMaterial color={TOKENS.onSurface} emissive={TOKENS.primary} emissiveIntensity={0.25} roughness={0.4} />
+      <meshStandardMaterial color={TOKENS.onSurface} roughness={0.65} />
     </instancedMesh>
   );
 }
 
 /** Evidence crystals docked on units with accepted evidence. */
 function Crystals({ layout, state }: SceneProps) {
+  const invalidate = useThree((s) => s.invalidate);
   const ref = useRef<InstancedMesh>(null);
   const items = useMemo(() => layout.units.filter((id) => (state?.units[id]?.evidence ?? 0) > 0), [layout, state]);
   const geometry = useMemo(() => new TetrahedronGeometry(0.17, 0), []);
@@ -409,16 +424,17 @@ function Crystals({ layout, state }: SceneProps) {
     });
     m.instanceMatrix.needsUpdate = true;
     if (m.instanceColor) m.instanceColor.needsUpdate = true;
-  }, [items, layout, state]);
+    invalidate();
+  }, [items, layout, state, invalidate]);
   if (!items.length) return null;
   return (
     <instancedMesh key={items.length} ref={ref} args={[geometry, undefined, items.length]} raycast={() => null} frustumCulled={false}>
-      <meshStandardMaterial emissive={TOKENS.status.verified} emissiveIntensity={0.35} roughness={0.25} metalness={0.1} />
+      <meshStandardMaterial roughness={0.6} metalness={0.04} />
     </instancedMesh>
   );
 }
 
-/** Violet comets travelling from the core to nodes an agent is working on. */
+/** Warm comets travelling from the core to nodes an agent is working on. */
 function AgentComets({ layout, reducedMotion }: { layout: Layout; reducedMotion: boolean }) {
   const hot = useAgentActivity((s) => s.hot);
   const targets = useMemo(() => Object.keys(hot).filter((id) => layout.positions.has(id)).slice(0, 24), [hot, layout]);
@@ -436,9 +452,12 @@ function Comets({ layout, targets, reducedMotion }: { layout: Layout; targets: s
       }),
     [targets, layout],
   );
+  const invalidate = useThree((s) => s.invalidate);
+  useLayoutEffect(() => invalidate(), [curves, reducedMotion, invalidate]);
   const trails = useMemo(() => curves.map((c) => c.getPoints(32)), [curves]);
   const heads = useRef<(Mesh | null)[]>([]);
-  useFrame(({ clock }) => {
+  useFrame(({ clock, invalidate }) => {
+    if (curves.length && !reducedMotion) invalidate();
     curves.forEach((curve, i) => {
       const m = heads.current[i];
       if (!m) return;
@@ -448,19 +467,18 @@ function Comets({ layout, targets, reducedMotion }: { layout: Layout; targets: s
     });
   });
   if (!curves.length) return null;
-  const violet = new Color(TOKENS.tertiary).multiplyScalar(2.4);
   return (
     <group>
       {curves.map((curve, i) => (
         <group key={targets[i]}>
-          <Line points={trails[i]!} color={TOKENS.tertiary} lineWidth={1.2} transparent opacity={0.45} />
+          <Line points={trails[i]!} color={TOKENS.tertiary} lineWidth={1.5} transparent opacity={0.62} />
           <mesh ref={(el) => (heads.current[i] = el)} raycast={() => null}>
             <sphereGeometry args={[0.22, 12, 12]} />
-            <meshBasicMaterial color={violet} toneMapped={false} blending={AdditiveBlending} />
+            <meshBasicMaterial color={TOKENS.tertiary} toneMapped={false} />
           </mesh>
           <mesh position={curve.getPoint(1)} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
-            <ringGeometry args={[layout.cell * 1.2, layout.cell * 1.45, 6]} />
-            <meshBasicMaterial color={violet} toneMapped={false} transparent opacity={0.85} />
+            <ringGeometry args={[layout.cell * 1.2, layout.cell * 1.45, 6, 1, Math.PI / 6]} />
+            <meshBasicMaterial color={TOKENS.tertiary} toneMapped={false} transparent opacity={0.8} />
           </mesh>
         </group>
       ))}
@@ -536,29 +554,30 @@ function SceneLabels({ layout, state, selectedId, hoveredId, focusIds, onSelect 
  * activity use: the selection halo and path, and agent comets. Compiled on first use, they
  * stalled the frame that answered the first click by 60 to 100 ms. The real components are
  * drawn for a couple of frames, for one unit, shrunk inside the opaque core where the depth
- * test hides them, so they compile through the same pipeline (render target, tone mapping)
+ * test hides them, so they compile through the same tone-mapping pipeline
  * as the real ones. Then they are hidden, not removed, and never re-rendered by a selection:
  * disposing their materials would let three.js delete the programs again. They are drawn
- * again when the layout changes, and when post-processing turns on or off (the performance
- * monitor drops it on slow frames): drawing straight to the screen needs other programs.
- * (`renderer.compileAsync` compiles for the screen, not the post-processing target.)
+ * again when the layout changes. (`renderer.compileAsync` does not reliably warm
+ * the same program variants as the real components.)
  */
-const ShaderWarmup = memo(function ShaderWarmup({ layout, effects }: { layout: Layout; effects: boolean }) {
+const ShaderWarmup = memo(function ShaderWarmup({ layout }: { layout: Layout }) {
   const group = useRef<Group>(null);
-  const gl = useThree((s) => s.gl);
   const frames = useRef(0);
+  const invalidate = useThree((s) => s.invalidate);
   const unit = layout.units[0];
   const targets = useMemo(() => (unit ? [unit] : []), [unit]);
-  // Shown again for each layout and pipeline, drawn however far they are from the camera's view.
+  // Shown again for each layout, drawn however far they are from the camera's view.
   useLayoutEffect(() => {
-    gl.domElement.dataset["effects"] = String(effects);
     frames.current = 0;
     if (!group.current) return;
     group.current.visible = true;
     group.current.traverse((o) => (o.frustumCulled = false));
-  }, [layout, effects, gl]);
-  useFrame(() => {
-    if (group.current?.visible && ++frames.current > 2) group.current.visible = false;
+    invalidate();
+  }, [layout, invalidate]);
+  useFrame(({ invalidate }) => {
+    if (!group.current?.visible) return;
+    if (++frames.current > 2) group.current.visible = false;
+    else invalidate();
   });
   if (!unit) return null;
   const noop = () => undefined;
@@ -570,20 +589,20 @@ const ShaderWarmup = memo(function ShaderWarmup({ layout, effects }: { layout: L
   );
 });
 
-export function FrameworkScene(props: SceneProps & { agentActive: boolean; effects: boolean }) {
+export function FrameworkScene(props: SceneProps & { agentActive: boolean }) {
   return (
     <group>
+      <SpatialGround {...props} />
       <Rings layout={props.layout} />
       <Links layout={props.layout} />
-      <Core active={props.agentActive} />
+      <Core active={props.agentActive} reducedMotion={props.reducedMotion} />
       <Beacons {...props} />
       <UnitField {...props} />
-      <Sectors {...props} />
       <Satellites {...props} />
       <Crystals {...props} />
       <Selection {...props} />
-      <AgentComets layout={props.layout} reducedMotion={props.reducedMotion} />
-      <ShaderWarmup layout={props.layout} effects={props.effects} />
+      {props.agentActive && <AgentComets layout={props.layout} reducedMotion={props.reducedMotion} />}
+      <ShaderWarmup layout={props.layout} />
       <SceneLabels {...props} />
     </group>
   );

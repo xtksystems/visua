@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "verdict", "summary", "coverage", "findings", "limitations"],
+  "properties": {
+    "status": {"type": "string", "enum": ["complete", "partial", "blocked"]},
+    "verdict": {"type": "string", "enum": ["pass", "findings", "inconclusive"]},
+    "summary": {"type": "string", "minLength": 1},
+    "coverage": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["severity", "location", "mechanism", "evidence", "recommendation"],
+        "properties": {
+          "severity": {"type": "string", "enum": ["critical", "high", "medium", "low"]},
+          "location": {"type": "string", "minLength": 1},
+          "mechanism": {"type": "string", "minLength": 1},
+          "evidence": {"type": "string", "minLength": 1},
+          "recommendation": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "limitations": {"type": "array", "items": {"type": "string", "minLength": 1}}
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "findings": [
+    {"finding": "Explicit redraw after instance writes", "decision": "fixed", "evidence": "FrameworkScene UnitField/Beacons/Satellites/Crystals and Nexus PillarField invalidate in placement/color effects; lens wake tested in e2e"},
+    {"finding": "HUD child mutations and transforms trigger redraws", "decision": "fixed", "evidence": "demandRendering boundary filter; observer tests cover child text and transforms, real panel resize and ancestor transitions"}
+  ],
+  "additional_corrections": [
+    "CameraControls uses real delta during a flight, capped only on first wake; slow-frame unit test and full browser label-placement test pass",
+    "Core and Comets explicitly wake when motion preference changes",
+    "Arc resolution updates request a frame"
+  ],
+  "review_limits": "Claude reviewed supplied source without running a browser; final corrections reviewed and tested by lead."
+}

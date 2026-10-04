@@ -1,0 +1,9 @@
+{
+  "initial_case": "keyboard-outline.spec.ts outline named tab stop/sibling/child/parent/mouse selection",
+  "failure": "locator.click: Target crashed; renderer lost while waiting finalrowclick visible/enabled/stable",
+  "evidence": "ignored data/deployment-checks/evidence-files-20261004/keyboard-outline-crash-trace.zip",
+  "source_change": false,
+  "earlier_execution": "same runtimecase passed17.0s in interrupted full-check-delivery browser lane",
+  "recovery": "Final affected rerun: passed in 15.3s; no application change for renderer crash",
+  "result": "passed on retry; transient renderer crash remains recorded"
+}

@@ -1,0 +1,41 @@
+{
+  "nodes": [
+    {
+      "id": "outline-worker",
+      "valid": true
+    },
+    {
+      "id": "ui-worker",
+      "valid": true
+    },
+    {
+      "id": "keyboard-review",
+      "valid": true
+    },
+    {
+      "id": "additional-tabs-worker",
+      "valid": true
+    },
+    {
+      "id": "keyboard-fix-review",
+      "valid": true
+    }
+  ],
+  "reviews": [
+    {
+      "path": "keyboard-review.json",
+      "status": "complete",
+      "verdict": "findings",
+      "findings": 3
+    },
+    {
+      "path": "keyboard-fix-review.json",
+      "status": "complete",
+      "verdict": "pass",
+      "findings": 0
+    }
+  ],
+  "full_check_source_files": 20,
+  "source_mismatches": {},
+  "preserved_prior_files": 49
+}

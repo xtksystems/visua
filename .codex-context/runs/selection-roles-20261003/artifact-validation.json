@@ -1,0 +1,34 @@
+{
+  "review_reports": [
+    {
+      "report": "selection-review.json",
+      "status": "complete",
+      "verdict": "findings",
+      "findings": 4,
+      "sha256": "69feb76b4a05c0dec4698119a1221baaad46b96a7813b5c6fc2bad3f382ad175"
+    },
+    {
+      "report": "selection-fix-review.json",
+      "status": "complete",
+      "verdict": "pass",
+      "findings": 0,
+      "sha256": "6022251e328b781441e8d4e9e1d54687a0f53a1cae06a14c103813a168005a0d"
+    }
+  ],
+  "reviewed_application_files_unchanged": 57,
+  "markdown_files_checked": 9,
+  "local_links_checked": 76,
+  "missing_links": [],
+  "dependencies_changed": [],
+  "final_check_source_files": 61,
+  "stale_final_sources": [],
+  "new_source_files_whitespace_checked": [
+    "apps/web/src/components/ui/QueryError.tsx",
+    "apps/web/src/lib/workspace.ts",
+    "e2e/inspector-selection.spec.ts",
+    "e2e/page-roles.spec.ts",
+    "e2e/workspace-recovery.spec.ts"
+  ],
+  "session_task_status": "complete",
+  "live_services_mutated": false
+}

@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "run_id": "connector-boundaries-20261003",
+  "scope": {
+    "root": "/Users/artem/visua",
+    "files": {
+      "apps/server/src/auth/egress.ts": "cc9ab29b352cc7ad743f7062b056c5d52574dc1d219de334d3ff75967989b775",
+      "apps/server/src/connectors/index.ts": "a8bb0456924e3d0fefd1146aa4f116109cc4d960b787e66cc8beec84f69a77dd",
+      "apps/server/src/connectors/web-posture.ts": "0dfea58badab0e20c25c6a14956fbd13b8e092e5b547025c05d250622df53101",
+      "apps/server/src/connectors/repo-scan.ts": "64c3eee44e89dc8a6a65c56066bc47a63d4dfccc771d4c11f5350bde7e07d991",
+      "apps/server/src/services/visua.ts": "1acc98507a9c58bc1dea3cff7776a930299146f8ecb5ff92d4acae3cbc903649",
+      "apps/server/test/egress.test.ts": "02895b407108ffa0bb12176fa23d96296bac81d91ff08ef7cceedf5cc629c3ae",
+      "apps/server/test/api.test.ts": "46824ff2cbbf7e8a4fec60fa15a9abfe329849e5aae52392687d8fe2acd4f0fc",
+      "apps/server/src/connectors/limits.ts": "15d36e1c61d66ceae1ae555eaf58d248da3a645c17a422f0b128e521d657d08f",
+      "apps/server/src/connectors/network.ts": "dc051eda6f440b75da1dc5fa5c089bbec062ef68b2077798e9373f3f2bef65d2",
+      "apps/server/test/connector-boundaries.test.ts": "d0f394767963205192fa36450096a0b11cc037114ce8316eb8f845890fed3772",
+      "apps/server/test/repo-scan.test.ts": "99563e106512c2171877b63af1df23df544c95858cb8290dd6d45c6fa6269c94",
+      "README.md": "e421167df3e50c3bd9dd3a1765a18ca8ff1a0ed80eb2bd86d3552997e5f3c72c",
+      "docs/architecture.md": "dbd1ecc24dd7494d94d5724bf6441f158a2fd47ff785e2966960b700de0faf0a",
+      "docs/development-phase-2.md": "e72b019b9f340d3e7600cf15f6275264605993c3cedf430ec4127fdcbdb3e41c",
+      ".codex-context/project.md": "8f308976da4c3e131e3e1ec44397d91b88ec59cc4acc0f876e0e48d7ccd0359f",
+      ".codex-context/architecture.md": "6fdbfa8281855f9085cbec48d72055109b42ffd57c04abec802b362e6cd9973a",
+      ".codex-context/invariants.md": "ce421072f6d6ddf33d9cf9baf3b00722ee236a508abc6be727013bc14f275391",
+      "apps/server/src/context.ts": "1c77d872779be8cfc55e4de52b9ec7a9b56e7f6d816f502775f3a9ea02b7f17b",
+      "apps/server/src/server.ts": "a890a5e1dd10a52186e6082984f6c911af7558a324dada3e31998f2339e863f5",
+      "apps/server/test/startup.test.ts": "f3f436945b3231ffc41530a67c4dddbe057edd9ffcabe0721c946b016432d312",
+      "apps/server/test/egress-dns.test.ts": "5a1aae32a5e3f0f6963725619e0c473b1ed2786ed1fde07b91e142924863aa36",
+      "apps/server/src/app.ts": "9a7c4980d89379328610c31fd094b4ee22bdc8d6cb5356d318361dc99394953e",
+      "apps/server/src/work-scope.ts": "d828f9d1a1a64fbc7cbbf37805f2b92076b5cd88fad8cbec4a82c4fd0321ba01",
+      "apps/server/test/connector-dns-lifetime.test.ts": "628fdc6aec89d2cb3bc692f0b669c310c21698d513c2924dc2e28ce81374842f"
+    }
+  },
+  "branch": "feat/light-workspace-design",
+  "head": "c8a1ed06a8043fe725381ccccd89779b6a3498e0",
+  "baseline_dirty": " M .codex-context/architecture.md\n M .codex-context/invariants.md\n M .codex-context/project.md\n M README.md\n M apps/server/src/app.ts\n M apps/server/src/auth/config.ts\n M apps/server/src/auth/http.ts\n M apps/server/src/auth/recheck-ticker.ts\n M apps/server/src/context.ts\n M apps/server/src/index.ts\n M apps/server/src/services/visua.ts\n M apps/server/test/domain-recheck.test.ts\n M apps/server/test/sso-recheck.test.ts\n M compose.yaml\n M docs/architecture.md\n M docs/development-phase-2.md\n?? .codex-context/runs/connector-boundaries-20261003/\n?? .codex-context/runs/startup-auth-20261003/\n?? .codex-context/sessions/20261003T055501Z-feat-light-workspace-design-8de4c393904e.md\n?? .codex-context/tasks/startup-auth-20261003.md\n?? apps/server/src/readiness.ts\n?? apps/server/src/server.ts\n?? apps/server/src/startup.ts\n?? apps/server/test/startup.test.ts\n",
+  "nodes": [
+    {
+      "id": "repo-worker",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "input": "repo-worker-brief.txt",
+      "input_sha256": "b6a3a92cdf8dd6363a3c2eb90ea11efd67c86366299deec34f1992c971ed83af",
+      "result": "repo-worker-result.json",
+      "allowed_writes": [
+        "apps/server/src/connectors/repo-scan.ts",
+        "apps/server/test/repo-scan.test.ts"
+      ],
+      "worker": "/root/repo_boundaries",
+      "backend": "native",
+      "fresh_context": true,
+      "result_sha256": "eba89458e1c0e687656b791c118a2a397b1a580d3a6e327d9601c63bad14dcb5",
+      "completed_utc": "2026-10-03T17:45:59.937295+00:00"
+    },
+    {
+      "id": "review",
+      "depends_on": [
+        "repo-worker"
+      ],
+      "status": "complete",
+      "accepted": true,
+      "input": "review-brief.txt",
+      "input_sha256": "5374a26f27dc7b4f7c9b1ce9b9b137afc2fd81f670786f600fb64722cdc0d126",
+      "result": "review-result.json",
+      "fresh_context": true,
+      "backend": "native",
+      "allowed_writes": [
+        "review.json",
+        "review-result.json"
+      ],
+      "worker": "/root/connector_review",
+      "started_utc": "2026-10-03T17:46:18.596894+00:00",
+      "result_sha256": "8b38d09bafd01acf6b8fa93a46a270a95cd202ac0caf8549c0994db91a7d55d4",
+      "completed_utc": "2026-10-03T17:56:08.367672+00:00"
+    },
+    {
+      "id": "review-fix",
+      "depends_on": [
+        "review"
+      ],
+      "status": "complete",
+      "accepted": true,
+      "input": "fix-review-brief.txt",
+      "input_sha256": "3c61e4bf49c0ee295a7a881f32321ef713f162bffdce07d165ca049daf46e7a9",
+      "result": "fix-review-result.json",
+      "worker": "/root/connector_review",
+      "backend": "native",
+      "fresh_context": false,
+      "started_utc": "2026-10-03T17:56:42.668129+00:00",
+      "result_sha256": "74682dc8a3c9ed892c7cb2cf24e34baa16b41a6481b10429e85520973603bcfd",
+      "completed_utc": "2026-10-03T18:01:36.123138+00:00"
+    }
+  ],
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "Full final pnpm check exit0: full-check-delivery.log; all7 lanes,SQLite299+2skip,PG301,Playwright23.",
+      "Final source/test hashes match full-check-delivery-scope.json; only prose/records changed afterward.",
+      "Independent fix-review.json pass;90 affected tests; original DNS lifetime and synchronous cancellation findings closed.",
+      "Repository worker accepted after sanitized pre-change symlink reproduction and38 focused tests.",
+      "Final documentation links and diff whitespace validated; existing Docker healthy and unchanged."
+    ]
+  },
+  "created_utc": "2026-10-03T17:29:14.074282+00:00",
+  "invalidated_checks": [
+    "First full-check passed on pre-DNS-lifetime fix source; network/budget checks invalidated and full final gate will rerun."
+  ],
+  "status": "complete",
+  "completed_utc": "2026-10-03T18:08:57.470903+00:00"
+}

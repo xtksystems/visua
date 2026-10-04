@@ -365,20 +365,20 @@ export class AuthService {
     return { token, session };
   }
 
-  async resolveSession(token: string): Promise<Principal | undefined> {
+  async resolveSession(token: string, options: { touch?: boolean } = {}): Promise<Principal | undefined> {
     const hash = sha256(token);
     const session = await this.ids.sessions.get(hash);
     if (!session) return undefined;
     const t = Date.now();
     const idleLimit = new Date(session.lastSeenAt).getTime() + this.config.sessionIdleMinutes * 60_000;
     if (new Date(session.expiresAt).getTime() <= t || idleLimit <= t) {
-      await this.ids.sessions.delete(hash);
+      if (options.touch !== false) await this.ids.sessions.delete(hash);
       return undefined;
     }
     const user = await this.ids.users.get(session.userId);
     if (!user || user.disabled) return undefined;
     // Sliding idle window, written at most once a minute.
-    if (t - new Date(session.lastSeenAt).getTime() > 60_000) {
+    if (options.touch !== false && t - new Date(session.lastSeenAt).getTime() > 60_000) {
       session.lastSeenAt = new Date(t).toISOString();
       await this.ids.sessions.update(hash, session);
     }
@@ -425,12 +425,12 @@ export class AuthService {
     return { token, record };
   }
 
-  async resolveApiToken(raw: string): Promise<Principal | undefined> {
+  async resolveApiToken(raw: string, options: { touch?: boolean } = {}): Promise<Principal | undefined> {
     if (!raw.startsWith("vsa_")) return undefined;
     const record = await this.ids.apiTokens.byHash(sha256(raw));
     if (!record || record.revokedAt || (record.expiresAt && record.expiresAt <= now())) return undefined;
     const t = Date.now();
-    if (!record.lastUsedAt || t - new Date(record.lastUsedAt).getTime() > 60_000) await this.ids.apiTokens.touch(record.id, new Date(t).toISOString());
+    if (options.touch !== false && (!record.lastUsedAt || t - new Date(record.lastUsedAt).getTime() > 60_000)) await this.ids.apiTokens.touch(record.id, new Date(t).toISOString());
     return { kind: "token", id: record.id, label: `API token “${record.name}”`, token: record };
   }
 

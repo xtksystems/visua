@@ -8,11 +8,12 @@
  */
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Info, Search, Telescope } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Inspector } from "../components/inspector/Inspector.tsx";
 import { COVERAGE_LABEL, CoverageBar, CoverageChip, CoverageGlyph, CoverageLegend, coverageColor, LINK_STATUS_HELP, LinkStatusBadge, ThreatLinkFilter } from "../components/threats/Coverage.tsx";
-import { Empty, FrameworkBadge, Segmented } from "../components/ui/index.tsx";
+import { Empty, FrameworkBadge, Segmented, TabPanel, Tabs } from "../components/ui/index.tsx";
+import { useWorkspaceId } from "../lib/workspace.ts";
 import { api } from "../lib/api.ts";
 import { truncate } from "../lib/format.ts";
 import { threatCatalogs } from "../lib/frameworks.ts";
@@ -294,7 +295,9 @@ function Sources({ overview }: { overview: ThreatsOverview }) {
 }
 
 export function ThreatsPage() {
-  const { ws = "", catalog } = useParams();
+  const ws = useWorkspaceId();
+  const tabsId = useId();
+  const { catalog, ws: routeWs = ws } = useParams();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const min = useUi((s) => s.threatMin);
@@ -351,16 +354,17 @@ export function ThreatsPage() {
               <span style={{ flex: 1 }} />
               <CoverageLegend />
             </div>
-            <div className="grid grid--4" role="tablist" aria-label="Threat catalogs">
-              {data.catalogs.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={c.id === current.id}
-                  className={`panel threat-catalog ${c.id === current.id ? "is-selected" : ""}`}
-                  onClick={() => navigate(`/w/${ws}/threats/${c.id}`)}
-                >
+            <Tabs
+              id={tabsId}
+              label="Threat catalogs"
+              className="grid grid--4"
+              value={current.id}
+              onChange={(id) => navigate(`/w/${routeWs}/threats/${id}`)}
+              tabs={data.catalogs.map((c) => ({ id: c.id, label: c.shortName }))}
+              tabClassName={(_, selected) => `panel threat-catalog ${selected ? "is-selected" : ""}`}
+              renderTab={(_, index) => {
+                const c = data.catalogs[index]!;
+                return <>
                   <span className="row" style={{ gap: 8 }}>
                     <FrameworkBadge frameworkId={c.id} />
                     <span className="mono muted" style={{ fontSize: 11 }}>
@@ -372,82 +376,88 @@ export function ThreatsPage() {
                   <span className="muted" style={{ fontSize: 12, textAlign: "left" }}>
                     {c.units} {c.unitLabelPlural} · {c.byState.covered} covered · {c.byState.partial + c.byState.open} with gaps · {c.byState.unmapped} without links
                   </span>
-                </button>
-              ))}
-            </div>
-            <section className="stack" style={{ gap: 12 }} aria-labelledby="catalog-title">
-              <div className="row row--wrap" style={{ gap: 10 }}>
-                <h2 id="catalog-title" className="section-title" style={{ margin: 0 }}>
-                  {current.name}
-                </h2>
-                <span className="muted" style={{ fontSize: 12 }}>
-                  {current.publisher} · {current.published}
-                </span>
-                <span style={{ flex: 1 }} />
-                <div className="row" style={{ gap: 6 }}>
-                  <Search size={14} className="muted" aria-hidden />
-                  <input className="input" style={{ height: 30, minHeight: 30, width: 220 }} placeholder={`Find a ${current.unitLabel}`} value={query} onChange={(e) => setQuery(e.target.value)} aria-label={`Find a ${current.unitLabel}`} />
-                </div>
-                <Segmented<Show> label="Show" options={SHOW} value={show} onChange={setShow} />
-              </div>
-              <p className="muted" style={{ margin: 0, fontSize: 13 }}>
-                {current.description}
-              </p>
-              {current.linkedFrameworks.length > 0 && (
-                <div className="row row--wrap" style={{ gap: 6, fontSize: 12 }}>
-                  <span className="muted">Linked to</span>
-                  {current.linkedFrameworks.map((f) => (
-                    <span key={f.id} className="row" style={{ gap: 4 }} title={f.enabled ? "Followed in this workspace" : "Not followed in this workspace: its links count as out of scope"}>
-                      <FrameworkBadge frameworkId={f.id} />
-                      <span className="muted">
-                        {f.threats} {current.unitLabelPlural}
-                        {f.enabled ? "" : " · not followed"}
+                </>;
+              }}
+            />
+            {data.catalogs.map((c) => (
+              <TabPanel key={c.id} groupId={tabsId} id={c.id} active={c.id === current.id}>
+                <div className="stack" style={{ gap: 16 }}>
+                  <section className="stack" style={{ gap: 12 }} aria-labelledby="catalog-title">
+                    <div className="row row--wrap" style={{ gap: 10 }}>
+                      <h2 id="catalog-title" className="section-title" style={{ margin: 0 }}>
+                        {current.name}
+                      </h2>
+                      <span className="muted" style={{ fontSize: 12 }}>
+                        {current.publisher} · {current.published}
                       </span>
-                    </span>
-                  ))}
+                      <span style={{ flex: 1 }} />
+                      <div className="row" style={{ gap: 6 }}>
+                        <Search size={14} className="muted" aria-hidden />
+                        <input className="input" style={{ height: 30, minHeight: 30, width: 220 }} placeholder={`Find a ${current.unitLabel}`} value={query} onChange={(e) => setQuery(e.target.value)} aria-label={`Find a ${current.unitLabel}`} />
+                      </div>
+                      <Segmented<Show> label="Show" options={SHOW} value={show} onChange={setShow} />
+                    </div>
+                    <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+                      {current.description}
+                    </p>
+                    {current.linkedFrameworks.length > 0 && (
+                      <div className="row row--wrap" style={{ gap: 6, fontSize: 12 }}>
+                        <span className="muted">Linked to</span>
+                        {current.linkedFrameworks.map((f) => (
+                          <span key={f.id} className="row" style={{ gap: 4 }} title={f.enabled ? "Followed in this workspace" : "Not followed in this workspace: its links count as out of scope"}>
+                            <FrameworkBadge frameworkId={f.id} />
+                            <span className="muted">
+                              {f.threats} {current.unitLabelPlural}
+                              {f.enabled ? "" : " · not followed"}
+                            </span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {current.byState.unmapped === current.units && (
+                      <div className="callout" role="note">
+                        <Info size={14} /> No {current.unitLabel} in this catalog has a link at the chosen status.
+                        {min !== "unreviewed" ? " Include unreviewed links to see OWASP's community crosswalk." : ""}
+                      </div>
+                    )}
+                    {!view ? (
+                      <div className="muted">Loading {current.shortName}…</div>
+                    ) : current.id === "mitre-atlas" ? (
+                      <>
+                        <AtlasMatrix data={view} selected={selected} onSelect={select} show={show} query={query} />
+                        <AtlasMitigations data={view} selected={selected} onSelect={select} query={query} />
+                      </>
+                    ) : current.id === "nist-ai-100-2" ? (
+                      <AttackGroups data={view} selected={selected} onSelect={select} show={show} query={query} />
+                    ) : (
+                      <RiskList data={view} selected={selected} onSelect={select} show={show} query={query} />
+                    )}
+                  </section>
+                  {current.weakest.length > 0 && (
+                    <section className="panel stack" style={{ gap: 8 }} aria-labelledby="weakest">
+                      <h2 id="weakest" className="eyebrow" style={{ margin: 0 }}>
+                        Least covered {current.unitLabelPlural} with links in your frameworks
+                      </h2>
+                      {current.weakest.map((w) => (
+                        <button key={w.id} type="button" className="xw-group" onClick={() => select(w.id)}>
+                          <span className="mono" style={{ width: 110 }}>
+                            {w.code}
+                          </span>
+                          <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "left" }}>{truncate(w.title, 80)}</span>
+                          <CoverageChip coverage={w.coverage} />
+                        </button>
+                      ))}
+                    </section>
+                  )}
+                  <Sources overview={data} />
+                  {current.contentNotice && (
+                    <p className="muted" style={{ fontSize: 11.5, fontStyle: "italic", margin: 0 }}>
+                      {current.contentNotice}
+                    </p>
+                  )}
                 </div>
-              )}
-              {current.byState.unmapped === current.units && (
-                <div className="callout" role="note">
-                  <Info size={14} /> No {current.unitLabel} in this catalog has a link at the chosen status.
-                  {min !== "unreviewed" ? " Include unreviewed links to see OWASP's community crosswalk." : ""}
-                </div>
-              )}
-              {!view ? (
-                <div className="muted">Loading {current.shortName}…</div>
-              ) : current.id === "mitre-atlas" ? (
-                <>
-                  <AtlasMatrix data={view} selected={selected} onSelect={select} show={show} query={query} />
-                  <AtlasMitigations data={view} selected={selected} onSelect={select} query={query} />
-                </>
-              ) : current.id === "nist-ai-100-2" ? (
-                <AttackGroups data={view} selected={selected} onSelect={select} show={show} query={query} />
-              ) : (
-                <RiskList data={view} selected={selected} onSelect={select} show={show} query={query} />
-              )}
-            </section>
-            {current.weakest.length > 0 && (
-              <section className="panel stack" style={{ gap: 8 }} aria-labelledby="weakest">
-                <h2 id="weakest" className="eyebrow" style={{ margin: 0 }}>
-                  Least covered {current.unitLabelPlural} with links in your frameworks
-                </h2>
-                {current.weakest.map((w) => (
-                  <button key={w.id} type="button" className="xw-group" onClick={() => select(w.id)}>
-                    <span className="mono" style={{ width: 110 }}>
-                      {w.code}
-                    </span>
-                    <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "left" }}>{truncate(w.title, 80)}</span>
-                    <CoverageChip coverage={w.coverage} />
-                  </button>
-                ))}
-              </section>
-            )}
-            <Sources overview={data} />
-            {current.contentNotice && (
-              <p className="muted" style={{ fontSize: 11.5, fontStyle: "italic", margin: 0 }}>
-                {current.contentNotice}
-              </p>
-            )}
+              </TabPanel>
+            ))}
           </div>
         </div>
       </div>

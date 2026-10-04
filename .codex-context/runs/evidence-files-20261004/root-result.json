@@ -1,0 +1,22 @@
+{
+  "run_id": "evidence-files-20261004",
+  "node_id": "root",
+  "input_sha256": "b2d9d2ff5560e81de7eb5cac21625c3c0781702c78fc89ed11b3bf3b3c2734f6",
+  "status": "complete",
+  "summary": "Integrated scoped verified evidence file storage and metadata separation, resolved review and integration findings, committed/pushed source 7806309, and upgraded local Docker with backup, migration equivalence, live upload/review/download and restart persistence checks. Synthetic fixture removed.",
+  "evidence": [
+    "source-verification.json: all applicable lanes verified; 474 SQLite/476 PostgreSQL, 98 unique browser cases via documented reuse",
+    "final-delivery-source.json: all 261 source pins match",
+    "review-final.json and ui-review.json: independent corrections reviewed with no unresolved findings",
+    "delivery-result.json: source push, Docker revision/152 hashes/readiness, consistent backup and unchanged historical rows",
+    "docker-smoke-create-result.json and docker-smoke-restart-result.json: exact bytes, filename, review/hash/reference and audit verified",
+    "docker-fixture-cleanup-result.json and docker-final-preservation.json: synthetic workspace/blob removed; original evidence and records preserved"
+  ],
+  "limitations": [
+    "Browser verification combines 19 final affected reruns and 79 unchanged full-lane passes; prior full-check failures retained.",
+    "S3-compatible adapter is tested through SDK-signed mock service requests; no actual cloud bucket deployment or policy configuration.",
+    "Orphan cleanup and retention remain operator-managed. Kernel filesystem stalls cannot be cancelled by the Node deadline.",
+    "The old Docker image became unavailable after rebuild. Backup used the new image Node entrypoint only, with application stopped and no migrations executed.",
+    "The final delivery record is committed separately from source; Docker remains at the verified source commit."
+  ]
+}

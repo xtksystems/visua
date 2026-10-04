@@ -5,6 +5,9 @@
  * schema and upgrades SQLite databases written before migrations existed.
  */
 import { createHash, randomBytes } from "node:crypto";
+import { hasCurrentEvidenceReview, newId, type ActivityEvent, type Evidence } from "@visua/core";
+import { chainHash, GENESIS } from "../audit.ts";
+import { artifactHash, evidenceAuditSnapshot } from "../services/evidence.ts";
 import { parseJson, type Dialect, type SqlDriver } from "./driver.ts";
 
 export interface Migration {
@@ -189,7 +192,69 @@ const ssoDomainRecheck: Migration = {
   },
 };
 
-export const MIGRATIONS: Migration[] = [baseline, tenantSettings, ssoDomainVerification, ssoDomainRecheck];
+/** Never attest a mutable legacy artifact retroactively; retain its old decision for inspection. */
+const evidenceApprovalBinding: Migration = {
+  version: 5,
+  name: "evidence approvals bind artifacts, links and validity windows",
+  async up(db) {
+    const cast = db.dialect === "postgres" ? "?::jsonb" : "?";
+    for (const row of await db.query<{ id: string; workspace_id: string }>(`SELECT id, workspace_id FROM evidence ORDER BY workspace_id, id`)) {
+      await db.lock(`ws:${row.workspace_id}`);
+      const current = (await db.query<{ data: unknown }>(`SELECT data FROM evidence WHERE id = ? AND workspace_id = ?`, [row.id, row.workspace_id]))[0];
+      if (!current) continue;
+      const prev = parseJson<Evidence>(current.data);
+      const sha256 = artifactHash(prev);
+      if (hasCurrentEvidenceReview(prev) && prev.sha256 === sha256) continue;
+      const hadDecision = prev.status === "accepted" || prev.status === "rejected" || !!prev.reviewedBy || !!prev.reviewedAt;
+      if (!hadDecision && prev.sha256 === sha256) continue;
+      const ts = new Date().toISOString();
+      const history = [...(prev.reviewHistory ?? [])];
+      if (hadDecision && !history.some((r) => r.legacy && r.reviewedBy === (prev.reviewedBy ?? "Unknown legacy reviewer") && r.reviewedAt === (prev.reviewedAt ?? prev.createdAt))) {
+        history.push({ id: newId("rev"), decision: prev.status === "rejected" ? "rejected" : "accepted", reviewedBy: prev.reviewedBy ?? "Unknown legacy reviewer", reviewedAt: prev.reviewedAt ?? prev.createdAt, legacy: true });
+      }
+      const next: Evidence = {
+        ...prev, sha256, reviewHistory: history,
+        ...(prev.status === "accepted" ? { status: "pending-review", reviewedBy: undefined, reviewedAt: undefined } : {}),
+      };
+      await db.execute(`UPDATE evidence SET data = ${cast}, updated_at = ? WHERE id = ?`, [JSON.stringify(next), ts, row.id]);
+      const last = (await db.query<{ data: unknown }>(`SELECT data FROM activity WHERE workspace_id = ? AND seq IS NOT NULL ORDER BY seq DESC LIMIT 1`, [row.workspace_id]))[0];
+      const head = last ? parseJson<ActivityEvent>(last.data) : undefined;
+      const body: ActivityEvent = {
+        id: newId("act"), workspaceId: row.workspace_id, at: ts, actor: "system:migration", action: "approval-binding-upgraded",
+        entity: "evidence", entityId: prev.id, summary: `Evidence “${prev.title}” upgraded for bound review${hadDecision ? "; legacy decisions preserved" : ""}`,
+        data: { before: evidenceAuditSnapshot(prev), after: evidenceAuditSnapshot(next) },
+        seq: (head?.seq ?? 0) + 1, prevHash: head?.hash ?? GENESIS,
+      };
+      const event = { ...body, hash: chainHash(body.prevHash!, body) };
+      await db.execute(`INSERT INTO activity (id, workspace_id, data, updated_at, seq) VALUES (?, ?, ${cast}, ?, ?)`, [event.id, row.workspace_id, JSON.stringify(event), ts, event.seq]);
+      await db.execute(`UPDATE workspaces SET rev = rev + 1, updated_at = ? WHERE id = ?`, [ts, row.workspace_id]);
+    }
+  },
+};
+
+/** Move bodies without changing identities, review scopes, timestamps or the audit chain. */
+const evidenceContentSeparation: Migration = {
+  version: 6,
+  name: "evidence metadata separated from inline content",
+  async up(db) {
+    const cast = db.dialect === "postgres" ? "?::jsonb" : "?";
+    await run(db, [
+      `CREATE TABLE evidence_content (evidence_id TEXT PRIMARY KEY REFERENCES evidence(id) ON DELETE CASCADE, workspace_id TEXT NOT NULL, data ${json(db.dialect)} NOT NULL)`,
+      `CREATE INDEX evidence_content_ws ON evidence_content(workspace_id)`,
+    ]);
+    for (const row of await db.query<{ id: string; workspace_id: string }>(`SELECT id, workspace_id FROM evidence`)) {
+      const current = (await db.query<{ data: unknown }>(`SELECT data FROM evidence WHERE id = ?`, [row.id]))[0];
+      if (!current) continue;
+      const { content, data, ...metadata } = parseJson<Evidence>(current.data);
+      if (content !== undefined || data !== undefined) {
+        await db.execute(`INSERT INTO evidence_content (evidence_id, workspace_id, data) VALUES (?, ?, ${cast})`, [row.id, row.workspace_id, JSON.stringify({ content, data })]);
+        await db.execute(`UPDATE evidence SET data = ${cast} WHERE id = ?`, [JSON.stringify(metadata), row.id]);
+      }
+    }
+  },
+};
+
+export const MIGRATIONS: Migration[] = [baseline, tenantSettings, ssoDomainVerification, ssoDomainRecheck, evidenceApprovalBinding, evidenceContentSeparation];
 
 export async function migrate(driver: SqlDriver): Promise<number[]> {
   await driver.execute(`CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL)`);

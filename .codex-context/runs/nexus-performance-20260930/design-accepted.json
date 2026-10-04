@@ -1,0 +1,17 @@
+{
+  "run_id": "nexus-performance-20260930",
+  "node_id": "design",
+  "input_sha256": "2063344ddecbfdd33a5655eeee73b353cd13982c0c029a030bec782a606a78a6",
+  "status": "complete",
+  "summary": "Accepted static semantic dashes, instanced pillars, framework-pair curve routing and demand rendering; refined home view to aggregate clutter.",
+  "evidence": [
+    "design/result.json",
+    "design/run.json",
+    "evidence/profile-final.json",
+    "evidence/full-e2e.log",
+    "evidence/demand-e2e.log"
+  ],
+  "limitations": [
+    "See review-adjudication.json and evidence for coverage and test reruns."
+  ]
+}

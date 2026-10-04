@@ -1,0 +1,27 @@
+{
+  "status": "passed",
+  "checked_utc": "2026-10-03T23:16:18.047489+00:00",
+  "branch": "feat/light-workspace-design",
+  "head": "c8a1ed06a8043fe725381ccccd89779b6a3498e0",
+  "full_check": {
+    "command": "env -u VISUA_DATABASE_URL -u VISUA_DB -u VISUA_TEST_DATABASE_URL -u NODE_ENV -u VISUA_REPO_SCAN_ROOTS VISUA_AGENT_MODE=offline VISUA_AUTH_MODE=dev VISUA_PUBLIC_URL=http://localhost:8799 pnpm check",
+    "exit_code": 0,
+    "elapsed_seconds": 435,
+    "lanes_passed": 7,
+    "sqlite_passed": 360,
+    "sqlite_postgres_only_skips": 2,
+    "postgres_passed": 362,
+    "browser_passed": 80,
+    "new_keyboard_browser_cases": 23,
+    "logs": "final-check-logs"
+  },
+  "review": {
+    "first": "complete/findings: 3 confirmed and resolved",
+    "affected": "complete/pass: no supported remaining findings"
+  },
+  "limitations": [
+    "Checks use in-memory SQLite, a disposable PostgreSQL fixture and offline agents.",
+    "No deployment or commit. Live Docker retains its October 2 source.",
+    "First full check interrupted after an old palette textbox locator timeout; corrected roles only and final full check passed."
+  ]
+}

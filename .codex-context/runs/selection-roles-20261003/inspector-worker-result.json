@@ -1,0 +1,19 @@
+{
+  "run_id": "selection-roles-20261003",
+  "node_id": "inspector-worker",
+  "input_sha256": "5a22000d6848502abf10e71dfa77e6e489d431d106d2f5dff7cdc62bd6d577e7",
+  "status": "complete",
+  "summary": "Implemented bounded inspector selection and role correctness; authored ten isolated browser regression cases. Integrated browser and final typecheck remain root-owned.",
+  "evidence": [
+    "apps/web/src/components/inspector/Inspector.tsx",
+    "e2e/inspector-selection.spec.ts",
+    ".codex-context/runs/selection-roles-20261003/inspector-worker-summary.json",
+    "Web typecheck passed before final hook-level handler guard; final inspector browser spec strict TypeScript check passed.",
+    "Owned diff whitespace check passed."
+  ],
+  "limitations": [
+    "Browser, build and server processes were not started by this worker; root owns integrated browser execution.",
+    "The web typecheck passed before the final optional hook-level error guard and minor clean-draft adjustment; final integrated typecheck remains root-owned.",
+    "The ten browser cases are authored and statically typechecked; browser outcomes are not claimed."
+  ]
+}

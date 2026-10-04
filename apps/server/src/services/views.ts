@@ -2,7 +2,7 @@
  * API view models: lean graphs for the 3D Observatory, full node detail for
  * the inspector, and per-framework state bundles.
  */
-import { codeOf, frameworkOf, groupStatus, obligationTiming, trustCenterPublishes, type FrameworkGraph, type RequirementNode, type Workspace } from "@visua/core";
+import { isEvidenceValid, codeOf, frameworkOf, groupStatus, obligationTiming, trustCenterPublishes, type FrameworkGraph, type RequirementNode, type Workspace } from "@visua/core";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { CORPUS_DIR, FRAMEWORK_ORDER } from "@visua/frameworks";
@@ -143,7 +143,7 @@ export async function frameworkState(svc: VisuaService, ws: Workspace, framework
     svc.score(ws.id, frameworkId),
     svc.store.states.list(ws.id, frameworkId),
     svc.store.tasks.list(ws.id),
-    svc.store.evidence.list(ws.id),
+    svc.store.evidence.metadataList(ws.id),
   ]);
   const openTasks = new Map<string, number>();
   for (const t of tasks) if (t.status !== "done") for (const id of t.requirementIds) openTasks.set(id, (openTasks.get(id) ?? 0) + 1);
@@ -152,7 +152,7 @@ export async function frameworkState(svc: VisuaService, ws: Workspace, framework
   const adoption = overlay ? svc.frameworkSettings(ws, frameworkId)?.overlays?.find((a) => a.overlayId === overlay.id) : undefined;
   const overlayLenses = overlay ? (adoption?.lenses ?? overlay.lenses?.map((l) => l.id) ?? []) : [];
   const evidenceCount = new Map<string, number>();
-  for (const e of evidence) if (e.status === "accepted") for (const id of e.requirementIds) evidenceCount.set(id, (evidenceCount.get(id) ?? 0) + 1);
+  for (const e of evidence) if (isEvidenceValid(e)) for (const id of e.requirementIds) evidenceCount.set(id, (evidenceCount.get(id) ?? 0) + 1);
   // Statutory obligations: scoped by date when read (see VisuaService.scoreOf).
   const index = svc.registry.framework(frameworkId)!;
   const law = index.graph.framework.family === "law";

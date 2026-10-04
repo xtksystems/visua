@@ -1,0 +1,7 @@
+{
+  "image": "sha256:b7e94435f020efbfa7e2e134480f9c31c09b355a53f4515bd4f88c49f4da2eea",
+  "revision": "780630983071379a890d3d51ec18a88cdffac95a",
+  "built_utc": "2026-10-04T03:28:24.213616+00:00",
+  "build": "docker compose build visua",
+  "exit_code": 0
+}

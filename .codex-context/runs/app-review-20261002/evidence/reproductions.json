@@ -1,0 +1,37 @@
+{
+  "status": "complete",
+  "source": "1dc5ed1",
+  "command": "node .codex-context/runs/app-review-20261002/evidence/reproduce.mjs",
+  "findings": [
+    {
+      "id": "accepted-evidence-edit",
+      "reproduced": true,
+      "actorRole": "contributor",
+      "patchStatus": 200,
+      "reviewStatusPreserved": "accepted",
+      "reviewerPreserved": true,
+      "evidenceValidBefore": false,
+      "evidenceValidAfter": true,
+      "newlyLinkedRequirementBefore": "implemented",
+      "newlyLinkedRequirementAfter": "verified",
+      "environment": "isolated SQLite memory database; in-process Hono requests"
+    },
+    {
+      "id": "invalid-evidence-date",
+      "reproduced": true,
+      "patchStatus": 200,
+      "invalidDateConsideredValid": true
+    },
+    {
+      "id": "web-posture-loopback",
+      "reproduced": true,
+      "loopbackHttpRequests": 1,
+      "privateServiceHeaderRecorded": true,
+      "environment": "ephemeral loopback HTTP fixture only; no external requests"
+    }
+  ],
+  "limitations": [
+    "SQLite only; no production state or secrets accessed",
+    "The connector reproduction proves loopback access, not cloud metadata exfiltration or a DNS-rebinding attack"
+  ]
+}

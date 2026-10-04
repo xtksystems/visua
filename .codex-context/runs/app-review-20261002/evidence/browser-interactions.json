@@ -1,0 +1,56 @@
+{
+  "startedAt": "2026-10-02T07:17:16.086Z",
+  "baseURL": "http://localhost:8787",
+  "actions": [
+    {
+      "name": "phone menu opens and links to action plan",
+      "passed": true
+    },
+    {
+      "name": "phone task details open using Enter",
+      "passed": true
+    },
+    {
+      "name": "phone task timeline switch",
+      "passed": true
+    },
+    {
+      "name": "phone evidence provenance details",
+      "passed": true
+    },
+    {
+      "name": "phone search returns cited requirement",
+      "passed": true
+    },
+    {
+      "name": "phone existing approvals inbox",
+      "passed": true
+    },
+    {
+      "name": "phone requirement inspector screenshot",
+      "passed": true
+    },
+    {
+      "name": "viewer has no agent launch or approval actions",
+      "passed": false,
+      "error": "Viewer saw modifying agent controls",
+      "validity": "Invalid session-switch setup: this check still reported Owner. Fresh-context retry in browser-inspector-cases.json proved Viewer controls on Agents are hidden."
+    }
+  ],
+  "errors": [],
+  "blockedMutations": [],
+  "menuClosedAfterNavigation": true,
+  "taskDetails": "RC.RP-04 · Critical mission functions and cybersecurity risk management are…\nEsc\n\nCritical mission functions and cybersecurity risk management are considered to establish post-incident operational norms\n\nCHECKLIST · FROM OFFICIAL IMPLEMENTATION EXAMPLES\nUse business impact and system categorization records (including service delivery objectives) to validate that essential services are restored in the appropriate order\nWork with system owners to confirm the successful restoration of systems and the return to normal operations\nMonitor the performance of restored systems to verify the adequacy of the restoration\nAttach evidence and request verification.\nStatus\nBacklog\nTo do\nIn progress\nIn review\nBlocked\nDone\nPriority\nhigh\nKind\ngovernance\nDates\nOct 12 → Oct 14 · 11 h\nAssignee\nMorgan Lee (CISO)\nOrigin\ntemplate\nRequirements\nRC.RP-04\nExecute with agent\n\nThe agent carries the task as far as software can — drafting policies, writing an implementation guide, running checks — and proposes updates for your approval. It never files plans as evidence.",
+  "timelineExcerpt": "PLAN\nAction plan\n\nTasks are grounded in official implementation examples, points of focus and assessment objectives. Drag cards between columns; open one to work its checklist or hand it to an agent.\n\nBoard\nTimeline\nGenerate plan\nPlan with agent\nAll frameworks\nCSF 2.0\nSOC 2\nSP 800-53\nRMF\nAI RMF\nState AI laws\n18 task(s) · 2 done\nOCT 26\nNOV 26\nGV.SC-02 · Cybersecurity roles and responsibilities for suppliers, customers, and…\nGV.SC-03 · Cybersecurity supply chain risk management is integrated into…\nGV.SC-07 · The risks posed by a supplier, their products and services, and other…\nRS.AN-06 · Actions performed during an investigation are recorded, and the…\nRC.RP-01 · The recovery portion of the incident response plan is executed once…\nRC.RP-03 · The integrity of backups and other restoration assets is verified…\nRC.RP-04 · Critical mission functions and cybersecurity risk management are…\nRC.RP-06 · The end of incident recovery is declared based on criteria, and…\nGV.RM-03 · Cybersecurity risk management activities and outcomes are included in…\nGV.RM-04 · Strategic direction that describes appropriate risk response options is…\nGV.SC-06 · Planning and due diligence are performed to reduce risks before…\nID.IM-01 · Improvements are identified from evaluations\nID.RA-02 · Cyber threat intelligence is received from information sharing forums…\nID.IM-03 · Improvements are identified from execution of operational processes,…\nID.IM-04 · Incident response plans and other cybersecurity plans that affect…\nID.AM-05 · Assets are prioritized based on classification, criticality, resources,…\nID.RA-0",
+  "evidenceDetails": "Platform repository: Dependency versions are pinned (lockfile)\nEsc\nProvenance\nAPI-automated · connector · connector con_0mum4nwkn2eabiebk\nStatus\naccepted by system:connector 3 days ago\nCollected\n9/28/2026, 11:39:29 PM\nValid until\n10/28/2026, 11:39:29 PM\nSHA-256\n7ece951efac81e14a4d833c6b59102e7206394ded7fe89dd6dada346a4401575\nFound pnpm-lock.yaml\n{\n  \"checkId\": \"lockfile\",\n  \"observed\": {\n    \"file\": \"pnpm-lock.yaml\"\n  },\n  \"automation\": \"api-automated\"\n}",
+  "searchResults": "COPILOT\nAsk the copilot: “PR.AA-01”\n↵\nREQUIREMENTS\nCSF 2.0\nPR.AA-01\nIdentities and credentials for authorized users, services, and hardware are man…\nOFFICIAL CORPUS\nPROTECT (PR): Safeguards to manage the organization's cybersecurity risks are used Identity Management, Authe…\nThe NIST CSF 2.0 Core With Withdrawn CSF 1.1 Elements, p. 7\n• Use standard user accounts with multi-factor authentication versus accounts with administrative privileges …\nRansomware Risk Management: A Cybersecurity Framework 2.0 Community P…, p. 10\nAA-01: Identities and credentials for authorized users, services, and hardware are managed by the organizatio…\nThe NIST Cybersecurity Framework (CSF) 2.0, p. 24",
+  "approvalsExcerpt": "Agents\n\nEvery run is recorded step by step. Agents propose; you decide. Nothing changes your compliance state without approval unless you grant autonomy in Settings.\n\nLaunch an agent\nOffline playbooks\nCopilot\nAssessor\nPlanner\nPolicy Author\nEvidence Collector\nCrosswalk Analyst\nAudit Prep\nAll enabled frameworks\nNIST CSF 2.0\nSOC 2 (TSC 2017)\nSP 800-53 Rev. 5\nNIST RMF\nNIST AI RMF\nState AI laws\nRun Copilot\nRuns 2\nApprovals inbox 20\nNew task\nconfidence high\nCC8.1 · Resolve audit blocker\nCC8.1\nApprove\nReject\nNew task\nconfidence high\nCC1.2 · Resolve audit blocker\nCC1.2\nApprove\nReject\nNew task\nconfidence high\nCC1.3 · Resolve audit blocker\nCC1.3\nApprove\nReject\nNew task\nconfidence high\nCC1.5 · Resolve audit blocker\nCC1.5\nApprove\nReject\nNew task\nconfidence high\nCC6.2 · Resolve audit blocker\nCC6.2\nApprove\nReject\nEvidence\nconfidence high\nPublic website posture: Service is served over HTTPS\nPR.DS-02\nCC6.7\nSC-8\nSC-8(1)\nApprove\nReject\nEvidence\nconfidence high\nPublic website posture: Plain HTTP redirects to HTTPS\nPR.DS-02\nCC6.7\nSC-8\nSC-8(1)\nApprove\nReject\nEvidence\nconfidence high\nPublic website posture: HTTP Strict Transport Security is enforced\nPR.DS-02\nCC6.7\nSC-8\nSC-8(1)\nApprove\nReject\nEvidence\nconfidence high\nPublic website posture: Browser security headers are configured\nPR.PS-01\nCC6.6\nCM-6\nApprove\nReject\nEvidence\nconfidence high\nPublic website posture: TLS certificate is valid and protocol is modern\nPR.DS-02\nCC6.7\nSC-8(1)\nSC-13\nApprove\nReject\nNew task\nconfidence high\nGV.OC-04 · Collect evidence of implementation\nGV.OC-04\nReview\nApprove\nReject\nNew task\nconfidence high\nGV.OC-05 · Collect ",
+  "viewer": {
+    "launchHeading": 1,
+    "approveButtons": 36,
+    "waitingText": 0,
+    "role": "Owner"
+  },
+  "finishedAt": "2026-10-02T07:17:26.915Z",
+  "screenshotLimitations": "Task and evidence dialog captures were taken during CSS transitions; they are not settled visual defect evidence. Functional dialog text assertions passed. Phone requirement inspector capture was inspected and settled."
+}

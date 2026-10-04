@@ -3,26 +3,48 @@
  * Header (code, title, status), tabbed body, sticky footer with the primary action.
  */
 import { Bot, ExternalLink, FileText, ListChecks, Plus, Sparkles, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { levelLabel, type FrameworkFamily, type ProfileAction } from "@visua/core";
 import { api, corpusFileUrl } from "../../lib/api.ts";
 import { useCan } from "../../lib/auth.ts";
 import { STATUS_LABEL, TASK_STATUS_LABEL, relativeTime, shortDate, truncate } from "../../lib/format.ts";
 import { badgeOf, familyOf, programPath } from "../../lib/frameworks.ts";
-import { useGraph, useMeta, useNodeDetail, useWsMutation } from "../../lib/queries.ts";
-import type { NodeDetail } from "../../lib/types.ts";
-import { useUi } from "../../state/ui.ts";
-import { AgentBadge, CodeTag, Dialog, Empty, FrameworkBadge, LevelPips, SheetGrabber, StatusBar, StatusChip, Tabs, toast } from "../ui/index.tsx";
+import { keys, useGraph, useMeta, useNodeDetail, useWsMutation } from "../../lib/queries.ts";
+import type { NodeDetail, RequirementState } from "../../lib/types.ts";
+import { useWorkspaceId } from "../../lib/workspace.ts";
+import { AgentBadge, CodeTag, Dialog, Empty, FrameworkBadge, LevelPips, SheetGrabber, StatusBar, StatusChip, TabPanel, Tabs, toast } from "../ui/index.tsx";
+import { MemberPicker, type MemberAssignment } from "../work/MemberPicker.tsx";
 import { OverlaySections } from "./Overlays.tsx";
 import { ThreatInspector, ThreatsAddressed } from "./Threats.tsx";
 
 type Tab = "overview" | "tasks" | "evidence" | "mappings" | "history";
 
 export function Inspector({ nodeId, onClose }: { nodeId: string; onClose: () => void }) {
-  const { ws = "" } = useParams();
-  const { data, isLoading } = useNodeDetail(ws, nodeId);
+  const ws = useWorkspaceId();
+  // Cached selections need the same fresh draft/dialog lifetime as uncached ones.
+  // Key the query observer too, so pending responses and placeholders stay with their selection.
+  return <InspectorSelection key={JSON.stringify([ws, nodeId])} ws={ws} nodeId={nodeId} onClose={onClose} />;
+}
+
+function InspectorSelection({ ws, nodeId, onClose }: { ws: string; nodeId: string; onClose: () => void }) {
+  const { data, isLoading, error, refetch, isFetching } = useNodeDetail(ws, nodeId);
   const [tab, setTab] = useState<Tab>("overview");
+  const tabsId = useId();
+  if (!data && error) {
+    return (
+      <aside className="inspector" aria-label="Requirement details" data-hud>
+        <div className="row">
+          <span className="eyebrow">Requirement details</span>
+          <span style={{ flex: 1 }} />
+          <button className="btn btn--quiet btn--sm btn--icon" onClick={onClose} aria-label="Close inspector"><X size={14} /></button>
+        </div>
+        <p role="alert">Could not load this requirement: {error.message}</p>
+        <button className="btn" disabled={isFetching} onClick={() => void refetch()}>{isFetching ? "Retrying…" : "Retry"}</button>
+      </aside>
+    );
+  }
   if (isLoading || !data) {
     return (
       <aside className="inspector" aria-busy="true" data-hud>
@@ -57,6 +79,8 @@ export function Inspector({ nodeId, onClose }: { nodeId: string; onClose: () => 
         {node.title && node.title !== node.code ? <h2 className="inspector__title">{node.title}</h2> : null}
       </header>
       <Tabs<Tab>
+        id={tabsId}
+        label="Requirement details"
         value={tab}
         onChange={setTab}
         tabs={[
@@ -68,11 +92,11 @@ export function Inspector({ nodeId, onClose }: { nodeId: string; onClose: () => 
         ]}
       />
       <div className="inspector__body">
-        {tab === "overview" && <Overview data={data} />}
-        {tab === "tasks" && <TasksTab data={data} />}
-        {tab === "evidence" && <EvidenceTab data={data} />}
-        {tab === "mappings" && <MappingsTab data={data} />}
-        {tab === "history" && <HistoryTab data={data} />}
+        <TabPanel groupId={tabsId} id="overview" active={tab === "overview"}><Overview data={data} /></TabPanel>
+        <TabPanel groupId={tabsId} id="tasks" active={tab === "tasks"}><TasksTab data={data} /></TabPanel>
+        <TabPanel groupId={tabsId} id="evidence" active={tab === "evidence"}><EvidenceTab data={data} /></TabPanel>
+        <TabPanel groupId={tabsId} id="mappings" active={tab === "mappings"}><MappingsTab data={data} /></TabPanel>
+        <TabPanel groupId={tabsId} id="history" active={tab === "history"}><HistoryTab data={data} /></TabPanel>
       </div>
       <AgentFooter data={data} />
     </aside>
@@ -298,14 +322,41 @@ function Overview({ data }: { data: NodeDetail }) {
   );
 }
 
+function useSelectionError() {
+  const active = useRef(false);
+  useEffect(() => {
+    active.current = true;
+    return () => { active.current = false; };
+  }, []);
+  return (error: Error) => { if (active.current) toast(error.message, "error"); };
+}
+
 function Assessment({ data, family }: { data: NodeDetail; family: FrameworkFamily }) {
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
+  const { ws: routeWs = "" } = useParams();
+  const qc = useQueryClient();
   const meta = useMeta();
   const state = data.state!;
   const scale = meta.data?.levelScales[family];
   const [naOpen, setNaOpen] = useState(false);
   const [rationale, setRationale] = useState(state.applicabilityRationale ?? "");
-  const update = useWsMutation(ws, (patch: Record<string, unknown>) => api.patch(`/workspaces/${encodeURIComponent(ws)}/requirements/${encodeURIComponent(data.node.id)}`, patch));
+  // A clean input follows server data; a dirty input survives same-selection refetches.
+  const [ownerDraft, setOwnerDraft] = useState<{ value: MemberAssignment | undefined } | null>(null);
+  const [ownerError, setOwnerError] = useState<string | null>(null);
+  const savedOwner: MemberAssignment | undefined = state.ownerUserId
+    ? { type: "person", id: state.ownerUserId, name: state.owner ?? "Member" }
+    : state.owner ? { type: "external", id: "external", name: state.owner } : undefined;
+  const owner = ownerDraft ? ownerDraft.value : savedOwner;
+  const ownerDirty = JSON.stringify(owner) !== JSON.stringify(savedOwner);
+  const [dueDraft, setDueDraft] = useState<string | null>(null);
+  const [dueError, setDueError] = useState<string | null>(null);
+  const dueDate = dueDraft ?? state.dueDate ?? "";
+  const dueDirty = dueDate !== (state.dueDate ?? "");
+  const onError = useSelectionError();
+  const update = useWsMutation(ws, (patch: Record<string, unknown>) => api.patch<RequirementState>(`/workspaces/${encodeURIComponent(ws)}/requirements/${encodeURIComponent(data.node.id)}`, patch), {
+    // Hook errors outlive their observer; do not notify a different selection.
+    onError,
+  });
   const set = (patch: Record<string, unknown>) =>
     update.mutate(patch, {
       onError: (e) => toast((e as Error).message, "error"),
@@ -321,13 +372,13 @@ function Assessment({ data, family }: { data: NodeDetail; family: FrameworkFamil
         <span style={{ flex: 1 }} />
         <LevelPips current={state.current} target={state.target} />
       </div>
-      <LevelRow label="Current" value={state.current} levels={levels} onChange={(v) => set({ current: v })} disabled={!state.applicable} />
-      <LevelRow label="Target" value={state.target} levels={levels} onChange={(v) => set({ target: v })} disabled={!state.applicable} />
+      <LevelRow label="Current" value={state.current} levels={levels} onChange={(v) => set({ current: v })} disabled={!state.applicable || update.isPending} />
+      <LevelRow label="Target" value={state.target} levels={levels} onChange={(v) => set({ target: v })} disabled={!state.applicable || update.isPending} />
       {data.status?.reasons.length ? <div className="muted" style={{ fontSize: 12 }}>{data.status.reasons.join(" · ")}</div> : null}
       <div className="row row--wrap" style={{ gap: 8 }}>
         <label className="field" style={{ flex: 1, minWidth: 120 }}>
           <span className="label">Priority</span>
-          <select className="select" value={state.priority} onChange={(e) => set({ priority: e.target.value })}>
+          <select className="select" value={state.priority} disabled={update.isPending} onChange={(e) => set({ priority: e.target.value })}>
             {["critical", "high", "medium", "low"].map((p) => (
               <option key={p} value={p}>
                 {p}
@@ -335,15 +386,54 @@ function Assessment({ data, family }: { data: NodeDetail; family: FrameworkFamil
             ))}
           </select>
         </label>
-        <label className="field" style={{ flex: 1, minWidth: 120 }}>
-          <span className="label">Owner</span>
-          <input className="input" defaultValue={state.owner ?? ""} placeholder="Unassigned" onBlur={(e) => e.target.value !== (state.owner ?? "") && set({ owner: e.target.value })} />
-        </label>
+        <div style={{ flex: 1, minWidth: 120 }}>
+          <MemberPicker label="Assign owner" externalLabel="Owner" value={owner} disabled={update.isPending} onChange={(value) => {
+            setOwnerDraft(JSON.stringify(value) === JSON.stringify(savedOwner) ? null : { value });
+            setOwnerError(null);
+          }} />
+        </div>
       </div>
+      {canWrite && (
+        <div className="row" style={{ justifyContent: "flex-end", gap: 8 }}>
+          <button className="btn btn--sm" disabled={!ownerDirty || update.isPending} onClick={() => { setOwnerDraft(null); setOwnerError(null); }}>Cancel owner change</button>
+          <button
+            className="btn btn--primary btn--sm"
+            disabled={!ownerDirty || update.isPending || owner?.type === "external" && !owner.name.trim()}
+            onClick={() => update.mutate(owner?.type === "person" ? { ownerUserId: owner.id } : { ownerUserId: null, owner: owner?.name.trim() ?? "" }, {
+              onSuccess: (saved) => {
+                qc.setQueryData<NodeDetail>(keys.node(ws, data.node.id), (previous) => previous ? { ...previous, state: saved } : previous);
+                setOwnerDraft(null);
+                setOwnerError(null);
+              },
+              onError: (e) => setOwnerError(`Could not save owner: ${e.message}`),
+            })}
+          >Save owner</button>
+        </div>
+      )}
+      {ownerError && <div role="alert">{ownerError}</div>}
+      <label className="field">
+        <span className="label">Requirement due date</span>
+        <input className="input" type="date" value={dueDate} disabled={update.isPending} onChange={(event) => {
+          setDueDraft(event.target.value === (state.dueDate ?? "") ? null : event.target.value);
+          setDueError(null);
+        }} />
+      </label>
+      {canWrite && <div className="row" style={{ justifyContent: "flex-end", gap: 8 }}>
+        <button className="btn btn--sm" disabled={!dueDirty || update.isPending} onClick={() => { setDueDraft(null); setDueError(null); }}>Cancel due date change</button>
+        <button className="btn btn--primary btn--sm" disabled={!dueDirty || update.isPending} onClick={() => update.mutate({ dueDate: dueDate || null }, {
+          onSuccess: (saved) => {
+            qc.setQueryData<NodeDetail>(keys.node(ws, data.node.id), (previous) => previous ? { ...previous, state: saved } : previous);
+            setDueDraft(null);
+            setDueError(null);
+          },
+          onError: (error) => setDueError(`Could not save due date: ${error.message}`),
+        })}>Save due date</button>
+      </div>}
+      {dueError && <div role="alert">{dueError}</div>}
       <div className="row row--wrap" style={{ gap: 8 }}>
         {state.applicable ? (
           canDecide && (
-            <button className="btn btn--quiet btn--sm" onClick={() => setNaOpen(true)}>
+            <button className="btn btn--quiet btn--sm" disabled={update.isPending} onClick={() => { setRationale(state.applicabilityRationale ?? ""); setNaOpen(true); }}>
               Mark not applicable…
             </button>
           )
@@ -351,10 +441,10 @@ function Assessment({ data, family }: { data: NodeDetail; family: FrameworkFamil
           <>
             <span className="muted" style={{ fontSize: 12, flex: 1, minWidth: 180 }}>
               {state.userExclusion ? "Not applicable" : "Out of scope"}: {state.applicabilityRationale}
-              {!state.userExclusion && <> · <Link to={programPath(ws, data.node.frameworkId)}>change the scope</Link></>}
+              {!state.userExclusion && <> · <Link to={programPath(routeWs, data.node.frameworkId)}>view the scope</Link></>}
             </span>
             {state.userExclusion && canDecide && (
-              <button className="btn btn--sm" onClick={() => set({ applicable: true })}>
+              <button className="btn btn--sm" disabled={update.isPending} onClick={() => set({ applicable: true })}>
                 Bring into scope
               </button>
             )}
@@ -362,12 +452,12 @@ function Assessment({ data, family }: { data: NodeDetail; family: FrameworkFamil
         )}
         <span style={{ flex: 1 }} />
         {canDecide && state.applicable && state.current >= state.target && !state.verifiedAt && (
-          <button className="btn btn--sm" onClick={() => set({ verifiedAt: new Date().toISOString() })} title="Record that an assessor verified the implementation and its evidence">
+          <button className="btn btn--sm" disabled={update.isPending} onClick={() => set({ verifiedAt: new Date().toISOString() })} title="Record that an assessor verified the implementation and its evidence">
             Mark verified
           </button>
         )}
       </div>
-      {naOpen && (
+      {naOpen && canDecide && (
         <Dialog
           title={`Mark ${data.node.code} not applicable`}
           onClose={() => setNaOpen(false)}
@@ -378,10 +468,12 @@ function Assessment({ data, family }: { data: NodeDetail; family: FrameworkFamil
               </button>
               <button
                 className="btn btn--primary"
-                disabled={rationale.trim().length < 12}
+                disabled={rationale.trim().length < 12 || update.isPending}
                 onClick={() => {
-                  set({ applicable: false, applicabilityRationale: rationale.trim() });
-                  setNaOpen(false);
+                  update.mutate({ applicable: false, applicabilityRationale: rationale.trim() }, {
+                    onSuccess: () => setNaOpen(false),
+                    onError: (e) => toast(e.message, "error"),
+                  });
                 }}
               >
                 Record decision
@@ -423,13 +515,15 @@ function LevelRow({ label, value, levels, onChange, disabled }: { label: string;
 }
 
 function TasksTab({ data }: { data: NodeDetail }) {
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
+  const canWrite = useCan("work.write");
   const [title, setTitle] = useState("");
-  const create = useWsMutation(ws, (t: string) => api.post(`/workspaces/${encodeURIComponent(ws)}/tasks`, { title: t, requirementIds: [data.node.id], kind: "procedure" }));
+  const onError = useSelectionError();
+  const create = useWsMutation(ws, (t: string) => api.post(`/workspaces/${encodeURIComponent(ws)}/tasks`, { title: t, requirementIds: [data.node.id], kind: "procedure" }), { onError });
   const run = useRunAgent();
   return (
     <div className="stack" style={{ gap: 10 }}>
-      {data.tasks.length === 0 && <Empty title="No tasks yet">Plan work with an agent or add one below.</Empty>}
+      {data.tasks.length === 0 && <Empty title="No tasks yet">{canWrite ? "Plan work with an agent or add one below." : "Work planned for this requirement will appear here."}</Empty>}
       {data.tasks.map((t) => (
         <div key={t.id} className="panel panel--raised" style={{ padding: 12 }}>
           <div className="row" style={{ alignItems: "flex-start" }}>
@@ -442,7 +536,7 @@ function TasksTab({ data }: { data: NodeDetail }) {
                 {t.origin === "agent" ? <AgentBadge label="agent" /> : null}
               </div>
             </div>
-            {t.status !== "done" && (
+            {canWrite && t.status !== "done" && (
               <button className="btn btn--agent btn--sm" onClick={() => run("task-executor", `Execute task: ${t.title}`, { taskId: t.id })} title="Let an agent carry this task as far as software can (with your approval)">
                 <Bot size={13} /> Execute
               </button>
@@ -450,29 +544,38 @@ function TasksTab({ data }: { data: NodeDetail }) {
           </div>
         </div>
       ))}
-      <form
+      {canWrite && <form
         className="row"
         onSubmit={(e) => {
           e.preventDefault();
-          if (title.trim()) create.mutate(title.trim(), { onSuccess: () => setTitle("") });
+          if (title.trim() && !create.isPending) create.mutate(title.trim(), { onSuccess: () => setTitle("") });
         }}
       >
-        <input className="input" placeholder="Add a task for this requirement…" value={title} onChange={(e) => setTitle(e.target.value)} />
-        <button className="btn btn--icon" aria-label="Add task" disabled={!title.trim()}>
+        <input className="input" aria-label="Task title" placeholder="Add a task for this requirement…" value={title} disabled={create.isPending} onChange={(e) => setTitle(e.target.value)} />
+        <button className="btn btn--icon" aria-label="Add task" disabled={!title.trim() || create.isPending}>
           <Plus size={15} />
         </button>
-      </form>
+      </form>}
     </div>
   );
 }
 
 function EvidenceTab({ data }: { data: NodeDetail }) {
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
+  const canWrite = useCan("work.write");
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [kind, setKind] = useState("document");
-  const add = useWsMutation(ws, () => api.post(`/workspaces/${encodeURIComponent(ws)}/evidence`, { title, content, kind, requirementIds: [data.node.id] }));
+  const onError = useSelectionError();
+  const add = useWsMutation(ws, () => api.post(`/workspaces/${encodeURIComponent(ws)}/evidence`, { title, content, kind, requirementIds: [data.node.id] }), { onError });
+  const close = () => {
+    if (add.isPending) return;
+    setOpen(false);
+    setTitle("");
+    setContent("");
+    setKind("document");
+  };
   return (
     <div className="stack" style={{ gap: 10 }}>
       {data.evidence.length === 0 && <Empty title="No evidence yet">Evidence must show what is actually in place — configuration exports, logs, records or signed attestations.</Empty>}
@@ -495,19 +598,19 @@ function EvidenceTab({ data }: { data: NodeDetail }) {
           </div>
         </div>
       ))}
-      <button className="btn" onClick={() => setOpen(true)}>
+      {canWrite && <button className="btn" onClick={() => setOpen(true)}>
         <Plus size={14} /> Add evidence
-      </button>
-      {open && (
+      </button>}
+      {open && canWrite && (
         <Dialog
           title={`Add evidence for ${data.node.code}`}
-          onClose={() => setOpen(false)}
+          onClose={close}
           footer={
             <>
-              <button className="btn" onClick={() => setOpen(false)}>
+              <button className="btn" disabled={add.isPending} onClick={close}>
                 Cancel
               </button>
-              <button className="btn btn--primary" disabled={!title.trim()} onClick={() => add.mutate(undefined, { onSuccess: () => (setOpen(false), setTitle(""), setContent(""), toast("Evidence added — it awaits review")) })}>
+              <button className="btn btn--primary" disabled={!title.trim() || add.isPending} onClick={() => add.mutate(undefined, { onSuccess: () => { setOpen(false); setTitle(""); setContent(""); setKind("document"); toast("Evidence added — it awaits review"); } })}>
                 Add for review
               </button>
             </>
@@ -515,20 +618,20 @@ function EvidenceTab({ data }: { data: NodeDetail }) {
         >
           <div className="stack" style={{ gap: 12 }}>
             <div className="field">
-              <label>Title</label>
-              <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. MFA enforcement configuration export" />
+              <label htmlFor="inspector-evidence-title">Title</label>
+              <input id="inspector-evidence-title" className="input" value={title} disabled={add.isPending} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. MFA enforcement configuration export" />
             </div>
             <div className="field">
-              <label>Kind</label>
-              <select className="select" value={kind} onChange={(e) => setKind(e.target.value)}>
+              <label htmlFor="inspector-evidence-kind">Kind</label>
+              <select id="inspector-evidence-kind" className="select" value={kind} disabled={add.isPending} onChange={(e) => setKind(e.target.value)}>
                 {["document", "configuration", "screenshot", "log", "attestation", "report"].map((k) => (
                   <option key={k}>{k}</option>
                 ))}
               </select>
             </div>
             <div className="field">
-              <label>Content or reference</label>
-              <textarea className="textarea" value={content} onChange={(e) => setContent(e.target.value)} placeholder="Paste the export, link the system of record, or describe the artifact. Visua stores a SHA-256 hash for provenance." />
+              <label htmlFor="inspector-evidence-content">Content or reference</label>
+              <textarea id="inspector-evidence-content" className="textarea" value={content} disabled={add.isPending} onChange={(e) => setContent(e.target.value)} placeholder="Paste the export, link the system of record, or describe the artifact. Visua stores a SHA-256 hash for provenance." />
             </div>
           </div>
         </Dialog>
@@ -606,15 +709,23 @@ function HistoryTab({ data }: { data: NodeDetail }) {
 }
 
 export function useRunAgent() {
-  const { ws = "" } = useParams();
-  const navigate = useNavigate();
-  return async (agent: string, goal: string, input: Record<string, unknown>, opts: { stay?: boolean } = {}) => {
+  const ws = useWorkspaceId();
+  const canWrite = useCan("work.write");
+  const active = useRef(false);
+  const workspace = useRef(ws);
+  workspace.current = ws;
+  useEffect(() => {
+    active.current = true;
+    return () => { active.current = false; };
+  }, []);
+  return async (agent: string, goal: string, input: Record<string, unknown>, _opts: { stay?: boolean } = {}) => {
+    if (!canWrite) return;
     try {
       await api.post(`/workspaces/${encodeURIComponent(ws)}/runs`, { agent, goal, input });
+      if (!active.current || workspace.current !== ws) return;
       toast(`${agent} started — watch it work in the scene or in Agents.`, "agent");
-      if (!opts.stay) void navigate;
     } catch (e) {
-      toast((e as Error).message, "error");
+      if (active.current && workspace.current === ws) toast((e as Error).message, "error");
     }
   };
 }

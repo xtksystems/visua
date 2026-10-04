@@ -1,0 +1,64 @@
+{
+  "run_id": "evidence-files-20261004",
+  "node_id": "blobs",
+  "input_sha256": "55783b63ae37e3df49c3d83fa7ff32ba83d3418e217fda9d0a1a59c51c5457f6",
+  "status": "complete",
+  "summary": "Implemented the exact BlobScope/BlobReference/BlobStore contract, MemoryBlobStore, LocalBlobStore, S3BlobStore and createBlobStore exports. Random UUID blob ids are scoped by tenant and workspace; every upload computes SHA-256 and independently reads persisted bytes before returning, and every download verifies size/hash. Shared fixed 10 MiB limits reject empty/oversized input. Sanitized BlobStoreError codes are invalid_input, not_found, integrity, unavailable, timeout and configuration. Local storage uses private directories/files, canonical/inode checks, no-follow nonblocking descriptors and bounded fd reads. Official AWS SDK v3 uses the standard credential provider chain, an explicit operator bucket/region/endpoint, bounded retries and abort/deadline coverage through streamed reads. No interface deviations or live service mutations.",
+  "evidence": [
+    {
+      "command": "pnpm --filter @visua/server add @aws-sdk/client-s3",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed",
+      "exit_code": 0,
+      "details": "Added @aws-sdk/client-s3 ^3.1146.0 to server dependencies and updated pnpm-lock.yaml. No changes to other dependency manifests."
+    },
+    {
+      "command": "pnpm exec vitest run apps/server/test/blob-store.test.ts",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed",
+      "exit_code": 0,
+      "details": "59 focused tests passed against final adapter source. Covers tenant/workspace isolation, random ids, byte/reference validation, exact 10 MiB bound, independent copies, missing/tampered/truncated/oversized files, private permissions, symlink/hardlink/FIFO refusal, independent PUT verification and cleanup, filesystem failure sanitization, environment validation, real-SDK SigV4 HTTP roundtrip with cryptographic signature validation and fake credentials, bounded S3 retries, and stalled header/stream cancellation. All S3 requests reach only an ephemeral loopback protocol mock."
+    },
+    {
+      "command": "pnpm --filter @visua/server typecheck",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed",
+      "exit_code": 0,
+      "details": "Server TypeScript source and tests pass after final adapter edits."
+    },
+    {
+      "command": "git diff --check -- apps/server/package.json pnpm-lock.yaml",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed",
+      "exit_code": 0,
+      "details": "Dependency manifest/lockfile diff is clean. Adapter source and test files were inspected separately; all worker source writes are confined to the brief's ownership."
+    },
+    {
+      "source_sha256": {
+        "apps/server/src/blobs/index.ts": "f21034309a3d42c75976c9bd5ca1baa526cfa42eff40b71c7cc5aa0ba924f1d5",
+        "apps/server/src/blobs/local.ts": "9964a2f6aa8570ac9ec8e571929246ffdfdc1fdf3ffd9f6793aef48afb6e76be",
+        "apps/server/src/blobs/memory.ts": "5b03eb52c2b8dedbdfb0307f6fe9157fc963f15ba336ae2cb2f3ccab2b49290c",
+        "apps/server/src/blobs/s3.ts": "72a3e9b3ee3c6d7d3698ae157bd1e6fc932357314eebb2ab6b7ce4e5cb0c914a",
+        "apps/server/src/blobs/shared.ts": "29f74295fc9686c4b4a40631228f283c1b879c805b47b730f6d08f690684bd18",
+        "apps/server/test/blob-store.test.ts": "58858bdcd39e7684bdfb289bd9688831d4df3e962048ec5f3292e74730f7c044",
+        "apps/server/package.json": "2498a1a82883414c01ad2bfeaa5fbeffc8b156786084940f26ee58feeb6ad351",
+        "pnpm-lock.yaml": "dfd1ab612f67a60be973f36cac109b47bc9f22b40bb3448120d85b2f4cd04a0e"
+      }
+    },
+    {
+      "official_sources": [
+        "https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/javascript_s3_code_examples.html",
+        "https://github.com/aws/aws-sdk-js-v3/blob/main/supplemental-docs/CLIENTS.md"
+      ],
+      "details": "Primary SDK examples and client lifetime guidance inspected for real SDK commands, default credential chain and explicit shutdown destroy method."
+    }
+  ],
+  "limitations": [
+    "Local roots and directory ancestry must remain operator-controlled. Node has no portable dirfd-relative openat API; no-follow flags and inode/canonical checks cannot make concurrent privileged ancestor replacement race-proof. Configured symlink roots/ancestors are refused, so operators must use their canonical paths.",
+    "Node cannot cancel a pending kernel filesystem call. Local deadlines are checked around every filesystem call, with bounded entry counts and bytes, while retaining descriptor ownership until calls finish; a stalled kernel or filesystem can exceed the caller deadline. S3 transport/stream waits have explicit abort/race bounds.",
+    "S3 bucket privacy, IAM policy, encryption and lifecycle are operator responsibilities. The adapter does not create buckets or mutate their policy, never sends public ACLs, and never creates signed URLs. Optional endpoints must be plain HTTP/HTTPS origins without credentials, query, fragment or path prefixes.",
+    "A failed upload triggers best-effort deletion with a separate maximum two-second cleanup budget; storage outages can leave an unreferenced object. Memory storage is ephemeral and has a per-file rather than aggregate quota.",
+    "The standard AWS credential provider chain is preserved. A provider may continue resolving credentials after the caller deadline; aborted object requests do not continue their S3 transport work.",
+    "Full repository, PostgreSQL, browser and Docker checks are root integration responsibilities and were deliberately not run by this bounded worker. No live customer/provider resources were accessed."
+  ]
+}

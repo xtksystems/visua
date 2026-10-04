@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "files": [
+    "README.md",
+    "docs/workspace.md",
+    "docs/architecture.md",
+    "docs/development-phase-2.md",
+    ".codex-context/project.md",
+    ".codex-context/architecture.md",
+    ".codex-context/invariants.md",
+    ".codex-context/tasks/member-work-20261003.md",
+    ".codex-context/sessions/20261003T232809Z-feat-light-workspace-design-20b95518bab0.md"
+  ],
+  "local_targets": 86,
+  "missing": []
+}

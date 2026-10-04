@@ -1,0 +1,20 @@
+{
+  "run_id": "member-work-20261003",
+  "node_id": "root",
+  "input_sha256": "b851de6cc0f2c477e3dbeac57dc3d70e7a2d232c5bd73dfe99c88589ff93c9c0",
+  "status": "complete",
+  "summary": "Integrated stable member assignments, explicit calendar due dates and task links, principal-scoped My work, and preserved model licensing provenance; reviewed and verified accumulated prior packages, pushed the source commit, backed up and rebuilt local Docker, and verified migration, audit, data, source identity and live UI.",
+  "evidence": [
+    "verification-summary.json: all 7 lanes passed; SQLite 382/2 PG-only skips, PostgreSQL 384, browser 91 including 11 new cases",
+    "final-review.json and review-adjudication.json: all initial and followup findings resolved",
+    "delivery-result.json: pushed source commit 2ca9631, healthy labeled Docker image, consistent SQLite backup",
+    "docker-source-check.json: 142 runtime source hashes match the checked source",
+    "docker-preservation-result.json, docker-evidence-preservation.json and docker-audit-preservation.json: original records, evidence content and decisions preserved; artifact digests verified",
+    "docker-smoke-result.json: assignments, due dates, links, My work, cross-framework navigation, audit-chain validity and fixture cleanup passed"
+  ],
+  "limitations": [
+    "18 previously accepted legacy evidence records now require fresh review; previous decision details and content are preserved.",
+    "Local development deployment only; developer sign-in and offline agents remain configured.",
+    "All 88 historical activity records are byte-for-byte preserved; API chain verification covers 97 sequenced workspace events including the 18 upgrade events."
+  ]
+}

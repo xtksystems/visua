@@ -1,10 +1,13 @@
 /** UI atoms following DESIGN.md components. Status is never conveyed by color alone. */
-import { useEffect, useState, type ReactNode } from "react";
+import { useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { create } from "zustand";
 import type { Citation as CitationType, Status } from "@visua/core";
 import { corpusFileUrl } from "../../lib/api.ts";
 import { STATUS_LABEL, codeOf, frameworkOf, pct } from "../../lib/format.ts";
 import { badgeOf, familyOf } from "../../lib/frameworks.ts";
+import { useModalFocus } from "../../lib/modal.ts";
+import { useWorkspaceId } from "../../lib/workspace.ts";
 import { useUi } from "../../state/ui.ts";
 
 // ------------------------------------------------------------------ status
@@ -122,18 +125,32 @@ export function FrameworkBadge({ frameworkId }: { frameworkId: string }) {
   return <span className={`badge-fw badge-fw--${familyOf(frameworkId) ?? "unknown"}`}>{badgeOf(frameworkId)}</span>;
 }
 
-/** A requirement code; clicking flies the camera to it (DESIGN.md: requirement-code). */
+/** A requirement code links to its workspace, framework and selection (DESIGN.md: requirement-code). */
 export function CodeTag({ id, onNavigate }: { id: string; onNavigate?: (id: string) => void }) {
+  const ws = useWorkspaceId();
   const focus = useUi((s) => s.focus);
+  const title = `Show ${codeOf(id)} in the Observatory`;
+  if (!onNavigate) return (
+    <Link
+      className="code"
+      title={title}
+      to={`/w/${encodeURIComponent(ws)}/observatory/${encodeURIComponent(frameworkOf(id))}?select=${encodeURIComponent(id)}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) focus([id]);
+      }}
+    >
+      {codeOf(id)}
+    </Link>
+  );
   return (
     <button
       type="button"
       className="code"
-      title={`Show ${codeOf(id)} in the Observatory`}
+      title={title}
       onClick={(e) => {
         e.stopPropagation();
-        if (onNavigate) onNavigate(id);
-        else focus([id]);
+        onNavigate(id);
       }}
     >
       {codeOf(id)}
@@ -198,17 +215,55 @@ export function LevelPips({ current, target, max = 4 }: { current: number; targe
 
 // ------------------------------------------------------------------ layout helpers
 
-export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: { id: T; label: string; count?: number }[]; value: T; onChange: (id: T) => void }) {
+interface TabItem<T extends string> { id: T; label: string; count?: number }
+
+export function Tabs<T extends string>({ id, label, tabs, value, onChange, className = "tabs", style, tabClassName, renderTab }: {
+  id: string;
+  label: string;
+  tabs: TabItem<T>[];
+  value: T;
+  onChange: (id: T) => void;
+  className?: string;
+  style?: CSSProperties;
+  tabClassName?: (tab: TabItem<T>, selected: boolean) => string;
+  renderTab?: (tab: TabItem<T>, index: number) => ReactNode;
+}) {
   return (
-    <div className="tabs" role="tablist">
-      {tabs.map((t) => (
-        <button key={t.id} role="tab" aria-selected={value === t.id} onClick={() => onChange(t.id)}>
-          {t.label}
-          {t.count !== undefined ? <span className="count">{t.count}</span> : null}
+    <div className={className} style={style} role="tablist" aria-label={label}>
+      {tabs.map((t, index) => (
+        <button
+          key={t.id}
+          type="button"
+          role="tab"
+          id={`${id}-tab-${t.id}`}
+          aria-controls={`${id}-panel-${t.id}`}
+          aria-selected={value === t.id}
+          tabIndex={value === t.id ? 0 : -1}
+          className={tabClassName?.(t, value === t.id)}
+          onClick={() => onChange(t.id)}
+          onKeyDown={(event) => {
+            const nextIndex = event.key === "ArrowRight" ? (index + 1) % tabs.length
+              : event.key === "ArrowLeft" ? (index - 1 + tabs.length) % tabs.length
+              : event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : undefined;
+            if (nextIndex === undefined) return;
+            event.preventDefault();
+            event.stopPropagation();
+            const next = tabs[nextIndex];
+            if (!next) return;
+            onChange(next.id);
+            document.getElementById(`${id}-tab-${next.id}`)?.focus();
+          }}
+        >
+          {renderTab ? renderTab(t, index) : <>{t.label}{t.count !== undefined ? <span className="count">{t.count}</span> : null}</>}
         </button>
       ))}
     </div>
   );
+}
+
+/** Keep every tab's association present without retaining inactive form drafts. */
+export function TabPanel({ groupId, id, active, children, className, style }: { groupId: string; id: string; active: boolean; children: ReactNode; className?: string; style?: CSSProperties }) {
+  return <div role="tabpanel" id={`${groupId}-panel-${id}`} aria-labelledby={`${groupId}-tab-${id}`} tabIndex={0} hidden={!active} className={className} style={style}>{active ? children : null}</div>;
 }
 
 export function Segmented<T extends string>({ options, value, onChange, label }: { options: { id: T; label: string }[]; value: T; onChange: (v: T) => void; label: string }) {
@@ -250,14 +305,11 @@ export function Empty({ title, children }: { title: string; children?: ReactNode
 }
 
 export function Dialog({ title, onClose, children, wide, footer }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean; footer?: ReactNode }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useModalFocus(dialogRef, onClose);
   return (
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={`dialog ${wide ? "dialog--wide" : ""}`} role="dialog" aria-modal="true" aria-label={title}>
+      <div ref={dialogRef} tabIndex={-1} className={`dialog ${wide ? "dialog--wide" : ""}`} role="dialog" aria-modal="true" aria-label={title}>
         <div className="row" style={{ marginBottom: 16 }}>
           <h2 className="section-title" style={{ margin: 0 }}>
             {title}
@@ -311,9 +363,10 @@ interface ToastState {
   dismiss: (id: number) => void;
 }
 let toastSeq = 0;
-export const useToasts = create<ToastState>((set) => ({
+export const useToasts = create<ToastState>((set, get) => ({
   toasts: [],
   push: (text, kind = "info") => {
+    if (kind === "error" && get().toasts.some((t) => t.kind === kind && t.text === text)) return;
     const id = ++toastSeq;
     set((s) => ({ toasts: [...s.toasts.slice(-3), { id, text, kind }] }));
     setTimeout(() => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })), kind === "error" ? 7000 : 4200);
@@ -346,7 +399,7 @@ export function frameworkLabel(id: string) {
 
 export { pct };
 
-/** The Visua mark: a V with the agent's violet core and a verified arc. */
+/** The Visua mark: a V with the terracotta agent core and a verified arc. */
 export function Logo({ size = 30 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" aria-label="Visua" role="img">

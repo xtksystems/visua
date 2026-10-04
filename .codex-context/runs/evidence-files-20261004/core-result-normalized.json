@@ -1,0 +1,21 @@
+{
+  "run_id": "evidence-files-20261004",
+  "node_id": "core",
+  "input_sha256": "d401c4263d2823508407b96ac9572a9ae8d943298aeb1fd4192b47fa2a088ecb",
+  "status": "complete",
+  "summary": "Implemented evidence metadata/content separation, migration 6, immutable file references and file-aware service creation, retrieval and review with outside-transaction byte verification and fresh authorization. Inline hashing and hydrated internal/export behavior remain compatible; scoring and evidence events use metadata.",
+  "evidence": [
+    "Original immutable worker report: core-result.json SHA-256 c18637127b47eb2155ceb57e94f96d6d879fd3d461a367e4e03a04cc5a1e277c",
+    "{\"command\": \"pnpm exec vitest run apps/server/test/evidence-content.test.ts apps/server/test/evidence-binding.test.ts apps/server/test/storage.test.ts\", \"cwd\": \"/Users/artem/visua\", \"detail\": \"45 passed, 1 skipped (Postgres-only relay test) on SQLite.\", \"outcome\": \"passed\"}",
+    "{\"command\": \"pnpm exec vitest run apps/server/test/evidence-content.test.ts -t 'evidence content migration 6'\", \"cwd\": \"/Users/artem/visua\", \"detail\": \"Migration recheck after final memory-bounding change: 1 passed, 14 skipped.\", \"outcome\": \"passed\"}",
+    "{\"command\": \"pnpm --filter @visua/core typecheck && pnpm --filter @visua/server typecheck\", \"cwd\": \"/Users/artem/visua\", \"outcome\": \"passed\"}",
+    "{\"command\": \"git diff --check -- <owned source and tests>\", \"cwd\": \"/Users/artem/visua\", \"outcome\": \"passed\"}",
+    "{\"source_sha256\": {\"apps/server/src/services/evidence.ts\": \"c0b7cb99ab20b0133f97945b0f8d1c0ed15097eb6da8f84fe8698ea1926251b7\", \"apps/server/src/services/visua.ts\": \"cb4e854fbc1ff2a3b2dbce3d4aa67c312711a43161819a20314ed65dc132a5d7\", \"apps/server/src/storage/migrations.ts\": \"41f336f8b35c580e95e69377279bab9a8580257e3c6425f7f55724884005e252\", \"apps/server/src/storage/store.ts\": \"f514139bd12d9bd06e312ebadb71daf68f00851aa46657bfa5de68cae5cdb55e\", \"apps/server/test/evidence-binding.test.ts\": \"4111535e402fa7de2e527494914ab9fee9e157c4d588f8ecf176cd7d0cf0242a\", \"apps/server/test/evidence-content.test.ts\": \"9275b63b77bbbf2b7212a8ed64a27822fac2baa646f8d17e4159816e4b4d1dd8\", \"packages/core/src/types.ts\": \"af41b18c8382d5e438ec7c6a1d2bcc8349c15616d170e591bf48bbf86c5a756a\"}}"
+  ],
+  "limitations": [
+    "PostgreSQL lane and full integration checks remain with root; no Docker or Git mutation performed.",
+    "Ownership exception authorized by root: evidence-binding.test.ts legacy fixture now inserts pre-v6 rows using raw SQL rather than using new repositories against the old schema.",
+    "File operations require canonical workspace tenantId. Inline trusted internal accepted/rejected creation and ignored caller digest compatibility retained at root direction; public API strictness belongs to root.",
+    "Cleanup failures leave an unpublished blob for operational recovery and emit a sanitized message; storage cleanup is best effort."
+  ]
+}

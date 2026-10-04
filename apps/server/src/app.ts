@@ -3,15 +3,16 @@
  * validation with Zod, and a local file route that serves the official
  * corpus so every citation opens the source PDF at the right page.
  */
-import { createHash } from "node:crypto";
 import { createReadStream, existsSync, realpathSync, statSync } from "node:fs";
 import { extname, isAbsolute, relative, resolve, sep } from "node:path";
 import { Readable } from "node:stream";
 import { Hono, type Context } from "hono";
 import { compress } from "hono/compress";
 import { etag } from "hono/etag";
+import { getCookie } from "hono/cookie";
 import { streamSSE } from "hono/streaming";
 import { z } from "zod";
+import { readinessProbe } from "./readiness.ts";
 import {
   EXAMPLE_INFORMATION_TYPES,
   LEVEL_SCALES,
@@ -24,6 +25,8 @@ import {
   TIER_NAMES,
   TIER_SOURCE,
   ROLE_CAPABILITIES,
+  can,
+  type Capability,
   recommend,
   type AgentKind,
   type Workspace,
@@ -31,7 +34,7 @@ import {
 import { AGENTS, claudeEnabled, configuredModel } from "@visua/agents";
 import { CORPUS_DIR } from "@visua/frameworks";
 import { loadAuthConfig } from "./auth/config.ts";
-import { actorOf, authenticate, authRoutes, csrfProtection, limitParam, need, principalOf, requireCapability, requireSignIn, securityHeaders, workspaceAccess, type AppEnv } from "./auth/http.ts";
+import { actorOf, authenticate, authRoutes, cookieName, csrfProtection, limitParam, need, principalOf, requireCapability, requireSignIn, securityHeaders, workspaceAccess, type AppEnv } from "./auth/http.ts";
 import { AuthService, ForbiddenError, UnauthorizedError } from "./auth/service.ts";
 import { CONNECTOR_KINDS } from "./connectors/index.ts";
 import { actionPlanCsv, aiRmfProfileCsv, csfProfileCsv, evidenceIndexCsv, oscalPoam, oscalSsp, readinessMarkdown, soc2PbcCsv } from "./services/exports.ts";
@@ -43,6 +46,10 @@ import { crosswalkOverview, crosswalkRows } from "./services/crosswalk.ts";
 import { soc2Description } from "./services/soc2.ts";
 import { frameworkState, leanGraph, nodeDetail, workspaceSummary } from "./services/views.ts";
 import { NotFoundError, ValidationError, type VisuaService } from "./services/visua.ts";
+import { ConnectorCapacityError } from "./connectors/limits.ts";
+import { isWorkDate } from "./services/work.ts";
+import { BlobStoreError, MAX_BLOB_BYTES } from "./blobs/index.ts";
+import { EvidenceUploadError, evidenceDisposition, evidenceUpload, withEvidenceUpload } from "./evidence-http.ts";
 
 const Level = z.number().int().min(0).max(4);
 const Priority = z.enum(["critical", "high", "medium", "low"]);
@@ -50,6 +57,12 @@ const ImpactLevel = z.enum(["low", "moderate", "high"]);
 const AgentKindSchema = z.enum(["copilot", "assessor", "planner", "policy-author", "evidence-collector", "crosswalk-analyst", "auditor-prep", "task-executor"]);
 const TaskStatus = z.enum(["backlog", "todo", "in-progress", "in-review", "done", "blocked"]);
 const TaskKind = z.enum(["governance", "policy", "procedure", "technical", "evidence", "training", "assessment", "vendor", "monitoring"]);
+const WorkDate = z.string().refine(isWorkDate, "Must be a valid calendar date (YYYY-MM-DD)");
+const Assignee = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("person"), id: z.string().min(1), name: z.string().max(200).optional() }),
+  z.object({ type: z.literal("agent"), id: z.string().min(1), name: z.string().trim().min(1).max(200) }),
+  z.object({ type: z.literal("external"), id: z.literal("external"), name: z.string().trim().min(1).max(200) }),
+]);
 
 const ProfileSchema = z.object({
   industry: z.enum(PROFILE_INDUSTRIES),
@@ -124,7 +137,9 @@ const Schemas = {
     priority: Priority.optional(),
     applicable: z.boolean().optional(),
     applicabilityRationale: z.string().max(2000).optional(),
-    owner: z.string().max(200).optional(),
+    owner: z.string().max(200).nullable().optional(),
+    ownerUserId: z.string().min(1).nullable().optional(),
+    dueDate: WorkDate.nullable().optional(),
     notes: z.string().max(10_000).optional(),
     verifiedAt: z.string().nullable().optional(),
     statusOverride: z.enum(["not-started", "in-progress", "implemented", "verified", "at-risk", "not-applicable"]).nullable().optional(),
@@ -136,11 +151,11 @@ const Schemas = {
     status: TaskStatus.optional(),
     priority: Priority.optional(),
     requirementIds: z.array(z.string()).optional(),
-    dueDate: z.string().optional(),
-    startDate: z.string().optional(),
+    dueDate: WorkDate.optional(),
+    startDate: WorkDate.optional(),
     effortHours: z.number().min(0).max(10_000).optional(),
     checklist: z.array(z.object({ text: z.string().min(1), done: z.boolean().optional() })).optional(),
-    assignee: z.object({ type: z.enum(["person", "agent"]), id: z.string(), name: z.string() }).optional(),
+    assignee: Assignee.optional(),
   }),
   updateTask: z.object({
     title: z.string().min(1).max(200).optional(),
@@ -149,11 +164,11 @@ const Schemas = {
     status: TaskStatus.optional(),
     priority: Priority.optional(),
     requirementIds: z.array(z.string()).optional(),
-    dueDate: z.string().nullable().optional(),
-    startDate: z.string().nullable().optional(),
+    dueDate: WorkDate.nullable().optional(),
+    startDate: WorkDate.nullable().optional(),
     effortHours: z.number().min(0).max(10_000).optional(),
     checklist: z.array(z.object({ id: z.string(), text: z.string(), done: z.boolean() })).optional(),
-    assignee: z.object({ type: z.enum(["person", "agent"]), id: z.string(), name: z.string() }).nullable().optional(),
+    assignee: Assignee.nullable().optional(),
   }),
   createEvidence: z.object({
     title: z.string().min(1).max(300),
@@ -161,16 +176,24 @@ const Schemas = {
     kind: z.enum(["document", "screenshot", "configuration", "log", "attestation", "automated-check", "policy", "report"]).optional(),
     requirementIds: z.array(z.string()).min(1),
     content: z.string().max(2_000_000).optional(),
+    data: z.record(z.string(), z.unknown()).optional(),
+    collectedAt: z.string().optional(),
     fileName: z.string().max(300).optional(),
     validUntil: z.string().optional(),
-  }),
+  }).strict(),
   updateEvidence: z.object({
     decision: z.enum(["accepted", "rejected"]).optional(),
     note: z.string().max(2000).optional(),
-    title: z.string().max(300).optional(),
-    requirementIds: z.array(z.string()).optional(),
-    validUntil: z.string().optional(),
-  }),
+    expectedScope: z.object({ sha256: z.string().regex(/^[a-f0-9]{64}$/).optional(), requirementIds: z.array(z.string()), collectedAt: z.string(), validUntil: z.string().optional() }).strict().optional(),
+    title: z.string().min(1).max(300).optional(),
+    description: z.string().max(10_000).optional(),
+    content: z.string().max(2_000_000).optional(),
+    data: z.record(z.string(), z.unknown()).optional(),
+    fileName: z.string().max(300).optional(),
+    requirementIds: z.array(z.string()).min(1).optional(),
+    collectedAt: z.string().optional(),
+    validUntil: z.string().nullable().optional(),
+  }).strict(),
   createPolicy: z.object({ title: z.string().min(1).max(200), body: z.string().min(1).max(500_000), requirementIds: z.array(z.string()).optional(), owner: z.string().optional() }),
   updatePolicy: z.object({
     title: z.string().min(1).max(200).optional(),
@@ -235,10 +258,14 @@ const MIME: Record<string, string> = {
 /** Inside the corpus and outside every non-redistributable `.local/` folder (in any letter case). */
 const servable = (path: string) => !!path && !path.startsWith("..") && !isAbsolute(path) && !path.split(sep).some((p) => p.toLowerCase() === ".local");
 
-export function createApp(svc: VisuaService, auth: AuthService = new AuthService(svc, loadAuthConfig())): Hono<AppEnv> {
+export function createApp(svc: VisuaService, auth: AuthService = new AuthService(svc, loadAuthConfig()), lifecycle: { stopping: boolean; signal?: AbortSignal } = { stopping: false }): Hono<AppEnv> {
   const app = new Hono<AppEnv>();
+  const databaseReady = readinessProbe(svc.store);
 
   app.onError((err, c) => {
+    if (err instanceof EvidenceUploadError) return c.json({ error: err.message }, err.status);
+    if (err instanceof BlobStoreError) return c.json({ error: "The evidence file is unavailable or could not be verified. Try again or contact your administrator." }, 503);
+    if (err instanceof ConnectorCapacityError) return c.json({ error: err.message }, 503);
     if (err instanceof NotFoundError) return c.json({ error: err.message }, 404);
     if (err instanceof ValidationError) return c.json({ error: err.message }, 400);
     if (err instanceof UnauthorizedError) return c.json({ error: err.message }, 401);
@@ -259,6 +286,12 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
 
   // ---------------------------------------------------------------- security & identity
   app.use("*", securityHeaders(auth));
+  app.use("*", async (c, next) => {
+    if (lifecycle.stopping && c.req.path !== "/api/health" && c.req.path !== "/api/ready") {
+      return c.json({ error: "Server is stopping" }, 503);
+    }
+    return next();
+  });
   app.use("*", authenticate(auth));
   app.use("/api/*", requireSignIn());
   app.use("/api/*", csrfProtection(auth));
@@ -266,6 +299,11 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
 
   // ---------------------------------------------------------------- meta
   app.get("/api/health", (c) => c.json({ ok: true, frameworks: svc.registry.indexes.size, corpusChunks: svc.registry.search.size }));
+  app.get("/api/ready", async (c) => {
+    if (lifecycle.stopping) return c.json({ ok: false }, 503);
+    const ok = await databaseReady() && !lifecycle.stopping;
+    return c.json({ ok }, ok ? 200 : 503);
+  });
 
   app.get("/api/meta", (c) =>
     c.json({
@@ -280,6 +318,7 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
       crosswalk: svc.registry.crosswalk.sets.map((s) => ({ id: s.id, title: s.title, authority: s.authority, count: s.mappings.length })),
       overlays: svc.registry.overlays.map(overlayMeta),
       exampleInformationTypes: EXAMPLE_INFORMATION_TYPES,
+      evidenceUpload: { maxBytes: MAX_BLOB_BYTES },
     }),
   );
 
@@ -313,7 +352,7 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
     const nodes = [];
     for (const index of svc.registry.indexes.values()) {
       if (framework && index.id !== framework) continue;
-      for (const n of index.search(q, 8)) nodes.push({ id: n.id, code: n.code, title: n.title, text: n.text.slice(0, 200), framework: n.frameworkId, kind: n.kind });
+      for (const n of index.search(q, 8)) nodes.push({ id: n.id, code: n.code, title: n.title, text: n.text.slice(0, 200), framework: n.frameworkId, kind: n.kind, assessable: n.assessable });
     }
     const passages = svc.registry.search.search(q, { limit: 6 }).map((h) => ({
       documentId: h.chunk.documentId,
@@ -386,8 +425,27 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
   app.use("/api/workspaces/:ws/*", workspaceAccess(auth));
   const wsOf = (c: Context<AppEnv>) => c.get("workspace");
   const wsId = (c: Context<AppEnv>) => c.get("workspace").id;
+  // Storage can outlast a session or membership. Recheck before publishing bytes or metadata.
+  const evidenceAccess = (c: Context<AppEnv>, capability: Capability) => () => svc.store.atomic(async () => {
+    if (c.req.raw.signal.aborted) throw new EvidenceUploadError("The request was interrupted. Try again.");
+    await svc.store.lock(`ws:${wsOf(c).tenantId}`);
+    const original = principalOf(c);
+    const bearer = c.req.header("authorization");
+    const fresh = bearer?.toLowerCase().startsWith("bearer ")
+      ? await auth.resolveApiToken(bearer.slice(7).trim(), { touch: false })
+      : await auth.resolveSession(getCookie(c, cookieName(auth)) ?? "", { touch: false });
+    if (!fresh || fresh.kind !== original.kind || fresh.id !== original.id) throw new UnauthorizedError("Sign in to continue");
+    const role = await auth.roleIn(fresh, wsOf(c).tenantId);
+    if (!role) throw new NotFoundError("Workspace not found");
+    if (!can(role, capability)) throw new ForbiddenError("Your current role does not permit this action");
+  });
 
   app.get("/api/workspaces/:ws", async (c) => c.json(await summary(c, wsOf(c))));
+  app.get("/api/workspaces/:ws/members", async (c) => c.json(await svc.workspaceMembers(wsId(c))));
+  app.get("/api/workspaces/:ws/my-work", async (c) => {
+    const principal = principalOf(c);
+    return c.json(await svc.myWork(wsId(c), principal.kind === "user" ? principal.user.id : undefined));
+  });
 
   app.patch("/api/workspaces/:ws", need("workspace.configure"), async (c) => {
     const input = await body(c, Schemas.updateWorkspace);
@@ -498,8 +556,7 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
   });
   app.patch("/api/workspaces/:ws/tasks/:id", async (c) => {
     const input = await body(c, Schemas.updateTask);
-    const clean = Object.fromEntries(Object.entries(input).map(([k, v]) => [k, v === null ? undefined : v]));
-    return c.json(await svc.updateTask(wsId(c), c.req.param("id"), clean as never, actorOf(c)));
+    return c.json(await svc.updateTask(wsId(c), c.req.param("id"), input as never, actorOf(c)));
   });
   app.delete("/api/workspaces/:ws/tasks/:id", async (c) => {
     await svc.deleteTask(wsId(c), c.req.param("id"), actorOf(c));
@@ -511,20 +568,48 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
   });
 
   // ---------------------------------------------------------------- evidence
-  app.get("/api/workspaces/:ws/evidence", async (c) => c.json(await svc.store.evidence.list(wsId(c))));
+  app.get("/api/workspaces/:ws/evidence", async (c) => c.json(await svc.store.evidence.metadataList(wsId(c))));
+  app.get("/api/workspaces/:ws/evidence/:id", async (c) => {
+    const evidence = await svc.store.evidence.get(c.req.param("id"));
+    if (!evidence || evidence.workspaceId !== wsId(c)) throw new NotFoundError("Evidence not found");
+    c.header("Cache-Control", "private, no-store");
+    return c.json(evidence);
+  });
+  app.post("/api/workspaces/:ws/evidence/files", async (c) => withEvidenceUpload(async () => {
+    const { file, metadata } = await evidenceUpload(c.req.raw);
+    const schema = Schemas.createEvidence.omit({ content: true, data: true, fileName: true });
+    const parsed = schema.safeParse(metadata);
+    if (!parsed.success) throw new ValidationError(z.prettifyError(parsed.error));
+    const evidence = await svc.createFileEvidence(wsId(c), { ...parsed.data, fileName: file.name, mediaType: file.type || "application/octet-stream" }, new Uint8Array(await file.arrayBuffer()), actorOf(c), evidenceAccess(c, "work.write"));
+    return c.json(evidence, 201);
+  }));
+  app.get("/api/workspaces/:ws/evidence/:id/file", async (c) => {
+    const { evidence, bytes } = await svc.getEvidenceFile(wsId(c), c.req.param("id"), evidenceAccess(c, "workspace.read"));
+    return new Response(bytes as Uint8Array<ArrayBuffer>, { headers: {
+      "Content-Type": "application/octet-stream",
+      "Content-Disposition": evidenceDisposition(evidence.fileName ?? "evidence"),
+      "Content-Length": String(bytes.byteLength),
+      "Cache-Control": "private, no-store",
+      "X-Content-Type-Options": "nosniff",
+      "Content-Security-Policy": "sandbox; default-src 'none'",
+    } });
+  });
   app.post("/api/workspaces/:ws/evidence", async (c) => {
     const input = await body(c, Schemas.createEvidence);
-    const sha256 = input.content ? createHash("sha256").update(input.content).digest("hex") : undefined;
-    return c.json(await svc.createEvidence(wsId(c), { ...input, source: "upload", sha256 }, actorOf(c)), 201);
+    return c.json(await svc.createEvidence(wsId(c), { ...input, source: "upload" }, actorOf(c)), 201);
   });
   app.patch("/api/workspaces/:ws/evidence/:id", async (c) => {
     const input = await body(c, Schemas.updateEvidence);
     if (input.decision) {
       // Accepting or rejecting evidence is a review decision.
       requireCapability(c, "work.approve");
-      return c.json(await svc.reviewEvidence(wsId(c), c.req.param("id"), input.decision, actorOf(c), input.note));
+      if (Object.keys(input).some((key) => !["decision", "note", "expectedScope"].includes(key))) throw new ValidationError("Review and evidence edits must be separate requests");
+      return c.json(await svc.reviewEvidence(wsId(c), c.req.param("id"), input.decision, actorOf(c), input.note, input.expectedScope, evidenceAccess(c, "work.approve")));
     }
-    return c.json(await svc.updateEvidence(wsId(c), c.req.param("id"), { title: input.title, requirementIds: input.requirementIds, validUntil: input.validUntil } as never, actorOf(c)));
+    const { decision: _decision, note, expectedScope, ...patch } = input;
+    if (note !== undefined || expectedScope !== undefined) throw new ValidationError("Review notes and scope require a review decision");
+    void _decision;
+    return c.json(await svc.updateEvidence(wsId(c), c.req.param("id"), patch, actorOf(c)));
   });
 
   // ---------------------------------------------------------------- policies & risks
@@ -619,27 +704,33 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
         wake?.();
       });
       let open = true;
-      stream.onAbort(() => {
+      const close = () => {
         open = false;
         unsubscribe();
         wake?.();
-      });
-      await stream.writeSSE({ event: "ready", data: JSON.stringify({ workspaceId: ws.id }) });
-      while (open) {
-        while (queue.length) {
-          const data = queue.shift()!;
-          await stream.writeSSE({ event: "visua", data });
+      };
+      stream.onAbort(close);
+      lifecycle.signal?.addEventListener("abort", close, { once: true });
+      if (lifecycle.stopping) close();
+      try {
+        if (open) await stream.writeSSE({ event: "ready", data: JSON.stringify({ workspaceId: ws.id }) });
+        while (open) {
+          while (open && queue.length) {
+            const data = queue.shift()!;
+            await stream.writeSSE({ event: "visua", data });
+          }
+          if (!open) break;
+          // Wake on the next event, or after 15 s for a keep-alive ping (one timer at a time).
+          await new Promise<void>((r) => {
+            const timer = setTimeout(r, 15_000);
+            wake = () => { clearTimeout(timer); r(); };
+          });
+          wake = undefined;
+          if (open && !queue.length) await stream.writeSSE({ event: "ping", data: String(Date.now()) });
         }
-        // Wake on the next event, or after 15 s for a keep-alive ping (one timer at a time).
-        await new Promise<void>((r) => {
-          const timer = setTimeout(r, 15_000);
-          wake = () => {
-            clearTimeout(timer);
-            r();
-          };
-        });
-        wake = undefined;
-        if (open && !queue.length) await stream.writeSSE({ event: "ping", data: String(Date.now()) });
+      } finally {
+        close();
+        lifecycle.signal?.removeEventListener("abort", close);
       }
     });
   });

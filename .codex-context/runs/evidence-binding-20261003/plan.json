@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "run_id": "evidence-binding-20261003",
+  "scope": {
+    "root": "/Users/artem/visua",
+    "files": {
+      ".codex-context/architecture.md": "d08fc69c025a216ca3769ed2c058622b120a05b6a4791db22958161843362fa7",
+      ".codex-context/invariants.md": "3d2425b4fd86046d92a53da540313d89301d8105e28564bf82a02aca5bbd26d0",
+      ".codex-context/project.md": "41ad90afe2f6614cf06013a9af7e81d40a1d34aff3e6ddbad5550a30eba13aaa",
+      "README.md": "b980f9833aee0099ddb098c519d1042b6002af9d441a265ed95469a9c0a10520",
+      "apps/server/src/app.ts": "9549e7879afff2082c9693376e7493d4fbd33d7814169bb8144165c7124a590d",
+      "apps/server/src/audit.ts": "ad3dfb78365569914af8a1d46ab8b4cf1fa0b573057cd26f8328b6a4e111d52b",
+      "apps/server/src/seed/demo.ts": "a924f0dabb3cc619a33ce540e6b7251fd5b443cea54b9f0227d4377b25ded6ad",
+      "apps/server/src/services/evidence.ts": "4f4e326aeccf9cebbb1af2d296ebb49f72bb5c207b664d852ae3ad73901ec1a0",
+      "apps/server/src/services/views.ts": "6b1f1175578289d5f7d1717c02c856b507814018f07ef0fe745f8ee193d62c11",
+      "apps/server/src/services/visua.ts": "1074914a3d42620e66f8a46ab4527d5130e16a054859d5fbada0d42c2e384b84",
+      "apps/server/src/storage/migrations.ts": "9da4acf03f0d914aa7f4a8f194ac26d55a607db4dd3d648af6fc0536826d0e2a",
+      "apps/server/test/api.test.ts": "b33452d5c20d0bc8fd80d2b4807e69ca54da2cca5ea4afaa7e135a0edcf9fa41",
+      "apps/server/test/evidence-binding.test.ts": "77365c25bf31c121e1fe669d077985ecf264a3fd14653c0983a3578dc5c2fd49",
+      "apps/web/src/pages/EvidencePage.tsx": "b2758d220dee41e1dbd3c90941dfe052871233346dfd9021a81893570ebe1b85",
+      "docs/architecture.md": "42213a4f234abbd6115cde8e69167e4773e58d3614c87060e826a69bbea3b058",
+      "docs/development-phase-2.md": "926d7187d5367c098f8ba9cfa3209166c561d7fc1c192ef7b90c01d0e3499970",
+      "docs/workspace.md": "1c52ec85faafaf57b9436284a8f18d47f7b4541071f6be71a7554eb29a44bcf1",
+      "e2e/visua.spec.ts": "a07e6b47f1147b18910d2ba1588d4d8262457521bd605ff94268d92254dcf733",
+      "packages/agents/src/tools.ts": "1dc6e6aec33742015ae903422ff37ad6a28e8dc84b7aca7993a4b255e5c0501a",
+      "packages/core/src/evidence.ts": "4070e3e368e4820df5164aaf801e9468037b25ce68bc262e73fe679dbea65979",
+      "packages/core/src/index.ts": "43684ba61b49ebb474ca85fad36eb26125770b206376f223534c1f34575d9a5f",
+      "packages/core/src/status.ts": "d118c764df121c01f90ec5abcb4d4944c2ef6e39eea5c15c12bf073ab4a03980",
+      "packages/core/src/types.ts": "ccd9b7dfe9ac54136155d21508af836f1c45ece25579f2d6a59acca5ec363f93",
+      "packages/core/test/core.test.ts": "974edb754381e1353d8c2c20d9139cb1659f960d8776e11b9b34a4ea980f8dc2",
+      "packages/core/test/evidence.test.ts": "d2fb69570f8c9c97e6e76aca34d9078e5b7cc7f2cf5b3c74edc7f00615ad2982"
+    }
+  },
+  "branch": "feat/light-workspace-design",
+  "head": "c8a1ed06a8043fe725381ccccd89779b6a3498e0",
+  "baseline_dirty": " M .codex-context/architecture.md\n M .codex-context/invariants.md\n M .codex-context/project.md\n M README.md\n M apps/server/src/app.ts\n M apps/server/src/auth/config.ts\n M apps/server/src/auth/egress.ts\n M apps/server/src/auth/http.ts\n M apps/server/src/auth/recheck-ticker.ts\n M apps/server/src/connectors/index.ts\n M apps/server/src/connectors/repo-scan.ts\n M apps/server/src/connectors/web-posture.ts\n M apps/server/src/context.ts\n M apps/server/src/index.ts\n M apps/server/src/services/visua.ts\n M apps/server/test/api.test.ts\n M apps/server/test/domain-recheck.test.ts\n M apps/server/test/egress.test.ts\n M apps/server/test/sso-recheck.test.ts\n M compose.yaml\n M docs/architecture.md\n M docs/development-phase-2.md\n?? .codex-context/runs/connector-boundaries-20261003/\n?? .codex-context/runs/evidence-binding-20261003/\n?? .codex-context/runs/startup-auth-20261003/\n?? .codex-context/sessions/20261003T055501Z-feat-light-workspace-design-8de4c393904e.md\n?? .codex-context/sessions/20261003T174458Z-feat-light-workspace-design-15381f117545.md\n?? .codex-context/tasks/connector-boundaries-20261003.md\n?? .codex-context/tasks/startup-auth-20261003.md\n?? apps/server/src/connectors/limits.ts\n?? apps/server/src/connectors/network.ts\n?? apps/server/src/readiness.ts\n?? apps/server/src/server.ts\n?? apps/server/src/startup.ts\n?? apps/server/src/work-scope.ts\n?? apps/server/test/connector-boundaries.test.ts\n?? apps/server/test/connector-dns-lifetime.test.ts\n?? apps/server/test/egress-dns.test.ts\n?? apps/server/test/repo-scan.test.ts\n?? apps/server/test/startup.test.ts\n",
+  "nodes": [
+    {
+      "id": "core-worker",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "input": "core-worker-brief.txt",
+      "input_sha256": "9178f634dd564f41ee74e872151d01a03ed413560ce1a87598a6e134a3b4a890",
+      "result": "core-worker-result.json",
+      "allowed_writes": [
+        "packages/core/src/types.ts",
+        "packages/core/src/status.ts",
+        "packages/core/src/index.ts",
+        "packages/core/src/evidence.ts",
+        "packages/core/test/core.test.ts",
+        "packages/core/test/evidence.test.ts"
+      ],
+      "worker": "/root/evidence_core",
+      "result_sha256": "bf8fcf0a30561177b8b4bb40b2d184eb65557ec648a63e68664b67b69c6ed4e9"
+    },
+    {
+      "id": "integrity-review",
+      "depends_on": [
+        "core-worker"
+      ],
+      "status": "complete",
+      "accepted": true,
+      "input": "review-brief.txt",
+      "input_sha256": "cf137337ddbdf0219350bd31c91a04fc1f8781749e356c1927577cd52eaeb1e6",
+      "result": "review-result.json",
+      "allowed_writes": [
+        ".codex-context/runs/evidence-binding-20261003/independent-review.json",
+        ".codex-context/runs/evidence-binding-20261003/review-result.json"
+      ],
+      "worker": "/root/evidence_integrity_review",
+      "result_sha256": "1ed388dcf8d796a7f3b27abc0f5281c3360affb08af655f5842f012d2a3df995"
+    },
+    {
+      "id": "fix-review",
+      "depends_on": [
+        "integrity-review"
+      ],
+      "status": "complete",
+      "accepted": true,
+      "input": "fix-review-brief.txt",
+      "input_sha256": "6ea6602a54087d4beeabb79b9138cb1da5180480afca1c0aee50fc1c2fa97f0a",
+      "result": "fix-review-result.json",
+      "allowed_writes": [
+        ".codex-context/runs/evidence-binding-20261003/fix-review.json",
+        ".codex-context/runs/evidence-binding-20261003/fix-review-result.json"
+      ],
+      "worker": "/root/evidence_integrity_review",
+      "result_sha256": "2c67fd29c91bd66b76d60772627c13fd3be85faa22380566b654d20006e8aa00"
+    }
+  ],
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "verification-summary.json: final seven-lane pnpm check passed (360 SQLite, 362 PostgreSQL, 24 browser tests).",
+      "fix-review.json: three original integrity findings corrected; bounded recheck pass.",
+      "full-check-delivery-scope.json: exact final code/test/dependency fingerprints.",
+      "Core worker, original review and corrected-state review results accepted; previous package changes preserved."
+    ]
+  },
+  "created_utc": "2026-10-03T18:52:25.069581+00:00",
+  "completed_utc": "2026-10-03T19:22:39.366312+00:00"
+}

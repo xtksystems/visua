@@ -1,0 +1,7 @@
+{
+  "reason": "Lead inspection found appending T12:00 to retained legacy timestamp dates made invalid display strings. Both date labels now append noon only to date-only strings; original timestamps pass through existing formatter. Only these two lines changed after affected-review snapshot.",
+  "files": {
+    "apps/web/src/pages/PlanPage.tsx": "f8d2c0bb73b9a95e47c5dfc56036bd57456b8810debdbd94b27c3718e51eaffe",
+    "apps/web/src/pages/MyWorkPage.tsx": "c2a0a42c82d4e9017227dd70ab4064a20e840e05521d52b04691c45d915a305e"
+  }
+}

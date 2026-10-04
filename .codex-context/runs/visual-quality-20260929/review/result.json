@@ -1,0 +1,49 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "This was a read-only review of the current uncommitted source at base c3ad38c and its diff. Most of the change is sound:\n- **Winding:** the arc, hull and hex-rim triangles all face upward (I checked each cross product by hand, and the tests check them too).\n- **Alignment:** the crown and target rims share the prism's corner orientation.\n- **Resources:** beacon geometry is now shared, which fixes the old per-render cylinder leak. Links and SpatialGround dispose their geometry correctly.\n- **Motion:** satellites no longer move when the scene is idle.\n- **Draw calls:** the per-sector drei Lines are gone. The ground is now 3 draw calls and the unit field 4, so no path adds a draw call per item.\n- **Stale updates:** every instanced effect re-runs on a layout change, and UnitField now forces a transform rewrite when the view changes but the unit count stays the same.\n- **Pointer handling:** none of the new layers can catch the pointer. They have no event handlers, and R3F only raycasts objects that do.\n- **Transparency:** layer ordering is consistent. Glass (renderOrder 1) draws before the target rims (renderOrder 2), both with depthWrite off.\n\nFour defects remain, all in changed behavior: (1) z-fighting on the new stacked surfaces at the camera distances used for dense frameworks; (2) a stale bounding sphere that makes units unclickable while the view animates; (3) reduced motion now removes the core's agent-activity cue without a static replacement; (4) the selection and agent halos are rotated 30\u00b0 from the newly aligned rims (an old defect the new rims make more visible).",
+  "coverage": [
+    "FrameworkScene.tsx: UnitField (crowns, target rims, glass threshold, bounding sphere), Beacons, Links disposal, Core, Satellites, Selection, Comets, ShaderWarmup interaction",
+    "SpatialGround.tsx: constellation arcs/rails/ticks, terrain hulls/beacon rings, memo/dispose lifetime",
+    "spatialGeometry.ts: convexHull, hullTriangles/arcTriangles/hexRimGeometry winding (verified by hand cross products)",
+    "Observatory.tsx lighting/camera near-far vs new surface offsets",
+    "colors.ts, global.css, ObservatoryPage legend text, screens.ts diff",
+    "spatial-geometry.test.ts assertions"
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "apps/web/src/scene/SpatialGround.tsx:58-59; FrameworkScene.tsx:140-143; SpatialGround.tsx:39-44 vs FrameworkScene.tsx:285-291",
+      "mechanism": "The new layers sit only 0.006 to 0.02 units above surfaces that already write depth, while the camera still uses near=0.1 and far=4000. With a 24-bit depth buffer, depth precision at view distance z is roughly z\u00b2/(near\u00b72^24): about 0.006 at z\u2248100 and 0.024 at z\u2248200. Three places are affected. (1) In terrain, the readiness fill (y 0.035) lies directly over a full background ring (y 0.025), and the two triangulate differently, so they z-fight. (2) The opaque crowns sit 0.006 above the prism tops. (3) The constellation rails (y 0.03) overlap the Rings annulus at sector.radius (y 0.01).",
+      "evidence": "Terrain: `ring(Math.PI * 1.5, 0.025)` then `ring(..., 0.035)` over the same radii. Crowns: `tmp.position.y = next + 0.006`. Rings: `radii.add(layout.sectors[0]?.radius)` at y 0.01, while the rails use `sector.radius \u00b1 width` at y 0.03. homePose/fitRing moves the camera to around 100\u2013200+ units for SP 800-53 in either layout, which is past the point where these gaps can be resolved. The readiness ring and arc are the data encoding that the legend now names, so flicker there shows up on measured data.",
+      "recommendation": "Draw the terrain beacon ring the way the constellation rail is drawn: the unfilled part covers filled\u2192end only, with no overlap. Put polygonOffset (e.g. factor -1, units -4) on the crowns and rail materials, or turn depthWrite off on the ground layers and order them with renderOrder. Stop drawing the Rings annulus at sector.radius now that the rail replaces it. Alternatively, scale camera.near with pose distance."
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/src/scene/FrameworkScene.tsx:149",
+      "mechanism": "InstancedMesh.raycast culls against the cached boundingSphere. It is now recomputed only when the animation settles, instead of every frame. After a Constellation\u2194Terrain switch (a new layout, and goal heights change with view), the sphere from the previous layout stays in use for the ~1s height animation. When switching from the smaller terrain layout to the larger constellation, outer units then miss hover and click. Also, on a count-changing remount, a raycast before the first frame caches a sphere around the identity instance matrices.",
+      "evidence": "`if (!moving) m.computeBoundingSphere();`. The layout-change effect only sets `animating.current = true`. k = dt*6 needs about 60 frames to settle within 0.002.",
+      "recommendation": "Call computeBoundingSphere once on the first frame after a layout or count change (e.g. with a `layoutDirty` ref), then keep the at-rest recompute. Or set `m.boundingSphere = null` in the layout effect and compute it after the first matrix write."
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/src/scene/FrameworkScene.tsx:571 (Core)",
+      "mechanism": "Under reduced motion, the core no longer pulses, which is correct. But it also falls back to the idle emissive of 0.04, so the core shows nothing about agent activity. DESIGN.md \u203a Motion says pulses are *replaced by static halos*, not removed. If an agent is active but none of its hot nodes are in this layout, no comets draw, and the scene shows no agent signal at all under reduced motion.",
+      "evidence": "`<Core active={props.agentActive && !props.reducedMotion} />`, with the useFrame setting `emissiveIntensity = active ? pulse : 0.04`.",
+      "recommendation": "Pass `agentActive` and `reducedMotion` separately. When the agent is active under reduced motion, use a static emissive (~0.18) or a static tertiary halo ring, with no rotation or sine term."
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/src/scene/FrameworkScene.tsx:337-344, 456-458 (old issue, made more visible by the new rims)",
+      "mechanism": "The selection and comet hex halos use RingGeometry(\u2026, 6) rotated -\u03c0/2 about X, which puts a vertex at +X. The prisms, and now the crowns and target rims (hexRimGeometry), put their corners at \u00b1Z. So the selection halo sits 30\u00b0 off from the hexes it surrounds. The newly aligned rims make the mismatch easier to see. The Selection comment also still refers to the removed `Sectors`.",
+      "evidence": "hexRimGeometry: `[Math.sin(angle)*r, 0, Math.cos(angle)*r]`. RingGeometry vertices are (cos \u03b8, sin \u03b8), which the -\u03c0/2 X rotation maps to (cos \u03b8, 0, -sin \u03b8).",
+      "recommendation": "Pass thetaStart = \u03c0/6 (e.g. `args={[r*0.82, r, 6, 1, Math.PI/6]}`) to the selection and comet rings. Update the stale `see Sectors` comment."
+    }
+  ],
+  "limitations": [
+    "Source review only. I ran no browser, tests or screenshots. The depth-precision estimates are analytical, assuming a 24-bit depth buffer and no logarithmic depth.",
+    "Exact camera distances for dense frameworks come from fitRing and framing.ts, whose source was not supplied.",
+    "The drei Line material and program lifetime on repeated selections depends on the installed drei version, which I could not see. The removed Sectors Lines used to keep a Line2 program alive; that is now left to ShaderWarmup, and I could not verify that its material variants match.",
+    "unitColor, ScreenLabels, layout tests and the full ObservatoryPage were not supplied beyond the diff."
+  ]
+}

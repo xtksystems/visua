@@ -1,0 +1,47 @@
+[
+  {
+    "file": "mitre-atlas.json",
+    "districts": 16,
+    "collisions": []
+  },
+  {
+    "file": "nist-ai-100-2.json",
+    "districts": 4,
+    "collisions": []
+  },
+  {
+    "file": "nist-ai-rmf.json",
+    "districts": 4,
+    "collisions": []
+  },
+  {
+    "file": "nist-csf-2.0.json",
+    "districts": 6,
+    "collisions": []
+  },
+  {
+    "file": "nist-rmf.json",
+    "districts": 7,
+    "collisions": []
+  },
+  {
+    "file": "nist-sp-800-53-r5.json",
+    "districts": 20,
+    "collisions": []
+  },
+  {
+    "file": "owasp-agentic-top10.json",
+    "districts": 1,
+    "collisions": []
+  },
+  {
+    "file": "owasp-llm-top10.json",
+    "districts": 1,
+    "collisions": []
+  },
+  {
+    "file": "us-state-ai-laws.json",
+    "districts": 8,
+    "collisions": []
+  }
+]

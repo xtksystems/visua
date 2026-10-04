@@ -144,6 +144,21 @@ function shots(meta: Meta, runId: string | undefined): Shot[] {
       }
     },
   });
+  // Both layouts need visual coverage, including the dense control catalog.
+  for (const fw of ["nist-csf-2.0", "nist-sp-800-53-r5"]) {
+    if (!has(fw)) continue;
+    list.push({
+      name: `terrain-${fw}`,
+      path: `${WS}/observatory/${fw}`,
+      kind: "scene",
+      act: async (page) => {
+        const enter = page.getByRole("button", { name: "3D", exact: true });
+        if (await enter.count()) await enter.click();
+        await page.getByRole("button", { name: "Terrain", exact: true }).click();
+        await page.waitForTimeout(2500);
+      },
+    });
+  }
   list.push(
     { name: "nexus-threat-ring", path: `${WS}/crosswalk`, kind: "scene" },
     {
@@ -321,7 +336,7 @@ const t0 = Date.now();
 const results: Result[] = [];
 try {
   if (DOCS) {
-    for (const d of DOC_SHOTS) {
+    for (const d of DOC_SHOTS.filter((d) => !only || only.some((o) => d.file.includes(o)))) {
       const ctx = await context(browser, server.base, { width: d.width, height: d.height, name: `${d.width}x${d.height}` }, true);
       const page = await ctx.newPage();
       await page.goto(d.path, { waitUntil: "load" });

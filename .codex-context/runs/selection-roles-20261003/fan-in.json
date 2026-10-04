@@ -1,0 +1,45 @@
+{
+  "run_id": "selection-roles-20261003",
+  "expected_nodes": 4,
+  "accepted_nodes": 4,
+  "snapshot_checked_files": 61,
+  "stale_sources": [],
+  "nodes": [
+    {
+      "id": "inspector-worker",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "page-worker",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "selection-review",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "selection-fix-review",
+      "status": "complete",
+      "issues": []
+    }
+  ],
+  "ready_for_integration": true,
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "baseline-browser.json",
+      "focused-browser-2.log: 25 passed",
+      "review-regressions-after.log: 8 passed",
+      "selection-fix-review.json: complete/pass; all four findings resolved",
+      "full-check-final.log: all seven lanes passed; browser 57 passed",
+      "spec-typecheck-final.log: strict new-spec typecheck passed",
+      "prior-scope-validation.json",
+      "artifact-validation.json",
+      "integration-summary.json"
+    ]
+  },
+  "complete": true
+}

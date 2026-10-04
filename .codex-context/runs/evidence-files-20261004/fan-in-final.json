@@ -1,0 +1,53 @@
+{
+  "run_id": "evidence-files-20261004",
+  "expected_nodes": 6,
+  "accepted_nodes": 6,
+  "snapshot_checked_files": 261,
+  "stale_sources": [],
+  "nodes": [
+    {
+      "id": "blobs",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "core",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "root",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "review",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "review_fix",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "review_ui",
+      "status": "complete",
+      "issues": []
+    }
+  ],
+  "ready_for_integration": true,
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "source-verification.json",
+      "browser-final-result.json",
+      "review-final.json",
+      "ui-review.json",
+      "delivery-result.json",
+      "docker-final-preservation.json",
+      "docker-source-final-result.json"
+    ]
+  },
+  "complete": true
+}

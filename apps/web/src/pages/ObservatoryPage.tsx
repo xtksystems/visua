@@ -3,7 +3,8 @@
  * + HUD (lens, view, legend, metrics) + inspector.
  */
 import { Box, ChevronDown, ChevronRight, ChevronUp, Crosshair, ListTree, Search } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useWorkspaceId } from "../lib/workspace.ts";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import type { Status } from "@visua/core";
 import { Inspector } from "../components/inspector/Inspector.tsx";
@@ -25,7 +26,17 @@ function nodeStatus(state: FrameworkStateBundle | undefined, node: LeanNode): St
   return node.assessable ? (state.units[node.id]?.status ?? "not-started") : (state.groups[node.id]?.status ?? "not-started");
 }
 
-function Outline({ nodes, state, selectedId, onSelect, filter }: { nodes: LeanNode[]; state: FrameworkStateBundle | undefined; selectedId: string | null; onSelect: (id: string) => void; filter: string }) {
+/** Scene shortcuts belong to a focused scene surface, never to an open modal. */
+function canUseSceneKeys(event: KeyboardEvent<HTMLElement>) {
+  const target = event.target;
+  return !event.defaultPrevented && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey
+    && target instanceof HTMLElement
+    && !target.closest('input, textarea, select, button, a, [contenteditable]:not([contenteditable="false"]), [role="dialog"], [role="alertdialog"]')
+    && !useUi.getState().paletteOpen
+    && !document.querySelector('[aria-modal="true"]');
+}
+
+function Outline({ nodes, state, selectedId, onSelect, filter, onShortcut }: { nodes: LeanNode[]; state: FrameworkStateBundle | undefined; selectedId: string | null; onSelect: (id: string | null) => void; filter: string; onShortcut: (event: KeyboardEvent<HTMLElement>) => boolean }) {
   const children = useMemo(() => {
     const m = new Map<string | null, LeanNode[]>();
     for (const n of nodes) m.set(n.parentId, [...(m.get(n.parentId) ?? []), n]);
@@ -34,18 +45,22 @@ function Outline({ nodes, state, selectedId, onSelect, filter }: { nodes: LeanNo
   }, [nodes]);
   const byId = useMemo(() => new Map(nodes.map((n) => [n.id, n])), [nodes]);
   const [open, setOpen] = useState<Set<string>>(() => new Set());
-  // Keep the selection's ancestors expanded.
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const rows = useRef(new Map<string, HTMLLIElement>());
+  const pendingFocus = useRef<string | null>(null);
+
+  // A deep link reveals its ancestors but leaves inspector, input and dialog focus alone.
   useEffect(() => {
     if (!selectedId) return;
-    const next = new Set(open);
-    let cur = byId.get(selectedId);
-    while (cur?.parentId) {
-      next.add(cur.parentId);
-      cur = byId.get(cur.parentId);
-    }
-    if (next.size !== open.size) setOpen(next);
-    document.getElementById(`outline-${CSS.escape(selectedId)}`)?.scrollIntoView({ block: "nearest" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setOpen((current) => {
+      const next = new Set(current);
+      let node = byId.get(selectedId);
+      while (node?.parentId) {
+        next.add(node.parentId);
+        node = byId.get(node.parentId);
+      }
+      return next.size === current.size ? current : next;
+    });
   }, [selectedId, byId]);
 
   const q = filter.trim().toLowerCase();
@@ -63,68 +78,170 @@ function Outline({ nodes, state, selectedId, onSelect, filter }: { nodes: LeanNo
     }
     return hit;
   }, [q, nodes, byId]);
+  const visibleChildren = (parent: string | null) => (children.get(parent) ?? []).filter((node) => !matches || matches.has(node.id));
+  const visibleIds = new Set<string>();
+  const collectVisible = (parent: string | null) => {
+    for (const node of visibleChildren(parent)) {
+      visibleIds.add(node.id);
+      if (matches || open.has(node.id)) collectVisible(node.id);
+    }
+  };
+  collectVisible(null);
+  const tabStop = selectedId && visibleIds.has(selectedId) ? selectedId : activeId && visibleIds.has(activeId) ? activeId : visibleIds.values().next().value;
+
+  // Keyboard drill-in may mount a row on the next render. Only an explicit tree
+  // interaction requests focus; external selection changes merely reveal rows.
+  useEffect(() => {
+    const requested = pendingFocus.current;
+    const row = requested ? rows.current.get(requested) : undefined;
+    if (row) {
+      pendingFocus.current = null;
+      row.focus();
+      row.scrollIntoView({ block: "nearest" });
+    }
+    if (selectedId) rows.current.get(selectedId)?.scrollIntoView({ block: "nearest" });
+  }, [selectedId, open, matches, activeId]);
+
+  const focusRow = (id: string) => {
+    setActiveId(id);
+    const row = rows.current.get(id);
+    if (row) {
+      pendingFocus.current = null;
+      row.focus();
+      row.scrollIntoView({ block: "nearest" });
+    } else pendingFocus.current = id;
+  };
+  const navigateTo = (id: string | null) => {
+    if (id) {
+      setOpen((current) => {
+        const next = new Set(current);
+        let node = byId.get(id);
+        while (node?.parentId) {
+          next.add(node.parentId);
+          node = byId.get(node.parentId);
+        }
+        return next.size === current.size ? current : next;
+      });
+      focusRow(id);
+    } else {
+      const first = visibleChildren(null)[0];
+      if (first) focusRow(first.id);
+    }
+    onSelect(id);
+  };
+  const onKeyDown = (event: KeyboardEvent<HTMLUListElement>) => {
+    if (!canUseSceneKeys(event)) return;
+    const target = event.target as HTMLElement;
+    if (target.getAttribute("role") !== "treeitem") return;
+    if (onShortcut(event)) return;
+    const node = byId.get(target.dataset.nodeId ?? "");
+    if (!node) return;
+    const siblings = visibleChildren(node.parentId);
+    const index = siblings.findIndex((sibling) => sibling.id === node.id);
+    let destination: string | null | undefined;
+    switch (event.key) {
+      case "ArrowRight":
+      case "ArrowDown":
+        destination = siblings[(index + 1) % siblings.length]?.id;
+        break;
+      case "ArrowLeft":
+      case "ArrowUp":
+        destination = siblings[(index - 1 + siblings.length) % siblings.length]?.id;
+        break;
+      case "Enter":
+        destination = visibleChildren(node.id)[0]?.id;
+        break;
+      case "Escape":
+      case "Backspace":
+        destination = node.parentId;
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    if (destination !== undefined) navigateTo(destination);
+  };
 
   const render = (parent: string | null, depth: number): React.ReactNode =>
-    (children.get(parent) ?? [])
-      .filter((n) => !matches || matches.has(n.id))
-      .map((n) => {
-        const kids = children.get(n.id) ?? [];
-        const expanded = !!matches || open.has(n.id);
-        const status = nodeStatus(state, n);
-        const unit = state?.units[n.id];
-        return (
-          <li key={n.id} role="treeitem" aria-expanded={kids.length ? expanded : undefined} aria-selected={selectedId === n.id}>
-            <div
-              id={`outline-${n.id}`}
-              className={`outline__row ${selectedId === n.id ? "is-selected" : ""}`}
-              style={{ paddingLeft: 8 + depth * 14 }}
-              onClick={() => onSelect(n.id)}
-            >
-              {kids.length ? (
-                <button
-                  className="outline__toggle"
-                  aria-label={expanded ? "Collapse" : "Expand"}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const next = new Set(open);
+    visibleChildren(parent).map((n, index, siblings) => {
+      const kids = visibleChildren(n.id);
+      const expanded = !!matches || open.has(n.id);
+      const status = nodeStatus(state, n);
+      const unit = state?.units[n.id];
+      const title = n.title && n.title !== n.code ? n.title : truncate(n.text, 70);
+      return (
+        <li
+          key={n.id}
+          ref={(element) => { if (element) rows.current.set(n.id, element); else rows.current.delete(n.id); }}
+          className="outline__item"
+          role="treeitem"
+          data-node-id={n.id}
+          aria-label={`${n.code}${title ? ` ${title}` : ""}`}
+          aria-level={depth + 1}
+          aria-posinset={index + 1}
+          aria-setsize={siblings.length}
+          aria-expanded={kids.length ? expanded : undefined}
+          aria-selected={selectedId === n.id}
+          tabIndex={tabStop === n.id ? 0 : -1}
+          onFocus={(event) => { if (event.target === event.currentTarget) setActiveId(n.id); }}
+        >
+          <div
+            id={`outline-${n.id}`}
+            className={`outline__row ${selectedId === n.id ? "is-selected" : ""}`}
+            style={{ paddingLeft: 8 + depth * 14 }}
+            onClick={() => navigateTo(n.id)}
+          >
+            {kids.length ? (
+              <button
+                className="outline__toggle"
+                tabIndex={-1}
+                aria-label={`${expanded ? "Collapse" : "Expand"} ${n.code}`}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setOpen((current) => {
+                    const next = new Set(current);
                     if (next.has(n.id)) next.delete(n.id);
                     else next.add(n.id);
-                    setOpen(next);
-                  }}
-                >
-                  {expanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-                </button>
-              ) : (
-                <span style={{ width: 18 }} />
-              )}
-              <span className={`status--${status}`} style={{ background: "transparent", display: "inline-flex" }} title={STATUS_LABEL[status]}>
-                <StatusGlyph status={status} size={11} />
+                    return next;
+                  });
+                  focusRow(n.id);
+                }}
+              >
+                {expanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+              </button>
+            ) : (
+              <span style={{ width: 18 }} />
+            )}
+            <span className={`status--${status}`} style={{ background: "transparent", display: "inline-flex" }} title={STATUS_LABEL[status]}>
+              <StatusGlyph status={status} size={11} />
+            </span>
+            <span className="mono outline__code">{n.code}</span>
+            <span className="outline__text">{truncate(n.title && n.title !== n.code ? n.title : n.text, 70)}</span>
+            {unit && unit.applicable ? (
+              <span className="mono muted" style={{ fontSize: 10.5 }} title="Current → target">
+                {unit.current}→{unit.target}
               </span>
-              <span className="mono outline__code">{n.code}</span>
-              <span className="outline__text">{truncate(n.title && n.title !== n.code ? n.title : n.text, 70)}</span>
-              {unit && unit.applicable ? (
-                <span className="mono muted" style={{ fontSize: 10.5 }} title="Current → target">
-                  {unit.current}→{unit.target}
-                </span>
-              ) : null}
-            </div>
-            {kids.length > 0 && expanded ? (
-              <ul role="group" className="outline__list">
-                {render(n.id, depth + 1)}
-              </ul>
             ) : null}
-          </li>
-        );
-      });
+          </div>
+          {kids.length > 0 && expanded ? (
+            <ul role="group" className="outline__list">
+              {render(n.id, depth + 1)}
+            </ul>
+          ) : null}
+        </li>
+      );
+    });
   return (
-    <ul role="tree" aria-label="Framework outline" className="outline__list">
+    <ul role="tree" aria-label="Framework outline" className="outline__list" onKeyDown={onKeyDown}>
       {render(null, 0)}
     </ul>
   );
 }
 
 export function ObservatoryPage() {
-  const { ws = "", fw: fwParam } = useParams();
+  const ws = useWorkspaceId();
+  const { fw: fwParam } = useParams();
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const workspace = useWorkspace(ws);
@@ -146,20 +263,28 @@ export function ObservatoryPage() {
   const layout = useMemo(() => (graph.data ? computeLayout(graph.data.nodes, view) : undefined), [graph.data, view]);
   const byId = layout?.byId;
 
-  // Deep link: ?select=<nodeId>
+  const selectNode = useCallback((id: string | null) => {
+    ui.select(id);
+    setParams((current) => {
+      const next = new URLSearchParams(current);
+      if (id) next.set("select", id);
+      else next.delete("select");
+      return next;
+    }, { replace: true });
+  }, [ui.select, setParams]);
+
+  // Keep a deep link retryable even when requirement details fail to load.
   useEffect(() => {
     const sel = params.get("select");
     if (sel && byId?.has(sel)) {
       ui.select(sel);
-      params.delete("select");
-      setParams(params, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params, byId]);
 
   // Clear selection when switching framework.
   useEffect(() => {
-    if (selectedId && byId && !byId.has(selectedId)) ui.select(null);
+    if (selectedId && byId && !byId.has(selectedId) && !byId.has(params.get("select") ?? "")) selectNode(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [byId]);
 
@@ -171,53 +296,6 @@ export function ObservatoryPage() {
     [ui],
   );
 
-  // Keyboard map (DESIGN.md › Accessibility).
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.closest("input, textarea, select, [contenteditable]") || useUi.getState().paletteOpen) return;
-      if (!layout) return;
-      const sel = useUi.getState().selectedId;
-      const node = sel ? layout.byId.get(sel) : undefined;
-      const siblings = node ? (layout.children.get(node.parentId) ?? []) : (layout.children.get(null) ?? []);
-      const i = node ? siblings.findIndex((s) => s.id === node.id) : -1;
-      switch (e.key) {
-        case "ArrowRight":
-        case "ArrowDown":
-          e.preventDefault();
-          ui.select(siblings[(i + 1) % siblings.length]?.id ?? null);
-          break;
-        case "ArrowLeft":
-        case "ArrowUp":
-          e.preventDefault();
-          ui.select(siblings[(i - 1 + siblings.length) % siblings.length]?.id ?? null);
-          break;
-        case "Enter": {
-          const first = node ? layout.children.get(node.id)?.[0] : layout.children.get(null)?.[0];
-          if (first) ui.select(first.id);
-          break;
-        }
-        case "Escape":
-        case "Backspace":
-          if (node) ui.select(node.parentId);
-          break;
-        case "f":
-        case "F":
-          ui.focus(sel ? [sel] : []);
-          break;
-        case "l":
-        case "L":
-          ui.cycleLens();
-          break;
-        case "/":
-          e.preventDefault();
-          filterRef.current?.focus();
-          break;
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [layout, ui]);
 
   const hovered = hoveredId && byId ? byId.get(hoveredId) : undefined;
   const hoveredUnit = hoveredId ? state.data?.units[hoveredId] : undefined;
@@ -245,6 +323,59 @@ export function ObservatoryPage() {
   }
 
   const lenses: Lens[] = threat ? ["status", "gap"] : LENSES.filter((l) => l !== "overlay" || overlay);
+  // DESIGN.md's keyboard map applies only to the outline or the focused canvas.
+  const onShortcut = (event: KeyboardEvent<HTMLElement>) => {
+    const selection = useUi.getState().selectedId;
+    switch (event.key.toLowerCase()) {
+      case "f":
+        ui.focus(selection ? [selection] : []);
+        break;
+      case "l":
+        ui.setLens(lenses[(lenses.indexOf(activeLens) + 1) % lenses.length]!);
+        break;
+      case "/":
+        if (!outlineView && !outlineOpen) ui.toggleOutline();
+        // When opening the outline, its input mounts after this handler returns.
+        requestAnimationFrame(() => filterRef.current?.focus());
+        break;
+      default:
+        return false;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    return true;
+  };
+  const onCanvasKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.target !== event.currentTarget || !canUseSceneKeys(event) || !layout) return;
+    if (onShortcut(event)) return;
+    const selection = useUi.getState().selectedId;
+    const node = selection ? layout.byId.get(selection) : undefined;
+    const siblings = layout.children.get(node?.parentId ?? null) ?? [];
+    const index = node ? siblings.findIndex((sibling) => sibling.id === node.id) : -1;
+    let destination: string | null | undefined;
+    switch (event.key) {
+      case "ArrowRight":
+      case "ArrowDown":
+        destination = siblings[(index + 1) % siblings.length]?.id;
+        break;
+      case "ArrowLeft":
+      case "ArrowUp":
+        destination = siblings[(index < 0 ? siblings.length - 1 : (index - 1 + siblings.length) % siblings.length)]?.id;
+        break;
+      case "Enter":
+        destination = layout.children.get(node?.id ?? null)?.[0]?.id;
+        break;
+      case "Escape":
+      case "Backspace":
+        destination = node?.parentId;
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    if (destination !== undefined) selectNode(destination);
+  };
   const lensTitle = (l: Lens) => (threat ? THREAT_LENS[l as "status" | "gap"] : LENS_INFO[l]).title;
   const chips = threat ? threatCatalogs().map((c) => c.id) : [...enabled, ...(enabled.includes("nist-rmf") ? [] : ["nist-rmf"])];
   const chipLabel = (id: string) => (id === "nist-rmf" && !enabled.includes("nist-rmf") ? "RMF steps" : badgeOf(id));
@@ -270,7 +401,7 @@ export function ObservatoryPage() {
           </select>
         )}
       </div>
-      <div className="outline__scroll">{graph.data ? <Outline nodes={graph.data.nodes} state={state.data} selectedId={selectedId} onSelect={(id) => ui.select(id)} filter={filter} /> : <div className="muted" style={{ padding: 16 }}>Loading framework…</div>}</div>
+      <div className="outline__scroll">{graph.data ? <Outline key={`${workspace.data?.workspace.id ?? ws}:${fw}`} nodes={graph.data.nodes} state={state.data} selectedId={selectedId} onSelect={selectNode} filter={filter} onShortcut={onShortcut} /> : <div className="muted" style={{ padding: 16 }}>Loading framework…</div>}</div>
     </aside>
   );
 
@@ -279,7 +410,7 @@ export function ObservatoryPage() {
     return (
       <div className={`observatory is-outline-view ${selectedId ? "has-inspector" : ""}`}>
         {outline}
-        {selectedId && byId?.has(selectedId) && <Inspector nodeId={selectedId} onClose={() => ui.select(null)} />}
+        {selectedId && byId?.has(selectedId) && <Inspector nodeId={selectedId} onClose={() => selectNode(null)} />}
       </div>
     );
   }
@@ -287,7 +418,20 @@ export function ObservatoryPage() {
   return (
     <div className={`observatory ${outlineOpen ? "has-outline" : ""} ${selectedId ? "has-inspector" : ""}`} data-stage-root>
       {outlineOpen && outline}
-      <section className="observatory__canvas" data-stage onPointerLeave={() => onHover(null)}>
+      <section
+        className="observatory__canvas"
+        data-stage
+        tabIndex={0}
+        aria-label="Framework canvas"
+        aria-describedby="observatory-keyboard-help"
+        onKeyDown={onCanvasKeyDown}
+        onPointerDown={(event) => {
+          const target = event.target;
+          if (target instanceof Element && !target.closest('[data-hud], button, a, input, textarea, select, [role="dialog"], [contenteditable]')) event.currentTarget.focus({ preventScroll: true });
+        }}
+        onPointerLeave={() => onHover(null)}
+      >
+        <span id="observatory-keyboard-help" className="sr-only">Arrow keys move between siblings. Enter drills into children. Backspace or Escape moves to the parent. F frames the selection. L changes the lens. Slash opens the outline filter.</span>
         {layout ? (
           <Observatory
             layout={layout}
@@ -299,7 +443,7 @@ export function ObservatoryPage() {
             focusSeq={focusSeq}
             agentActive={running}
             onHover={onHover}
-            onSelect={(id) => ui.select(id)}
+            onSelect={(id) => selectNode(id)}
           />
         ) : (
           <div className="muted" style={{ padding: 32 }}>
@@ -340,13 +484,13 @@ export function ObservatoryPage() {
               </select>
             </div>
             <nav aria-label="Breadcrumb" className="row" style={{ gap: 4, marginTop: 8, fontSize: 12, flexWrap: "wrap" }}>
-              <button className="btn btn--quiet btn--sm" onClick={() => (ui.select(null), ui.focus([]))}>
+              <button className="btn btn--quiet btn--sm" onClick={() => (selectNode(null), ui.focus([]))}>
                 {graph.data?.framework.shortName ?? badgeOf(fw)}
               </button>
               {breadcrumb.map((b) => (
                 <span key={b.id} className="row" style={{ gap: 4 }}>
                   <ChevronRight size={12} className="muted" />
-                  <button className="btn btn--quiet btn--sm mono" onClick={() => ui.select(b.id)}>
+                  <button className="btn btn--quiet btn--sm mono" onClick={() => selectNode(b.id)}>
                     {b.code}
                   </button>
                 </span>
@@ -383,7 +527,7 @@ export function ObservatoryPage() {
                   Terrain
                 </button>
               </div>
-              <button className="btn btn--sm" onClick={() => (ui.select(null), ui.focus([]))} title="Frame everything (F with nothing selected)">
+              <button className="btn btn--sm" onClick={() => (selectNode(null), ui.focus([]))} title="Frame everything (F with nothing selected)">
                 <Crosshair size={13} /> Reset view
               </button>
             </div>
@@ -415,8 +559,8 @@ export function ObservatoryPage() {
                 </div>
                 <div className="muted" style={{ fontSize: 11, marginTop: 8, maxWidth: 230 }}>
                   {threat
-                    ? `Height = coverage level · glass = gap to full coverage · small dots: no link in your frameworks${fw === "mitre-atlas" ? " · mitigations are listed in each technique's inspector" : ""}`
-                    : "Height = current level · glass = gap to target · small dots: out of scope · ◆ task · ▲ evidence"}
+                    ? `Height = coverage level · outlined glass = full coverage gap · ${view === "constellation" ? "outer arc" : "beacon ring"} = coverage · small dots: no link in your frameworks${fw === "mitre-atlas" ? " · mitigations are listed in each technique's inspector" : ""}`
+                    : `Height = current level · outlined glass = target gap · ${view === "constellation" ? "outer arc" : "beacon ring"} = readiness · small dots: out of scope · ◆ task · ▲ evidence`}
                 </div>
               </>
             )}
@@ -501,7 +645,7 @@ export function ObservatoryPage() {
           </div>
         )}
       </section>
-      {selectedId && byId?.has(selectedId) && <Inspector nodeId={selectedId} onClose={() => ui.select(null)} />}
+      {selectedId && byId?.has(selectedId) && <Inspector nodeId={selectedId} onClose={() => selectNode(null)} />}
     </div>
   );
 }

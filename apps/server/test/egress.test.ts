@@ -1,5 +1,6 @@
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
+import { gzipSync } from "node:zlib";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { guardedFetch, isNonPublicAddress, privateAddressCause, privateHostAllowed, PrivateAddressError, refusedLiteral } from "../src/auth/egress.ts";
 
@@ -21,6 +22,10 @@ describe("non-public addresses", () => {
     "::ffff:a9fe:a9fe",
     "64:ff9b::7f00:1",
     "2002:c0a8:101::1",
+    "::127.0.0.1",
+    "fec0::1",
+    "2001::1",
+    "3fff::1",
   ])("%s is not public", (address) => {
     expect(isNonPublicAddress(address)).toBe(true);
   });
@@ -45,6 +50,16 @@ describe("guarded fetch", () => {
   let port = 0;
   beforeAll(async () => {
     server = createServer((req, res) => {
+      if (req.url === "/compressed-huge") {
+        res.writeHead(200, { "content-encoding": "gzip" });
+        res.end(gzipSync("x".repeat(2 * 1024 * 1024)));
+        return;
+      }
+      if (req.url === "/slow") {
+        res.writeHead(200);
+        res.write("waiting");
+        return;
+      }
       if (req.url === "/huge") {
         res.writeHead(200, { "content-type": "application/json" });
         res.end("x".repeat(2 * 1024 * 1024));
@@ -60,7 +75,7 @@ describe("guarded fetch", () => {
     await new Promise<void>((r) => server.listen(0, "127.0.0.1", () => r()));
     port = (server.address() as AddressInfo).port;
   });
-  afterAll(() => new Promise<void>((r) => server.close(() => r())));
+  afterAll(() => new Promise<void>((r) => { server.closeAllConnections(); server.close(() => r()); }));
 
   const options = { method: "GET", headers: {}, body: null, redirect: "manual" as const };
 
@@ -71,8 +86,7 @@ describe("guarded fetch", () => {
     expect(await res.json()).toEqual({ method: "GET", body: "" });
   });
 
-  it("refuses a name that resolves to a private address, on the addresses the connection would use", async () => {
-    // `localhost` is a name, so this goes through the socket's DNS lookup (the rebinding path).
+  it("refuses localhost unless the operator allows it", async () => {
     const refused = await guardedFetch(privateHostAllowed([]))(`http://localhost:${port}/`, options).catch((e: unknown) => e);
     expect(privateAddressCause(refused)).toBeInstanceOf(PrivateAddressError);
     expect(String((refused as Error).message)).toMatch(/localhost is on a private or reserved address/);
@@ -87,5 +101,16 @@ describe("guarded fetch", () => {
   it("refuses a response larger than an identity provider needs", async () => {
     const err = await guardedFetch(privateHostAllowed(["127.0.0.1"]))(`http://127.0.0.1:${port}/huge`, options).catch((e: unknown) => e);
     expect(String((err as Error).message)).toMatch(/exceeds 1048576 bytes/);
+  });
+
+  it("bounds decoded bytes as well as bytes on the wire", async () => {
+    await expect(guardedFetch(privateHostAllowed(["127.0.0.1"]))(`http://127.0.0.1:${port}/compressed-huge`, options)).rejects.toThrow(/larger than|exceed/i);
+  });
+
+  it("aborts while reading a response body", async () => {
+    const controller = new AbortController();
+    const pending = guardedFetch(privateHostAllowed(["127.0.0.1"]))(`http://127.0.0.1:${port}/slow`, { ...options, signal: controller.signal });
+    setTimeout(() => controller.abort(), 25);
+    await expect(pending).rejects.toThrow(/abort/i);
   });
 });

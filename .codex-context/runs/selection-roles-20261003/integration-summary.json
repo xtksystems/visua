@@ -1,0 +1,49 @@
+{
+  "status": "complete",
+  "completed_utc": "2026-10-03T21:13:38.760678+00:00",
+  "command": "env -u VISUA_DATABASE_URL -u VISUA_DB -u VISUA_TEST_DATABASE_URL -u NODE_ENV -u VISUA_REPO_SCAN_ROOTS VISUA_AGENT_MODE=offline VISUA_AUTH_MODE=dev VISUA_PUBLIC_URL=http://localhost:8799 pnpm check",
+  "exit_code": 0,
+  "checks": {
+    "licensing": "passed",
+    "typecheck": "passed",
+    "sqlite": {
+      "passed": 360,
+      "skipped": 2,
+      "skip_reason": "PostgreSQL-only cases"
+    },
+    "postgresql": {
+      "passed": 362
+    },
+    "browser": {
+      "passed": 57
+    },
+    "corpus": "passed",
+    "design": "passed"
+  },
+  "source_snapshot": "final-check-source.json",
+  "full_check_log": "full-check-final.log",
+  "detailed_logs": "final-check-logs",
+  "reviews": {
+    "original": "selection-review.json",
+    "original_findings": 4,
+    "final": "selection-fix-review.json",
+    "final_verdict": "pass",
+    "resolved_findings": 4
+  },
+  "focused_cases": {
+    "initial_passed": 25,
+    "review_fixes_passed": 8
+  },
+  "first_full_check": {
+    "failed": 1,
+    "passed_browser": 56,
+    "cause": "Existing program-navigation assertion required slug href; UI correctly returned canonical id. Assertion corrected using server summary; final full check passed."
+  },
+  "prior_scope_validation": "prior-scope-validation.json",
+  "limitations": [
+    "Source review by fresh native agent; follow-up review was adjudication. Runtime provider/model identity unknown.",
+    "Role matrix simulates queued cancellation affordance; no actual queued cancellation executed.",
+    "Local-only uncommitted changes; no deployment or live Docker update.",
+    "No pilot effort/time-saving measurement."
+  ]
+}

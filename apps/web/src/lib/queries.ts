@@ -2,6 +2,8 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUi } from "../state/ui.ts";
 import { api } from "./api.ts";
+import { useMe } from "./auth.ts";
+import { useResolvedWorkspaceId } from "./workspace.ts";
 import { frameworkOf } from "./format.ts";
 import { familyOf, registerFrameworks } from "./frameworks.ts";
 import type {
@@ -20,16 +22,21 @@ import type {
   SearchResult,
   Task,
   WorkspaceSummary,
+  WorkspaceMember,
+  MyWork,
 } from "./types.ts";
 
 export const keys = {
   meta: ["meta"] as const,
   workspaces: ["workspaces"] as const,
+  workspaceRoute: (route: string) => ["workspace-route", route] as const,
   workspace: (ws: string) => ["ws", ws] as const,
   graph: (fw: string) => ["graph", fw] as const,
   state: (ws: string, fw: string) => ["ws", ws, "state", fw] as const,
   node: (ws: string, id: string) => ["ws", ws, "node", id] as const,
   tasks: (ws: string) => ["ws", ws, "tasks"] as const,
+  members: (ws: string) => ["ws", ws, "members"] as const,
+  myWork: (ws: string, principal?: string) => principal ? ["ws", ws, "my-work", principal] as const : ["ws", ws, "my-work"] as const,
   evidence: (ws: string) => ["ws", ws, "evidence"] as const,
   policies: (ws: string) => ["ws", ws, "policies"] as const,
   risks: (ws: string) => ["ws", ws, "risks"] as const,
@@ -45,6 +52,18 @@ export const keys = {
 
 const enc = encodeURIComponent;
 
+export function useWorkspaceMembers(ws: string) {
+  ws = useResolvedWorkspaceId(ws) ?? "";
+  return useQuery({ queryKey: keys.members(ws), queryFn: () => api.get<WorkspaceMember[]>(`/workspaces/${enc(ws)}/members`), enabled: !!ws });
+}
+
+export function useMyWork(ws: string) {
+  ws = useResolvedWorkspaceId(ws) ?? "";
+  const me = useMe();
+  const identity = me.data ? `${me.data.principal}:${me.data.user.id}` : "";
+  return useQuery({ queryKey: keys.myWork(ws, identity), queryFn: () => api.get<MyWork>(`/workspaces/${enc(ws)}/my-work`), enabled: !!ws && !!identity });
+}
+
 export const useMeta = () =>
   useQuery({
     queryKey: keys.meta,
@@ -56,11 +75,27 @@ export const useMeta = () =>
     staleTime: Infinity,
   });
 export const useWorkspaces = () => useQuery({ queryKey: keys.workspaces, queryFn: () => api.get<WorkspaceSummary[]>("/workspaces") });
-export const useWorkspace = (ws: string | undefined) =>
-  useQuery({ queryKey: keys.workspace(ws ?? ""), queryFn: () => api.get<WorkspaceSummary>(`/workspaces/${enc(ws!)}`), enabled: !!ws });
+/** Resolve an id or URL slug, then seed one authoritative id-keyed summary. */
+export function useWorkspaceRoute(route: string) {
+  const qc = useQueryClient();
+  return useQuery({
+    queryKey: keys.workspaceRoute(route),
+    queryFn: async ({ signal }) => {
+      const summary = await api.get<WorkspaceSummary>(`/workspaces/${enc(route)}`, signal);
+      if (!signal.aborted) qc.setQueryData(keys.workspace(summary.workspace.id), summary);
+      return summary;
+    },
+    enabled: !!route,
+  });
+}
+export const useWorkspace = (ws: string | undefined) => {
+  ws = useResolvedWorkspaceId(ws);
+  return useQuery({ queryKey: keys.workspace(ws ?? ""), queryFn: () => api.get<WorkspaceSummary>(`/workspaces/${enc(ws!)}`), enabled: !!ws });
+};
 export const useGraph = (fw: string | undefined) =>
   useQuery({ queryKey: keys.graph(fw ?? ""), queryFn: () => api.get<LeanGraph>(`/frameworks/${enc(fw!)}`), enabled: !!fw, staleTime: Infinity });
 export const useFrameworkState = (ws: string | undefined, fw: string | undefined) => {
+  ws = useResolvedWorkspaceId(ws);
   // Threat catalogs carry derived coverage, counted down to the chosen link status.
   const min = useUi((s) => s.threatMin);
   const threat = !!fw && familyOf(fw) === "threat";
@@ -72,6 +107,7 @@ export const useFrameworkState = (ws: string | undefined, fw: string | undefined
   });
 };
 export const useNodeDetail = (ws: string | undefined, id: string | undefined) => {
+  ws = useResolvedWorkspaceId(ws);
   const min = useUi((s) => s.threatMin);
   const threat = !!id && familyOf(frameworkOf(id)) === "threat";
   return useQuery({
@@ -82,29 +118,64 @@ export const useNodeDetail = (ws: string | undefined, id: string | undefined) =>
     placeholderData: (prev) => (prev?.node.id === id ? prev : undefined),
   });
 };
-export const useTasks = (ws: string | undefined) => useQuery({ queryKey: keys.tasks(ws ?? ""), queryFn: () => api.get<Task[]>(`/workspaces/${enc(ws!)}/tasks`), enabled: !!ws });
-export const useEvidence = (ws: string | undefined) => useQuery({ queryKey: keys.evidence(ws ?? ""), queryFn: () => api.get<Evidence[]>(`/workspaces/${enc(ws!)}/evidence`), enabled: !!ws });
-export const usePolicies = (ws: string | undefined) => useQuery({ queryKey: keys.policies(ws ?? ""), queryFn: () => api.get<Policy[]>(`/workspaces/${enc(ws!)}/policies`), enabled: !!ws });
-export const useRisks = (ws: string | undefined) => useQuery({ queryKey: keys.risks(ws ?? ""), queryFn: () => api.get<Risk[]>(`/workspaces/${enc(ws!)}/risks`), enabled: !!ws });
-export const useConnectors = (ws: string | undefined) => useQuery({ queryKey: keys.connectors(ws ?? ""), queryFn: () => api.get<Connector[]>(`/workspaces/${enc(ws!)}/connectors`), enabled: !!ws });
-export const useChecks = (ws: string | undefined) => useQuery({ queryKey: keys.checks(ws ?? ""), queryFn: () => api.get<CheckResult[]>(`/workspaces/${enc(ws!)}/checks`), enabled: !!ws });
-export const useRuns = (ws: string | undefined) => useQuery({ queryKey: keys.runs(ws ?? ""), queryFn: () => api.get<RunWithProposals[]>(`/workspaces/${enc(ws!)}/runs`), enabled: !!ws });
-export const useRun = (ws: string | undefined, id: string | undefined) =>
-  useQuery({ queryKey: keys.run(ws ?? "", id ?? ""), queryFn: () => api.get<RunWithProposals>(`/workspaces/${enc(ws!)}/runs/${enc(id!)}`), enabled: !!ws && !!id });
-export const useProposals = (ws: string | undefined, status?: string) =>
-  useQuery({ queryKey: [...keys.proposals(ws ?? ""), status ?? "all"], queryFn: () => api.get<Proposal[]>(`/workspaces/${enc(ws!)}/proposals${status ? `?status=${status}` : ""}`), enabled: !!ws });
-export const useActivity = (ws: string | undefined, limit = 100) =>
-  useQuery({ queryKey: [...keys.activity(ws ?? ""), limit], queryFn: () => api.get<ActivityEvent[]>(`/workspaces/${enc(ws!)}/activity?limit=${limit}`), enabled: !!ws });
-export const useAuditVerification = (ws: string | undefined) =>
-  useQuery({ queryKey: keys.audit(ws ?? ""), queryFn: () => api.get<{ valid: boolean; events: number; brokenAt?: number; head?: string }>(`/workspaces/${enc(ws!)}/activity/verify`), enabled: !!ws });
+export const useTasks = (ws: string | undefined) => {
+  ws = useResolvedWorkspaceId(ws);
+  return useQuery({ queryKey: keys.tasks(ws ?? ""), queryFn: () => api.get<Task[]>(`/workspaces/${enc(ws!)}/tasks`), enabled: !!ws });
+};
+export const useEvidence = (ws: string | undefined) => {
+  ws = useResolvedWorkspaceId(ws);
+  return useQuery({ queryKey: keys.evidence(ws ?? ""), queryFn: () => api.get<Evidence[]>(`/workspaces/${enc(ws!)}/evidence`), enabled: !!ws });
+};
+export const usePolicies = (ws: string | undefined) => {
+  ws = useResolvedWorkspaceId(ws);
+  return useQuery({ queryKey: keys.policies(ws ?? ""), queryFn: () => api.get<Policy[]>(`/workspaces/${enc(ws!)}/policies`), enabled: !!ws });
+};
+export const useRisks = (ws: string | undefined) => {
+  ws = useResolvedWorkspaceId(ws);
+  return useQuery({ queryKey: keys.risks(ws ?? ""), queryFn: () => api.get<Risk[]>(`/workspaces/${enc(ws!)}/risks`), enabled: !!ws });
+};
+export const useConnectors = (ws: string | undefined) => {
+  ws = useResolvedWorkspaceId(ws);
+  return useQuery({ queryKey: keys.connectors(ws ?? ""), queryFn: () => api.get<Connector[]>(`/workspaces/${enc(ws!)}/connectors`), enabled: !!ws });
+};
+export const useChecks = (ws: string | undefined) => {
+  ws = useResolvedWorkspaceId(ws);
+  return useQuery({ queryKey: keys.checks(ws ?? ""), queryFn: () => api.get<CheckResult[]>(`/workspaces/${enc(ws!)}/checks`), enabled: !!ws });
+};
+export const useRuns = (ws: string | undefined) => {
+  ws = useResolvedWorkspaceId(ws);
+  return useQuery({ queryKey: keys.runs(ws ?? ""), queryFn: () => api.get<RunWithProposals[]>(`/workspaces/${enc(ws!)}/runs`), enabled: !!ws });
+};
+export const useRun = (ws: string | undefined, id: string | undefined) => {
+  ws = useResolvedWorkspaceId(ws);
+  return useQuery({ queryKey: keys.run(ws ?? "", id ?? ""), queryFn: () => api.get<RunWithProposals>(`/workspaces/${enc(ws!)}/runs/${enc(id!)}`), enabled: !!ws && !!id });
+};
+export const useProposals = (ws: string | undefined, status?: string) => {
+  ws = useResolvedWorkspaceId(ws);
+  return useQuery({ queryKey: [...keys.proposals(ws ?? ""), status ?? "all"], queryFn: () => api.get<Proposal[]>(`/workspaces/${enc(ws!)}/proposals${status ? `?status=${status}` : ""}`), enabled: !!ws });
+};
+export const useActivity = (ws: string | undefined, limit = 100) => {
+  ws = useResolvedWorkspaceId(ws);
+  return useQuery({ queryKey: [...keys.activity(ws ?? ""), limit], queryFn: () => api.get<ActivityEvent[]>(`/workspaces/${enc(ws!)}/activity?limit=${limit}`), enabled: !!ws });
+};
+export const useAuditVerification = (ws: string | undefined) => {
+  ws = useResolvedWorkspaceId(ws);
+  return useQuery({ queryKey: keys.audit(ws ?? ""), queryFn: () => api.get<{ valid: boolean; events: number; brokenAt?: number; head?: string }>(`/workspaces/${enc(ws!)}/activity/verify`), enabled: !!ws });
+};
 export const useSearch = (q: string) =>
   useQuery({ queryKey: keys.search(q), queryFn: () => api.get<SearchResult>(`/search?q=${enc(q)}`), enabled: q.trim().length >= 2, placeholderData: keepPreviousData });
 
 /** Generic mutation that refreshes the whole workspace on success. */
-export function useWsMutation<TVars, TResult = unknown>(ws: string | undefined, fn: (vars: TVars) => Promise<TResult>) {
+export function useWsMutation<TVars, TResult = unknown>(
+  ws: string | undefined,
+  fn: (vars: TVars) => Promise<TResult>,
+  options?: { onError?: (error: Error, variables: TVars) => void },
+) {
+  ws = useResolvedWorkspaceId(ws);
   const qc = useQueryClient();
   return useMutation({
     mutationFn: fn,
+    onError: options?.onError,
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["ws", ws ?? ""] });
       void qc.invalidateQueries({ queryKey: keys.workspaces });

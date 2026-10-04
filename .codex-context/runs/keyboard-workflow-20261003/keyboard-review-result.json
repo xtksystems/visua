@@ -1,0 +1,18 @@
+{
+  "run_id": "keyboard-workflow-20261003",
+  "node_id": "keyboard-review",
+  "input_sha256": "e6aefc5964df84ad59cc4403883c0f091dd53a1a4225a8f5184d9e876cc2bd23",
+  "status": "complete",
+  "summary": "Source review complete with three supported findings: F does not reframe an unchanged selection; Agents/RMF/Threats manual tablists remain incomplete; Organization tabs lose their active tab if role-dependent tabs disappear.",
+  "evidence": [
+    ".codex-context/runs/keyboard-workflow-20261003/keyboard-review.json",
+    ".codex-context/runs/keyboard-workflow-20261003/keyboard-review-source-validation.json",
+    "All pinned production source hashes match at start/end; current palette test matches disclosed addendum."
+  ],
+  "limitations": [
+    "This is source inspection only. No browser, build, server, unit or integration commands were run; root owns runtime verification. Findings describe source-derived failure mechanisms, not tested runtime outcomes.",
+    "At end, original review-source.json differs only for e2e/keyboard-palette.spec.ts, which root intentionally extended with a modal Ctrl+K assertion during review. Its current bytes match review-source-test-addendum.json; every originally pinned production source still matches. New outline/dialog tests were context only and are recorded by final dependency hash.",
+    "The first-pass brief was fresh; root later requested tracing the F CameraRig dependency. That finding was independently verified against source, but its investigation lens received this explicit parent steering.",
+    "The manual Agents/RMF/Threats tablists and CameraRig are supporting dependencies outside the original review-source file list; their inspected current hashes are recorded in keyboard-review-source-validation.json. The CameraRig matches the pinned HEAD. Source-only lifecycle/nesting inspection does not establish browser-specific behavior."
+  ]
+}

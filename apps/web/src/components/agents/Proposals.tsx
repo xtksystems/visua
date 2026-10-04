@@ -1,7 +1,7 @@
 /** Proposal cards: agents propose, people dispose. */
 import { Check, Eye, X } from "lucide-react";
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useWorkspaceId } from "../../lib/workspace.ts";
 import { api } from "../../lib/api.ts";
 import { useCan } from "../../lib/auth.ts";
 import { truncate } from "../../lib/format.ts";
@@ -24,7 +24,7 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 export function ProposalCard({ proposal, compact }: { proposal: Proposal; compact?: boolean }) {
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
   const [open, setOpen] = useState(false);
   const canDecide = useCan("work.approve");
   const decide = useWsMutation(ws, (decision: "approved" | "rejected") => api.post<Proposal>(`/workspaces/${encodeURIComponent(ws)}/proposals/${proposal.id}/decision`, { decision }));

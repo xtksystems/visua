@@ -35,13 +35,14 @@ OWASP Top 10s show which AI threats the program addresses.
 | **AI security overlays (NIST drafts)** | The Cyber AI Profile (NIST IR 8596 iprd) on CSF 2.0: considerations and a proposed priority for each of the 106 subcategories per focus area (Secure, Defend, Thwart), adoptable per workspace, with an overlay lens and an optional priority raise. COSAiS (SP 800-53 Control Overlays for Securing AI Systems) on SP 800-53: the predictive-AI overlay's 59 controls brought into scope on adoption, with their tailoring and NIST AI 100-2 attacks. Drafts are always labeled as drafts. |
 | **U.S. state AI laws** | 26 laws and regulations in California, Colorado, Illinois, Maine, New York, New York City, Texas and Utah, with 187 obligations quoted from the enrolled statutes and adopted regulations. Record the role you hold under each law's own definitions (developer, deployer, employer, operator…) and Visua scopes exactly those obligations, with an effective-date timeline (by month, with a list view), safe harbors (including those that recognize the NIST AI RMF) and enforcement. Readiness counts the obligations in force today; upcoming ones are prepared for and tracked apart, and ended ones drop out on their date. A tracking tool, not legal advice. |
 | **AI threat views** | MITRE ATLAS 2026.09 (the tactic × technique matrix), the OWASP Top 10 for LLM Applications 2026 (and 2025, with each entry's counterpart) and for Agentic Applications 2026, and NIST AI 100-2's 25 attacks. Threats are never assessed: coverage is derived from the requirements that MITRE, OWASP and NIST link to each threat, directly, through an ATLAS mitigation or through the other OWASP edition. Every link shows its publisher and status (final, draft, unreviewed, superseded), and one filter decides which count. A threat's linked requirements are grouped by publication and by route, and the ATLAS matrix is navigable with the arrow keys. |
-| **Evidence & monitoring** | Evidence with provenance (source, SHA-256, reviewer, validity window, freshness), plus connectors for web posture (TLS, HSTS, security headers, security.txt) and repository hygiene. |
+| **Assigned work** | Assign tasks and requirements to organization members, set calendar due dates, edit requirement links, and open your personal My work list. External owner labels remain available without granting access. |
+| **Evidence & monitoring** | Upload and download evidence files up to 10 MiB, with verified SHA-256 and byte size. Approval binds the artifact hash, linked requirements, and validity window, with preserved review history. Connectors cover web posture (TLS, HSTS, security headers, security.txt) and repository hygiene. |
 | **Integrity guardrails** | A hash-chained, tamper-evident audit trail. "Not applicable" requires a written rationale, and scope changes never overwrite it. Agents never file plans as evidence. The trust center publishes computed facts only. Visua never issues audit opinions. |
 
 | | |
 |---|---|
 | ![Crosswalk Nexus](docs/images/crosswalk-nexus.jpg) | ![SP 800-53 Rev. 5, full catalog](docs/images/observatory-800-53.jpg) |
-| ![Mission control](docs/images/home.jpg) | ![NIST RMF program](docs/images/rmf.jpg) |
+| ![Overview dashboard with readiness summary and labeled navigation](docs/images/home.jpg) | ![NIST RMF program](docs/images/rmf.jpg) |
 | ![AI governance with the NIST AI RMF](docs/images/ai-governance.jpg) | ![SOC 2 program](docs/images/soc2.jpg) |
 | ![MITRE ATLAS matrix with coverage from linked requirements](docs/images/threats-atlas.jpg) | ![The Nexus threat ring: OWASP LLM01 linked to AI RMF, SP 800-53 and CSF groups](docs/images/nexus-threat-ring.jpg) |
 
@@ -60,8 +61,75 @@ Taylor Brooks belongs to a second organization, Contoso Bank, and cannot see Nor
 data. The framework data is pre-built in `packages/frameworks/data/`. To rebuild it from
 the local corpus, run `pnpm ingest`.
 
-Production-style run: `pnpm build && pnpm start`. The API serves the built web app on
-:8787.
+To serve the built web app locally, run `pnpm build && pnpm start`. The API
+listens on `127.0.0.1:8787` in developer mode. Set `NODE_ENV=production` and
+configure OIDC for a hosted installation, as shown below.
+
+### Local Docker deployment
+
+Docker Compose builds the web app and starts the API at <http://localhost:8787>:
+
+```sh
+VISUA_REVISION="$(git rev-parse HEAD)" docker compose up -d --build
+docker compose ps
+```
+
+Open the URL and choose a demo persona. The Compose setup binds only to this Mac,
+uses password-less developer sign-in and offline agent playbooks, and keeps the
+SQLite database and evidence files in the `visua-data` Docker volume. Compose
+sets `VISUA_BLOB_STORE=local` and `VISUA_BLOB_DIR=/app/data/blobs`, beside the
+database at `/app/data/visua.db`. Back up both together. The image revision
+label records `VISUA_REVISION` (or `unknown` when unset), so you can identify
+a deployed commit. The volume remains when you stop the app with
+`docker compose down`. Inside the container, Compose explicitly sets
+`VISUA_HOST=0.0.0.0`; the published host port stays on loopback. Its health
+check uses the database-aware `/api/ready` endpoint.
+
+If port 8787 is occupied, set `VISUA_HOST_PORT` before starting Compose; for
+example, `VISUA_HOST_PORT=8788 docker compose up -d --build` opens the app at
+<http://localhost:8788>. Use `docker compose logs -f visua` to inspect startup.
+
+### Evidence file storage
+
+Contributors and above can choose **Upload evidence** on the **Evidence** page.
+Select a nonempty file within the 10 MiB limit (10,485,760 bytes), enter its
+metadata, link at least one requirement, and choose **Upload for review**.
+The detail dialog opens after storage verification succeeds. Choose
+**Download file** to inspect the artifact; an approver can then accept or
+reject it. See
+[the evidence workflow](docs/workspace.md#review-evidence).
+
+File bytes live outside the SQL evidence records. The server creates immutable
+references scoped to the owning organization and workspace, verifies SHA-256
+and byte size after storage and again on download and review, and keeps the
+file name as a display label. New uploads start pending review.
+
+Configure the storage backend with these operator settings:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `VISUA_BLOB_STORE` | `local` | `local` for private files on disk, or `s3` for an S3-compatible service. In-memory test databases use disposable memory storage when this setting is absent. |
+| `VISUA_BLOB_DIR` | `data/blobs` under the repository root | Local storage directory. Keep it and its parent directories under operator control; the adapter creates private directories and files. |
+| `VISUA_BLOB_S3_BUCKET` | — | Existing private bucket; required for `s3`. |
+| `VISUA_BLOB_S3_REGION` | — | Bucket region; required for `s3`. |
+| `VISUA_BLOB_S3_ENDPOINT` | AWS service endpoint | Optional operator-selected HTTP or HTTPS origin for an S3-compatible service. Ambient `AWS_ENDPOINT_URL` settings do not select this endpoint. |
+| `VISUA_BLOB_S3_PREFIX` | `evidence` | Object key prefix, followed by tenant ID, workspace ID, and the server-generated artifact ID. |
+| `VISUA_BLOB_S3_FORCE_PATH_STYLE` | `false` | Set `true` or `1` for services requiring path-style requests; `false` and `0` use the default addressing style. |
+
+S3 uses the AWS SDK's
+[standard Node.js credential provider chain](https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/setting-credentials-node.html),
+including environment credentials, shared profiles, and workload roles.
+You provision the bucket, credentials, private access policy, encryption,
+backups, and lifecycle rules. Visua does not create cloud infrastructure or
+publish file URLs. S3 adapter tests use a signed mock HTTP service; they do not
+represent a deployment to an actual provider.
+
+Before metadata publication begins, a failed upload attempts to remove its file.
+Once publication begins, failures retain bytes because a lost commit
+acknowledgement can hide a successful database commit. These failures and failed
+cleanup can leave orphan bytes. Workspace deletion removes SQL records;
+physical file retention and garbage collection remain operator-managed. See
+[the storage architecture](docs/architecture.md#4-server-appsserver).
 
 ### AI engine
 
@@ -71,8 +139,31 @@ Production-style run: `pnpm build && pnpm start`. The API serves the built web a
 | `VISUA_AGENT_MODE` | `auto` | `auto`, `claude` or `offline` |
 | `VISUA_MODEL` | `claude-opus-5` | Model used by the agents |
 | `VISUA_AICPA_AI_USE` | — | Set to `permitted` only if your organization holds AICPA's written permission to send AICPA text to AI services (see below). |
-| `VISUA_PORT` / `VISUA_SEED` | `8787` / on | Server port, demo seeding |
+| `VISUA_PORT` | `8787` | Server port |
+| `VISUA_HOST` | `127.0.0.1` in developer mode; `0.0.0.0` with OIDC | Listener address. Changing it can expose the server; keep passwordless developer sign-in on a trusted local network. |
+| `VISUA_SEED` | `1` in non-production developer mode; `0` with OIDC or in production | Seed the demo when the store has no workspaces. Set `0` to disable it, or explicitly set `1` to add fictional demo organizations and their owners. |
+| `VISUA_SHUTDOWN_MS` | `10000` | Milliseconds to drain requests and background work before a forced stop |
+| `VISUA_REPO_SCAN_ROOTS` | Project directory in non-production developer mode; `[]` with OIDC or in production | JSON array of absolute directories that repository connectors may scan, for example `["/srv/repos"]`. `[]` disables local scans. |
 | `VISUA_DATABASE_URL` | `data/visua.db` | `postgres://user:pass@host:5432/db` for PostgreSQL, or a SQLite file path (`:memory:` works). `VISUA_DB` is accepted as a SQLite path too. |
+
+Web posture connectors reach public HTTP and HTTPS addresses only. Every DNS
+answer and redirect is checked, including the direct TLS inspection and
+`security.txt`. The SSO private-issuer setting does not grant connector access
+to private networks. Requests allow at most five redirects, reject HTTPS
+downgrades, and accept at most 1 MiB of encoded or decoded response data.
+
+Repository connectors require an absolute path within a configured scan root.
+They skip symlinks and special files. Keep scan roots on an operator-controlled
+filesystem; tenant users must not be able to replace parent directories while
+a scan runs. Each scan visits at most 4,000 entries, reads at most 32 MiB in
+total and 512,000 bytes per file, and cancels after 15 seconds. An incomplete
+secret scan reports a warning rather than a passing check. Pending filesystem
+calls and DNS lookups retain their concurrency slot until they finish; the
+server stops waiting for a connector after 30 seconds.
+
+Each server process allows four active connector runs, with a 30-second total
+deadline and a 12-second deadline per network operation. A request exceeding
+the concurrent limit receives HTTP 503 and can be retried after a run finishes.
 
 ### Sign-in, roles and organizations
 
@@ -126,6 +217,13 @@ workspaces only through a membership, and their **role** decides what they can d
 | `VISUA_SESSION_HOURS`, `VISUA_SESSION_IDLE_MINUTES` | `12`, `120` | Session lifetime and idle timeout |
 | `VISUA_ALLOWED_ORIGINS` | — | Extra origins allowed to send state-changing requests (comma-separated) |
 
+On an empty installation, startup provisions the configured bootstrap owner
+before any optional demo seeding. Production does not seed demos by default.
+The owner signs in through the platform IdP with a verified email that matches
+`VISUA_BOOTSTRAP_OWNER_EMAIL`, then creates the first workspace. Bootstrap can
+also grant ownership to an unowned upgraded organization; it does not add an
+owner to an organization that already has one.
+
 A production start looks like:
 
 ```sh
@@ -134,6 +232,19 @@ VISUA_DATABASE_URL=postgres://visua:…@db:5432/visua \
 VISUA_OIDC_ISSUER=https://login.example.com VISUA_OIDC_CLIENT_ID=visua VISUA_OIDC_CLIENT_SECRET=… \
 VISUA_BOOTSTRAP_OWNER_EMAIL=ciso@example.com pnpm start
 ```
+
+The public `/api/health` endpoint reports process liveness. Use `/api/ready`
+for deployment readiness: it probes the database, returns `503` on failure or
+after shutdown starts, and bounds each probe's wait to one second. A stuck
+query is shared across probes until it finishes.
+
+`SIGINT` and `SIGTERM` stop admission, close live event streams, drain existing
+HTTP requests and local agent runs, wait for any active SSO domain lookup, then
+close the event relay and database. The server exits with code `0` after a clean
+stop. If the shutdown deadline expires, it closes remaining HTTP connections
+and exits with code `1`. Configure the process manager's stop grace period to
+exceed `VISUA_SHUTDOWN_MS`; Compose uses 15 seconds for the default 10-second
+deadline. Durable agent recovery after a forced stop remains future work.
 
 ## Official documentation corpus and licensing
 
@@ -181,7 +292,7 @@ Details: [`docs/architecture.md`](docs/architecture.md). Design system:
 ```sh
 pnpm check           # local CI: every check below, with a summary (--quick: guard, typecheck, SQLite tests)
 pnpm typecheck       # all packages (TypeScript 7)
-pnpm test            # 202 unit, API, storage and auth tests (Vitest; add VISUA_TEST_DATABASE_URL=postgres://… for Postgres)
+pnpm test            # Unit, API, storage and auth tests (Vitest; add VISUA_TEST_DATABASE_URL=postgres://… for Postgres)
 pnpm test:e2e        # 22 Playwright end-to-end tests against the production build (WebGL via SwiftShader)
 pnpm screens         # screenshots of every view at 1440×900, 1024×768 and 390×844 into .screens/ (git-ignored)
 pnpm screens --docs  # regenerate the README images in docs/images/
