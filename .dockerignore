@@ -1,4 +1,5 @@
 .git
+.codex-context
 **/node_modules
 **/dist
 **/.local

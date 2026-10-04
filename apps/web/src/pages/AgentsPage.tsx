@@ -2,11 +2,12 @@
  * Agents: glass-box flight recorders, the approvals inbox and the launcher.
  */
 import { AlertTriangle, ArrowLeft, BookOpen, Brain, CheckCheck, Compass, MessageSquare, Play, Square, Wrench } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { AgentStep } from "@visua/core";
 import { ProposalCard } from "../components/agents/Proposals.tsx";
-import { AgentBadge, CitationBlock, CodeTag, Empty, toast } from "../components/ui/index.tsx";
+import { AgentBadge, CitationBlock, CodeTag, Empty, TabPanel, Tabs, toast } from "../components/ui/index.tsx";
+import { useWorkspaceId } from "../lib/workspace.ts";
 import { api } from "../lib/api.ts";
 import { useCan } from "../lib/auth.ts";
 import { relativeTime, truncate } from "../lib/format.ts";
@@ -42,7 +43,7 @@ function RunStatus({ status }: { status: string }) {
 function StepView({ step }: { step: AgentStep }) {
   const focus = useUi((s) => s.focus);
   const navigate = useNavigate();
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
   const tool = step.type === "tool-call" || step.type === "tool-result";
   const [open, setOpen] = useState(false);
   return (
@@ -98,10 +99,11 @@ function StepView({ step }: { step: AgentStep }) {
 }
 
 function FlightRecorder({ runId }: { runId: string }) {
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
   const { data: run } = useRun(ws, runId);
   const cancel = useWsMutation(ws, () => api.post(`/workspaces/${encodeURIComponent(ws)}/runs/${runId}/cancel`));
   const approveAll = useWsMutation(ws, () => api.post(`/workspaces/${encodeURIComponent(ws)}/runs/${runId}/approve-all`));
+  const canWrite = useCan("work.write");
   const canDecide = useCan("work.approve");
   if (!run) return <div className="muted">Loading run…</div>;
   const pending = run.proposals.filter((p) => p.status === "pending");
@@ -124,8 +126,8 @@ function FlightRecorder({ runId }: { runId: string }) {
               {run.goal}
             </h2>
           </div>
-          {(run.status === "running" || run.status === "queued") && (
-            <button className="btn btn--sm" onClick={() => cancel.mutate(undefined)}>
+          {canWrite && (run.status === "running" || run.status === "queued") && (
+            <button className="btn btn--sm" disabled={cancel.isPending} onClick={() => cancel.mutate(undefined)}>
               <Square size={12} /> Stop
             </button>
           )}
@@ -175,7 +177,7 @@ const PRESETS: Record<string, string> = {
 };
 
 function Launcher() {
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
   const meta = useMeta();
   const workspace = useWorkspace(ws);
   const navigate = useNavigate();
@@ -241,12 +243,14 @@ function Launcher() {
 }
 
 export function AgentsPage() {
-  const { ws = "", runId } = useParams();
+  const ws = useWorkspaceId();
+  const { runId } = useParams();
   const navigate = useNavigate();
   const runs = useRuns(ws);
   const pending = useProposals(ws, "pending");
   const selected = runId ?? runs.data?.[0]?.id;
   const [tab, setTab] = useState<"runs" | "inbox">("runs");
+  const tabsId = useId();
   // Narrow screens show one pane at a time: the list, or the run someone opened.
   const narrow = useMediaQuery(NARROW);
   useEffect(() => {
@@ -263,15 +267,15 @@ export function AgentsPage() {
           </p>
         </div>
         <Launcher />
-        <div className="tabs" role="tablist" style={{ marginTop: 8 }}>
-          <button role="tab" aria-selected={tab === "runs"} onClick={() => setTab("runs")}>
-            Runs <span className="count">{runs.data?.length ?? 0}</span>
-          </button>
-          <button role="tab" aria-selected={tab === "inbox"} onClick={() => setTab("inbox")}>
-            Approvals inbox <span className="count">{inbox.length}</span>
-          </button>
-        </div>
-        {tab === "runs" && (
+        <Tabs<"runs" | "inbox">
+          id={tabsId}
+          label="Agent activity"
+          style={{ marginTop: 8 }}
+          value={tab}
+          onChange={setTab}
+          tabs={[{ id: "runs", label: "Runs", count: runs.data?.length ?? 0 }, { id: "inbox", label: "Approvals inbox", count: inbox.length }]}
+        />
+        <TabPanel groupId={tabsId} id="runs" active={tab === "runs"}>
           <div className="stack" style={{ gap: 6 }}>
             {(runs.data ?? []).map((r) => (
               <button key={r.id} className={`runrow ${selected === r.id ? "is-selected" : ""}`} onClick={() => navigate(`/w/${ws}/agents/${r.id}`)}>
@@ -288,15 +292,15 @@ export function AgentsPage() {
             ))}
             {!runs.data?.length && <Empty title="No runs yet">Launch an agent above.</Empty>}
           </div>
-        )}
-        {tab === "inbox" && (
+        </TabPanel>
+        <TabPanel groupId={tabsId} id="inbox" active={tab === "inbox"}>
           <div className="stack" style={{ gap: 8 }}>
             {inbox.map((p) => (
               <ProposalCard key={p.id} proposal={p} compact />
             ))}
             {!inbox.length && <Empty title="Inbox zero">No proposals are waiting for a decision.</Empty>}
           </div>
-        )}
+        </TabPanel>
       </aside>
       <section className="master-detail__detail">
         <Link to={`/w/${ws}/agents`} className="btn btn--quiet btn--sm master-detail__back">

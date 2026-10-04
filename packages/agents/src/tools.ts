@@ -233,17 +233,28 @@ export function modelText(node: RequirementNode): string {
  * the criterion text (description) and point-of-focus titles (checklist): they are
  * withheld like the criteria themselves, unless the operator declared permission.
  */
-export function modelTask<T extends Pick<Task, "title" | "description" | "checklist" | "requirementIds">>(host: AgentHost, task: T): T {
+export function modelTask<T extends Pick<Task, "title" | "description" | "checklist" | "requirementIds" | "contentRequirementIds" | "source">>(host: AgentHost, task: T): T {
   if (licensedTextToModel()) return task;
   const withheld: [string, string][] = [];
-  for (const id of task.requirementIds) {
+  const sourceDocument = task.source ? host.registry.documents.get(task.source.documentId) : undefined;
+  const licensedSource = sourceDocument?.framework === "aicpa-soc2";
+  let sourceTextAvailable = false;
+  for (const id of new Set([...task.requirementIds, ...(task.contentRequirementIds ?? [])])) {
     const node = host.registry.node(id);
     if (node?.attributes?.["licensed"] !== true) continue;
+    if (task.source?.locator && node.citation.documentId === task.source.documentId && node.citation.locator === task.source.locator
+      && (task.source.page === undefined || node.citation.page === task.source.page)) sourceTextAvailable = true;
     withheld.push([node.text.trim(), `[${node.code}: ${String(node.attributes["summary"] ?? node.title)} (AICPA text withheld)]`]);
     for (const p of (node.attributes["pointsOfFocus"] as { title?: string; text?: string }[] | undefined) ?? []) {
       for (const t of [p.text, p.title]) if (t?.trim()) withheld.push([t.trim(), "[AICPA point of focus withheld]"]);
     }
   }
+  // Legacy tasks can predate provenance tracking or outlive the locally licensed
+  // nodes. Without the original fragments, the source still requires withholding.
+  if (licensedSource && !sourceTextAvailable) return {
+    ...task, title: "[AICPA task text withheld]", description: WITHHELD_NOTICE,
+    checklist: task.checklist.map((item) => ({ ...item, text: "[AICPA task checklist withheld]" })),
+  };
   if (!withheld.length) return task;
   // Longest first, so a criterion's text is replaced whole before any fragment of it.
   withheld.sort((a, b) => b[0].length - a[0].length);
@@ -341,7 +352,10 @@ export const getRequirement = defineTool({
         : null,
       status: status?.status,
       statusReasons: status?.reasons,
-      tasks: tasks.map((t) => ({ id: t.id, title: t.title, status: t.status, dueDate: t.dueDate, kind: t.kind })),
+      tasks: tasks.map((task) => {
+        const t = modelTask(host, task);
+        return { id: t.id, title: t.title, status: t.status, dueDate: t.dueDate, kind: t.kind };
+      }),
       evidence: evidence.map((e) => ({ id: e.id, title: e.title, status: e.status, kind: e.kind, validUntil: e.validUntil })),
       mappings,
     };
@@ -428,7 +442,7 @@ export const workspaceOverview = defineTool({
         open: tasks.filter((t) => t.status !== "done").length,
         overdue: tasks.filter((t) => t.dueDate && t.status !== "done" && t.dueDate < new Date().toISOString().slice(0, 10)).length,
       },
-      evidence: { total: evidence.length, accepted: evidence.filter((e) => e.status === "accepted").length, pendingReview: evidence.filter((e) => e.status === "pending-review").length },
+      evidence: { total: evidence.length, accepted: evidence.filter((e) => isEvidenceValid(e)).length, pendingReview: evidence.filter((e) => e.status === "pending-review").length },
       policies: policies.map((p) => ({ title: p.title, status: p.status, version: p.version })),
     };
   },

@@ -1842,6 +1842,15 @@ p {
   background: var(--color-primary-container);
   border-left-color: var(--color-primary);
 }
+
+.outline__item:focus-visible {
+  outline: none;
+}
+.outline__item:focus-visible > .outline__row,
+.observatory__canvas:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
 .outline__toggle {
   width: 18px;
   height: 18px;

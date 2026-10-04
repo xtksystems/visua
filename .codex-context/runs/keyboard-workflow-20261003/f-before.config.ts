@@ -1,0 +1,2 @@
+import { defineConfig } from '@playwright/test';
+export default defineConfig({testDir:'/Users/artem/visua/e2e',outputDir:'/Users/artem/visua/.codex-context/runs/keyboard-workflow-20261003/f-before-test-results',timeout:90000,expect:{timeout:20000},workers:1,reporter:[['list']],use:{baseURL:'http://localhost:8801',viewport:{width:1440,height:900},launchOptions:{args:['--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']},trace:'retain-on-failure'}});

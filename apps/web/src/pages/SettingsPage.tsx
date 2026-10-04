@@ -1,9 +1,10 @@
 /** Workspace settings: organization profile, frameworks, agent autonomy, AI engine. */
 import { Globe, Sparkles, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { OrganizationProfile, ProposalType } from "@visua/core";
 import { AgentBadge, FrameworkBadge, toast } from "../components/ui/index.tsx";
+import { useWorkspaceId } from "../lib/workspace.ts";
 import { api } from "../lib/api.ts";
 import { useCan } from "../lib/auth.ts";
 import { useMeta, useWorkspace, useWsMutation } from "../lib/queries.ts";
@@ -66,7 +67,7 @@ function Toggle({ checked, onChange, label, tone = "primary" }: { checked: boole
 }
 
 export function SettingsPage() {
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
   const navigate = useNavigate();
   const { data } = useWorkspace(ws);
   const meta = useMeta();
@@ -80,6 +81,7 @@ export function SettingsPage() {
   }, [data]);
   const save = useWsMutation(ws, (body: Record<string, unknown>) => api.patch(`/workspaces/${encodeURIComponent(ws)}`, body));
   const enable = useWsMutation(ws, (v: { fw: string; enabled: boolean }) => api.put(`/workspaces/${encodeURIComponent(ws)}/frameworks/${v.fw}`, { enabled: v.enabled }));
+  const remove = useWsMutation(ws, () => api.del(`/workspaces/${encodeURIComponent(ws)}`));
   const canConfigure = useCan("workspace.configure");
   if (!data || !profile) return <div className="page muted">Loading…</div>;
   const autonomy = data.workspace.autonomy;
@@ -258,9 +260,10 @@ export function SettingsPage() {
             <h2 className="section-title">Danger zone</h2>
             <button
               className="btn btn--danger"
+              disabled={!canConfigure || remove.isPending}
               onClick={() => {
-                if (!window.confirm(`Delete ${data.workspace.name} and all of its data? This cannot be undone.`)) return;
-                void api.del(`/workspaces/${encodeURIComponent(ws)}`).then(() => navigate("/"));
+                if (!canConfigure || !window.confirm(`Delete ${data.workspace.name} and all of its data? This cannot be undone.`)) return;
+                remove.mutate(undefined, { onSuccess: () => navigate("/") });
               }}
             >
               <Trash2 size={14} /> Delete workspace

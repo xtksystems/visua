@@ -7,27 +7,24 @@
 export function startDomainRechecks(
   run: () => Promise<unknown>,
   { everyMs = 10 * 60_000, firstMs = 30_000, log = (m: string) => console.warn(m) }: { everyMs?: number; firstMs?: number; log?: (message: string) => void } = {},
-): () => void {
-  let running = false;
+): () => Promise<void> {
+  let running: Promise<void> | undefined;
   let stopped = false;
-  const tick = async () => {
+  const tick = () => {
     if (running || stopped) return;
-    running = true;
-    try {
-      await run();
-    } catch (err) {
-      log(`[visua] SSO domain re-check failed: ${(err as Error).message}`);
-    } finally {
-      running = false;
-    }
+    running = Promise.resolve().then(run)
+      .then(() => undefined)
+      .catch((err: unknown) => log(`[visua] SSO domain re-check failed: ${(err as Error).message}`))
+      .finally(() => { running = undefined; });
   };
   const first = setTimeout(() => void tick(), firstMs);
   const every = setInterval(() => void tick(), everyMs);
   first.unref?.();
   every.unref?.();
-  return () => {
+  return async () => {
     stopped = true;
     clearTimeout(first);
     clearInterval(every);
+    await running;
   };
 }

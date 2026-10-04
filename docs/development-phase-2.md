@@ -5,9 +5,21 @@ collect an artifact, review it, explain verified status, and hand an auditor a
 verifiable package. Ship this on a safe hosted pilot before expanding the
 framework catalog or integrations.
 
-This is a proposed development plan based on the
+This development plan is based on the
 [October 2, 2026 full application review](reviews/full-app-review-2026-10-02.md)
-at commit `1dc5ed1`. It defines future work; the review did not implement it.
+at commit `1dc5ed1`. The review did not implement the plan. The
+startup/authentication, connector boundaries, evidence approval binding,
+selection and role correctness, and keyboard workflow packages from milestone 1
+are implemented and verified. Their
+[startup](../.codex-context/tasks/startup-auth-20261003.md),
+[connector](../.codex-context/tasks/connector-boundaries-20261003.md),
+[evidence](../.codex-context/tasks/evidence-binding-20261003.md),
+[selection](../.codex-context/tasks/selection-roles-20261003.md), and
+[keyboard](../.codex-context/tasks/keyboard-workflow-20261003.md) task records
+track verification. Milestone 2's first package is also implemented and verified;
+its [member work task](../.codex-context/tasks/member-work-20261003.md) records
+member assignment, calendar dates, editable task links, and My work. Later
+packages remain planned work.
 The [existing roadmap](roadmap.md) retains the broader backlog.
 
 ## Outcome and scope
@@ -210,8 +222,14 @@ completion-rate measurement exists yet.
 
 ## Next action
 
-Create the first focused work package for startup/authentication and its mock
-production bootstrap test. In parallel, a separate read-only design task can
-define the evidence acceptance/supersession contract. Integrate that contract
-before implementing storage or agent changes. Review findings are still open;
-starting implementation requires a development request.
+Implement milestone 2's second package: separate evidence metadata from content,
+add a blob-store interface and storage adapters, compute and verify artifact
+hashes server-side, and authorize each upload and download within its tenant.
+
+All five milestone 1 packages and milestone 2's owned-work package are complete.
+The [member work task](../.codex-context/tasks/member-work-20261003.md) records
+stable member assignment, an external-owner path, strict calendar dates,
+editable links with retained model licensing provenance, and My work.
+The full local check passes all seven lanes: 382 SQLite tests (two
+PostgreSQL-only skips), 384 PostgreSQL tests, and 91 browser cases. Other phase
+packages remain open; starting another package requires a development request.

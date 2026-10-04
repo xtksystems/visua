@@ -1,0 +1,11 @@
+{
+  "checked_files": [
+    "docs/workspace.md",
+    "docs/architecture.md",
+    "docs/development-phase-2.md",
+    ".codex-context/project.md",
+    ".codex-context/architecture.md",
+    ".codex-context/invariants.md"
+  ],
+  "missing_relative_targets": []
+}

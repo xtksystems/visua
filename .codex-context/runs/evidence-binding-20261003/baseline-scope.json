@@ -1,0 +1,27 @@
+{
+  "root": "/Users/artem/visua",
+  "files": {
+    "packages/core/src/types.ts": "82f706888fff34ecea734d1558ee5c8d89fcb2ed8dece6ded45f5342e0b39637",
+    "packages/core/src/status.ts": "133b453b9b30cba6b0228e9e6da4a6568a06af0735382172fd21e00fca0e9a09",
+    "packages/core/src/index.ts": "ffc588ab695497ab64505d7aa773610c90e3d7a4100f5fb9037ef9820abacc2d",
+    "packages/core/src/evidence.ts": null,
+    "packages/core/test/core.test.ts": "52304704274db913c7375781fe31ae80353aef24e3696624ce86c0d2eba5d120",
+    "packages/core/test/evidence.test.ts": null,
+    "apps/server/src/services/visua.ts": "1acc98507a9c58bc1dea3cff7776a930299146f8ecb5ff92d4acae3cbc903649",
+    "apps/server/src/services/evidence.ts": null,
+    "apps/server/src/audit.ts": null,
+    "apps/server/src/app.ts": "9a7c4980d89379328610c31fd094b4ee22bdc8d6cb5356d318361dc99394953e",
+    "apps/server/src/storage/migrations.ts": "aaa78f8543f2d188c3668df35b2ac7d4ce712d5f93328b470f19fb80c69b9c41",
+    "apps/server/src/seed/demo.ts": "a924f0dabb3cc619a33ce540e6b7251fd5b443cea54b9f0227d4377b25ded6ad",
+    "apps/server/src/services/views.ts": "2cb107b4ad2a82723c0ce7683c67667ee2274e3f74bda93dc96288b8c6651b50",
+    "apps/server/test/api.test.ts": "46824ff2cbbf7e8a4fec60fa15a9abfe329849e5aae52392687d8fe2acd4f0fc",
+    "apps/server/test/evidence-binding.test.ts": null,
+    "apps/web/src/pages/EvidencePage.tsx": "84ed14ecddfd305312c5d991b65e325e107abd406c9d81f089862ba40693edf6",
+    "README.md": "e421167df3e50c3bd9dd3a1765a18ca8ff1a0ed80eb2bd86d3552997e5f3c72c",
+    "docs/architecture.md": "dbd1ecc24dd7494d94d5724bf6441f158a2fd47ff785e2966960b700de0faf0a",
+    "docs/workspace.md": "eeb26fac7f2bd645f397efcbf009b10e303a2bec1f2613f17f70ab882c42da56",
+    "docs/development-phase-2.md": "e72b019b9f340d3e7600cf15f6275264605993c3cedf430ec4127fdcbdb3e41c",
+    ".codex-context/project.md": "8f308976da4c3e131e3e1ec44397d91b88ec59cc4acc0f876e0e48d7ccd0359f",
+    ".codex-context/invariants.md": "ce421072f6d6ddf33d9cf9baf3b00722ee236a508abc6be727013bc14f275391"
+  }
+}

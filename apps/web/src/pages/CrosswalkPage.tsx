@@ -6,11 +6,13 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { GitCompareArrows, Info, Sparkles, X } from "lucide-react";
 import { Suspense, useMemo, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import type { Status } from "@visua/core";
 import { useRunAgent } from "../components/inspector/Inspector.tsx";
 import { CoverageBar, CoverageLegend, LINK_STATUS_HELP, LINK_STATUS_LABEL, LinkStatusBadge, ThreatLinkFilter } from "../components/threats/Coverage.tsx";
 import { Empty, FrameworkBadge, StatusChip } from "../components/ui/index.tsx";
+import { useWorkspaceId } from "../lib/workspace.ts";
+import { useCan } from "../lib/auth.ts";
 import { api } from "../lib/api.ts";
 import { truncate } from "../lib/format.ts";
 import { badgeOf } from "../lib/frameworks.ts";
@@ -55,6 +57,7 @@ function Dot({ fw }: { fw: string }) {
 
 function GroupDetail({ ws, data, groupId, onClose }: { ws: string; data: NexusData; groupId: string; onClose: () => void }) {
   const run = useRunAgent();
+  const canWrite = useCan("work.write");
   const fw = data.frameworks.find((f) => f.groups.some((g) => g.id === groupId))!;
   const group = fw.groups.find((g) => g.id === groupId)!;
   const [limit, setLimit] = useState(80);
@@ -96,7 +99,7 @@ function GroupDetail({ ws, data, groupId, onClose }: { ws: string; data: NexusDa
       <div className="callout" role="note">
         <Info size={14} /> A mapping says two requirements address related intent. It is not evidence: each requirement still needs its own implementation and proof.
       </div>
-      {fw.enabled && (
+      {fw.enabled && canWrite && (
         <button className="btn btn--agent btn--sm" style={{ alignSelf: "flex-start" }} onClick={() => run("crosswalk-analyst", `Project mapped progress onto ${fw.shortName}`, { framework: fw.id }, { stay: true })}>
           <Sparkles size={13} /> Project mapped progress onto {fw.shortName}
         </button>
@@ -298,7 +301,7 @@ function Overview({ data, onSelect }: { data: NexusData; onSelect: (id: string) 
 }
 
 export function CrosswalkPage() {
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
   const workspace = useWorkspace(ws);
   const [params, setParams] = useSearchParams();
   const selected = params.get("group");

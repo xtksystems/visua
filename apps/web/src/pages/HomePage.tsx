@@ -1,11 +1,13 @@
 /** Overview: where the program stands and what to do next. */
 import { ArrowRight, Bot, ShieldCheck, Telescope } from "lucide-react";
 import { useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import type { Recommendation } from "@visua/core";
 import { useQuery } from "@tanstack/react-query";
 import { useRunAgent } from "../components/inspector/Inspector.tsx";
 import { AgentBadge, CodeTag, FrameworkBadge, Metric, StatusBar } from "../components/ui/index.tsx";
+import { useWorkspaceId } from "../lib/workspace.ts";
+import { useCan } from "../lib/auth.ts";
 import { api } from "../lib/api.ts";
 import { pct, relativeTime, truncate } from "../lib/format.ts";
 import { frameworkMeta, programPath } from "../lib/frameworks.ts";
@@ -18,6 +20,7 @@ function NextBestActions({ ws, frameworkId }: { ws: string; frameworkId: string 
   const graph = useGraph(frameworkId);
   const state = useFrameworkState(ws, frameworkId);
   const run = useRunAgent();
+  const canWrite = useCan("work.write");
   const items = useMemo(() => {
     if (!graph.data || !state.data) return [];
     return graph.data.nodes
@@ -35,7 +38,7 @@ function NextBestActions({ ws, frameworkId }: { ws: string; frameworkId: string 
           <h2>Next best actions</h2>
         </div>
         <span className="spacer" />
-        <button className="btn btn--agent btn--sm" onClick={() => run("planner", "Plan the next sprint of work for our highest-priority gaps", { framework: frameworkId })}>
+        <button className="btn btn--agent btn--sm" disabled={!canWrite} onClick={() => run("planner", "Plan the next sprint of work for our highest-priority gaps", { framework: frameworkId })}>
           <Bot size={13} /> Plan with agent
         </button>
       </div>
@@ -62,7 +65,7 @@ function NextBestActions({ ws, frameworkId }: { ws: string; frameworkId: string 
 }
 
 export function HomePage() {
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
   const { data } = useWorkspace(ws);
   const runs = useRuns(ws);
   const pending = useProposals(ws, "pending");

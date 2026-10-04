@@ -1,4 +1,5 @@
 export * from "./types.ts";
+export * from "./evidence.ts";
 export * from "./levels.ts";
 export * from "./graph.ts";
 export * from "./status.ts";

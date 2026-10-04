@@ -6,8 +6,10 @@
  */
 import { Download, ExternalLink } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { StatusBar, StatusLegend, toast } from "../components/ui/index.tsx";
+import { useWorkspaceId } from "../lib/workspace.ts";
+import { useCan } from "../lib/auth.ts";
 import { api, corpusFileUrl, exportUrl } from "../lib/api.ts";
 import { useFrameworkState, useGraph, useMeta, useWorkspace, useWsMutation } from "../lib/queries.ts";
 import type { LeanNode } from "../lib/types.ts";
@@ -120,7 +122,7 @@ function BulletChart({ rows, functions }: { rows: Row[]; functions: LeanNode[] }
 }
 
 function TierAssessment() {
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
   const meta = useMeta();
   const workspace = useWorkspace(ws);
   const existing = workspace.data?.workspace.tierAssessment;
@@ -129,6 +131,7 @@ function TierAssessment() {
   useEffect(() => {
     if (!touched && existing) setAnswers({ ...existing.answers });
   }, [existing, touched]);
+  const canWrite = useCan("work.write");
   const save = useWsMutation(ws, () => api.post(`/workspaces/${encodeURIComponent(ws)}/tiers`, { answers }));
   const dims = meta.data?.tiers.dimensions ?? [];
   const names = meta.data?.tiers.names ?? [];
@@ -162,9 +165,10 @@ function TierAssessment() {
       <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
         Choose the statement that best describes your organization today. The statements are NIST's notional illustration of the Tiers, quoted verbatim. A Tier is credited only when practices consistently meet it (floor of the mean), and the overall Tier is the lower of governance and management.
       </p>
+      {!canWrite && <p className="muted" role="note">Read-only access. Contributors and above record tier assessments.</p>}
       <div className="stack" style={{ gap: 14 }}>
         {dims.map((d) => (
-          <fieldset key={d.id} style={{ border: 0, padding: 0, margin: 0 }}>
+          <fieldset disabled={!canWrite || save.isPending} key={d.id} style={{ border: 0, padding: 0, margin: 0 }}>
             <legend style={{ fontWeight: 600, marginBottom: 8 }}>
               {d.question} <span className="eyebrow" style={{ marginLeft: 6 }}>{d.area}</span>
             </legend>
@@ -192,7 +196,7 @@ function TierAssessment() {
         <span className="muted" style={{ fontSize: 12 }}>
           {Object.keys(answers).length}/{dims.length} answered
         </span>
-        <button className="btn btn--primary" disabled={!complete || save.isPending} onClick={() => save.mutate(undefined, { onSuccess: () => toast("Tier assessment recorded in the audit trail") })}>
+        <button className="btn btn--primary" disabled={!canWrite || !complete || save.isPending} onClick={() => save.mutate(undefined, { onSuccess: () => toast("Tier assessment recorded in the audit trail") })}>
           Save assessment
         </button>
       </div>
@@ -201,7 +205,8 @@ function TierAssessment() {
 }
 
 export function ProfilePage() {
-  const { ws = "" } = useParams();
+  const canExport = useCan("workspace.export");
+  const ws = useWorkspaceId();
   const workspace = useWorkspace(ws);
   const graph = useGraph(FW);
   const state = useFrameworkState(workspace.data?.workspace.id, FW);
@@ -228,12 +233,12 @@ export function ProfilePage() {
           <p>Your Current Profile, Target Profile and the gap between them — the core CSF 2.0 workflow. Export uses NIST's official Organizational Profile template columns.</p>
         </div>
         <div className="page__actions">
-          <a className="btn" href={exportUrl(ws, "csf-profile.csv")}>
+          {canExport && <a className="btn" href={exportUrl(ws, "csf-profile.csv")}>
             <Download size={14} /> Organizational Profile (CSV)
-          </a>
-          <a className="btn" href={exportUrl(ws, "readiness.md")}>
+          </a>}
+          {canExport && <a className="btn" href={exportUrl(ws, "readiness.md")}>
             <Download size={14} /> Readiness report
-          </a>
+          </a>}
           <Link className="btn btn--primary" to={`/w/${ws}/observatory/${FW}`}>
             Open in 3D
           </Link>

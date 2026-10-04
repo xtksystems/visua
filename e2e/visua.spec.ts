@@ -1,7 +1,49 @@
 import { expect, test, type Page } from "@playwright/test";
+import type { Evidence } from "@visua/core";
 
 const WS = "/w/northwind-health";
 const MORGAN = "morgan.lee@northwind-health.example";
+
+test("evidence review binds the inspected artifact and preserves history after an expiry edit", async ({ page }) => {
+  const csrf = await signIn(page);
+  const title = "Browser approval binding artifact";
+  const url = "/api/workspaces/northwind-health/evidence";
+  const response = await page.request.post(url, { headers: { "x-visua-csrf": csrf }, data: { title, requirementIds: ["nist-csf-2.0:PR.AA-01"], content: "Observed MFA configuration from browser fixture" } });
+  expect(response.status()).toBe(201);
+  const e = await response.json() as Evidence;
+  await page.goto(`${WS}/evidence`);
+  const row = page.getByRole("row").filter({ hasText: title });
+  await expect(row).toContainText("pending review");
+  const reviewedResponse = page.waitForResponse((r) => r.url().endsWith(`/evidence/${e.id}`) && r.request().method() === "PATCH");
+  await row.getByText(title, { exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Accept", exact: true }).click();
+  const reviewed = await reviewedResponse;
+  expect(reviewed.status()).toBe(200);
+  const body = await reviewed.json() as Evidence;
+  expect(body.reviewHistory).toHaveLength(1);
+  expect(body.reviewHistory![0]!.scope?.sha256).toBe(e.sha256);
+  await page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
+  await expect(row).toContainText("no expiry");
+  const amended = await page.request.patch(`${url}/${e.id}`, { headers: { "x-visua-csrf": csrf }, data: { validUntil: "2030-12-31" } });
+  expect(amended.status()).toBe(200);
+  await page.reload();
+  await expect(row).toContainText("pending review");
+  await row.getByText(title, { exact: true }).click();
+  await expect(page.getByRole("dialog")).toContainText("Review history");
+  await expect(page.getByRole("dialog")).toContainText(e.sha256!);
+  await expect(page.getByRole("dialog")).toContainText("accepted by");
+  // An edit arriving while the dialog is open must not change the inspected snapshot.
+  const replaced = await page.request.patch(`${url}/${e.id}`, { headers: { "x-visua-csrf": csrf }, data: { content: "A different configuration arrived during inspection" } });
+  expect(replaced.status()).toBe(200);
+  await expect(page.getByRole("dialog")).toContainText("Observed MFA configuration from browser fixture");
+  const staleResponse = page.waitForResponse((r) => r.url().endsWith(`/evidence/${e.id}`) && r.request().method() === "PATCH");
+  await page.getByRole("dialog").getByRole("button", { name: "Accept", exact: true }).click();
+  expect((await staleResponse).status()).toBe(400);
+  await expect(page.getByText("Evidence changed since it was inspected; reload it before reviewing", { exact: true })).toBeVisible();
+  const final = await (await page.request.get(url)).json() as Evidence[];
+  expect(final.find((item) => item.id === e.id)?.status).toBe("pending-review");
+
+});
 
 /** Developer sign-in (the e2e server runs in developer mode); returns the session's CSRF token. */
 async function signIn(page: Page, email = MORGAN): Promise<string> {
@@ -32,6 +74,8 @@ test("home shows the workspace, its frameworks and next best actions", async ({ 
 
 test("overview opens each framework's own program page", async ({ page }) => {
   await signIn(page);
+  const summary = await (await page.request.get("/api/workspaces/northwind-health")).json() as { workspace: { id: string } };
+  const canonicalBase = `/w/${summary.workspace.id}`;
   await page.goto(WS);
   await expect(page.getByRole("heading", { level: 1, name: "Northwind Health" })).toBeVisible();
   const expected: [string, string][] = [
@@ -44,10 +88,10 @@ test("overview opens each framework's own program page", async ({ page }) => {
   ];
   for (const [name, path] of expected) {
     const card = page.locator(".panel").filter({ has: page.getByRole("heading", { level: 3, name, exact: true }) });
-    await expect(card.getByRole("link", { name: /Program/ })).toHaveAttribute("href", `${WS}${path}`);
+    await expect(card.getByRole("link", { name: /Program/ })).toHaveAttribute("href", `${canonicalBase}${path}`);
   }
   await page.locator(".panel").filter({ has: page.getByRole("heading", { level: 3, name: "State AI laws", exact: true }) }).getByRole("link", { name: /Program/ }).click();
-  await expect(page).toHaveURL(new RegExp(`${WS}/laws$`));
+  await expect(page).toHaveURL(new RegExp(`${canonicalBase}/laws$`));
 });
 
 test("Observatory renders the 3D scene with its keyboard-accessible 2D twin", async ({ page }) => {
@@ -355,8 +399,10 @@ test("tenant separation: another organization cannot see Northwind Health", asyn
   const list = (await (await page.request.get("/api/workspaces")).json()) as unknown[];
   expect(list).toHaveLength(0);
   await page.goto(WS);
-  // Contoso Bank has no workspace yet: its owner is sent to onboarding, never into Northwind.
-  await expect(page).toHaveURL(/\/onboarding$/);
+  // An inaccessible deep link stays available to retry without exposing the other tenant.
+  await expect(page.getByRole("alert")).toContainText("Unable to open this workspace");
+  await expect(page).toHaveURL(new RegExp(`${WS}$`));
+  await expect(page.getByRole("heading", { name: "Northwind Health", exact: true })).toHaveCount(0);
 });
 
 test("organization admin: members, roles and a one-time API token", async ({ page }) => {

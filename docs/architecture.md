@@ -201,6 +201,24 @@ stay local.
   lands in the audit trail. A generative system brings the Generative AI Profile into
   scope.
 
+Member assignments use stable organization user IDs: `RequirementState.ownerUserId`
+for requirements and a `person` task assignee's `id`. The service checks current
+membership in the workspace tenant and records the member's stored name. The
+legacy `owner` label remains an external-owner path; explicit `external` task
+assignees carry a label without granting identity or access. Optional fields
+live in existing JSON records; this package needs no additional database
+migration. Clearing an assignment or date removes its field.
+
+Requirement due dates and task start/due dates accept calendar-valid `YYYY-MM-DD`
+values. Calendar due dates become overdue on the following UTC day. A task
+due date cannot precede its start date. Task link edits accept
+assessable requirements from enabled workspace frameworks and retain the task's
+original source citation. A server-owned `contentRequirementIds` pool retains
+original and later linked requirement IDs for model licensing checks even after
+links are removed; known licensed source documents retain a withholding fallback.
+Assignment, date, and link changes record before/after
+snapshots in the same transaction as the workspace audit event.
+
 ## 3. Agents (`packages/agents`)
 
 **Contract.** Agents never touch storage. They read through `AgentHost` (workspace,
@@ -253,6 +271,28 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 4. Server (`apps/server`)
 
+The entry point delegates resource ownership to `src/server.ts`. Startup
+validates authentication and listener settings before opening storage, runs
+first-owner bootstrap, and seeds demo workspaces only when configured. The
+default enables seeding in non-production developer mode. If startup fails
+after seeding launches detached work, cleanup drains it before closing storage,
+using the same deadline as ordinary shutdown. Developer mode binds
+to loopback; local Compose explicitly overrides the container listener while
+keeping its published port on loopback.
+
+`/api/health` reports liveness without database access. `/api/ready` runs a SQL
+probe and returns `503` on database failure, a one-second wait timeout, or
+shutdown. Concurrent probes share one pending query. Neither endpoint resolves
+cookies or bearer tokens, so a stale credential cannot break a health check.
+
+On `SIGINT` or `SIGTERM`, the listener stops accepting connections and existing
+responses close their connections after completion. New application work is
+refused, and SSE streams close immediately. Shutdown waits for HTTP requests,
+active SSO domain checks, and this instance's detached agent executions before
+closing the relay and store. `VISUA_SHUTDOWN_MS` bounds the whole drain and
+resource close; a timeout forces remaining sockets closed and exits with code
+`1`. Durable agent recovery after interruption remains separate work.
+
 - **Storage** (`src/storage/`). One async driver interface with two backends, chosen by
   `VISUA_DATABASE_URL`: embedded SQLite (`node:sqlite`, the default, for local use,
   demos and tests) and PostgreSQL (`pg`, for production and several server instances).
@@ -274,7 +314,7 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   with one role each, federated identities keyed by issuer and subject, sessions, API
   tokens and per-organization SSO connections.
   - Middleware resolves the principal (bearer API token or session cookie), requires
-    one for every `/api` route except health, sign-in and public trust centers, checks
+    one for every `/api` route except health/readiness, sign-in and public trust centers, checks
     the CSRF token and origin on writes, and sets security headers.
   - Every `/api/workspaces/:ws` route resolves the workspace, then the principal's role
     in the workspace's organization. No role means 404, so other tenants' workspaces do
@@ -342,6 +382,30 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   event is written in the same transaction as the change it records, under the
   workspace lock, and a unique `(workspace_id, seq)` index means the chain can never
   fork. `GET /activity/verify` recomputes the chain and reports the first broken link.
+- **Evidence approvals.** The service computes artifact SHA-256 from one canonical JSON envelope
+  containing content and/or structured data, or the immutable connector observation. Every decision
+  appends a server-owned history entry with the hash, requirement set, collection
+  date, and expiry. Current acceptance requires the latest decision to match
+  those fields and the active reviewer/time. Protected edits clear active review
+  metadata and return the item to review; descriptive edits preserve approval.
+  Connector content, raw data, and observation time cannot be amended.
+  Mutations audit before/after metadata and hashes without duplicating raw
+  artifacts. All writes, decisions, revisions, and events share the transaction.
+  Migration 5 recomputes current artifact digests, archives legacy decisions
+  without inventing a scope, and returns
+  unbound accepted items to review, with an audit event in the same transaction.
+  Stop older application writers when upgrading the evidence contract.
+  Dates must be real `YYYY-MM-DD` calendar dates or timezone-qualified ISO
+  timestamps. Date-only collection begins at midnight UTC and date-only expiry
+  ends at `23:59:59.999` UTC; expiry cannot precede collection. Malformed, future,
+  expired, or unbound records cannot satisfy current verification.
+  `PATCH /api/workspaces/:ws/evidence/:id` takes either metadata/artifact edits
+  or a decision plus `expectedScope` copied from the inspected record's
+  `sha256`, `requirementIds`, `collectedAt`, and optional `validUntil`. Stale
+  decisions and mixed edit/review requests return `400`. The detail dialog keeps
+  its inspected snapshot even when live queries refresh the underlying row. Use `validUntil: null`
+  to remove expiry. Agent review proposals capture the inspected scope when
+  created; approval edits cannot replace it or a connector proposal's check id.
 - **Live events across instances.** On Postgres, every instance LISTENs on one channel
   per schema and NOTIFYs it with each event it publishes, so a browser connected to any
   instance sees changes made through any other. Events over NOTIFY's 8,000-byte limit
@@ -379,6 +443,26 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   passing results become hashed evidence at once; when an agent runs one (`run_checks`),
   it proposes each passing result as evidence, and approval files it from the recorded
   check (edits cannot change what the check observed).
+  Both kinds enter a shared four-run limit per server process and receive a
+  30-second abort signal. Excess runs fail with HTTP 503; a cancelled run keeps
+  its slot until its underlying work stops. The run's asynchronous work scope
+  tracks DNS callbacks even when an aborted HTTP/TLS request settles earlier.
+  This keeps
+  resolver work bounded when DNS stalls. Network calls remain outside the
+  check/evidence/audit transaction. Public web requests reuse the identity
+  provider egress guard, with no private-host exception: literals and every
+  connection-time DNS answer are checked for HTTP and direct TLS. Redirects
+  are checked individually, capped at five, and cannot downgrade HTTPS.
+  Network operations stop after 12 seconds; encoded and decoded response
+  bodies are capped at 1 MiB.
+  Repository roots come from the operator's `VISUA_REPO_SCAN_ROOTS` JSON array.
+  The default is this project only in non-production developer mode, and an
+  empty allowlist in hosted/OIDC mode. Scans skip symlinks and special files,
+  use bounded asynchronous reads, and mark incomplete secret scans as warnings.
+  Limits are 15 seconds, 4,000 visited entries, 512,000 bytes per file, and
+  32 MiB total reads. Roots must be on an operator-controlled filesystem;
+  portable Node filesystem APIs cannot make all parent-directory operations
+  atomic against a malicious concurrent directory replacement.
 - **Exports.**
   - CSF Organizational Profile (NIST template columns)
   - action plan, evidence index and SOC 2 PBC list (CSV)
@@ -391,11 +475,23 @@ The web client presents a light workspace with labeled navigation, readable
 status colors and a 2D path through every spatial view.
 
 - **Shell.** A 220px labeled sidebar groups the primary destinations under
-  Workspace, Explore and Manage. It includes Overview, Action plan, Evidence,
+  Workspace, Explore and Manage. It includes Overview, My work, Action plan, Evidence,
   Agents, Policies, Reports & trust, Observatory, CSF profile & tiers, Crosswalk
   nexus, SOC 2 program, RMF program, AI governance, State AI laws, AI threats,
   Organization and Settings. The shell also has a command palette
   (⌘K: search requirements or ask the copilot), a live approvals badge and toasts.
+  - The shell resolves URL ids or slugs before mounting workspace pages. Query
+    keys, writes, and SSE subscriptions use the canonical workspace id.
+    Connections refresh cached state when opened or reconnected. Live agent
+    activity clears on workspace or session changes; obsolete streams cannot
+    restore it. Failed workspace loads keep the URL and offer retry.
+  - The inspector's query and draft lifetime is keyed by workspace and
+    requirement. Owner changes use explicit Save/Cancel; dirty owner input
+    survives a same-requirement refresh or failed save. Selection changes reset
+    tabs and dialogs and suppress late callbacks from the previous selection.
+    Failed detail loads offer retry without consuming the requirement URL.
+    Mutation controls follow server capabilities, and a shared error handler
+    reports failures unless a hook supplies its own handler.
   - Below 1024px the sidebar folds into a labeled menu opened from the top bar,
     as described in [the design layout](../DESIGN.md#layout), and the inspector
     becomes a bottom sheet with a handle. Two-pane pages stack below
@@ -451,8 +547,20 @@ status colors and a 2D path through every spatial view.
   outline with the 3D scene one tap away, as described in
   [the design layout](../DESIGN.md#layout).
 
-  The outline is a full 2D twin with tree semantics and keyboard control (←/→ siblings,
-  Enter drill in, Esc up, F frame, L lens, / filter). Deep links use `?select=`.
+  The outline is a full 2D twin with named, leveled tree rows and one managed tab
+  stop. Focus follows explicit tree navigation; deep links reveal ancestors
+  without taking focus from forms. Shortcuts run only on focused rows or the
+  canvas (arrows walk siblings, Enter drills in, Backspace/Escape goes up,
+  F frames, L changes lenses, / filters). Forms, HUD controls, modifiers, and
+  modals do not steer the scene. Deep links use `?select=`; requirement code
+  links and palette results navigate to that requirement's canonical workspace
+  and framework. Palette selection uses the URL rather than a delayed callback.
+
+  Shared tabs provide one selected tab stop, wrapping Left/Right and Home/End,
+  and stable tab/panel associations. Inactive panels retain their associations
+  while unmounting their content. `lib/modal.ts` manages dialog and palette
+  focus entry, Tab trapping, topmost Escape, and connected trigger restoration;
+  changing an onClose callback does not restart the focus lifetime.
 - **Crosswalk Nexus.** Frameworks sit as sectors on one ring and requirement groups as
   pillars. Pillar height is log(units) and color is group status. Arcs bundle the
   unit-level mappings, with width ∝ √count and a color gradient from the source
@@ -515,6 +623,14 @@ status colors and a 2D path through every spatial view.
   - Status colors are semantic and always come with a glyph.
   - Framework hues identify frameworks.
   - Terracotta is reserved for AI activity and actions.
+
+`GET /api/workspaces/:ws/members` exposes member IDs and names within the workspace
+access boundary. `GET /api/workspaces/:ws/my-work` matches assignments to the
+signed-in user's stable ID, never to a display label or API-token actor. The web
+query key includes workspace and principal identity. Task and state events
+invalidate personal work as well as the corresponding shared views. Task detail
+forms keep explicit Save/Cancel drafts per workspace/task; same-task refreshes
+preserve edited fields, while switching tasks discards them.
 
 ## 6. Testing
 

@@ -6,10 +6,11 @@
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, KeyRound, Plus, ShieldCheck, Trash2, UserPlus } from "lucide-react";
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useId, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ROLES, ROLE_LABELS, can, roleRank, type ActivityEvent, type Role } from "@visua/core";
-import { Empty, StatusChip, Tabs, toast } from "../components/ui/index.tsx";
+import { Empty, StatusChip, TabPanel, Tabs, toast } from "../components/ui/index.tsx";
+import { useWorkspaceId } from "../lib/workspace.ts";
 import { api } from "../lib/api.ts";
 import { ROLE_NAMES, useMe, useResetSession } from "../lib/auth.ts";
 import { shortDate } from "../lib/format.ts";
@@ -100,11 +101,12 @@ function RoleSelect({ value, onChange, max, label, exclude = [], compact }: { va
 }
 
 export function OrganizationPage() {
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
   const summary = useWorkspace(ws);
   const tenantId = summary.data?.workspace.tenantId;
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>("members");
+  const tabsId = useId();
   const tenant = useQuery({ queryKey: ["tenant", tenantId], queryFn: () => api.get<TenantInfo>(`/tenants/${tenantId}`), enabled: !!tenantId });
   const role = tenant.data?.role;
   const manage = can(role, "tenant.manage");
@@ -115,6 +117,7 @@ export function OrganizationPage() {
   const tabs: { id: Tab; label: string }[] = [{ id: "members", label: "Members" }];
   if (manage) tabs.push({ id: "tokens", label: "API tokens" }, { id: "sso", label: "Single sign-on" });
   if (audit) tabs.push({ id: "audit", label: "Audit trail" });
+  const activeTab = tabs.some((item) => item.id === tab) ? tab : "members";
 
   return (
     <div className="page">
@@ -128,12 +131,12 @@ export function OrganizationPage() {
           </p>
         </div>
       </header>
-      <Tabs tabs={tabs} value={tab} onChange={setTab} />
+      <Tabs id={tabsId} label="Organization settings" tabs={tabs} value={activeTab} onChange={setTab} />
       <div style={{ marginTop: 16 }}>
-        {tab === "members" && <Members tenantId={tenantId} role={tenant.data.role} onChange={refresh} />}
-        {tab === "tokens" && manage && <Tokens tenantId={tenantId} role={tenant.data.role} />}
-        {tab === "sso" && manage && <Sso tenant={tenant.data} onChange={refresh} />}
-        {tab === "audit" && audit && <Audit tenantId={tenantId} />}
+        <TabPanel groupId={tabsId} id="members" active={activeTab === "members"}><Members tenantId={tenantId} role={tenant.data.role} onChange={refresh} /></TabPanel>
+        {manage && <TabPanel groupId={tabsId} id="tokens" active={activeTab === "tokens"}><Tokens tenantId={tenantId} role={tenant.data.role} /></TabPanel>}
+        {manage && <TabPanel groupId={tabsId} id="sso" active={activeTab === "sso"}><Sso tenant={tenant.data} onChange={refresh} /></TabPanel>}
+        {audit && <TabPanel groupId={tabsId} id="audit" active={activeTab === "audit"}><Audit tenantId={tenantId} /></TabPanel>}
       </div>
     </div>
   );

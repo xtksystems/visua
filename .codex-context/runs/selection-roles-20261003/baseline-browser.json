@@ -1,0 +1,32 @@
+{
+  "baseline": "existing production build before selection/role edits",
+  "workspace": {
+    "id": "ws_0musulhkg1ujavikt",
+    "slug": "selection-baseline-fixture-dibb"
+  },
+  "cachedOwnerSequence": [
+    "Owner A",
+    "Owner B",
+    "Owner B",
+    "Owner B"
+  ],
+  "blurPatches": [
+    {
+      "url": "/api/workspaces/selection-baseline-fixture-dibb/requirements/nist-csf-2.0%3APR.AA-01",
+      "body": {
+        "owner": "Owner B"
+      }
+    }
+  ],
+  "viewerControls": {
+    "plan": {
+      "generate": true,
+      "agent": true
+    },
+    "evidence": {
+      "addConnector": true,
+      "collect": true,
+      "run": true
+    }
+  }
+}

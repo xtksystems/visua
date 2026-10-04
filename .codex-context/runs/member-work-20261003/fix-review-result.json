@@ -1,0 +1,17 @@
+{
+  "run_id": "member-work-20261003",
+  "node_id": "fix-review",
+  "input_sha256": "15eb213a7af1f9519bc1644984b96ea83d4174f824125c6242a42c16431a1b3e",
+  "status": "complete",
+  "summary": "Affected-path adjudication confirmed the due-day and evidence/check invalidation corrections. It found one remaining licensing fallback defect in the pinned modelTask: a different criterion in the same document was mistaken for original-source text availability. Root subsequently changed that predicate during review; preliminary rerun withheld text, but this report preserves the supported pinned-source finding for final focused adjudication.",
+  "evidence": [
+    "fix-review.json",
+    "fix-review-source-check.json",
+    "Synthetic date boundaries, source/history licensing projections and pinned-source same-document fallback reproduction."
+  ],
+  "limitations": [
+    "This is affected-path adjudication with inherited first-pass findings, not a fresh independent review.",
+    "Read-only inspection and synthetic in-memory checks only; integration lead owns browser/integration test execution. No build, browser, server, network/model call, Git operation, or source write was performed by this reviewer.",
+    "Sources changed during adjudication: apps/web/src/pages/PlanPage.tsx, apps/web/src/pages/MyWorkPage.tsx, packages/agents/src/tools.ts, packages/agents/test/licensing.test.ts. The finding below binds to the frozen fix-review-source.json hashes. The display addendum was inspected; the later locator patch produced preliminary counterevidence but requires the requested frozen, narrowly targeted followup."
+  ]
+}

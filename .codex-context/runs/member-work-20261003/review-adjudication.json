@@ -1,0 +1,22 @@
+{
+  "status": "resolved",
+  "original_report": "independent-review.json",
+  "first_fix_report": "fix-review.json",
+  "final_report": "final-review.json",
+  "decisions": [
+    {
+      "finding": "licensing after task relinking",
+      "resolution": "Monotonic server contentRequirementIds, retained source/origin, all task projections use modelTask; exact source document+nonempty locator+optional page needed for fragment availability, otherwise known licensed-source fallback."
+    },
+    {
+      "finding": "calendar due-today status mismatch",
+      "resolution": "Core date-only due comparison uses UTC calendar day; legacy timestamp precision retained; end-day/next-day/completed regression."
+    },
+    {
+      "finding": "My work evidence/check status staleness",
+      "resolution": "Live evidence/check events invalidate personal query; browser evidence expiry/update case passes."
+    }
+  ],
+  "integration_label_fixes": "Explicit member and search accessible names; date display only appends noon to calendar days.",
+  "verification": "Final independent frozen adjudication complete/pass with 32 matching source pins; focused11 browser cases passed; full check running."
+}

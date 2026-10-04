@@ -1,0 +1,47 @@
+{
+  "subject": "Initial working-tree bytes matching review-source.json; author fixes began during this independent pass.",
+  "checks": [
+    {
+      "command": "node --disable-warning=ExperimentalWarning .codex-context/runs/evidence-binding-20261003/review-reproduction.ts",
+      "cwd": "/Users/artem/visua",
+      "exit_code": 0,
+      "stage": "Initial collision-only version of reproduction script",
+      "observed": {
+        "createStatus": 201,
+        "reviewStatus": 200,
+        "editStatus": 200,
+        "previousContent": "{\"content\":\"MFA disabled\",\"data\":{\"enabled\":false}}",
+        "nextContent": "MFA disabled",
+        "previousData": null,
+        "nextData": {
+          "enabled": false
+        },
+        "unchangedSha256": "a4e0b3b3cdce4dce2ca80a0c0c91bcd6fd28c04b35c5c34b9cf981bac65b0223",
+        "statusAfterProtectedEdit": "accepted",
+        "historyCount": 1,
+        "currentReview": true,
+        "valid": true
+      }
+    },
+    {
+      "command": "pnpm exec vitest run packages/core/test/evidence.test.ts packages/core/test/core.test.ts apps/server/test/evidence-binding.test.ts",
+      "cwd": "/Users/artem/visua",
+      "exit_code": 0,
+      "observed": "3 test files passed; 70 tests passed; duration 1.87s; SQLite only."
+    },
+    {
+      "command": "node --disable-warning=ExperimentalWarning .codex-context/runs/evidence-binding-20261003/review-reproduction.ts",
+      "cwd": "/Users/artem/visua",
+      "exit_code": 1,
+      "stage": "After author changed artifact hashing; legacy reproduction added but not reached",
+      "observed": "Original regression assertion SHA unchanged failed; edited SHA a4e0b3..., prior SHA d208b3.... This later run does not reproduce the initial collision."
+    },
+    {
+      "command": "node --disable-warning=ExperimentalWarning .codex-context/runs/evidence-binding-20261003/review-reproduction.ts --legacy-only",
+      "cwd": "/Users/artem/visua",
+      "exit_code": 1,
+      "stage": "After author changed migration",
+      "observed": "Original regression assertion migrated SHA undefined failed; migrated artifact has SHA 94d127.... Original legacy missing-SHA finding is source-traced, not an executed reproduction."
+    }
+  ]
+}

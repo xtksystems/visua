@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { estimateTier, type OrganizationProfile, type Recommendation } from "@visua/core";
 import { Toasts, toast } from "../components/ui/index.tsx";
+import { useCan } from "../lib/auth.ts";
 import { api } from "../lib/api.ts";
 import type { WorkspaceSummary } from "../lib/types.ts";
 import { DATA_TYPES, DRIVERS, INDUSTRIES } from "./SettingsPage.tsx";
@@ -26,6 +27,7 @@ const ANSWERS = ["Not at all", "Partially", "Mostly", "Fully, and reviewed"];
 
 export function OnboardingPage() {
   const navigate = useNavigate();
+  const canConfigure = useCan("workspace.configure");
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
   const [profile, setProfile] = useState<OrganizationProfile>({
@@ -45,17 +47,17 @@ export function OnboardingPage() {
   const [meta, setMeta] = useState<{ id: string }[]>([]);
 
   useEffect(() => {
-    void api.get<{ frameworks: { id: string }[] }>("/meta").then((m) => setMeta(m.frameworks));
+    void api.get<{ frameworks: { id: string }[] }>("/meta").then((m) => setMeta(m.frameworks)).catch((error: Error) => toast(error.message, "error"));
   }, []);
 
   const tier = estimateTier(answers.filter((a) => a >= 0));
   useEffect(() => {
-    if (step !== 3) return;
+    if (step !== 3 || !canConfigure) return;
     const p = { ...profile, maturityTier: tier };
     void api.post<Recommendation>("/recommend", p).then((r) => {
       setRec(r);
       setFrameworks(r.frameworks.filter((f) => f.availability === "available" && meta.some((m) => m.id === f.frameworkId)).slice(0, 2).map((f) => f.frameworkId));
-    });
+    }).catch((error: Error) => toast(error.message, "error"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
@@ -68,6 +70,8 @@ export function OnboardingPage() {
   const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
   const steps = ["Organization", "Data & drivers", "Maturity", "Your path"];
   const canNext = step === 0 ? name.trim().length > 1 : step === 2 ? answers.every((a) => a >= 0) : true;
+
+  if (!canConfigure) return <div className="page"><h1>Workspace setup</h1><p className="muted" role="note">Only admins and owners create workspaces in the active organization.</p><button className="btn" onClick={() => navigate("/")}>Back to workspaces</button><Toasts /></div>;
 
   return (
     <div style={{ height: "100%", overflow: "auto" }}>

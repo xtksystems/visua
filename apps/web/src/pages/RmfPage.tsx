@@ -4,10 +4,11 @@
  * and OSCAL exports.
  */
 import { Download, Plus, Telescope, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useId, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { categorize, type ImpactLevel, type RmfSettings } from "@visua/core";
-import { CodeTag, Empty, StatusBar, StatusChip, toast } from "../components/ui/index.tsx";
+import { CodeTag, Empty, StatusBar, StatusChip, TabPanel, Tabs, toast } from "../components/ui/index.tsx";
+import { useWorkspaceId } from "../lib/workspace.ts";
 import { api, exportUrl } from "../lib/api.ts";
 import { useCan } from "../lib/auth.ts";
 import { shortDate } from "../lib/format.ts";
@@ -21,6 +22,7 @@ function Lifecycle({ wsId }: { wsId: string }) {
   const graph = useGraph("nist-rmf");
   const state = useFrameworkState(wsId, "nist-rmf");
   const [open, setOpen] = useState<string | null>(null);
+  const tabsId = useId();
   const steps = (graph.data?.nodes ?? []).filter((n) => n.kind === "step");
   const firstIncomplete = steps.find((s) => (state.data?.groups[s.id]?.readiness ?? 0) < 1)?.id;
   const active = open ?? firstIncomplete ?? steps[0]?.id;
@@ -34,12 +36,20 @@ function Lifecycle({ wsId }: { wsId: string }) {
           <Telescope size={13} /> 3D
         </Link>
       </div>
-      <div className="rmf-steps" role="tablist" aria-label="RMF steps">
-        {steps.map((s, i) => {
+      <Tabs
+        id={tabsId}
+        label="RMF steps"
+        className="rmf-steps"
+        value={active ?? ""}
+        onChange={setOpen}
+        tabs={steps.map((s) => ({ id: s.id, label: s.title }))}
+        tabClassName={(_, selected) => `rmf-step ${selected ? "is-active" : ""}`}
+        renderTab={(_, i) => {
+          const s = steps[i]!;
           const g = state.data?.groups[s.id];
           const pct = Math.round((g?.readiness ?? 0) * 100);
           return (
-            <button key={s.id} role="tab" aria-selected={active === s.id} className={`rmf-step ${active === s.id ? "is-active" : ""}`} onClick={() => setOpen(s.id)}>
+            <>
               <span className="mono muted" style={{ fontSize: 11 }}>
                 {i + 1}
               </span>
@@ -48,24 +58,28 @@ function Lifecycle({ wsId }: { wsId: string }) {
                 {pct}%
               </span>
               {g && <StatusBar counts={g.counts} height={4} />}
-            </button>
+            </>
           );
-        })}
-      </div>
-      <div className="rmf-tasks">
-        {tasks.map((t) => {
-          const u = state.data?.units[t.id];
-          return (
-            <Link key={t.id} className="rmf-task" to={`/w/${wsId}/observatory/nist-rmf?select=${encodeURIComponent(t.id)}`} title={t.text}>
-              <span className="mono" style={{ color: "var(--color-primary)", fontSize: 12 }}>
-                {t.code}
-              </span>
-              <span className="rmf-task__title">{t.title}</span>
-              {u && <StatusChip status={u.status} />}
-            </Link>
-          );
-        })}
-      </div>
+        }}
+      />
+      {steps.map((step) => (
+        <TabPanel key={step.id} groupId={tabsId} id={step.id} active={active === step.id}>
+          <div className="rmf-tasks">
+            {tasks.map((t) => {
+              const u = state.data?.units[t.id];
+              return (
+                <Link key={t.id} className="rmf-task" to={`/w/${wsId}/observatory/nist-rmf?select=${encodeURIComponent(t.id)}`} title={t.text}>
+                  <span className="mono" style={{ color: "var(--color-primary)", fontSize: 12 }}>
+                    {t.code}
+                  </span>
+                  <span className="rmf-task__title">{t.title}</span>
+                  {u && <StatusChip status={u.status} />}
+                </Link>
+              );
+            })}
+          </div>
+        </TabPanel>
+      ))}
     </div>
   );
 }
@@ -85,7 +99,8 @@ function Categorize({ ws, rmf }: { ws: string; rmf: RmfSettings }) {
   const canDecide = useCan("work.approve");
   const set = (i: number, patch: Partial<RmfSettings["informationTypes"][number]>) => setTypes(types.map((t, ti) => (ti === i ? { ...t, ...patch } : t)));
   return (
-    <div className="panel">
+    <fieldset className="panel" disabled={!canDecide || apply.isPending} style={{ minWidth: 0, margin: 0 }}>
+      {!canDecide && <p className="muted" role="note">Only approvers and above categorize the system.</p>}
       <div className="panel__head">
         <h2>Categorize · FIPS 199</h2>
         <span className="spacer" />
@@ -159,7 +174,7 @@ function Categorize({ ws, rmf }: { ws: string; rmf: RmfSettings }) {
           Apply {result.overall.toUpperCase()} baseline
         </button>
       </div>
-    </div>
+    </fieldset>
   );
 }
 
@@ -203,18 +218,19 @@ function Tailoring({ ws, rmf }: { ws: string; rmf: RmfSettings }) {
         style={{ gap: 8, marginTop: 12 }}
         onSubmit={(e) => {
           e.preventDefault();
+          if (!canDecide || tailor.isPending) return;
           tailor.mutate(
             { nodeId: `nist-sp-800-53-r5:${code.trim().toUpperCase()}`, action, rationale },
             { onSuccess: () => (setCode(""), setRationale(""), toast("Tailoring recorded")), onError: (err) => toast((err as Error).message, "error") },
           );
         }}
       >
-        <input className="input mono" style={{ width: 120 }} placeholder="AC-2(4)" value={code} onChange={(e) => setCode(e.target.value)} aria-label="Control" />
-        <select className="select" style={{ width: 120 }} value={action} onChange={(e) => setAction(e.target.value as "add" | "remove")} aria-label="Action">
+        <input disabled={!canDecide || tailor.isPending} className="input mono" style={{ width: 120 }} placeholder="AC-2(4)" value={code} onChange={(e) => setCode(e.target.value)} aria-label="Control" />
+        <select disabled={!canDecide || tailor.isPending} className="select" style={{ width: 120 }} value={action} onChange={(e) => setAction(e.target.value as "add" | "remove")} aria-label="Action">
           <option value="remove">Remove</option>
           <option value="add">Add</option>
         </select>
-        <input className="input" style={{ flex: "1 1 200px", minWidth: 0 }} placeholder="Rationale (required, visible to assessors)" value={rationale} onChange={(e) => setRationale(e.target.value)} />
+        <input disabled={!canDecide || tailor.isPending} className="input" style={{ flex: "1 1 200px", minWidth: 0 }} placeholder="Rationale (required, visible to assessors)" value={rationale} onChange={(e) => setRationale(e.target.value)} />
         <button className="btn" disabled={!canDecide || !code.trim() || rationale.trim().length < 8} title={canDecide ? undefined : "Tailoring is an approver decision"}>
           Record
         </button>
@@ -233,7 +249,8 @@ function Authorize({ ws, rmf }: { ws: string; rmf: RmfSettings }) {
   const save = useWsMutation(ws, () => api.post(`/workspaces/${encodeURIComponent(ws)}/rmf/authorize`, { decision, authorizingOfficial: ao || undefined, expiresAt: expires || undefined, rationale: rationale || undefined }));
   const labels: Record<string, string> = { pending: "Pending", ato: "Authorization to Operate (ATO)", iatt: "Interim Authorization to Test (IATT)", dato: "Denial of Authorization (DATO)" };
   return (
-    <div className="panel">
+    <fieldset className="panel" disabled={!canDecide || save.isPending} style={{ minWidth: 0, margin: 0 }}>
+      {!canDecide && <p className="muted" role="note">Only approvers and above record authorization decisions.</p>}
       <div className="panel__head">
         <h2>Authorize · Task R-4</h2>
         <span className="spacer" />
@@ -274,12 +291,14 @@ function Authorize({ ws, rmf }: { ws: string; rmf: RmfSettings }) {
           Record decision
         </button>
       </div>
-    </div>
+    </fieldset>
   );
 }
 
 export function RmfPage() {
-  const { ws = "" } = useParams();
+  const canConfigure = useCan("workspace.configure");
+  const canExport = useCan("workspace.export");
+  const ws = useWorkspaceId();
   const { data } = useWorkspace(ws);
   const controls = useFrameworkState(data?.workspace.id, "nist-sp-800-53-r5");
   const graph = useGraph("nist-sp-800-53-r5");
@@ -292,7 +311,7 @@ export function RmfPage() {
       <div className="page">
         <Empty title="NIST RMF is not enabled for this workspace">
           <p style={{ margin: "8px 0 12px" }}>Enable SP 800-53 Rev. 5 to run the Risk Management Framework: categorize your system, select and tailor a baseline, implement and assess controls, and record the authorization decision.</p>
-          <button className="btn btn--primary" onClick={() => enable.mutate(undefined)}>
+          <button className="btn btn--primary" disabled={!canConfigure || enable.isPending} title={canConfigure ? undefined : "Ask an admin to enable NIST RMF"} onClick={() => enable.mutate(undefined)}>
             Enable NIST RMF / SP 800-53
           </button>
         </Empty>
@@ -311,12 +330,12 @@ export function RmfPage() {
           </p>
         </div>
         <div className="page__actions">
-          <a className="btn" href={exportUrl(ws, "oscal-ssp.json")}>
+          {canExport && <a className="btn" href={exportUrl(ws, "oscal-ssp.json")}>
             <Download size={14} /> OSCAL SSP
-          </a>
-          <a className="btn" href={exportUrl(ws, "oscal-poam.json")}>
+          </a>}
+          {canExport && <a className="btn" href={exportUrl(ws, "oscal-poam.json")}>
             <Download size={14} /> OSCAL POA&M
-          </a>
+          </a>}
           <Link className="btn btn--primary" to={`/w/${ws}/observatory/nist-sp-800-53-r5`}>
             <Telescope size={14} /> Controls in 3D
           </Link>

@@ -17,6 +17,9 @@ RUN pnpm build
 
 FROM node:22-bookworm-slim
 
+ARG VISUA_REVISION=unknown
+LABEL org.opencontainers.image.revision=$VISUA_REVISION
+
 WORKDIR /app
 COPY --from=build --chown=node:node /app /app
 RUN mkdir -p /app/data && chown node:node /app/data

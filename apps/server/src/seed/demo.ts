@@ -311,15 +311,21 @@ export async function seedDemo(svc: VisuaService, auth: AuthService): Promise<st
 
   // Action plan grounded in the official Implementation Examples.
   const tasks = await svc.planWith(ws.id, "nist-csf-2.0", 18, actor);
+  const members = await svc.store.identity.memberships.forTenant(tenantId);
+  const ciso = members.find(({ user }) => user.email === "morgan.lee@northwind-health.example")?.user;
+  const itLead = members.find(({ user }) => user.email === "sam.ortiz@northwind-health.example")?.user;
   const statuses: Task["status"][] = ["done", "done", "in-progress", "in-progress", "in-review", "in-progress", "todo", "todo", "blocked"];
   for (const [i, t] of tasks.entries()) {
     const status = statuses[i] ?? "todo";
     const patch: Partial<Task> = { status };
-    if (i === 2) patch.dueDate = dateFromNow(-4); // overdue → at-risk signal
+    if (i === 2) {
+      patch.startDate = dateFromNow(-10);
+      patch.dueDate = dateFromNow(-4); // overdue → at-risk signal
+    }
     if (status === "done") patch.checklist = t.checklist.map((c) => ({ ...c, done: true }));
     if (status === "in-progress" || status === "in-review") patch.checklist = t.checklist.map((c, ci) => ({ ...c, done: ci < Math.ceil(t.checklist.length / 2) }));
-    if (i % 3 === 0) patch.assignee = { type: "person", id: "u-ciso", name: "Morgan Lee (CISO)" };
-    else if (i % 3 === 1) patch.assignee = { type: "person", id: "u-it", name: "Sam Ortiz (IT Lead)" };
+    if (i % 3 === 0 && ciso) patch.assignee = { type: "person", id: ciso.id, name: ciso.name };
+    else if (i % 3 === 1 && itLead) patch.assignee = { type: "person", id: itLead.id, name: itLead.name };
     else patch.assignee = { type: "agent", id: t.automation?.agent ?? "task-executor", name: "Visua agent" };
     await svc.updateTask(ws.id, t.id, patch, actor);
   }

@@ -5,14 +5,14 @@
  * requirements. A requirement's inspector lists the threats it helps address.
  */
 import { ExternalLink, Info, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { corpusFileUrl } from "../../lib/api.ts";
 import { truncate } from "../../lib/format.ts";
 import { badgeOf, isThreatCatalog } from "../../lib/frameworks.ts";
 import type { BriefNode, CoverageView, ExternalReference, LinkStatus, LinkView, NodeDetail, ThreatAddressed, ThreatPathView, ThreatRequirement } from "../../lib/types.ts";
 import { CoverageBar, CoverageChip, CoverageLegend, LinkStatusBadge, ThreatLinkFilter } from "../threats/Coverage.tsx";
-import { FrameworkBadge, LevelPips, Progress, SheetGrabber, StatusChip, Tabs } from "../ui/index.tsx";
+import { FrameworkBadge, LevelPips, Progress, SheetGrabber, StatusChip, TabPanel, Tabs } from "../ui/index.tsx";
 
 const enc = encodeURIComponent;
 
@@ -301,6 +301,7 @@ type ThreatTab = "overview" | "requirements" | "related";
 export function ThreatInspector({ data, onClose }: { data: NodeDetail; onClose: () => void }) {
   const { ws = "" } = useParams();
   const [tab, setTab] = useState<ThreatTab>("overview");
+  const tabsId = useId();
   const { node } = data;
   const threat = data.threat!;
   const a = (node.attributes ?? {}) as Record<string, unknown>;
@@ -334,6 +335,8 @@ export function ThreatInspector({ data, onClose }: { data: NodeDetail; onClose: 
         <h2 className="inspector__title">{node.title}</h2>
       </header>
       <Tabs<ThreatTab>
+        id={tabsId}
+        label="Threat details"
         value={tab}
         onChange={setTab}
         tabs={[
@@ -343,7 +346,7 @@ export function ThreatInspector({ data, onClose }: { data: NodeDetail; onClose: 
         ]}
       />
       <div className="inspector__body">
-        {tab === "overview" && (
+        <TabPanel groupId={tabsId} id="overview" active={tab === "overview"}>
           <div className="stack" style={{ gap: 16 }}>
             <ThreatText ws={ws} text={node.text} />
             {data.source && (
@@ -457,8 +460,8 @@ export function ThreatInspector({ data, onClose }: { data: NodeDetail; onClose: 
               </div>
             )}
           </div>
-        )}
-        {tab === "requirements" && (
+        </TabPanel>
+        {!threat.group && <TabPanel groupId={tabsId} id="requirements" active={tab === "requirements"}>
           <div className="stack" style={{ gap: 14 }}>
             <ThreatLinkFilter />
             <div className="callout" role="note">
@@ -466,8 +469,8 @@ export function ThreatInspector({ data, onClose }: { data: NodeDetail; onClose: 
             </div>
             {!threat.requirements.length ? <div className="muted">No linked requirement at the chosen link status.</div> : <LinkedRequirements ws={ws} requirements={threat.requirements} views={threat.coverage.views} />}
           </div>
-        )}
-        {tab === "related" && (
+        </TabPanel>}
+        <TabPanel groupId={tabsId} id="related" active={tab === "related"}>
           <div className="stack" style={{ gap: 8 }}>
             {!threat.related.length && <div className="muted">No published link to another threat catalog.</div>}
             {threat.related.map((r, i) => (
@@ -490,7 +493,7 @@ export function ThreatInspector({ data, onClose }: { data: NodeDetail; onClose: 
               </div>
             ))}
           </div>
-        )}
+        </TabPanel>
       </div>
     </aside>
   );

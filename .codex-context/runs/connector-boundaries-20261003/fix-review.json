@@ -1,0 +1,21 @@
+{
+  "status": "complete",
+  "verdict": "pass",
+  "summary": "Focused follow-up passed on fix-final-scope.json with no unresolved supported findings. The original DNS capacity-lifetime finding is closed: pending socket and redirect DNS callbacks retain connector slots through caller cancellation/deadlines until callback completion. An additional synchronous-start cancellation race found during this follow-up was corrected and independently rechecked. Final focused validation passed 90 tests in 5 files.",
+  "coverage": [
+    "Read fix-review-brief.txt, original review.json finding, fix-scope.json and final fix-final-scope.json. This is targeted adjudication of the original finding and the integration-owner fix, not a second unaffected full review.",
+    "Examined complete work-scope.ts and connector limits.ts plus guardedLookup integration in auth/egress.ts and direct network/registry dependencies already reviewed. The AsyncLocalStorage scope tracks pending DNS callback promises, handles synchronous lookup throws and callback-finally cleanup, drains all outstanding callbacks before active decrements, and keeps caller abort settlement separate from work-scope drainage. Without a connector scope, tracking is a no-op, preserving ordinary OIDC behavior.",
+    "Examined connector-dns-lifetime.test.ts: cancelled redirect-preflight DNS retains capacity; actual registry web socket lookups retain all four slots after cancellation and allow one slot only after its callback finishes; accelerated operation/run deadlines stop caller waits but refuse later work until outstanding DNS completes. Reviewed cleanup and slot-recovery assertions.",
+    "Found and reproduced an interim synchronous-start cancellation race: work ran before the outer abort listener attached, leaving an already-aborted caller pending beyond an accelerated deadline. Root corrected limits.ts by restoring Promise.resolve().then deferred startup and added connector-boundaries.test.ts regression. Additional changed final SHA-256 values versus fix-scope.json are limits.ts=15d36e1c61d66ceae1ae555eaf58d248da3a645c17a422f0b128e521d657d08f and connector-boundaries.test.ts=d0f394767963205192fa36450096a0b11cc037114ce8316eb8f845890fed3772.",
+    "Independent inline Node reproduction after that correction asserted caller settlement while work remained held and beyond the accelerated deadline; fix-review-sync-abort-final.log records signalAborted=true and callerSettledBeyondAcceleratedDeadline=true. Interim failure evidence remains in fix-review-sync-abort.log.",
+    "Ran final pnpm exec vitest run apps/server/test/connector-dns-lifetime.test.ts apps/server/test/connector-boundaries.test.ts apps/server/test/egress-dns.test.ts apps/server/test/egress.test.ts apps/server/test/auth.test.ts: 5 files, 90 tests passed, recorded in fix-review-final-focused.log. Includes all-answer DNS/private-target checks, body limits/abort, normal and operator-approved private OIDC sign-in, tenant access, synchronous cancellation, pending-DNS retention and subsequent slot recovery. No unhandled rejection or retained completed-slot failure was observed.",
+    "Checked every final source/test/document digest in fix-final-scope.json against on-disk SHA-256: zero mismatches. Original review.json and review-result.json preserved; reviewer made no source edits."
+  ],
+  "findings": [],
+  "limitations": [
+    "Stalled DNS tests hold mocked node:dns.lookup callbacks; no real operating-system resolver was intentionally stalled. Deadline regressions accelerate the configured 30000/12000 ms policies while asserting requested policy values.",
+    "This follow-up ran the affected network/DNS/capacity/auth suites only, using local fixtures and SQLite. The coordinator owns final full pnpm check, PostgreSQL and browser validation; those gates are not claimed by this report.",
+    "This targeted follow-up had the original finding and integration-owner fix description as context. It does not claim fresh blindness to author conclusions or repeat the unaffected repository scan/service/startup review.",
+    "No external host, running Docker, deployment, commit or production resource was accessed."
+  ]
+}

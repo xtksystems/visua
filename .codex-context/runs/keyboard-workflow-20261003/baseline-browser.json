@@ -1,0 +1,118 @@
+{
+  "workspace": {
+    "id": "ws_0musysl08b80rcj71",
+    "tenantId": "tnt_0musypqcvsiw3ocyv",
+    "name": "Keyboard baseline fixture",
+    "slug": "keyboard-baseline-fixture-y06v",
+    "profile": {
+      "industry": "healthcare",
+      "size": "51-200",
+      "dataTypes": [],
+      "drivers": [],
+      "environments": [
+        "cloud"
+      ],
+      "maturityTier": 1,
+      "guidance": "guided",
+      "securityTeamSize": 1
+    },
+    "frameworks": [
+      {
+        "frameworkId": "nist-csf-2.0",
+        "enabled": true,
+        "defaultTarget": 2
+      }
+    ],
+    "autonomy": {},
+    "trustCenter": {
+      "enabled": false
+    },
+    "createdAt": "2026-10-03T22:29:33.656Z",
+    "updatedAt": "2026-10-03T22:29:33.656Z"
+  },
+  "baseline": "prior package production dist",
+  "rows": [
+    {
+      "tabindex": null,
+      "rowTabindex": null
+    },
+    {
+      "tabindex": null,
+      "rowTabindex": null
+    },
+    {
+      "tabindex": null,
+      "rowTabindex": null
+    },
+    {
+      "tabindex": null,
+      "rowTabindex": null
+    },
+    {
+      "tabindex": null,
+      "rowTabindex": null
+    },
+    {
+      "tabindex": null,
+      "rowTabindex": null
+    },
+    {
+      "tabindex": null,
+      "rowTabindex": null
+    },
+    {
+      "tabindex": null,
+      "rowTabindex": null
+    },
+    {
+      "tabindex": null,
+      "rowTabindex": null
+    },
+    {
+      "tabindex": null,
+      "rowTabindex": null
+    },
+    {
+      "tabindex": null,
+      "rowTabindex": null
+    },
+    {
+      "tabindex": null,
+      "rowTabindex": null
+    },
+    {
+      "tabindex": null,
+      "rowTabindex": null
+    },
+    {
+      "tabindex": null,
+      "rowTabindex": null
+    },
+    {
+      "tabindex": null,
+      "rowTabindex": null
+    },
+    {
+      "tabindex": null,
+      "rowTabindex": null
+    },
+    {
+      "tabindex": null,
+      "rowTabindex": null
+    }
+  ],
+  "initialFocus": {
+    "tag": "BUTTON",
+    "label": null,
+    "inside": false
+  },
+  "afterEscape": {
+    "url": "http://localhost:8801/w/keyboard-baseline-fixture-y06v/observatory/nist-csf-2.0?select=nist-csf-2.0%3APR.AA",
+    "selected": null
+  },
+  "tabs": [],
+  "requirementTag": {
+    "text": "PR.AA-01",
+    "url": "http://localhost:8801/w/keyboard-baseline-fixture-y06v/plan"
+  }
+}

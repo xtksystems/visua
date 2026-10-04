@@ -11,9 +11,11 @@ export function useWorkspaceEvents(ws: string | undefined): void {
   useEffect(() => {
     if (!ws) return;
     const source = new EventSource(`/api/workspaces/${encodeURIComponent(ws)}/events`);
+    let closed = false;
     const pending = new Set<string>();
     let timer: ReturnType<typeof setTimeout> | undefined;
     const invalidate = (...groups: string[]) => {
+      if (closed) return;
       for (const g of groups) pending.add(g);
       if (timer) return;
       timer = setTimeout(() => {
@@ -28,7 +30,10 @@ export function useWorkspaceEvents(ws: string | undefined): void {
         void qc.invalidateQueries({ queryKey: keys.workspaces });
       }, 250);
     };
+    // A reconnect can miss events; refresh id-keyed state after every connection.
+    source.addEventListener("open", () => invalidate("all"));
     source.addEventListener("visua", (msg) => {
+      if (closed || useAgentActivity.getState().workspaceId !== ws) return;
       const event = JSON.parse((msg as MessageEvent<string>).data) as VisuaEvent;
       const activity = useAgentActivity.getState();
       switch (event.type) {
@@ -50,16 +55,16 @@ export function useWorkspaceEvents(ws: string | undefined): void {
           invalidate("proposals", "run", "node");
           break;
         case "state.updated":
-          invalidate("state", "node");
+          invalidate("state", "node", "my-work");
           break;
         case "task.created":
         case "task.updated":
         case "task.deleted":
-          invalidate("tasks", "state", "node");
+          invalidate("tasks", "state", "node", "my-work");
           break;
         case "evidence.created":
         case "evidence.updated":
-          invalidate("evidence", "state", "node");
+          invalidate("evidence", "state", "node", "my-work");
           break;
         case "policy.created":
         case "policy.updated":
@@ -69,7 +74,7 @@ export function useWorkspaceEvents(ws: string | undefined): void {
           invalidate("risks");
           break;
         case "check.completed":
-          invalidate("checks", "connectors", "state", "node", "evidence");
+          invalidate("checks", "connectors", "state", "node", "evidence", "my-work");
           break;
         case "activity":
           invalidate("activity", "audit");
@@ -80,6 +85,7 @@ export function useWorkspaceEvents(ws: string | undefined): void {
       }
     });
     return () => {
+      closed = true;
       if (timer) clearTimeout(timer);
       source.close();
     };

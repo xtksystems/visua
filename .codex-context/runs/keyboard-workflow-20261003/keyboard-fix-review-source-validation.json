@@ -1,0 +1,496 @@
+{
+  "start": {
+    "checked_at": "2026-10-03T22:51:14.282278+00:00",
+    "all_match": true,
+    "files": [
+      {
+        "path": "DESIGN.md",
+        "expected_sha256": "bd06057ef4e636b4296b5efe26d2f921334918d58fe25afb4a42f85004f41036",
+        "actual_sha256": "bd06057ef4e636b4296b5efe26d2f921334918d58fe25afb4a42f85004f41036",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/components/inspector/Inspector.tsx",
+        "expected_sha256": "ada41a35fae9bf97de3732f7c77fdc01fe978295607085581e337fea76367c3c",
+        "actual_sha256": "ada41a35fae9bf97de3732f7c77fdc01fe978295607085581e337fea76367c3c",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/components/inspector/Threats.tsx",
+        "expected_sha256": "1327139ea6c2aba3e82750c0da2aa1580635d28ee4fb7c15bb5667c24791e79c",
+        "actual_sha256": "1327139ea6c2aba3e82750c0da2aa1580635d28ee4fb7c15bb5667c24791e79c",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/components/shell/Shell.tsx",
+        "expected_sha256": "061dc8f7afea061798c07f7c5b85f147c06bc34f8221fad840640cb6c0dddf5c",
+        "actual_sha256": "061dc8f7afea061798c07f7c5b85f147c06bc34f8221fad840640cb6c0dddf5c",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/components/ui/index.tsx",
+        "expected_sha256": "6eea5c3b267bb7070b8be46b3e3d1b96d9832f5530b0ea183f79251ccbd9ad9c",
+        "actual_sha256": "6eea5c3b267bb7070b8be46b3e3d1b96d9832f5530b0ea183f79251ccbd9ad9c",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/lib/modal.ts",
+        "expected_sha256": "83a9f2e67190b43083b9c1d2cc54efad4e7866c687ddc30465cd45d836db3282",
+        "actual_sha256": "83a9f2e67190b43083b9c1d2cc54efad4e7866c687ddc30465cd45d836db3282",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/lib/queries.ts",
+        "expected_sha256": "16cfd9a535be5a74c756aa98131c4f63bb03035ed9e5bd46e0af4a7c4a3672b0",
+        "actual_sha256": "16cfd9a535be5a74c756aa98131c4f63bb03035ed9e5bd46e0af4a7c4a3672b0",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/lib/workspace.ts",
+        "expected_sha256": "d4f8484ae7a07e03048670665386ee5ac369edf1c158a3dd65b9a9861f5378c2",
+        "actual_sha256": "d4f8484ae7a07e03048670665386ee5ac369edf1c158a3dd65b9a9861f5378c2",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/AgentsPage.tsx",
+        "expected_sha256": "ba2ab0f4dd178370722a115cc30b490270bc10687bfc7d9c81fa495873c4a34d",
+        "actual_sha256": "ba2ab0f4dd178370722a115cc30b490270bc10687bfc7d9c81fa495873c4a34d",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/ObservatoryPage.tsx",
+        "expected_sha256": "e9ec6df5622743f0a0fe5eaa545aed6209bc10309dedccd494e8b7712d361a87",
+        "actual_sha256": "e9ec6df5622743f0a0fe5eaa545aed6209bc10309dedccd494e8b7712d361a87",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/OrganizationPage.tsx",
+        "expected_sha256": "172428eec36937435298f090466bd57a122c3305a47586df5bcf858496820e51",
+        "actual_sha256": "172428eec36937435298f090466bd57a122c3305a47586df5bcf858496820e51",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/RmfPage.tsx",
+        "expected_sha256": "af2a080a87e4f3292ad1a2e33b18d9ccb4f82ff1b4cd6fbb70030c7987483ec7",
+        "actual_sha256": "af2a080a87e4f3292ad1a2e33b18d9ccb4f82ff1b4cd6fbb70030c7987483ec7",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/ThreatsPage.tsx",
+        "expected_sha256": "02e90d5f24fa51a412622d5dcf6a54ca07d06fc59a0f259b07754fb7cce35902",
+        "actual_sha256": "02e90d5f24fa51a412622d5dcf6a54ca07d06fc59a0f259b07754fb7cce35902",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/scene/Observatory.tsx",
+        "expected_sha256": "ded0b395a80f22362f79aa0c7a89d4529ebafb9c547bc3d1d9ea965cb9d57dd1",
+        "actual_sha256": "ded0b395a80f22362f79aa0c7a89d4529ebafb9c547bc3d1d9ea965cb9d57dd1",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/state/ui.ts",
+        "expected_sha256": "fe3c9c573bc5eefe957d978f4125990ba1f7e3675aea483b21237c702526330e",
+        "actual_sha256": "fe3c9c573bc5eefe957d978f4125990ba1f7e3675aea483b21237c702526330e",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/styles/global.css",
+        "expected_sha256": "414ac20efca7c0890553669ae1ff42db27ae840e0ac5eb3e1511c0a7d8cdef41",
+        "actual_sha256": "414ac20efca7c0890553669ae1ff42db27ae840e0ac5eb3e1511c0a7d8cdef41",
+        "matches": true
+      },
+      {
+        "path": "e2e/keyboard-dialog-tabs.spec.ts",
+        "expected_sha256": "7091c3540aed92698e7fe488a8c4da72c47995a2c50fff7373121eb06795b2e0",
+        "actual_sha256": "7091c3540aed92698e7fe488a8c4da72c47995a2c50fff7373121eb06795b2e0",
+        "matches": true
+      },
+      {
+        "path": "e2e/keyboard-outline.spec.ts",
+        "expected_sha256": "0806693cdc7446682fbc4a1b30c62e9db66af57a6294e4e1309b64f8a267cf56",
+        "actual_sha256": "0806693cdc7446682fbc4a1b30c62e9db66af57a6294e4e1309b64f8a267cf56",
+        "matches": true
+      },
+      {
+        "path": "e2e/keyboard-palette.spec.ts",
+        "expected_sha256": "bc8bdeba977e0b76f9ab3205285dd7f98abde8d8f1ec441a8721ff52d976e264",
+        "actual_sha256": "bc8bdeba977e0b76f9ab3205285dd7f98abde8d8f1ec441a8721ff52d976e264",
+        "matches": true
+      }
+    ]
+  },
+  "end": {
+    "manifest": "fix-review-source.json",
+    "checked_at": "2026-10-03T22:55:54.825018+00:00",
+    "all_match": false,
+    "files": [
+      {
+        "path": "DESIGN.md",
+        "expected_sha256": "bd06057ef4e636b4296b5efe26d2f921334918d58fe25afb4a42f85004f41036",
+        "actual_sha256": "bd06057ef4e636b4296b5efe26d2f921334918d58fe25afb4a42f85004f41036",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/components/inspector/Inspector.tsx",
+        "expected_sha256": "ada41a35fae9bf97de3732f7c77fdc01fe978295607085581e337fea76367c3c",
+        "actual_sha256": "ada41a35fae9bf97de3732f7c77fdc01fe978295607085581e337fea76367c3c",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/components/inspector/Threats.tsx",
+        "expected_sha256": "1327139ea6c2aba3e82750c0da2aa1580635d28ee4fb7c15bb5667c24791e79c",
+        "actual_sha256": "1327139ea6c2aba3e82750c0da2aa1580635d28ee4fb7c15bb5667c24791e79c",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/components/shell/Shell.tsx",
+        "expected_sha256": "061dc8f7afea061798c07f7c5b85f147c06bc34f8221fad840640cb6c0dddf5c",
+        "actual_sha256": "061dc8f7afea061798c07f7c5b85f147c06bc34f8221fad840640cb6c0dddf5c",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/components/ui/index.tsx",
+        "expected_sha256": "6eea5c3b267bb7070b8be46b3e3d1b96d9832f5530b0ea183f79251ccbd9ad9c",
+        "actual_sha256": "6eea5c3b267bb7070b8be46b3e3d1b96d9832f5530b0ea183f79251ccbd9ad9c",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/lib/modal.ts",
+        "expected_sha256": "83a9f2e67190b43083b9c1d2cc54efad4e7866c687ddc30465cd45d836db3282",
+        "actual_sha256": "83a9f2e67190b43083b9c1d2cc54efad4e7866c687ddc30465cd45d836db3282",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/lib/queries.ts",
+        "expected_sha256": "16cfd9a535be5a74c756aa98131c4f63bb03035ed9e5bd46e0af4a7c4a3672b0",
+        "actual_sha256": "16cfd9a535be5a74c756aa98131c4f63bb03035ed9e5bd46e0af4a7c4a3672b0",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/lib/workspace.ts",
+        "expected_sha256": "d4f8484ae7a07e03048670665386ee5ac369edf1c158a3dd65b9a9861f5378c2",
+        "actual_sha256": "d4f8484ae7a07e03048670665386ee5ac369edf1c158a3dd65b9a9861f5378c2",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/AgentsPage.tsx",
+        "expected_sha256": "ba2ab0f4dd178370722a115cc30b490270bc10687bfc7d9c81fa495873c4a34d",
+        "actual_sha256": "ba2ab0f4dd178370722a115cc30b490270bc10687bfc7d9c81fa495873c4a34d",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/ObservatoryPage.tsx",
+        "expected_sha256": "e9ec6df5622743f0a0fe5eaa545aed6209bc10309dedccd494e8b7712d361a87",
+        "actual_sha256": "e9ec6df5622743f0a0fe5eaa545aed6209bc10309dedccd494e8b7712d361a87",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/OrganizationPage.tsx",
+        "expected_sha256": "172428eec36937435298f090466bd57a122c3305a47586df5bcf858496820e51",
+        "actual_sha256": "172428eec36937435298f090466bd57a122c3305a47586df5bcf858496820e51",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/RmfPage.tsx",
+        "expected_sha256": "af2a080a87e4f3292ad1a2e33b18d9ccb4f82ff1b4cd6fbb70030c7987483ec7",
+        "actual_sha256": "af2a080a87e4f3292ad1a2e33b18d9ccb4f82ff1b4cd6fbb70030c7987483ec7",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/ThreatsPage.tsx",
+        "expected_sha256": "02e90d5f24fa51a412622d5dcf6a54ca07d06fc59a0f259b07754fb7cce35902",
+        "actual_sha256": "b8e0f83b368f4403354ce40ede2d713caf208b849b3778d6a65e18f703f5e660",
+        "matches": false
+      },
+      {
+        "path": "apps/web/src/scene/Observatory.tsx",
+        "expected_sha256": "ded0b395a80f22362f79aa0c7a89d4529ebafb9c547bc3d1d9ea965cb9d57dd1",
+        "actual_sha256": "ded0b395a80f22362f79aa0c7a89d4529ebafb9c547bc3d1d9ea965cb9d57dd1",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/state/ui.ts",
+        "expected_sha256": "fe3c9c573bc5eefe957d978f4125990ba1f7e3675aea483b21237c702526330e",
+        "actual_sha256": "fe3c9c573bc5eefe957d978f4125990ba1f7e3675aea483b21237c702526330e",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/styles/global.css",
+        "expected_sha256": "414ac20efca7c0890553669ae1ff42db27ae840e0ac5eb3e1511c0a7d8cdef41",
+        "actual_sha256": "414ac20efca7c0890553669ae1ff42db27ae840e0ac5eb3e1511c0a7d8cdef41",
+        "matches": true
+      },
+      {
+        "path": "e2e/keyboard-dialog-tabs.spec.ts",
+        "expected_sha256": "7091c3540aed92698e7fe488a8c4da72c47995a2c50fff7373121eb06795b2e0",
+        "actual_sha256": "6808b7e24f3abc146299d7954d7c5ad8352160929138dde4ceaf5c13e90776a4",
+        "matches": false
+      },
+      {
+        "path": "e2e/keyboard-outline.spec.ts",
+        "expected_sha256": "0806693cdc7446682fbc4a1b30c62e9db66af57a6294e4e1309b64f8a267cf56",
+        "actual_sha256": "0806693cdc7446682fbc4a1b30c62e9db66af57a6294e4e1309b64f8a267cf56",
+        "matches": true
+      },
+      {
+        "path": "e2e/keyboard-palette.spec.ts",
+        "expected_sha256": "bc8bdeba977e0b76f9ab3205285dd7f98abde8d8f1ec441a8721ff52d976e264",
+        "actual_sha256": "bc8bdeba977e0b76f9ab3205285dd7f98abde8d8f1ec441a8721ff52d976e264",
+        "matches": true
+      }
+    ]
+  },
+  "navigation_addendum": {
+    "manifest": "fix-review-source-navigation-addendum.json",
+    "checked_at": "2026-10-03T22:55:54.826594+00:00",
+    "all_match": false,
+    "files": [
+      {
+        "path": "DESIGN.md",
+        "expected_sha256": "bd06057ef4e636b4296b5efe26d2f921334918d58fe25afb4a42f85004f41036",
+        "actual_sha256": "bd06057ef4e636b4296b5efe26d2f921334918d58fe25afb4a42f85004f41036",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/components/inspector/Inspector.tsx",
+        "expected_sha256": "ada41a35fae9bf97de3732f7c77fdc01fe978295607085581e337fea76367c3c",
+        "actual_sha256": "ada41a35fae9bf97de3732f7c77fdc01fe978295607085581e337fea76367c3c",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/components/inspector/Threats.tsx",
+        "expected_sha256": "1327139ea6c2aba3e82750c0da2aa1580635d28ee4fb7c15bb5667c24791e79c",
+        "actual_sha256": "1327139ea6c2aba3e82750c0da2aa1580635d28ee4fb7c15bb5667c24791e79c",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/components/shell/Shell.tsx",
+        "expected_sha256": "061dc8f7afea061798c07f7c5b85f147c06bc34f8221fad840640cb6c0dddf5c",
+        "actual_sha256": "061dc8f7afea061798c07f7c5b85f147c06bc34f8221fad840640cb6c0dddf5c",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/components/ui/index.tsx",
+        "expected_sha256": "6eea5c3b267bb7070b8be46b3e3d1b96d9832f5530b0ea183f79251ccbd9ad9c",
+        "actual_sha256": "6eea5c3b267bb7070b8be46b3e3d1b96d9832f5530b0ea183f79251ccbd9ad9c",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/lib/modal.ts",
+        "expected_sha256": "83a9f2e67190b43083b9c1d2cc54efad4e7866c687ddc30465cd45d836db3282",
+        "actual_sha256": "83a9f2e67190b43083b9c1d2cc54efad4e7866c687ddc30465cd45d836db3282",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/lib/queries.ts",
+        "expected_sha256": "16cfd9a535be5a74c756aa98131c4f63bb03035ed9e5bd46e0af4a7c4a3672b0",
+        "actual_sha256": "16cfd9a535be5a74c756aa98131c4f63bb03035ed9e5bd46e0af4a7c4a3672b0",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/lib/workspace.ts",
+        "expected_sha256": "d4f8484ae7a07e03048670665386ee5ac369edf1c158a3dd65b9a9861f5378c2",
+        "actual_sha256": "d4f8484ae7a07e03048670665386ee5ac369edf1c158a3dd65b9a9861f5378c2",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/AgentsPage.tsx",
+        "expected_sha256": "ba2ab0f4dd178370722a115cc30b490270bc10687bfc7d9c81fa495873c4a34d",
+        "actual_sha256": "ba2ab0f4dd178370722a115cc30b490270bc10687bfc7d9c81fa495873c4a34d",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/ObservatoryPage.tsx",
+        "expected_sha256": "e9ec6df5622743f0a0fe5eaa545aed6209bc10309dedccd494e8b7712d361a87",
+        "actual_sha256": "e9ec6df5622743f0a0fe5eaa545aed6209bc10309dedccd494e8b7712d361a87",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/OrganizationPage.tsx",
+        "expected_sha256": "172428eec36937435298f090466bd57a122c3305a47586df5bcf858496820e51",
+        "actual_sha256": "172428eec36937435298f090466bd57a122c3305a47586df5bcf858496820e51",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/RmfPage.tsx",
+        "expected_sha256": "af2a080a87e4f3292ad1a2e33b18d9ccb4f82ff1b4cd6fbb70030c7987483ec7",
+        "actual_sha256": "af2a080a87e4f3292ad1a2e33b18d9ccb4f82ff1b4cd6fbb70030c7987483ec7",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/ThreatsPage.tsx",
+        "expected_sha256": "b8e0f83b368f4403354ce40ede2d713caf208b849b3778d6a65e18f703f5e660",
+        "actual_sha256": "b8e0f83b368f4403354ce40ede2d713caf208b849b3778d6a65e18f703f5e660",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/scene/Observatory.tsx",
+        "expected_sha256": "ded0b395a80f22362f79aa0c7a89d4529ebafb9c547bc3d1d9ea965cb9d57dd1",
+        "actual_sha256": "ded0b395a80f22362f79aa0c7a89d4529ebafb9c547bc3d1d9ea965cb9d57dd1",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/state/ui.ts",
+        "expected_sha256": "fe3c9c573bc5eefe957d978f4125990ba1f7e3675aea483b21237c702526330e",
+        "actual_sha256": "fe3c9c573bc5eefe957d978f4125990ba1f7e3675aea483b21237c702526330e",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/styles/global.css",
+        "expected_sha256": "414ac20efca7c0890553669ae1ff42db27ae840e0ac5eb3e1511c0a7d8cdef41",
+        "actual_sha256": "414ac20efca7c0890553669ae1ff42db27ae840e0ac5eb3e1511c0a7d8cdef41",
+        "matches": true
+      },
+      {
+        "path": "e2e/keyboard-dialog-tabs.spec.ts",
+        "expected_sha256": "b6080d330599ffcd16d10ee695e1f7f1af042ee7f534650c45cbf40e98bd5767",
+        "actual_sha256": "6808b7e24f3abc146299d7954d7c5ad8352160929138dde4ceaf5c13e90776a4",
+        "matches": false
+      },
+      {
+        "path": "e2e/keyboard-outline.spec.ts",
+        "expected_sha256": "0806693cdc7446682fbc4a1b30c62e9db66af57a6294e4e1309b64f8a267cf56",
+        "actual_sha256": "0806693cdc7446682fbc4a1b30c62e9db66af57a6294e4e1309b64f8a267cf56",
+        "matches": true
+      },
+      {
+        "path": "e2e/keyboard-palette.spec.ts",
+        "expected_sha256": "bc8bdeba977e0b76f9ab3205285dd7f98abde8d8f1ec441a8721ff52d976e264",
+        "actual_sha256": "bc8bdeba977e0b76f9ab3205285dd7f98abde8d8f1ec441a8721ff52d976e264",
+        "matches": true
+      }
+    ]
+  },
+  "final_test_settle_addendum": {
+    "manifest": "fix-review-source-test-settle-addendum.json",
+    "checked_at": "2026-10-03T22:55:54.827273+00:00",
+    "all_match": true,
+    "files": [
+      {
+        "path": "DESIGN.md",
+        "expected_sha256": "bd06057ef4e636b4296b5efe26d2f921334918d58fe25afb4a42f85004f41036",
+        "actual_sha256": "bd06057ef4e636b4296b5efe26d2f921334918d58fe25afb4a42f85004f41036",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/components/inspector/Inspector.tsx",
+        "expected_sha256": "ada41a35fae9bf97de3732f7c77fdc01fe978295607085581e337fea76367c3c",
+        "actual_sha256": "ada41a35fae9bf97de3732f7c77fdc01fe978295607085581e337fea76367c3c",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/components/inspector/Threats.tsx",
+        "expected_sha256": "1327139ea6c2aba3e82750c0da2aa1580635d28ee4fb7c15bb5667c24791e79c",
+        "actual_sha256": "1327139ea6c2aba3e82750c0da2aa1580635d28ee4fb7c15bb5667c24791e79c",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/components/shell/Shell.tsx",
+        "expected_sha256": "061dc8f7afea061798c07f7c5b85f147c06bc34f8221fad840640cb6c0dddf5c",
+        "actual_sha256": "061dc8f7afea061798c07f7c5b85f147c06bc34f8221fad840640cb6c0dddf5c",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/components/ui/index.tsx",
+        "expected_sha256": "6eea5c3b267bb7070b8be46b3e3d1b96d9832f5530b0ea183f79251ccbd9ad9c",
+        "actual_sha256": "6eea5c3b267bb7070b8be46b3e3d1b96d9832f5530b0ea183f79251ccbd9ad9c",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/lib/modal.ts",
+        "expected_sha256": "83a9f2e67190b43083b9c1d2cc54efad4e7866c687ddc30465cd45d836db3282",
+        "actual_sha256": "83a9f2e67190b43083b9c1d2cc54efad4e7866c687ddc30465cd45d836db3282",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/lib/queries.ts",
+        "expected_sha256": "16cfd9a535be5a74c756aa98131c4f63bb03035ed9e5bd46e0af4a7c4a3672b0",
+        "actual_sha256": "16cfd9a535be5a74c756aa98131c4f63bb03035ed9e5bd46e0af4a7c4a3672b0",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/lib/workspace.ts",
+        "expected_sha256": "d4f8484ae7a07e03048670665386ee5ac369edf1c158a3dd65b9a9861f5378c2",
+        "actual_sha256": "d4f8484ae7a07e03048670665386ee5ac369edf1c158a3dd65b9a9861f5378c2",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/AgentsPage.tsx",
+        "expected_sha256": "ba2ab0f4dd178370722a115cc30b490270bc10687bfc7d9c81fa495873c4a34d",
+        "actual_sha256": "ba2ab0f4dd178370722a115cc30b490270bc10687bfc7d9c81fa495873c4a34d",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/ObservatoryPage.tsx",
+        "expected_sha256": "e9ec6df5622743f0a0fe5eaa545aed6209bc10309dedccd494e8b7712d361a87",
+        "actual_sha256": "e9ec6df5622743f0a0fe5eaa545aed6209bc10309dedccd494e8b7712d361a87",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/OrganizationPage.tsx",
+        "expected_sha256": "172428eec36937435298f090466bd57a122c3305a47586df5bcf858496820e51",
+        "actual_sha256": "172428eec36937435298f090466bd57a122c3305a47586df5bcf858496820e51",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/RmfPage.tsx",
+        "expected_sha256": "af2a080a87e4f3292ad1a2e33b18d9ccb4f82ff1b4cd6fbb70030c7987483ec7",
+        "actual_sha256": "af2a080a87e4f3292ad1a2e33b18d9ccb4f82ff1b4cd6fbb70030c7987483ec7",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/pages/ThreatsPage.tsx",
+        "expected_sha256": "b8e0f83b368f4403354ce40ede2d713caf208b849b3778d6a65e18f703f5e660",
+        "actual_sha256": "b8e0f83b368f4403354ce40ede2d713caf208b849b3778d6a65e18f703f5e660",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/scene/Observatory.tsx",
+        "expected_sha256": "ded0b395a80f22362f79aa0c7a89d4529ebafb9c547bc3d1d9ea965cb9d57dd1",
+        "actual_sha256": "ded0b395a80f22362f79aa0c7a89d4529ebafb9c547bc3d1d9ea965cb9d57dd1",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/state/ui.ts",
+        "expected_sha256": "fe3c9c573bc5eefe957d978f4125990ba1f7e3675aea483b21237c702526330e",
+        "actual_sha256": "fe3c9c573bc5eefe957d978f4125990ba1f7e3675aea483b21237c702526330e",
+        "matches": true
+      },
+      {
+        "path": "apps/web/src/styles/global.css",
+        "expected_sha256": "414ac20efca7c0890553669ae1ff42db27ae840e0ac5eb3e1511c0a7d8cdef41",
+        "actual_sha256": "414ac20efca7c0890553669ae1ff42db27ae840e0ac5eb3e1511c0a7d8cdef41",
+        "matches": true
+      },
+      {
+        "path": "e2e/keyboard-dialog-tabs.spec.ts",
+        "expected_sha256": "6808b7e24f3abc146299d7954d7c5ad8352160929138dde4ceaf5c13e90776a4",
+        "actual_sha256": "6808b7e24f3abc146299d7954d7c5ad8352160929138dde4ceaf5c13e90776a4",
+        "matches": true
+      },
+      {
+        "path": "e2e/keyboard-outline.spec.ts",
+        "expected_sha256": "0806693cdc7446682fbc4a1b30c62e9db66af57a6294e4e1309b64f8a267cf56",
+        "actual_sha256": "0806693cdc7446682fbc4a1b30c62e9db66af57a6294e4e1309b64f8a267cf56",
+        "matches": true
+      },
+      {
+        "path": "e2e/keyboard-palette.spec.ts",
+        "expected_sha256": "bc8bdeba977e0b76f9ab3205285dd7f98abde8d8f1ec441a8721ff52d976e264",
+        "actual_sha256": "bc8bdeba977e0b76f9ab3205285dd7f98abde8d8f1ec441a8721ff52d976e264",
+        "matches": true
+      }
+    ]
+  },
+  "original_end_mismatches": [
+    "apps/web/src/pages/ThreatsPage.tsx",
+    "e2e/keyboard-dialog-tabs.spec.ts"
+  ],
+  "additional_inspected_dependency_hashes": {
+    "apps/web/src/lib/events.ts": "f98a74e86b12494e2b42fbc9a780c23f25bee7e8edae71282397dd012895d2c5",
+    "apps/web/src/state/agentActivity.ts": "0a2aa42df4330e06ad5277e442c76c5be28215fb5136450a7ee6a7f1471704c8",
+    "apps/web/src/main.tsx": "dda7bed81e09434ba8367329568d6250d2d818f644d188de51606d83659e2a30",
+    "apps/web/src/lib/auth.ts": "cba22c1f1ac034b25ac62a2ae5a15416d30bc42cfc7ec0b6122854aa19321c6e",
+    "apps/web/src/scene/layout.ts": "f120d87660089253017f7a84811c27feb9dfce5b7e78995192eae274a67c2554"
+  }
+}

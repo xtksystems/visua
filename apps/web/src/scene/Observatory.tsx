@@ -66,12 +66,11 @@ function CameraRig({ layout, selectedId, focusIds, focusSeq, reducedMotion }: { 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [safe]);
 
-  useEffect(() => {
-    if (!selectedId) return;
-    const p = layout.positions.get(selectedId);
+  const frameNode = (id: string) => {
+    const p = layout.positions.get(id);
     if (!p) return;
     atHome.current = false;
-    const node = layout.byId.get(selectedId);
+    const node = layout.byId.get(id);
     const scale = layout.radius > 60 ? 1.8 : 1;
     const dist = (node?.assessable ? 17 : node?.depth === 0 ? 30 : 22) * scale;
     const len = Math.hypot(p[0], p[2]) || 1;
@@ -79,14 +78,26 @@ function CameraRig({ layout, selectedId, focusIds, focusSeq, reducedMotion }: { 
     const dz = p[2] / len;
     const y = node?.assessable ? heightFor(2, layout.view) : 0.4;
     void controls.current?.setLookAt(p[0] + dx * dist * 0.65, dist * 0.8, p[2] + dz * dist * 0.65, p[0], y, p[2], animate);
+  };
+
+  useEffect(() => {
+    if (selectedId) frameNode(selectedId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, layout]);
 
   useEffect(() => {
     if (focusSeq === 0) return;
     const pts = focusIds.map((id) => layout.positions.get(id)).filter((p): p is [number, number, number] => !!p);
-    if (!pts.length) return home(animate);
-    if (pts.length === 1) return;
+    if (!pts.length) {
+      if (!selectedId) home(animate);
+      return;
+    }
+    if (pts.length === 1) {
+      const id = focusIds.find((id) => layout.positions.has(id))!;
+      // A remounted canvas must not replay an older request over a newer selection.
+      if (id === selectedId) frameNode(id);
+      return;
+    }
     atHome.current = false;
     const center = new Vector3(pts.reduce((s, p) => s + p[0], 0) / pts.length, 0, pts.reduce((s, p) => s + p[2], 0) / pts.length);
     const radius = Math.max(4, ...pts.map((p) => Math.hypot(p[0] - center.x, p[2] - center.z))) + 2;
