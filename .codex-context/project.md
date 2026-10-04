@@ -56,15 +56,20 @@ commit `5c497c3` passed health and browser smoke checks; see the
 [deployment record](runs/local-redeploy-20261002/result.json).
 
 On October 4, 2026 UTC, the service was rebuilt from pushed source commit
-`2ca9631`, including the five milestone 1 packages and owned work. The image's
-revision label and 142 runtime source hashes match that commit. Readiness,
-assignment/date/link/My work browser smoke, and audit-chain verification pass.
-The original SQLite volume, workspace content, tasks, requirement states,
-tenants, memberships, evidence content, and all 88 historical events remain.
-A consistent backup is retained in the volume and under ignored
-`data/deployment-backups/`. Migration 5 archives all 18 legacy approvals and
-returns them to pending review; their decision details remain available.
-See the [delivery record](runs/member-work-20261003/delivery-result.json).
+`7806309`, including the five milestone 1 packages and milestone 2's owned work
+and evidence file storage. The image revision and 152 runtime source hashes
+match. Readiness, live upload/accept/exact download, and the same file/reference/
+review after restart pass. Migration 6 moves 18 inline bodies into separate SQL
+rows while preserving hydrated evidence, legacy reviews, hashes, workspace
+revisions, and all 107 historical audit events. The original volume, workspace,
+1,487 requirement states, 18 tasks, two tenants, and nine memberships remain.
+A consistent verified backup is retained in the volume and ignored
+`data/deployment-backups/`. The synthetic workspace and blob were removed;
+its deletion adds one organization audit event. See the
+[delivery record](runs/evidence-files-20261004/delivery-result.json). Migration 5
+continues to retain all 18 legacy decisions as history with pending current
+review. S3-compatible storage is available through operator configuration;
+only the local adapter was deployed.
 
 ## Unknowns
 
@@ -109,5 +114,5 @@ framework state read metadata; inspection explicitly loads inline detail.
 SQLite and 476 PostgreSQL tests; 98 unique browser cases combine 79 unchanged
 full-lane passes and 19 final affected reruns. No single final full-check command
 passed. Next is explicit collection origin, assurance scope, and supersession.
-Other reviewed defects and phase packages remain open. Docker still runs
-`2ca9631` pending the file-storage upgrade.
+Other reviewed defects and phase packages remain open. Local Docker includes
+the completed packages at source commit `7806309`.

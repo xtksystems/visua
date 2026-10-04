@@ -1,0 +1,55 @@
+{
+  "status": "passed",
+  "tables": {
+    "workspaces": {
+      "priorCount": 1,
+      "currentCount": 1,
+      "unchanged": true,
+      "priorSha256": "5de9537b6b4a1d82afd760fd4e18128ea143dd1d5064604a5d97b81d694dd446",
+      "comparedSha256": "5de9537b6b4a1d82afd760fd4e18128ea143dd1d5064604a5d97b81d694dd446"
+    },
+    "requirement_states": {
+      "priorCount": 1487,
+      "currentCount": 1487,
+      "unchanged": true,
+      "priorSha256": "e90b6496028419b41191e73a9192189c26b2350624ab8273ee2bd008b0b14e80",
+      "comparedSha256": "e90b6496028419b41191e73a9192189c26b2350624ab8273ee2bd008b0b14e80"
+    },
+    "tasks": {
+      "priorCount": 18,
+      "currentCount": 18,
+      "unchanged": true,
+      "priorSha256": "f009986f1444ac92d667b68cef7ca8db1e6328c7dc5e07fe27ae9469dadf35dc",
+      "comparedSha256": "f009986f1444ac92d667b68cef7ca8db1e6328c7dc5e07fe27ae9469dadf35dc"
+    },
+    "activity": {
+      "priorCount": 107,
+      "currentCount": 108,
+      "unchanged": true,
+      "priorSha256": "9f0936a3a4971bd0d2e6bd817de5e528efdd18a364792c58bb6e45e9570da792",
+      "comparedSha256": "9f0936a3a4971bd0d2e6bd817de5e528efdd18a364792c58bb6e45e9570da792"
+    },
+    "tenants": {
+      "priorCount": 2,
+      "currentCount": 2,
+      "unchanged": true,
+      "priorSha256": "fca239ad7be90237e93b1fffbedd4f037c427518f2d47f7658d51d465d433e8d",
+      "comparedSha256": "fca239ad7be90237e93b1fffbedd4f037c427518f2d47f7658d51d465d433e8d"
+    },
+    "memberships": {
+      "priorCount": 9,
+      "currentCount": 9,
+      "unchanged": true,
+      "priorSha256": "596ef41a7977958e90b56e45f604dd89bb0ed241753f1e690ccb5697d83ecbe6",
+      "comparedSha256": "596ef41a7977958e90b56e45f604dd89bb0ed241753f1e690ccb5697d83ecbe6"
+    }
+  },
+  "evidence": {
+    "priorCount": 18,
+    "currentCount": 18,
+    "unchanged": true,
+    "priorSha256": "d3e73f50be089e45bbcede88dd2fe2380e5597947493ba2ec74cdf22fff55d62",
+    "currentSha256": "d3e73f50be089e45bbcede88dd2fe2380e5597947493ba2ec74cdf22fff55d62"
+  },
+  "integrity": "ok"
+}

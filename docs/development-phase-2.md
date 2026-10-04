@@ -246,8 +246,11 @@ passes all applicable lanes: 474 SQLite tests (two PostgreSQL-only skips),
 79 unchanged full-lane passes with 19 final affected reruns; earlier failures
 and their recovery remain recorded. No single final full-check command passed.
 
-Docker still runs the previous verified source `2ca9631` while the file-storage
-upgrade is pending. The prior [delivery result](../.codex-context/runs/member-work-20261003/delivery-result.json)
-records its preserved volume, valid audit chain, and assignment flow. Migration
-5 retains the decisions on 18 legacy approvals and returns those records to
-pending review because they lack the new artifact binding.
+Source was committed and pushed as `7806309`, and local Docker was upgraded on
+October 4, 2026 UTC. The [delivery record](../.codex-context/runs/evidence-files-20261004/delivery-result.json)
+records the verified backup, unchanged historical data and hydrated evidence,
+matching image/source hashes, healthy readiness, and live upload/accept/exact
+download before and after restart. The synthetic workspace and blob were
+removed. Migration 5 retains the decisions on 18 legacy approvals as history
+with pending current review; migration 6 preserves those decisions. Other phase
+packages and the full milestone 2 gate remain open.

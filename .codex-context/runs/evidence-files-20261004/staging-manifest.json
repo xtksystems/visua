@@ -1,5 +1,6 @@
 {
-  "staged_files": [
+  "source_commit": "780630983071379a890d3d51ec18a88cdffac95a",
+  "source_commit_staged_files": [
     ".codex-context/architecture.md",
     ".codex-context/invariants.md",
     ".codex-context/project.md",
@@ -88,10 +89,41 @@
     "packages/core/src/types.ts",
     "pnpm-lock.yaml"
   ],
+  "delivery_record_staged_files": [
+    ".codex-context/project.md",
+    ".codex-context/runs/evidence-files-20261004/delivery-result.json",
+    ".codex-context/runs/evidence-files-20261004/docker-backup-attempts.json",
+    ".codex-context/runs/evidence-files-20261004/docker-backup-result.json",
+    ".codex-context/runs/evidence-files-20261004/docker-final-container.json",
+    ".codex-context/runs/evidence-files-20261004/docker-final-data.json",
+    ".codex-context/runs/evidence-files-20261004/docker-final-preservation.json",
+    ".codex-context/runs/evidence-files-20261004/docker-fixture-cleanup-result.json",
+    ".codex-context/runs/evidence-files-20261004/docker-image.json",
+    ".codex-context/runs/evidence-files-20261004/docker-migration-preservation.json",
+    ".codex-context/runs/evidence-files-20261004/docker-post-migration-data.json",
+    ".codex-context/runs/evidence-files-20261004/docker-post-upgrade-container.json",
+    ".codex-context/runs/evidence-files-20261004/docker-pre-upgrade-container.json",
+    ".codex-context/runs/evidence-files-20261004/docker-pre-upgrade-data.json",
+    ".codex-context/runs/evidence-files-20261004/docker-restart-result.json",
+    ".codex-context/runs/evidence-files-20261004/docker-smoke-create-result.json",
+    ".codex-context/runs/evidence-files-20261004/docker-smoke-fixture.json",
+    ".codex-context/runs/evidence-files-20261004/docker-smoke-restart-result.json",
+    ".codex-context/runs/evidence-files-20261004/docker-source-final-result.json",
+    ".codex-context/runs/evidence-files-20261004/docker-source-result.json",
+    ".codex-context/runs/evidence-files-20261004/docs-link-validation.json",
+    ".codex-context/runs/evidence-files-20261004/fan-in-final.json",
+    ".codex-context/runs/evidence-files-20261004/plan.json",
+    ".codex-context/runs/evidence-files-20261004/root-result.json",
+    ".codex-context/runs/evidence-files-20261004/source-delivery.json",
+    ".codex-context/runs/evidence-files-20261004/staging-manifest.json",
+    ".codex-context/sessions/20261004T005540Z-feat-light-workspace-design-4e69991a003e.md",
+    ".codex-context/tasks/evidence-files-20261004.md",
+    "docs/development-phase-2.md"
+  ],
   "excluded_other_session": [
     ".codex-context/runs/visual-design-review-20261003/",
     ".codex-context/sessions/20261004T010233Z-feat-light-workspace-design-1d5fba304135.md"
   ],
   "excluded_artifacts": "ignored raw logs/test traces/runtime data/backups; restricted licensing exclusions retained",
-  "licensing_guard": "all staged paths checked with git check-ignore --no-index; none ignored"
+  "licensing_guard": "all tracked/staged paths checked with git check-ignore --no-index; none ignored"
 }

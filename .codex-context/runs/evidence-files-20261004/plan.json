@@ -304,13 +304,15 @@
         "blobs",
         "core"
       ],
-      "status": "running",
-      "accepted": false,
+      "status": "complete",
+      "accepted": true,
       "input": "root-brief.txt",
       "input_sha256": "b2d9d2ff5560e81de7eb5cac21625c3c0781702c78fc89ed11b3bf3b3c2734f6",
-      "result": null,
+      "result": "root-result.json",
       "worker": "/root",
-      "expected_result": "root-result.json"
+      "expected_result": "root-result.json",
+      "returned": true,
+      "result_sha256": "9f72d37fab16526e6a9a05bafe47f33917c6b1c184d7a5eeb64e22ef45312db3"
     },
     {
       "id": "review",
@@ -359,8 +361,16 @@
     }
   ],
   "integration": {
-    "status": "pending",
-    "evidence": []
+    "status": "passed",
+    "evidence": [
+      "source-verification.json",
+      "browser-final-result.json",
+      "review-final.json",
+      "ui-review.json",
+      "delivery-result.json",
+      "docker-final-preservation.json",
+      "docker-source-final-result.json"
+    ]
   },
   "ownership_exceptions": [
     "core worker may adapt apps/server/test/evidence-binding.test.ts legacy fixtures to pre-v6 SQL; authorized by root after dispatch"

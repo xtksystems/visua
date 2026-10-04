@@ -1,0 +1,34 @@
+{
+  "checked_utc": "2026-10-04T03:27:47.202614+00:00",
+  "name": "/visua-visua-1",
+  "image": "sha256:cd247de52c862772a75a44b2a8d1f5706872affc1ae5a1f551b0b2323e0b7f0c",
+  "revision": "2ca9631d1a6c8ec26d8c3fae21aaad69a7389ec9",
+  "state": {
+    "Status": "running",
+    "Running": true,
+    "OOMKilled": false,
+    "ExitCode": 0,
+    "StartedAt": "2026-10-04T00:20:12.002376301Z"
+  },
+  "health": "healthy",
+  "mounts": [
+    {
+      "Type": "volume",
+      "Name": "visua_visua-data",
+      "Source": "/var/lib/docker/volumes/visua_visua-data/_data",
+      "Destination": "/app/data",
+      "Driver": "local",
+      "Mode": "rw",
+      "RW": true,
+      "Propagation": ""
+    }
+  ],
+  "ports": {
+    "8787/tcp": [
+      {
+        "HostIp": "127.0.0.1",
+        "HostPort": "8787"
+      }
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "integrity": "ok",
+  "tables": {
+    "workspaces": {
+      "count": 1,
+      "sha256": "5de9537b6b4a1d82afd760fd4e18128ea143dd1d5064604a5d97b81d694dd446",
+      "identitiesSha256": "00f266ccf50df64f5f3f009ab152e2f5461f82a23bcfe0650ad5613a0ea47fa8"
+    },
+    "requirement_states": {
+      "count": 1487,
+      "sha256": "e90b6496028419b41191e73a9192189c26b2350624ab8273ee2bd008b0b14e80",
+      "identitiesSha256": "ab7d3cfb1108757b20eda6fe2a2d1c298a75672ff640b6b3d02cfef34769ba18"
+    },
+    "tasks": {
+      "count": 18,
+      "sha256": "f009986f1444ac92d667b68cef7ca8db1e6328c7dc5e07fe27ae9469dadf35dc",
+      "identitiesSha256": "605bd80ff74162275558f75529512e1bd4377984ef8fbfcbccae218de30e7a18"
+    },
+    "activity": {
+      "count": 108,
+      "sha256": "067fc40b40cbbc900987e6a0c311b89269558d9953bc7ce6dd3ced493346e87b",
+      "identitiesSha256": "26f36992f973d08b130fa1f7d9285c595ea510805befa1cc9e00220cf520e8f8"
+    },
+    "tenants": {
+      "count": 2,
+      "sha256": "fca239ad7be90237e93b1fffbedd4f037c427518f2d47f7658d51d465d433e8d",
+      "identitiesSha256": "bc1fa6bd1327270392ec6f9d5213e6648ee652958b870db5de57280ae3dec19c"
+    },
+    "memberships": {
+      "count": 9,
+      "sha256": "596ef41a7977958e90b56e45f604dd89bb0ed241753f1e690ccb5697d83ecbe6",
+      "identitiesSha256": "c672f5896a65ba680ce5fd2adaf56e935b48032ab98dbc291303465f0b3edd16"
+    }
+  },
+  "evidenceStatuses": {
+    "pending-review": 18
+  },
+  "migrations": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "evidenceCount": 18,
+  "evidenceIdentitiesSha256": "82f54424da8f11a8672ab947ddb5d1eea4ad6468d0719d55506e6cd041311eb8",
+  "hydratedEvidenceSha256": "d3e73f50be089e45bbcede88dd2fe2380e5597947493ba2ec74cdf22fff55d62",
+  "inlineMetadataBodies": 0,
+  "inlineBodyRows": 18,
+  "fileArtifacts": 0,
+  "legacyReviewCount": 18
+}

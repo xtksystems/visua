@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "checked_utc": "2026-10-04T03:31:31.728954+00:00",
+  "before_started_at": "2026-10-04T03:29:28.586970126Z",
+  "after_started_at": "2026-10-04T03:31:15.836184592Z",
+  "same_image": true,
+  "same_volume": true,
+  "ready_http_status": 200,
+  "health": "healthy"
+}
