@@ -9,6 +9,7 @@ import { Readable } from "node:stream";
 import { Hono, type Context } from "hono";
 import { compress } from "hono/compress";
 import { etag } from "hono/etag";
+import { getCookie } from "hono/cookie";
 import { streamSSE } from "hono/streaming";
 import { z } from "zod";
 import { readinessProbe } from "./readiness.ts";
@@ -24,6 +25,8 @@ import {
   TIER_NAMES,
   TIER_SOURCE,
   ROLE_CAPABILITIES,
+  can,
+  type Capability,
   recommend,
   type AgentKind,
   type Workspace,
@@ -31,7 +34,7 @@ import {
 import { AGENTS, claudeEnabled, configuredModel } from "@visua/agents";
 import { CORPUS_DIR } from "@visua/frameworks";
 import { loadAuthConfig } from "./auth/config.ts";
-import { actorOf, authenticate, authRoutes, csrfProtection, limitParam, need, principalOf, requireCapability, requireSignIn, securityHeaders, workspaceAccess, type AppEnv } from "./auth/http.ts";
+import { actorOf, authenticate, authRoutes, cookieName, csrfProtection, limitParam, need, principalOf, requireCapability, requireSignIn, securityHeaders, workspaceAccess, type AppEnv } from "./auth/http.ts";
 import { AuthService, ForbiddenError, UnauthorizedError } from "./auth/service.ts";
 import { CONNECTOR_KINDS } from "./connectors/index.ts";
 import { actionPlanCsv, aiRmfProfileCsv, csfProfileCsv, evidenceIndexCsv, oscalPoam, oscalSsp, readinessMarkdown, soc2PbcCsv } from "./services/exports.ts";
@@ -45,6 +48,8 @@ import { frameworkState, leanGraph, nodeDetail, workspaceSummary } from "./servi
 import { NotFoundError, ValidationError, type VisuaService } from "./services/visua.ts";
 import { ConnectorCapacityError } from "./connectors/limits.ts";
 import { isWorkDate } from "./services/work.ts";
+import { BlobStoreError, MAX_BLOB_BYTES } from "./blobs/index.ts";
+import { EvidenceUploadError, evidenceDisposition, evidenceUpload, withEvidenceUpload } from "./evidence-http.ts";
 
 const Level = z.number().int().min(0).max(4);
 const Priority = z.enum(["critical", "high", "medium", "low"]);
@@ -175,7 +180,7 @@ const Schemas = {
     collectedAt: z.string().optional(),
     fileName: z.string().max(300).optional(),
     validUntil: z.string().optional(),
-  }),
+  }).strict(),
   updateEvidence: z.object({
     decision: z.enum(["accepted", "rejected"]).optional(),
     note: z.string().max(2000).optional(),
@@ -258,6 +263,8 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
   const databaseReady = readinessProbe(svc.store);
 
   app.onError((err, c) => {
+    if (err instanceof EvidenceUploadError) return c.json({ error: err.message }, err.status);
+    if (err instanceof BlobStoreError) return c.json({ error: "The evidence file is unavailable or could not be verified. Try again or contact your administrator." }, 503);
     if (err instanceof ConnectorCapacityError) return c.json({ error: err.message }, 503);
     if (err instanceof NotFoundError) return c.json({ error: err.message }, 404);
     if (err instanceof ValidationError) return c.json({ error: err.message }, 400);
@@ -311,6 +318,7 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
       crosswalk: svc.registry.crosswalk.sets.map((s) => ({ id: s.id, title: s.title, authority: s.authority, count: s.mappings.length })),
       overlays: svc.registry.overlays.map(overlayMeta),
       exampleInformationTypes: EXAMPLE_INFORMATION_TYPES,
+      evidenceUpload: { maxBytes: MAX_BLOB_BYTES },
     }),
   );
 
@@ -417,6 +425,20 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
   app.use("/api/workspaces/:ws/*", workspaceAccess(auth));
   const wsOf = (c: Context<AppEnv>) => c.get("workspace");
   const wsId = (c: Context<AppEnv>) => c.get("workspace").id;
+  // Storage can outlast a session or membership. Recheck before publishing bytes or metadata.
+  const evidenceAccess = (c: Context<AppEnv>, capability: Capability) => () => svc.store.atomic(async () => {
+    if (c.req.raw.signal.aborted) throw new EvidenceUploadError("The request was interrupted. Try again.");
+    await svc.store.lock(`ws:${wsOf(c).tenantId}`);
+    const original = principalOf(c);
+    const bearer = c.req.header("authorization");
+    const fresh = bearer?.toLowerCase().startsWith("bearer ")
+      ? await auth.resolveApiToken(bearer.slice(7).trim(), { touch: false })
+      : await auth.resolveSession(getCookie(c, cookieName(auth)) ?? "", { touch: false });
+    if (!fresh || fresh.kind !== original.kind || fresh.id !== original.id) throw new UnauthorizedError("Sign in to continue");
+    const role = await auth.roleIn(fresh, wsOf(c).tenantId);
+    if (!role) throw new NotFoundError("Workspace not found");
+    if (!can(role, capability)) throw new ForbiddenError("Your current role does not permit this action");
+  });
 
   app.get("/api/workspaces/:ws", async (c) => c.json(await summary(c, wsOf(c))));
   app.get("/api/workspaces/:ws/members", async (c) => c.json(await svc.workspaceMembers(wsId(c))));
@@ -546,7 +568,32 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
   });
 
   // ---------------------------------------------------------------- evidence
-  app.get("/api/workspaces/:ws/evidence", async (c) => c.json(await svc.store.evidence.list(wsId(c))));
+  app.get("/api/workspaces/:ws/evidence", async (c) => c.json(await svc.store.evidence.metadataList(wsId(c))));
+  app.get("/api/workspaces/:ws/evidence/:id", async (c) => {
+    const evidence = await svc.store.evidence.get(c.req.param("id"));
+    if (!evidence || evidence.workspaceId !== wsId(c)) throw new NotFoundError("Evidence not found");
+    c.header("Cache-Control", "private, no-store");
+    return c.json(evidence);
+  });
+  app.post("/api/workspaces/:ws/evidence/files", async (c) => withEvidenceUpload(async () => {
+    const { file, metadata } = await evidenceUpload(c.req.raw);
+    const schema = Schemas.createEvidence.omit({ content: true, data: true, fileName: true });
+    const parsed = schema.safeParse(metadata);
+    if (!parsed.success) throw new ValidationError(z.prettifyError(parsed.error));
+    const evidence = await svc.createFileEvidence(wsId(c), { ...parsed.data, fileName: file.name, mediaType: file.type || "application/octet-stream" }, new Uint8Array(await file.arrayBuffer()), actorOf(c), evidenceAccess(c, "work.write"));
+    return c.json(evidence, 201);
+  }));
+  app.get("/api/workspaces/:ws/evidence/:id/file", async (c) => {
+    const { evidence, bytes } = await svc.getEvidenceFile(wsId(c), c.req.param("id"), evidenceAccess(c, "workspace.read"));
+    return new Response(bytes as Uint8Array<ArrayBuffer>, { headers: {
+      "Content-Type": "application/octet-stream",
+      "Content-Disposition": evidenceDisposition(evidence.fileName ?? "evidence"),
+      "Content-Length": String(bytes.byteLength),
+      "Cache-Control": "private, no-store",
+      "X-Content-Type-Options": "nosniff",
+      "Content-Security-Policy": "sandbox; default-src 'none'",
+    } });
+  });
   app.post("/api/workspaces/:ws/evidence", async (c) => {
     const input = await body(c, Schemas.createEvidence);
     return c.json(await svc.createEvidence(wsId(c), { ...input, source: "upload" }, actorOf(c)), 201);
@@ -557,7 +604,7 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
       // Accepting or rejecting evidence is a review decision.
       requireCapability(c, "work.approve");
       if (Object.keys(input).some((key) => !["decision", "note", "expectedScope"].includes(key))) throw new ValidationError("Review and evidence edits must be separate requests");
-      return c.json(await svc.reviewEvidence(wsId(c), c.req.param("id"), input.decision, actorOf(c), input.note, input.expectedScope));
+      return c.json(await svc.reviewEvidence(wsId(c), c.req.param("id"), input.decision, actorOf(c), input.note, input.expectedScope, evidenceAccess(c, "work.approve")));
     }
     const { decision: _decision, note, expectedScope, ...patch } = input;
     if (note !== undefined || expectedScope !== undefined) throw new ValidationError("Review notes and scope require a review decision");

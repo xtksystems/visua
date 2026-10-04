@@ -232,7 +232,29 @@ const evidenceApprovalBinding: Migration = {
   },
 };
 
-export const MIGRATIONS: Migration[] = [baseline, tenantSettings, ssoDomainVerification, ssoDomainRecheck, evidenceApprovalBinding];
+/** Move bodies without changing identities, review scopes, timestamps or the audit chain. */
+const evidenceContentSeparation: Migration = {
+  version: 6,
+  name: "evidence metadata separated from inline content",
+  async up(db) {
+    const cast = db.dialect === "postgres" ? "?::jsonb" : "?";
+    await run(db, [
+      `CREATE TABLE evidence_content (evidence_id TEXT PRIMARY KEY REFERENCES evidence(id) ON DELETE CASCADE, workspace_id TEXT NOT NULL, data ${json(db.dialect)} NOT NULL)`,
+      `CREATE INDEX evidence_content_ws ON evidence_content(workspace_id)`,
+    ]);
+    for (const row of await db.query<{ id: string; workspace_id: string }>(`SELECT id, workspace_id FROM evidence`)) {
+      const current = (await db.query<{ data: unknown }>(`SELECT data FROM evidence WHERE id = ?`, [row.id]))[0];
+      if (!current) continue;
+      const { content, data, ...metadata } = parseJson<Evidence>(current.data);
+      if (content !== undefined || data !== undefined) {
+        await db.execute(`INSERT INTO evidence_content (evidence_id, workspace_id, data) VALUES (?, ?, ${cast})`, [row.id, row.workspace_id, JSON.stringify({ content, data })]);
+        await db.execute(`UPDATE evidence SET data = ${cast} WHERE id = ?`, [JSON.stringify(metadata), row.id]);
+      }
+    }
+  },
+};
+
+export const MIGRATIONS: Migration[] = [baseline, tenantSettings, ssoDomainVerification, ssoDomainRecheck, evidenceApprovalBinding, evidenceContentSeparation];
 
 export async function migrate(driver: SqlDriver): Promise<number[]> {
   await driver.execute(`CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL)`);

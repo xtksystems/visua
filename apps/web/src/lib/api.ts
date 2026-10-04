@@ -46,6 +46,24 @@ export const api = {
   patch: <T>(path: string, body: unknown) => request<T>("PATCH", path, body),
   put: <T>(path: string, body: unknown) => request<T>("PUT", path, body),
   del: <T>(path: string) => request<T>("DELETE", path),
+  upload: async <T>(path: string, form: FormData): Promise<T> => {
+    const res = await fetch(`/api${path}`, { method: "POST", headers: { "x-visua-csrf": csrfToken }, body: form, credentials: "same-origin" });
+    const data = await res.json() as T & { error?: string };
+    if (!res.ok) {
+      if (res.status === 401) for (const fn of unauthorizedListeners) fn();
+      throw new ApiError(res.status, data.error ?? "The upload failed. Try again.");
+    }
+    return data;
+  },
+  download: async (path: string): Promise<Blob> => {
+    const res = await fetch(`/api${path}`, { credentials: "same-origin" });
+    if (!res.ok) {
+      if (res.status === 401) for (const fn of unauthorizedListeners) fn();
+      const data = await res.json().catch(() => undefined) as { error?: string } | undefined;
+      throw new ApiError(res.status, data?.error ?? "The download failed. Try again.");
+    }
+    return res.blob();
+  },
 };
 
 export const corpusFileUrl = (path: string, page?: number) => `/api/corpus/file/${path.split("/").map(encodeURIComponent).join("/")}${page ? `#page=${page}` : ""}`;

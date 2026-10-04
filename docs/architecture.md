@@ -300,6 +300,16 @@ resource close; a timeout forces remaining sockets closed and exits with code
     Postgres): workspaces, requirement states, tasks, evidence, policies, risks,
     connectors, checks, agent runs, proposals and activity, plus the tenancy and
     identity tables.
+  - Evidence metadata lives in `evidence`; inline `content` and `data` live in
+    `evidence_content`. Migration 6 moves existing bodies without changing
+    evidence IDs, hashes, review statuses and history, dates, row timestamps, or
+    audit events. The split and all later body writes are transactional on both
+    backends. Evidence and workspace deletion remove inline body rows.
+  - `EvidenceCollection.get()`, `list()`, `recent()`, and `update()` explicitly
+    hydrate inline bodies for internal and export compatibility.
+    `metadataList()` reads only metadata rows, without a body join. The HTTP
+    evidence listing and scoring use that path; evidence events omit inline
+    `content` and `data`.
   - Versioned migrations run at startup under a lock, so several instances can start
     together. Version 1 also upgrades SQLite databases written before migrations
     existed (their workspaces move to a default organization).
@@ -382,11 +392,13 @@ resource close; a timeout forces remaining sockets closed and exits with code
   event is written in the same transaction as the change it records, under the
   workspace lock, and a unique `(workspace_id, seq)` index means the chain can never
   fork. `GET /activity/verify` recomputes the chain and reports the first broken link.
-- **Evidence approvals.** The service computes artifact SHA-256 from one canonical JSON envelope
-  containing content and/or structured data, or the immutable connector observation. Every decision
-  appends a server-owned history entry with the hash, requirement set, collection
-  date, and expiry. Current acceptance requires the latest decision to match
-  those fields and the active reviewer/time. Protected edits clear active review
+- **Evidence approvals.** The service computes inline artifact SHA-256 from a
+  canonical JSON envelope containing content and/or structured data, or the
+  immutable connector observation. A file's hash identifies its verified raw
+  bytes. Every decision appends a server-owned history entry with the hash,
+  requirement set, collection date, and expiry. Current acceptance requires the
+  latest decision to match those fields and the active reviewer/time.
+  Protected edits clear active review
   metadata and return the item to review; descriptive edits preserve approval.
   Connector content, raw data, and observation time cannot be amended.
   Mutations audit before/after metadata and hashes without duplicating raw
@@ -406,6 +418,44 @@ resource close; a timeout forces remaining sockets closed and exits with code
   its inspected snapshot even when live queries refresh the underlying row. Use `validUntil: null`
   to remove expiry. Agent review proposals capture the inspected scope when
   created; approval edits cannot replace it or a connector proposal's check id.
+- **File evidence** (`src/blobs/`). Uploads create an immutable, server-owned
+  `artifact` reference with an ID, SHA-256, byte size, and media type. The
+  canonical tenant and workspace scope every storage operation; `fileName`
+  remains a display label and never selects a storage path. File bytes never
+  enter evidence `content` or `data`.
+  - `POST /api/workspaces/:ws/evidence/files` takes multipart fields `file` and
+    `metadata` (JSON), with exactly one nonempty file and a 10 MiB file size
+    limit. Metadata must link at least one assessable requirement in an enabled
+    framework. The server allows four concurrent uploads, limits multipart
+    buffering to 10 MiB plus 64 KiB of form overhead, and cancels body reads
+    after 30 seconds. Blob operations have a 15-second deadline.
+  - `createFileEvidence()` validates metadata before storage, writes and reads
+    back the bytes, and verifies SHA-256 and size before opening the SQL
+    metadata/audit transaction. It then rereads the workspace and checks current
+    authorization. Uploads start `pending-review`. Failures before a metadata
+    write attempt trigger best-effort blob cleanup. Once publication begins,
+    errors retain bytes because a successful COMMIT may lose its acknowledgement.
+    Cleanup failures and uncertain transaction outcomes can leave orphan bytes.
+  - `GET /api/workspaces/:ws/evidence/:id` explicitly hydrates an inline body;
+    file detail contains metadata only. The `/file` suffix downloads verified
+    bytes as an attachment with `application/octet-stream`, `nosniff`, and
+    `private, no-store`. Download and file review verify SHA-256 and size
+    outside SQL transactions, then reread the workspace, reference, and review
+    scope and recheck current authorization under locks without writing session
+    or token usage timestamps. Missing or corrupt
+    bytes block the operation.
+  - File references and bytes cannot be edited. Upload a new evidence item to
+    replace a file. Date and link edits retain the reference and invalidate
+    acceptance as usual. File review through nested proposal approval is
+    refused because storage I/O cannot run inside its database transaction;
+    people review files directly. Agents have no file-reading tool.
+  - Local storage defaults to `<repo>/data/blobs`. Compose explicitly uses
+    `/app/data/blobs` in the same `visua-data` volume as SQLite. S3 uses private
+    scoped object keys and the AWS SDK's standard credential chain. Bucket
+    creation, access policy, encryption, backup, lifecycle, retention, and
+    physical garbage collection belong to the operator. Workspace deletion
+    removes metadata but does not delete physical blobs. See the
+    [storage environment settings](../README.md#evidence-file-storage).
 - **Live events across instances.** On Postgres, every instance LISTENs on one channel
   per schema and NOTIFYs it with each event it publishes, so a browser connected to any
   instance sees changes made through any other. Events over NOTIFY's 8,000-byte limit
@@ -511,6 +561,13 @@ status colors and a 2D path through every spatial view.
   cannot be dragged again until the request settles. A failed request clears
   only that task's pending move, returns the card to its previous status, and
   shows an error toast.
+- **Evidence.** The ledger loads metadata; opening an item loads a separate
+  detail snapshot for review. **Upload evidence** collects the file, title,
+  description, kind, dates, and linked requirements. It retains the draft on
+  failure and opens detail after verified publication. File detail shows the
+  name, size, media type, and hash, with **Download file** for local inspection.
+  Upload and review controls follow capabilities. Stored files are downloaded
+  as attachments rather than rendered in the page.
 - **Observatory.** Instanced hex prisms in two layouts:
   - *constellation*: radial sectors per top-level group
   - *readiness terrain*: a honeycomb
@@ -634,7 +691,7 @@ preserve edited fields, while switching tasks discards them.
 
 ## 6. Testing
 
-- `packages/*/test`, `apps/server/test` and `apps/web/test` (Vitest, 202 tests):
+- `packages/*/test`, `apps/server/test` and `apps/web/test` (Vitest):
   - official counts and citations
   - identifier normalization
   - the SOC 2 skeleton and the licensed overlay
@@ -642,6 +699,14 @@ preserve edited fields, while switching tasks discards them.
   - API flows: onboarding, RMF categorize/tailor/OSCAL, SOC 2 scoping and DC 200,
     Nexus bundles
   - all eight offline agents, autonomy, connectors, evidence hashing
+  - file evidence (`evidence-files.test.ts`, `evidence-content.test.ts`): upload
+    and download access, immutable references, byte verification, stale review
+    scope, authorization changes during I/O, failed-publication cleanup, and
+    migration 6 body separation with unchanged approvals and audit history
+  - private blob adapters (`blob-store.test.ts`): local persistence and file
+    integrity, tenant/workspace isolation, bounded reads, and S3-compatible
+    PUT/GET/DELETE through actual SDK-signed requests to a mock HTTP service;
+    these tests do not deploy to or validate an actual cloud provider
   - integrity guardrails: N/A rationale, scope preservation (documented exclusions
     survive every scope change), audit-chain tamper detection, no plan-as-evidence, and
     assessments refused on threat catalogs, frameworks a workspace has not enabled and
@@ -717,6 +782,10 @@ preserve edited fields, while switching tasks discards them.
 
 ## 7. Known limitations
 
+- File cleanup before publication is best effort; uncertain commit outcomes
+  retain bytes. Both can leave orphan files. Workspace deletion removes metadata and inline SQL bodies but retains
+  physical blobs. Operators manage retention and garbage collection; Visua
+  does not provision S3 buckets or their policies and lifecycle rules.
 - Domains grandfathered by the upgrade, or trusted while `VISUA_SSO_DOMAIN_VERIFICATION=off`,
   were never proven and are never re-checked; on a shared installation, ask their
   organizations to remove and verify them again. Domains proven by DNS are re-checked

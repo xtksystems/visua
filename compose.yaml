@@ -14,6 +14,8 @@ services:
       VISUA_AUTH_MODE: dev
       VISUA_AGENT_MODE: offline
       VISUA_DATABASE_URL: /app/data/visua.db
+      VISUA_BLOB_STORE: local
+      VISUA_BLOB_DIR: /app/data/blobs
     volumes:
       - visua-data:/app/data
     healthcheck:

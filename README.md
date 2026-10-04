@@ -36,7 +36,7 @@ OWASP Top 10s show which AI threats the program addresses.
 | **U.S. state AI laws** | 26 laws and regulations in California, Colorado, Illinois, Maine, New York, New York City, Texas and Utah, with 187 obligations quoted from the enrolled statutes and adopted regulations. Record the role you hold under each law's own definitions (developer, deployer, employer, operator…) and Visua scopes exactly those obligations, with an effective-date timeline (by month, with a list view), safe harbors (including those that recognize the NIST AI RMF) and enforcement. Readiness counts the obligations in force today; upcoming ones are prepared for and tracked apart, and ended ones drop out on their date. A tracking tool, not legal advice. |
 | **AI threat views** | MITRE ATLAS 2026.09 (the tactic × technique matrix), the OWASP Top 10 for LLM Applications 2026 (and 2025, with each entry's counterpart) and for Agentic Applications 2026, and NIST AI 100-2's 25 attacks. Threats are never assessed: coverage is derived from the requirements that MITRE, OWASP and NIST link to each threat, directly, through an ATLAS mitigation or through the other OWASP edition. Every link shows its publisher and status (final, draft, unreviewed, superseded), and one filter decides which count. A threat's linked requirements are grouped by publication and by route, and the ATLAS matrix is navigable with the arrow keys. |
 | **Assigned work** | Assign tasks and requirements to organization members, set calendar due dates, edit requirement links, and open your personal My work list. External owner labels remain available without granting access. |
-| **Evidence & monitoring** | Evidence with provenance, approval bound to the artifact hash, linked requirements and validity window, preserved review history, plus connectors for web posture (TLS, HSTS, security headers, security.txt) and repository hygiene. |
+| **Evidence & monitoring** | Upload and download evidence files up to 10 MiB, with verified SHA-256 and byte size. Approval binds the artifact hash, linked requirements, and validity window, with preserved review history. Connectors cover web posture (TLS, HSTS, security headers, security.txt) and repository hygiene. |
 | **Integrity guardrails** | A hash-chained, tamper-evident audit trail. "Not applicable" requires a written rationale, and scope changes never overwrite it. Agents never file plans as evidence. The trust center publishes computed facts only. Visua never issues audit opinions. |
 
 | | |
@@ -76,15 +76,60 @@ docker compose ps
 
 Open the URL and choose a demo persona. The Compose setup binds only to this Mac,
 uses password-less developer sign-in and offline agent playbooks, and keeps the
-SQLite database in the `visua-data` Docker volume. The image revision label records
-`VISUA_REVISION` (or `unknown` when unset), so you can identify a deployed commit. The volume remains when you
-stop the app with `docker compose down`. Inside the container, Compose explicitly
-sets `VISUA_HOST=0.0.0.0`; the published host port stays on loopback. Its health
+SQLite database and evidence files in the `visua-data` Docker volume. Compose
+sets `VISUA_BLOB_STORE=local` and `VISUA_BLOB_DIR=/app/data/blobs`, beside the
+database at `/app/data/visua.db`. Back up both together. The image revision
+label records `VISUA_REVISION` (or `unknown` when unset), so you can identify
+a deployed commit. The volume remains when you stop the app with
+`docker compose down`. Inside the container, Compose explicitly sets
+`VISUA_HOST=0.0.0.0`; the published host port stays on loopback. Its health
 check uses the database-aware `/api/ready` endpoint.
 
 If port 8787 is occupied, set `VISUA_HOST_PORT` before starting Compose; for
 example, `VISUA_HOST_PORT=8788 docker compose up -d --build` opens the app at
 <http://localhost:8788>. Use `docker compose logs -f visua` to inspect startup.
+
+### Evidence file storage
+
+Contributors and above can choose **Upload evidence** on the **Evidence** page.
+Select a nonempty file within the 10 MiB limit (10,485,760 bytes), enter its
+metadata, link at least one requirement, and choose **Upload for review**.
+The detail dialog opens after storage verification succeeds. Choose
+**Download file** to inspect the artifact; an approver can then accept or
+reject it. See
+[the evidence workflow](docs/workspace.md#review-evidence).
+
+File bytes live outside the SQL evidence records. The server creates immutable
+references scoped to the owning organization and workspace, verifies SHA-256
+and byte size after storage and again on download and review, and keeps the
+file name as a display label. New uploads start pending review.
+
+Configure the storage backend with these operator settings:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `VISUA_BLOB_STORE` | `local` | `local` for private files on disk, or `s3` for an S3-compatible service. In-memory test databases use disposable memory storage when this setting is absent. |
+| `VISUA_BLOB_DIR` | `data/blobs` under the repository root | Local storage directory. Keep it and its parent directories under operator control; the adapter creates private directories and files. |
+| `VISUA_BLOB_S3_BUCKET` | — | Existing private bucket; required for `s3`. |
+| `VISUA_BLOB_S3_REGION` | — | Bucket region; required for `s3`. |
+| `VISUA_BLOB_S3_ENDPOINT` | AWS service endpoint | Optional operator-selected HTTP or HTTPS origin for an S3-compatible service. Ambient `AWS_ENDPOINT_URL` settings do not select this endpoint. |
+| `VISUA_BLOB_S3_PREFIX` | `evidence` | Object key prefix, followed by tenant ID, workspace ID, and the server-generated artifact ID. |
+| `VISUA_BLOB_S3_FORCE_PATH_STYLE` | `false` | Set `true` or `1` for services requiring path-style requests; `false` and `0` use the default addressing style. |
+
+S3 uses the AWS SDK's
+[standard Node.js credential provider chain](https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/setting-credentials-node.html),
+including environment credentials, shared profiles, and workload roles.
+You provision the bucket, credentials, private access policy, encryption,
+backups, and lifecycle rules. Visua does not create cloud infrastructure or
+publish file URLs. S3 adapter tests use a signed mock HTTP service; they do not
+represent a deployment to an actual provider.
+
+Before metadata publication begins, a failed upload attempts to remove its file.
+Once publication begins, failures retain bytes because a lost commit
+acknowledgement can hide a successful database commit. These failures and failed
+cleanup can leave orphan bytes. Workspace deletion removes SQL records;
+physical file retention and garbage collection remain operator-managed. See
+[the storage architecture](docs/architecture.md#4-server-appsserver).
 
 ### AI engine
 

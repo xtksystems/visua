@@ -1,0 +1,13 @@
+import { DatabaseSync } from 'node:sqlite';
+import { LocalBlobStore } from './apps/server/src/blobs/index.ts';
+const fixture=JSON.parse(process.argv[2]);
+if(fixture.title!=='Deployment file persistence fixture'||fixture.evidence.fileName!=='deployment-fixture.bin')throw new Error('Unexpected fixture');
+const db=new DatabaseSync('/app/data/visua.db',{readOnly:true});
+if(db.prepare('SELECT id FROM workspaces WHERE id=?').get(fixture.workspace.id))throw new Error('Fixture workspace still exists');
+if(db.prepare('SELECT id FROM evidence WHERE id=?').get(fixture.evidence.id))throw new Error('Fixture evidence still exists');
+db.close();
+const store=new LocalBlobStore('/app/data/blobs');
+const scope={tenantId:fixture.workspace.tenantId,workspaceId:fixture.workspace.id};
+await store.get(scope,fixture.evidence.artifact);
+await store.delete(scope,fixture.evidence.artifact.id);
+console.log(JSON.stringify({status:'passed',fakeFixtureBlobRemoved:true}));

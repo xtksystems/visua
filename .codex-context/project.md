@@ -100,7 +100,14 @@ links and search navigate to their framework and selected node. Milestone 2's
 assignments, external-owner labels, explicit calendar due-date and task-link
 editing, and identity-based My work. Content requirement provenance survives
 relinking and governs model licensing. Calendar tasks become overdue after the
-UTC day. Full local checks pass 382 SQLite, 384 PostgreSQL, and 91 browser cases.
-Next is evidence metadata/content separation with authorized blob storage.
-Other reviewed defects and phase packages remain open. The running local Docker
-service includes the completed packages at source commit `2ca9631`.
+UTC day. The [evidence file package](tasks/evidence-files-20261004.md) separates
+metadata and inline bodies, provides private local and S3-compatible adapters,
+and verifies scoped uploads, downloads, and file review. Migration 6 preserves
+existing content, hashes, decisions, and audit history. Ledger, scoring, and
+framework state read metadata; inspection explicitly loads inline detail.
+[Final checks](runs/evidence-files-20261004/source-verification.json) pass 474
+SQLite and 476 PostgreSQL tests; 98 unique browser cases combine 79 unchanged
+full-lane passes and 19 final affected reruns. No single final full-check command
+passed. Next is explicit collection origin, assurance scope, and supersession.
+Other reviewed defects and phase packages remain open. Docker still runs
+`2ca9631` pending the file-storage upgrade.

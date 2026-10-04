@@ -1,0 +1,21 @@
+{
+  "run_id": "evidence-files-20261004",
+  "node_id": "review_fix",
+  "input_sha256": "43ad56506609b65d34c63e3859bb8f1c08001ef37750b719a421e81a51b219cc",
+  "status": "complete",
+  "summary": "Bounded resumed correction review passes with no new supported findings. All four original findings are closed in the final frozen subject, including display filename UTF-8 normalization before SQL. The final isolated fixture succeeds; scoped timing/isolation changes are supported by baseline measurements. All 261 final-source.json pins match before and after; initial report artifacts remain unchanged.",
+  "evidence": [
+    ".codex-context/runs/evidence-files-20261004/review-final.json",
+    ".codex-context/runs/evidence-files-20261004/final-source.json SHA-256 b65fe39256763f0ac661e649d4c9c60839df9b8315bd45d54bca8cb1cd6c837a; 261 pins checked, zero mismatches",
+    "data/review-fixtures/evidence-files-final-check.log; node data/review-fixtures/evidence-files-check.ts exit 0 on final source",
+    ".codex-context/runs/evidence-files-20261004/review-fix-focused.log; root-run prior-state 33-pass evidence inspected",
+    ".codex-context/runs/evidence-files-20261004/startup-focused.log; root-run prior-state 14-pass evidence inspected",
+    ".codex-context/runs/evidence-files-20261004/postgres-diagnosis.md; SHA-256 2cdc8ca4363a2c4df2b076a2dba8ce2e297c0efe16e43f3e400f2d43f4b65285; measured baseline/current seed and startup evidence inspected"
+  ],
+  "limitations": [
+    "Root owns final full SQLite/PostgreSQL/browser checks and Docker; this bounded review is not their completion result.",
+    "Commit acknowledgement loss uses a durable isolated SQLite commit then simulated transport failure; no live PostgreSQL concurrent/dependency fault injection was run.",
+    "Existing 33-pass and 14-pass logs precede the final normalization/readiness wait edits and are reused only for matching behavior; final integration verification remains with root.",
+    "Measurements were collected by the diagnostic worker against today's ambient checkout/dependencies; reviewed record/source corroboration is not an independently rerun controlled benchmark."
+  ]
+}

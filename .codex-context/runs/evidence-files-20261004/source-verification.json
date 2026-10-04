@@ -1,0 +1,56 @@
+{
+  "status": "passed",
+  "completed_utc": "2026-10-04T03:24:59.289792+00:00",
+  "cwd": "/Users/artem/visua",
+  "source": "final-delivery-source.json",
+  "source_sha256": "583ae705af9117ba38331bfcfd059e9b8d243b89558bf946fe6dc5c837bf2039",
+  "source_files": 261,
+  "environment": {
+    "unset": [
+      "VISUA_DATABASE_URL",
+      "VISUA_DB",
+      "VISUA_TEST_DATABASE_URL",
+      "NODE_ENV",
+      "VISUA_REPO_SCAN_ROOTS",
+      "VISUA_BLOB_STORE",
+      "VISUA_BLOB_DIR"
+    ],
+    "set": {
+      "VISUA_AGENT_MODE": "offline",
+      "VISUA_AUTH_MODE": "dev",
+      "VISUA_PUBLIC_URL": "http://localhost:8799"
+    }
+  },
+  "backend": {
+    "command": "pnpm check --no-e2e",
+    "exit_code": 0,
+    "log": "backend-final.log (ignored)",
+    "log_sha256": "8e73aa932e8980c145fa93a6a6033a8a4f531523d0eab4d3710e15906b34b020",
+    "duration_seconds": 122,
+    "sqlite_passed": 474,
+    "sqlite_skipped": 2,
+    "postgres_passed": 476,
+    "postgres_skipped": 0
+  },
+  "lanes": {
+    "licensing": "passed",
+    "typecheck": "passed",
+    "sqlite": "passed",
+    "postgres": "passed",
+    "browser": "98 unique cases verified; 19 final affected passed + 79 unchanged full-lane passes",
+    "corpus_hashes": "passed",
+    "design_lint": "passed"
+  },
+  "browser_result": "browser-final-result.json",
+  "source_reuse": "verification-source-reuse.json",
+  "independent_reviews": [
+    "review-final.json",
+    "ui-review.json"
+  ],
+  "prior_failures": "verification-attempts.json",
+  "limitations": [
+    "No single final pnpm check invocation passed all seven lanes; final backend command intentionally omits e2e and browser recovery is recorded separately.",
+    "S3 SDK requests tested against a local mock HTTP service; no cloud provider deployment was performed.",
+    "Readiness timing recovery was made deterministic; browser renderer crash passed on one bounded retry."
+  ]
+}

@@ -54,8 +54,10 @@ import {
 import { executeAgent, type AgentHost, type ProposalInput } from "@visua/agents";
 import type { FrameworkRegistry } from "@visua/frameworks";
 import { AsyncLocalStorage } from "node:async_hooks";
+import { createHash } from "node:crypto";
 import { canonical, chainHash, GENESIS } from "../audit.ts";
-import { artifactHash, evidenceAuditSnapshot, type EvidencePatch } from "./evidence.ts";
+import { artifactHash, evidenceAuditSnapshot, evidenceMetadata, type EvidencePatch, type FileEvidenceInput } from "./evidence.ts";
+import { MAX_BLOB_BYTES, MemoryBlobStore, type BlobScope, type BlobStore } from "../blobs/index.ts";
 import { isWorkDate, requirementWorkSnapshot, taskWorkSnapshot, type RequirementPatch, type TaskPatch } from "./work.ts";
 export { chainHash } from "../audit.ts";
 import type { EventBus, VisuaEventType } from "../bus.ts";
@@ -156,16 +158,18 @@ export class VisuaService {
   readonly store: Store;
   readonly registry: FrameworkRegistry;
   readonly bus: EventBus;
+  readonly blobs: BlobStore;
   private readonly scoreCache = new Map<string, { rev: number; hour: string; score: WorkspaceScore }>();
   private readonly running = new Map<string, AbortController>();
   private readonly executions = new Set<Promise<void>>();
   private readonly connectorKinds: readonly ConnectorKind[];
 
-  constructor(store: Store, registry: FrameworkRegistry, bus: EventBus, connectorKinds: readonly ConnectorKind[] = CONNECTOR_KINDS) {
+  constructor(store: Store, registry: FrameworkRegistry, bus: EventBus, connectorKinds: readonly ConnectorKind[] = CONNECTOR_KINDS, blobs: BlobStore = new MemoryBlobStore()) {
     this.store = store;
     this.connectorKinds = connectorKinds;
     this.registry = registry;
     this.bus = bus;
+    this.blobs = blobs;
   }
 
   // -------------------------------------------------------------------------
@@ -863,6 +867,7 @@ export class VisuaService {
    * (`upcoming`) and never counts toward today's readiness.
    */
   scoreOf(index: FrameworkIndex, input: { states: RequirementState[]; evidence: Evidence[]; tasks: Task[]; checks: CheckResult[] }, at = new Date()): WorkspaceScore {
+    input = { ...input, evidence: input.evidence.map(evidenceMetadata) };
     if (index.graph.framework.family !== "law") return scoreFramework(index, buildSnapshot(input), at);
     const today = at.toISOString().slice(0, 10);
     const states = input.states.map((s) => {
@@ -885,7 +890,7 @@ export class VisuaService {
     if (cached && cached.rev === rev && cached.hour === hour) return cached.score;
     const [states, evidence, tasks, checks] = await Promise.all([
       this.store.states.list(workspaceId, frameworkId),
-      this.store.evidence.list(workspaceId),
+      this.store.evidence.metadataList(workspaceId),
       this.store.tasks.list(workspaceId),
       this.store.checks.list(workspaceId),
     ]);
@@ -1112,6 +1117,7 @@ export class VisuaService {
   }
 
   async createEvidence(workspaceId: string, input: Partial<Evidence> & Pick<Evidence, "title">, actor = "user"): Promise<Evidence> {
+    if (input.artifact !== undefined) throw new ValidationError("File references are server-owned; upload file bytes to create file evidence");
     return this.mutate(workspaceId, async (ws) => {
       const ts = now();
       const requirementIds = this.linkedRequirements(input.requirementIds);
@@ -1129,22 +1135,131 @@ export class VisuaService {
         evidence = this.evidenceDecision(evidence, input.status, input.reviewedBy ?? actor, input.reviewedAt ?? ts);
       }
       await this.store.evidence.put(evidence);
-      this.emit(ws.id, "evidence.created", evidence);
+      this.emit(ws.id, "evidence.created", evidenceMetadata(evidence));
       await this.log(ws.id, actor, "collected", "evidence", evidence.id, `Evidence “${evidence.title}” added for ${requirementIds.map(codeOf).join(", ") || "no requirement"}`, { before: null, after: evidenceAuditSnapshot(evidence) });
       return evidence;
     });
   }
 
-  async reviewEvidence(workspaceId: string, evidenceId: string, decision: "accepted" | "rejected", actor = "user", note?: string, expectedScope?: EvidenceReviewScope): Promise<Evidence> {
+  private fileScope(ws: Workspace): BlobScope {
+    if (!ws.tenantId) throw new ValidationError("File evidence requires an owning organization");
+    return { tenantId: ws.tenantId, workspaceId: ws.id };
+  }
+
+  private fileArtifact(e: Evidence): NonNullable<Evidence["artifact"]> {
+    const artifact = e.artifact;
+    if (!artifact) throw new ValidationError("Evidence does not contain a file artifact");
+    if (typeof artifact.id !== "string" || !artifact.id || typeof artifact.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(artifact.sha256) || !Number.isInteger(artifact.size) || artifact.size < 1 || artifact.size > MAX_BLOB_BYTES || e.sha256 !== artifact.sha256 || e.content !== undefined || e.data !== undefined) {
+      throw new ValidationError("File artifact does not match its recorded metadata");
+    }
+    return artifact;
+  }
+
+  private async verifiedFile(scope: BlobScope, e: Evidence): Promise<Uint8Array> {
+    const artifact = this.fileArtifact(e);
+    const bytes = await this.blobs.get(scope, artifact);
+    if (!(bytes instanceof Uint8Array) || bytes.byteLength !== artifact.size || createHash("sha256").update(bytes).digest("hex") !== artifact.sha256) throw new ValidationError("File artifact does not match its recorded hash");
+    return bytes;
+  }
+
+  private fileInput(ws: Workspace, input: FileEvidenceInput, ts: string): Omit<Evidence, "id" | "artifact" | "sha256"> {
+    const allowed = new Set(["title", "description", "kind", "requirementIds", "collectedAt", "validUntil", "fileName", "mediaType"]);
+    if (Object.keys(input).some((key) => !allowed.has(key))) throw new ValidationError("File evidence metadata contains a server-owned or unsupported field");
+    if (typeof input.title !== "string" || !input.title.trim() || input.title.trim().length > 300) throw new ValidationError("Evidence title must contain between 1 and 300 characters");
+    if (input.description !== undefined && (typeof input.description !== "string" || input.description.length > 10_000)) throw new ValidationError("Evidence description must be at most 10000 characters");
+    const kinds = new Set(["document", "screenshot", "configuration", "log", "attestation", "automated-check", "policy", "report"]);
+    if (input.kind !== undefined && !kinds.has(input.kind)) throw new ValidationError("Invalid evidence kind");
+    if (typeof input.fileName !== "string" || !input.fileName.trim() || input.fileName.length > 300 || /[\x00-\x1f\x7f/\\]/.test(input.fileName) || [".", ".."].includes(input.fileName.trim())) throw new ValidationError("File name must be a display label without paths or control characters");
+    if (typeof input.mediaType !== "string" || input.mediaType.length > 127 || !/^[a-zA-Z0-9!#$&^_.+-]+\/[a-zA-Z0-9!#$&^_.+-]+$/.test(input.mediaType)) throw new ValidationError("A valid file media type is required");
+    const requirementIds = this.taskRequirements(ws, input.requirementIds);
+    if (!requirementIds.length) throw new ValidationError("Link file evidence to at least one requirement");
+    const evidence: Omit<Evidence, "id"> = {
+      workspaceId: ws.id, title: input.title.trim(), description: input.description,
+      kind: input.kind ?? "document", source: "upload", requirementIds,
+      status: "pending-review", collectedAt: input.collectedAt ?? ts, validUntil: input.validUntil,
+      fileName: Buffer.from(input.fileName.trim(), "utf8").toString("utf8"), reviewHistory: [], createdAt: ts,
+    };
+    const normalized = this.evidenceScope({ ...evidence, id: "preflight" });
+    return { ...evidence, collectedAt: normalized.collectedAt, validUntil: normalized.validUntil };
+  }
+
+  /** Persist and verify bytes before opening the metadata/audit transaction. */
+  async createFileEvidence(workspaceId: string, input: FileEvidenceInput, bytes: Uint8Array, actor = "user", authorize?: () => Promise<void>): Promise<Evidence> {
+    if (this.store.inTransaction) throw new ValidationError("File storage cannot run inside a database transaction");
+    const ws = await this.workspace(workspaceId);
+    const scope = this.fileScope(ws);
+    const metadata = this.fileInput(ws, input, now());
+    if (!(bytes instanceof Uint8Array) || bytes.byteLength < 1 || bytes.byteLength > MAX_BLOB_BYTES) throw new ValidationError("File bytes must contain between 1 byte and 10 MiB");
+    const snapshot = new Uint8Array(bytes);
+    const hash = createHash("sha256").update(snapshot).digest("hex");
+    const reference = await this.blobs.put(scope, snapshot);
+    let publicationAttempted = false;
+    try {
+      if (!reference || typeof reference.id !== "string" || !reference.id || reference.sha256 !== hash || reference.size !== snapshot.byteLength) throw new ValidationError("File artifact does not match its recorded metadata");
+      const evidence: Evidence = { ...metadata, id: newId("ev"), sha256: hash, artifact: { id: reference.id, sha256: reference.sha256, size: reference.size, mediaType: input.mediaType.toLowerCase() } };
+      await this.verifiedFile(scope, evidence);
+      return await this.mutate(ws.id, async () => {
+        const current = await this.workspace(ws.id);
+        if (current.tenantId !== scope.tenantId) throw new ValidationError("Workspace organization changed during file storage");
+        this.taskRequirements(current, evidence.requirementIds);
+        await authorize?.();
+        // COMMIT can succeed even when its acknowledgement is lost. Once a
+        // metadata write begins, retain bytes for reconciliation rather than
+        // risk deleting an artifact referenced by a durable evidence row.
+        publicationAttempted = true;
+        await this.store.evidence.put(evidence);
+        this.emit(current.id, "evidence.created", evidenceMetadata(evidence));
+        await this.log(current.id, actor, "collected", "evidence", evidence.id, `Evidence “${evidence.title}” added for ${evidence.requirementIds.map(codeOf).join(", ") || "no requirement"}`, { before: null, after: evidenceAuditSnapshot(evidence) });
+        return evidence;
+      });
+    } catch (err) {
+      if (!publicationAttempted && reference && typeof reference.id === "string" && reference.id) await this.blobs.delete(scope, reference.id).catch(() => console.error("[visua] could not clean up an unpublished evidence file"));
+      throw err;
+    }
+  }
+
+  /** Byte reads happen outside SQL; a locked reread closes workspace/reference/auth races. */
+  async getEvidenceFile(workspaceId: string, evidenceId: string, authorize?: () => Promise<void>): Promise<{ evidence: Evidence; bytes: Uint8Array }> {
+    if (this.store.inTransaction) throw new ValidationError("File storage cannot run inside a database transaction");
+    const ws = await this.workspace(workspaceId);
+    const scope = this.fileScope(ws);
+    const evidence = await this.store.evidence.metadataGet(evidenceId);
+    if (!evidence || evidence.workspaceId !== ws.id) throw new NotFoundError(`Evidence '${evidenceId}' not found`);
+    this.fileArtifact(evidence);
+    const bytes = await this.verifiedFile(scope, evidence);
+    return this.mutate(ws.id, async () => {
+      const currentWorkspace = await this.workspace(ws.id);
+      const current = await this.store.evidence.metadataGet(evidenceId);
+      if (currentWorkspace.tenantId !== scope.tenantId || !current || current.workspaceId !== ws.id) throw new NotFoundError(`Evidence '${evidenceId}' not found`);
+      if (canonical(current.artifact) !== canonical(evidence.artifact) || current.sha256 !== evidence.sha256 || !sameEvidenceReviewScope(this.evidenceScope(current), this.evidenceScope(evidence))) throw new ValidationError("Evidence changed while its file was being read; reload it");
+      this.fileArtifact(current);
+      await authorize?.();
+      return { evidence: current, bytes };
+    });
+  }
+
+  async reviewEvidence(workspaceId: string, evidenceId: string, decision: "accepted" | "rejected", actor = "user", note?: string, expectedScope?: EvidenceReviewScope, authorize?: () => Promise<void>): Promise<Evidence> {
+    const foundWorkspace = await this.workspace(workspaceId);
+    const inspected = await this.store.evidence.metadataGet(evidenceId);
+    if (!inspected || inspected.workspaceId !== foundWorkspace.id) throw new NotFoundError(`Evidence '${evidenceId}' not found`);
+    const fileScope = inspected.artifact ? this.fileScope(foundWorkspace) : undefined;
+    if (fileScope) {
+      if (this.store.inTransaction) throw new ValidationError("File evidence must be reviewed directly; proposal approval cannot read files inside a database transaction");
+      if (!expectedScope || !sameEvidenceReviewScope(expectedScope, this.evidenceScope(inspected))) throw new ValidationError("Evidence changed since it was inspected; reload it before reviewing");
+      await this.verifiedFile(fileScope, inspected);
+    }
     return this.mutate(workspaceId, async (ws) => {
       const prev = await this.store.evidence.get(evidenceId);
       if (!prev || prev.workspaceId !== ws.id) throw new NotFoundError(`Evidence '${evidenceId}' not found`);
+      if (canonical(prev.artifact) !== canonical(inspected.artifact)) throw new ValidationError("Evidence changed since its artifact was inspected; reload it before reviewing");
       if (!expectedScope || !sameEvidenceReviewScope(expectedScope, this.evidenceScope(prev))) throw new ValidationError("Evidence changed since it was inspected; reload it before reviewing");
+      if (fileScope && (ws.tenantId !== fileScope.tenantId || canonical(prev.artifact) !== canonical(inspected.artifact))) throw new ValidationError("Evidence changed since its file was inspected; reload it before reviewing");
+      await authorize?.();
       // Detect stored artifact corruption as well as stale caller snapshots.
       if (artifactHash(prev) !== prev.sha256) throw new ValidationError("Evidence artifact does not match its recorded hash");
       const next = this.evidenceDecision(prev, decision, actor, now(), note);
       await this.store.evidence.put(next);
-      this.emit(ws.id, "evidence.updated", next);
+      this.emit(ws.id, "evidence.updated", evidenceMetadata(next));
       await this.log(ws.id, actor, decision, "evidence", next.id, `Evidence “${next.title}” ${decision}`, { before: evidenceAuditSnapshot(prev), after: evidenceAuditSnapshot(next), review: next.reviewHistory!.at(-1) });
       return next;
     });
@@ -1157,9 +1272,14 @@ export class VisuaService {
       const allowed = new Set(["title", "description", "content", "data", "fileName", "requirementIds", "collectedAt", "validUntil"]);
       const changes = Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined));
       if (Object.keys(changes).some((key) => !allowed.has(key))) throw new ValidationError("Evidence identity and review history cannot be edited");
+      if (prev.artifact && (Object.hasOwn(patch, "content") || Object.hasOwn(patch, "data"))) throw new ValidationError("File artifacts are immutable; upload a new evidence item to replace file bytes");
       if (prev.source === "connector" && ["content", "data", "collectedAt"].some((key) => key in changes && canonical(changes[key]) !== canonical(prev[key as keyof Evidence]))) throw new ValidationError("Connector observations are immutable; run a new check to collect a new artifact");
-      if (changes["requirementIds"] !== undefined) changes["requirementIds"] = this.linkedRequirements(changes["requirementIds"] as string[]);
+      if (changes["requirementIds"] !== undefined) changes["requirementIds"] = prev.artifact ? this.taskRequirements(ws, changes["requirementIds"] as string[]) : this.linkedRequirements(changes["requirementIds"] as string[]);
       let next: Evidence = { ...prev, ...changes, validUntil: changes["validUntil"] === null ? undefined : changes["validUntil"] as string | undefined ?? prev.validUntil };
+      if (prev.artifact) {
+        const metadata = this.fileInput(ws, { title: next.title, description: next.description, kind: next.kind, requirementIds: next.requirementIds, collectedAt: next.collectedAt, validUntil: next.validUntil, fileName: next.fileName!, mediaType: prev.artifact.mediaType }, next.createdAt);
+        next = { ...next, title: metadata.title, fileName: metadata.fileName };
+      }
       const scope = this.evidenceScope(next);
       next = { ...next, collectedAt: scope.collectedAt, validUntil: scope.validUntil, sha256: artifactHash(next) };
       let previousScope: EvidenceReviewScope | undefined;
@@ -1168,7 +1288,7 @@ export class VisuaService {
         next = { ...next, status: "pending-review", reviewedBy: undefined, reviewedAt: undefined };
       }
       await this.store.evidence.put(next);
-      this.emit(ws.id, "evidence.updated", next);
+      this.emit(ws.id, "evidence.updated", evidenceMetadata(next));
       await this.log(ws.id, actor, "updated", "evidence", next.id, `Evidence “${next.title}” updated`, { before: evidenceAuditSnapshot(prev), after: evidenceAuditSnapshot(next), changedFields: Object.keys(changes).sort() });
       return next;
     });

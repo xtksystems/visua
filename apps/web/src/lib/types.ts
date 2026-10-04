@@ -35,6 +35,7 @@ export interface MyWork {
 }
 
 export interface Meta {
+  evidenceUpload: { maxBytes: number };
   product: { name: string; version: string };
   frameworks: (FrameworkDescriptor & { units: number })[];
   levelScales: Record<string, LevelScale>;

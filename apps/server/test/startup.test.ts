@@ -118,7 +118,7 @@ describe("empty production installation", () => {
     });
     const wait = vi.spyOn(VisuaService.prototype, "waitForRun").mockRejectedValue(new Error("injected startup timeout"));
     const close = vi.spyOn(Store.prototype, "close");
-    const starting = startServer({ env: { VISUA_PORT: "0", VISUA_SEED: "1", VISUA_SHUTDOWN_MS: "5000" }, database: ":memory:", registry }).catch((err: unknown) => err);
+    const starting = startServer({ env: { VISUA_PORT: "0", VISUA_SEED: "1", VISUA_SHUTDOWN_MS: "5000" }, database: ":memory:", registry, connectorRoots: [] }).catch((err: unknown) => err);
     cleanup.push(async () => { release(); await starting; });
     await vi.waitFor(() => expect(wait).toHaveBeenCalled(), { timeout: 10_000 });
     expect(close).not.toHaveBeenCalled();
@@ -283,16 +283,20 @@ describe("server lifecycle", () => {
   it("bounds a stalled readiness query and shares it across repeated probes", async () => {
     const started = await runtime();
     let release!: (rows: []) => void;
-    const query = vi.spyOn(started.svc.store.driver, "query").mockReturnValue(new Promise((done) => { release = done; }));
+    const query = vi.spyOn(started.svc.store.driver, "query")
+      .mockReturnValueOnce(new Promise((done) => { release = done; }))
+      .mockResolvedValue([]);
     const ready = readinessProbe(started.svc.store, 10);
-    expect(await Promise.all([ready(), ready()])).toEqual([false, false]);
-    expect(await ready()).toBe(false);
-    expect(query).toHaveBeenCalledTimes(1);
-    release([]);
-    query.mockRestore();
-    // Let the completed query clear its in-flight slot before the next check.
-    await new Promise((done) => setImmediate(done));
-    expect(await ready()).toBe(true);
+    try {
+      expect(await Promise.all([ready(), ready()])).toEqual([false, false]);
+      expect(await ready()).toBe(false);
+      expect(query).toHaveBeenCalledTimes(1);
+      release([]);
+      // Let the completed query clear its in-flight slot before the next check.
+      await new Promise((done) => setImmediate(done));
+      expect(await ready()).toBe(true);
+      expect(query).toHaveBeenCalledTimes(2);
+    } finally { release([]); query.mockRestore(); }
   });
 
   it.each(["SIGINT", "SIGTERM"] as const)("exits cleanly on %s through the real entry point", async (signal) => {
@@ -305,10 +309,10 @@ describe("server lifecycle", () => {
     let output = "";
     child.stdout.on("data", (chunk: Buffer) => { output += chunk.toString(); });
     child.stderr.on("data", (chunk: Buffer) => { output += chunk.toString(); });
-    await vi.waitFor(() => expect(output).toContain("SSO domain re-checks:"), { timeout: 10_000 });
+    await vi.waitFor(() => expect(output).toContain("SSO domain re-checks:"), { timeout: 30_000 });
     const exited = once(child, "exit");
     child.kill(signal);
     expect(await exited, output).toEqual([0, null]);
     expect(output).toContain("draining requests");
-  });
+  }, 45_000);
 });

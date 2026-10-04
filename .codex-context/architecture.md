@@ -47,11 +47,23 @@ explains claim ownership, retries, and domain lapse behavior.
 [Core evidence rules](../packages/core/src/evidence.ts) validate dates and bind
 current acceptance to the latest review scope. [Artifact hashing](../apps/server/src/services/evidence.ts)
 uses a canonical content/data envelope or the immutable connector recipe.
+Uploaded files use the verified bytes' digest. [Private blob adapters](../apps/server/src/blobs/index.ts)
+scope server-generated references by tenant and workspace. Upload, download,
+and review verify size/hash outside SQL before a locked metadata/scope/auth
+reread. Metadata publication failures retain possibly committed files.
 `VisuaService` owns protected edits and append-only decisions, with transactional
 before/after audit snapshots. Migration 5 recomputes legacy digests and archives
 prior decisions without attesting an unknown scope. The evidence detail dialog
 retains its inspected snapshot and sends it with the decision; live refetch does
 not replace what the person reviewed. See the [evidence task](tasks/evidence-binding-20261003.md).
+
+Migration 6 moves inline bodies into `evidence_content`, preserving identities,
+digests, decisions, revisions, and audit history. Explicit detail/export reads
+hydrate bodies; ledger, score, and framework-state reads use metadata only.
+Compose persists SQLite and local blobs together under `/app/data`. S3 uses
+operator-managed private storage and standard AWS credentials; retention and
+physical garbage collection remain operational decisions. See the
+[file-storage task](tasks/evidence-files-20261004.md).
 
 ## Agents and live UI
 

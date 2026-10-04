@@ -507,6 +507,8 @@ export interface Evidence {
   validUntil?: string;
   content?: string;
   data?: Record<string, unknown>;
+  /** Server-owned reference to immutable file bytes; fileName is only a display label. */
+  artifact?: { id: string; sha256: string; size: number; mediaType: string };
   fileName?: string;
   sha256?: string;
   reviewedBy?: string;

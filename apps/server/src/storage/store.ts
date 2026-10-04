@@ -11,6 +11,7 @@ import type { ActivityEvent, AgentRun, CheckResult, Connector, Evidence, Policy,
 import { parseJson, txContext, type Dialect, type SqlDriver, type TxContext } from "./driver.ts";
 import { IdentityStore } from "./identity.ts";
 import { Repo, type StoreContext } from "./repo.ts";
+import { evidenceMetadata } from "../services/evidence.ts";
 
 type Entity = { id: string; workspaceId: string };
 type DataRow = { data: unknown };
@@ -83,6 +84,92 @@ export class Collection<T extends Entity> extends Repo {
   async count(workspaceId: string): Promise<number> {
     const [row] = await this.db.query<{ n: number }>(`SELECT COUNT(*) AS n FROM ${this.table} WHERE workspace_id = ?`, [workspaceId]);
     return Number(row?.n ?? 0);
+  }
+}
+
+/** Evidence metadata stays small; only explicit artifact reads hydrate inline bodies. */
+export class EvidenceCollection extends Collection<Evidence> {
+  constructor(store: StoreContext) {
+    super(store, "evidence");
+  }
+
+  async metadataGet(id: string): Promise<Evidence | undefined> {
+    return super.get(id);
+  }
+
+  async metadataList(workspaceId: string): Promise<Evidence[]> {
+    return super.list(workspaceId);
+  }
+
+  private async hydrate(evidence: Evidence[]): Promise<Evidence[]> {
+    const inline = evidence.filter((e) => !e.artifact);
+    const bodies = new Map<string, Pick<Evidence, "content" | "data">>();
+    for (let i = 0; i < inline.length; i += CHUNK) {
+      const ids = inline.slice(i, i + CHUNK).map((e) => e.id);
+      const rows = await this.db.query<{ evidence_id: string; data: unknown }>(`SELECT evidence_id, data FROM evidence_content WHERE evidence_id IN (${ids.map(() => "?").join(", ")})`, ids);
+      for (const row of rows) bodies.set(row.evidence_id, parseJson<Pick<Evidence, "content" | "data">>(row.data));
+    }
+    return evidence.map((e) => ({ ...e, ...bodies.get(e.id) }));
+  }
+
+  override async get(id: string): Promise<Evidence | undefined> {
+    const [row] = await this.db.query<{ metadata: unknown; body: unknown }>(`SELECT e.data AS metadata, c.data AS body FROM evidence e LEFT JOIN evidence_content c ON c.evidence_id = e.id WHERE e.id = ?`, [id]);
+    return row ? this.readJoined(row) : undefined;
+  }
+
+  override async list(workspaceId: string): Promise<Evidence[]> {
+    const rows = await this.db.query<{ metadata: unknown; body: unknown }>(`SELECT e.data AS metadata, c.data AS body FROM evidence e LEFT JOIN evidence_content c ON c.evidence_id = e.id WHERE e.workspace_id = ? ORDER BY e.updated_at ASC, e.${this.pos} ASC`, [workspaceId]);
+    return rows.map((row) => this.readJoined(row));
+  }
+
+  override async recent(workspaceId: string, limit: number): Promise<Evidence[]> {
+    const rows = await this.db.query<{ metadata: unknown; body: unknown }>(`SELECT e.data AS metadata, c.data AS body FROM evidence e LEFT JOIN evidence_content c ON c.evidence_id = e.id WHERE e.workspace_id = ? ORDER BY e.updated_at DESC, e.${this.pos} DESC LIMIT ?`, [workspaceId, Math.max(0, Math.floor(limit))]);
+    return rows.map((row) => this.readJoined(row));
+  }
+
+  private readJoined(row: { metadata: unknown; body: unknown }): Evidence {
+    const metadata = parseJson<Evidence>(row.metadata);
+    return !metadata.artifact && row.body != null ? { ...metadata, ...parseJson<Pick<Evidence, "content" | "data">>(row.body) } : metadata;
+  }
+
+  override async put(entity: Evidence, updatedAt: string = now()): Promise<Evidence> {
+    return this.store.atomic(async () => {
+      await super.put(evidenceMetadata(entity), updatedAt);
+      if (!entity.artifact && (entity.content !== undefined || entity.data !== undefined)) {
+        await this.db.execute(
+          `INSERT INTO evidence_content (evidence_id, workspace_id, data) VALUES (?, ?, ${this.J})
+           ON CONFLICT (evidence_id) DO UPDATE SET workspace_id = excluded.workspace_id, data = excluded.data`,
+          [entity.id, entity.workspaceId, JSON.stringify({ content: entity.content, data: entity.data })],
+        );
+      } else await this.db.execute(`DELETE FROM evidence_content WHERE evidence_id = ?`, [entity.id]);
+      return entity;
+    });
+  }
+
+  override async update(id: string, fn: (current: Evidence) => Evidence | undefined, updatedAt?: string): Promise<Evidence | undefined> {
+    return this.store.atomic(async () => {
+      const lock = this.store.dialect === "postgres" ? " FOR UPDATE" : "";
+      const [row] = await this.db.query<DataRow>(`SELECT data FROM evidence WHERE id = ?${lock}`, [id]);
+      if (!row) return undefined;
+      const current = (await this.hydrate([parseJson<Evidence>(row.data)]))[0]!;
+      const next = fn(current);
+      if (!next) return current;
+      return this.put(next, updatedAt);
+    });
+  }
+
+  override async delete(id: string): Promise<boolean> {
+    return this.store.atomic(async () => {
+      await this.db.execute(`DELETE FROM evidence_content WHERE evidence_id = ?`, [id]);
+      return super.delete(id);
+    });
+  }
+
+  override async deleteWorkspace(workspaceId: string): Promise<void> {
+    await this.store.atomic(async () => {
+      await this.db.execute(`DELETE FROM evidence_content WHERE workspace_id = ?`, [workspaceId]);
+      await super.deleteWorkspace(workspaceId);
+    });
   }
 }
 
@@ -228,7 +315,7 @@ export class Store implements StoreContext {
   readonly workspaces: WorkspaceTable;
   readonly states: StateTable;
   readonly tasks: Collection<Task>;
-  readonly evidence: Collection<Evidence>;
+  readonly evidence: EvidenceCollection;
   readonly policies: Collection<Policy>;
   readonly risks: Collection<Risk>;
   readonly connectors: Collection<Connector>;
@@ -245,7 +332,7 @@ export class Store implements StoreContext {
     this.workspaces = new WorkspaceTable(this);
     this.states = new StateTable(this);
     this.tasks = new Collection<Task>(this, "tasks");
-    this.evidence = new Collection<Evidence>(this, "evidence");
+    this.evidence = new EvidenceCollection(this);
     this.policies = new Collection<Policy>(this, "policies");
     this.risks = new Collection<Risk>(this, "risks");
     this.connectors = new Collection<Connector>(this, "connectors");

@@ -13,7 +13,7 @@ import { MIGRATIONS, migrate } from "../src/storage/migrations.ts";
 import { PostgresDriver } from "../src/storage/postgres.ts";
 import { SqliteDriver } from "../src/storage/sqlite.ts";
 import { Store } from "../src/storage/store.ts";
-import type { SqlDriver } from "../src/storage/driver.ts";
+import { parseJson, type SqlDriver } from "../src/storage/driver.ts";
 import { TestClient } from "./client.ts";
 import { testDatabase } from "./db.ts";
 
@@ -218,13 +218,17 @@ describe(`legacy evidence migration (${db.dialect})`, () => {
         await tx.execute("INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)", [m.version, m.name, new Date().toISOString()]);
       });
       const ws = await old.createWorkspace({ name: "Legacy", profile, frameworks: ["nist-csf-2.0"] });
-      const e = await old.createEvidence(ws.id, { title: "Legacy artifact", content: "Observed", requirementIds: [A] });
+      // Write the old JSON document format directly: current repositories require migration 6.
+      const ts = new Date().toISOString();
+      const e: Evidence = { id: "legacy-artifact", workspaceId: ws.id, title: "Legacy artifact", content: "Observed", kind: "document", source: "manual", requirementIds: [A], collectedAt: ts, createdAt: ts, status: "pending-review", sha256: createHash("sha256").update(canonical({ content: "Observed" })).digest("hex") };
+      const putLegacy = async (value: Evidence) => driver.execute(`INSERT INTO evidence (id, workspace_id, data, updated_at) VALUES (?, ?, ${driver.dialect === "postgres" ? "?::jsonb" : "?"}, ?)`, [value.id, value.workspaceId, JSON.stringify(value), ts]);
+      const getLegacy = async (id: string) => parseJson<Evidence>((await driver.query<{ data: unknown }>("SELECT data FROM evidence WHERE id = ?", [id]))[0]!.data);
       const legacy: Evidence = { ...e, status: "accepted", reviewedBy: "Old reviewer", reviewedAt: "2026-01-01T00:00:00.000Z", validUntil: "invalid legacy expiry", reviewHistory: undefined };
-      await store.evidence.put(legacy);
+      await putLegacy(legacy);
       const noHash: Evidence = { ...legacy, id: "legacy-no-hash", title: "Legacy unhashed artifact", sha256: undefined, validUntil: "2030-12-31" };
-      await store.evidence.put(noHash);
+      await putLegacy(noHash);
       const pending: Evidence = { ...e, id: "legacy-pending", status: "pending-review", sha256: createHash("sha256").update(e.content!).digest("hex"), reviewHistory: undefined };
-      await store.evidence.put(pending);
+      await putLegacy(pending);
       const head = await store.activity.head(ws.id);
       const before = await old.workspace(ws.id);
       // Inject an audit insert failure inside the migration transaction.
@@ -238,11 +242,11 @@ describe(`legacy evidence migration (${db.dialect})`, () => {
           return typeof value === "function" ? value.bind(target) : value;
         },
       })))).rejects.toThrow("migration audit unavailable");
-      expect(await store.evidence.get(e.id)).toEqual(legacy);
-      expect(await store.evidence.get(noHash.id)).toEqual(noHash);
+      expect(await getLegacy(e.id)).toEqual(legacy);
+      expect(await getLegacy(noHash.id)).toEqual(noHash);
       expect(await store.activity.head(ws.id)).toEqual(head);
       expect(await old.workspace(ws.id)).toEqual(before);
-      expect(await migrate(driver)).toEqual([5]);
+      expect(await migrate(driver)).toEqual([5, 6]);
       const migrated = (await store.evidence.get(e.id))!;
       expect(migrated).toMatchObject({ status: "pending-review", content: "Observed", sha256: legacy.sha256, validUntil: "invalid legacy expiry", reviewHistory: [{ legacy: true, decision: "accepted", reviewedBy: "Old reviewer", reviewedAt: legacy.reviewedAt }] });
       expect(migrated.reviewedBy).toBeUndefined();

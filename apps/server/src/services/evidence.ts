@@ -3,7 +3,8 @@ import type { Evidence } from "@visua/core";
 import { canonical } from "../audit.ts";
 
 /** Compute from artifacts, never a caller-supplied digest. Preserve the connector observation recipe. */
-export function artifactHash(e: Pick<Evidence, "source" | "content" | "data" | "collectedAt">): string | undefined {
+export function artifactHash(e: Pick<Evidence, "source" | "content" | "data" | "collectedAt" | "artifact">): string | undefined {
+  if (e.artifact) return e.artifact.sha256;
   let artifact: string;
   if (e.source === "connector") {
     if (!e.data || typeof e.data["checkId"] !== "string" || e.data["observed"] === undefined) return undefined;
@@ -19,11 +20,19 @@ export function artifactHash(e: Pick<Evidence, "source" | "content" | "data" | "
 /** Audit metadata and artifact identity without copying raw observations into the log. */
 export function evidenceAuditSnapshot(e: Evidence): Record<string, unknown> {
   return {
-    title: e.title, description: e.description, fileName: e.fileName,
+    title: e.title, description: e.description, fileName: e.fileName, artifact: e.artifact,
     sha256: e.sha256, requirementIds: e.requirementIds, collectedAt: e.collectedAt,
     validUntil: e.validUntil, status: e.status, reviewedBy: e.reviewedBy,
     reviewedAt: e.reviewedAt, reviewCount: e.reviewHistory?.length ?? 0,
   };
 }
+
+/** The shape safe for listings, scoring and events, without an inline body. */
+export function evidenceMetadata(e: Evidence): Evidence {
+  const { content: _content, data: _data, ...metadata } = e;
+  return metadata;
+}
+
+export type FileEvidenceInput = Pick<Evidence, "title"> & Partial<Pick<Evidence, "description" | "kind" | "requirementIds" | "collectedAt" | "validUntil">> & { fileName: string; mediaType: string };
 
 export type EvidencePatch = Partial<Pick<Evidence, "title" | "description" | "content" | "data" | "fileName" | "requirementIds" | "collectedAt">> & { validUntil?: string | null };

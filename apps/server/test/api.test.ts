@@ -907,7 +907,7 @@ describe("demo seed", () => {
   beforeAll(async () => {
     await seedDemo(svc, auth);
     await morgan.devLogin("morgan.lee@northwind-health.example");
-  });
+  }, 60_000); // The seed performs two repository scans, each bounded at 15 seconds.
   it("creates a realistic, deterministic demo workspace", async () => {
     const res = await morgan.get<{ workspace: { name: string }; frameworks: { id: string; readiness: number }[]; approvals: number; access: { role: string } }>("/api/workspaces/northwind-health");
     expect(res.json.access.role).toBe("owner");

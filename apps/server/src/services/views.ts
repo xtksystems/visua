@@ -143,7 +143,7 @@ export async function frameworkState(svc: VisuaService, ws: Workspace, framework
     svc.score(ws.id, frameworkId),
     svc.store.states.list(ws.id, frameworkId),
     svc.store.tasks.list(ws.id),
-    svc.store.evidence.list(ws.id),
+    svc.store.evidence.metadataList(ws.id),
   ]);
   const openTasks = new Map<string, number>();
   for (const t of tasks) if (t.status !== "done") for (const id of t.requirementIds) openTasks.set(id, (openTasks.get(id) ?? 0) + 1);

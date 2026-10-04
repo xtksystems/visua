@@ -304,6 +304,7 @@ for (const email of READERS) {
     const control = dialog.getByRole("link", { name: "AC-2", exact: true });
     await expect(close).toBeFocused();
     await expect(dialog.getByRole("button", { name: /^(Accept|Reject)$/ })).toHaveCount(0);
+    await expect(control).toBeVisible();
     await close.press("Shift+Tab");
     await expect(control).toBeFocused();
     await control.press("Escape");

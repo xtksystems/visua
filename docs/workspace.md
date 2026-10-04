@@ -89,22 +89,43 @@ before it can be assigned again.
 
 ## Review evidence
 
+Contributors and above can add a file from **Evidence**. To upload an artifact:
+
+1. Choose **Upload evidence**, then select a nonempty file. The file size limit
+   is 10 MiB.
+2. Enter the title, optional description, kind, and collection date. Set
+   **Valid until** if the artifact expires, or leave it blank for no expiry.
+3. Link at least one requirement from an enabled framework.
+4. Choose **Upload for review**. Visua verifies storage before adding the item
+   as **Pending review** and opening its detail dialog. A failed upload keeps
+   your draft and displays an error.
+
 Open **Evidence** and select an item to inspect its artifact, source, linked
-requirements, collection date, expiry, and review history. An approver can
-accept or reject pending evidence from the detail dialog. If the artifact or its
-assurance scope changes while you review it, reload the item before making the
-decision.
+requirements, collection date, expiry, and review history. For an uploaded file,
+the dialog shows its name, byte size, media type, and SHA-256. Choose
+**Download file** to inspect it locally. Downloads check the stored size and
+hash and require current workspace access. Files download as attachments.
+An approver can accept or reject pending evidence from the detail dialog. If
+the artifact or its assurance scope changes while you review it, reload the
+item before making the decision. Use **Reload evidence** after a stale-detail
+error. Missing or corrupt
+file bytes block both download and review; the server verifies size and hash
+again before recording a file decision.
 
 Acceptance covers a specific artifact hash, requirement list, and validity
 window. Changing content, structured data, requirement links, collection date,
 or expiry returns the item to **Pending review** and keeps earlier decisions.
-Changing its title, description, or file name preserves approval. A connector's
-raw observation cannot be edited; run the connector again to collect a new one.
+Changing its title, description, or file name preserves approval. Uploaded file
+bytes and storage references are immutable; upload a new item to replace a
+file. A connector's raw observation cannot be edited; run the connector again
+to collect a new one.
 
 The ledger counts accepted evidence only while its bound approval and dates are
 currently valid. Expired evidence keeps its review history. An upgrade returns
 legacy approvals to review because their original assurance scope was not
-recorded. Legacy decisions remain visible in the item's history.
+recorded. Legacy decisions remain visible in the item's history. The later
+metadata/body storage migration preserves existing review decisions and audit
+history.
 
 ## Explore requirements and mappings
 

@@ -1,0 +1,21 @@
+{
+  "status": "complete",
+  "verdict": "pass",
+  "summary": "Bounded final UI correction review completed with no supported findings. Hook-level error registration suppresses the shared MutationCache toast and retains the inline retryable alert; active guards and workspace/evidence keys prevent late callbacks from updating unmounted dialogs. The deterministic readiness fixture exercises timeout sharing and recovery without relying on a real database completing inside 10ms. All 261 source pins match before and after; final browser/backend integration remains root-owned.",
+  "coverage": [
+    "Read immutable ui-review-brief.txt completely and compared final-delivery-source.json against prior reviewed final-source.json. Changed pins are EvidencePage.tsx, startup.test.ts, and keyboard-dialog-tabs.spec.ts; the prior four fixes are unchanged. Verified all 261 source SHA-256 pins before and after review; zero mismatches.",
+    "Inspected EvidenceDialog review options, error alert/reload behavior, detached detail snapshot, active effect cleanup, download lifetime, and key={`${ws}:${viewing.id}`} creation. Review now supplies hook-level onError to useWsMutation, both per-call success callbacks check active.current, and per-call onError duplication was removed. Reload remains disabled while review is pending; workspace/evidence changes unmount the old keyed dialog.",
+    "Traced queries.ts useWsMutation options into main.tsx MutationCache: mutation.options.onError being present suppresses the default global toast. Inspected installed @tanstack/query-core 5.104.0 mutation.ts cache-before-option error dispatch and mutationObserver.ts per-call callback listener gate. Hook error handling remains callable after unmount, so active.current=false is necessary and present; old dialog refs stay independent from the next keyed dialog.",
+    "Inspected e2e/visua.spec.ts stale-review exact-error assertion and evidence-files browser snapshot/retry cases. Inspected keyboard-dialog-tabs.spec.ts added await expect(control).toBeVisible before shifting focus: this waits for async detail content while preserving exact reader capability, focus, Escape and selection assertions.",
+    "Inspected startup.test.ts readiness fixture and readiness.ts implementation. First mocked query remains held across repeated deadline probes, later calls resolve immediately, count is checked as 1 then 2, and finally releases/restores the spy. Ran a lightweight Node assertion against the actual readinessProbe with the same deterministic fake-driver schedule: exit 0; repeated stalled probes shared one query and recovery succeeded with query two. No SQL, HTTP server, browser or heavy suite was started.",
+    "Analyzed apps/web/src/pages/EvidencePage.tsx SHA-256 0cc3017af718f0e777e882836f2b86a2c708b49c35fa2723679f74f347b5cfdd; apps/web/src/lib/queries.ts fe6bc2a5fe4cb3488a0f4f5d26c7a65ec58372d0e0e6c7221efb95c48ed5c221; apps/web/src/main.tsx dda7bed81e09434ba8367329568d6250d2d818f644d188de51606d83659e2a30; apps/web/src/lib/workspace.ts d4f8484ae7a07e03048670665386ee5ac369edf1c158a3dd65b9a9861f5378c2.",
+    "Analyzed apps/server/test/startup.test.ts SHA-256 f843cf46b0dbc31b8ccbac5101bed50e10850bdc38b6505319e7c12adff66ff9; apps/server/src/readiness.ts e247912971ee1f53f30eb28f83d7aef53f3953af0f2e3cf73f14b86d3b559c33; e2e/keyboard-dialog-tabs.spec.ts bd8afab1070ef3c921f3b40cfca1ec250d3093652e8b8b5403052a2c08d26dc3; e2e/visua.spec.ts 15ad41a1fd16b1c1f8a2469b2b101d41b98ed0db0ef247b1c57fb2a6ee8c5d9c.",
+    "Runtime source and prior review artifacts were preserved; only this UI review report and its envelope were written."
+  ],
+  "findings": [],
+  "limitations": [
+    "This is the assigned bounded source correction review and a deterministic readiness proof; it is not a final full backend/browser or deployment pass. Root owns final integration and affected browser cases, which were pending in the immutable brief.",
+    "No browser rendering or delayed response/unmount test was independently executed here. UI callback lifetime and duplicate-toast suppression are supported by the inspected application and installed query-core dispatch paths.",
+    "The extra keyboard-dialog-tabs visibility wait is a fixture-only synchronization change included in the pins; it was inspected without rerunning browser focus behavior."
+  ]
+}

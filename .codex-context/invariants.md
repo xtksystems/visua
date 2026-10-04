@@ -38,3 +38,13 @@ For SSO changes, also read the
   Task links accept enabled assessable nodes, retain source/origin, and accumulate
   server-owned content requirement provenance for model licensing. Known licensed
   source fallback needs the original document and locator before fragment routing.
+
+- File evidence references are immutable and server-owned. Tenant/workspace
+  access authorizes each upload/download; a digest grants no access. Verify
+  actual SHA-256 and size after storage, before download, and before review.
+  Blob I/O stays outside SQL transactions; reread identity, scope, and current
+  authorization under locks after I/O. Authorization rechecks do not write
+  session/token usage fields. Retain bytes after a metadata write attempt when
+  the commit outcome is uncertain. Migration 6 separates inline bodies without
+  changing hashes, decisions, workspace revisions, or audit history. Ledger,
+  score, and framework-state reads use metadata only.
