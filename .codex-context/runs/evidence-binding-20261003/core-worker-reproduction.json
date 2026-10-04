@@ -1,0 +1,12 @@
+{
+  "kind": "sanitized-old-source-reproduction",
+  "now": "2026-06-01T00:00:00.000Z",
+  "invalidExpiryCountsValid": true,
+  "changedRequirementLinksStillVerify": "verified",
+  "sourceDigests": {
+    "packages/core/src/status.ts": "133b453b9b30cba6b0228e9e6da4a6568a06af0735382172fd21e00fca0e9a09",
+    "packages/core/src/types.ts": "82f706888fff34ecea734d1558ee5c8d89fcb2ed8dece6ded45f5342e0b39637",
+    "packages/core/src/index.ts": "ffc588ab695497ab64505d7aa773610c90e3d7a4100f5fb9037ef9820abacc2d",
+    "packages/core/test/core.test.ts": "52304704274db913c7375781fe31ae80353aef24e3696624ce86c0d2eba5d120"
+  }
+}

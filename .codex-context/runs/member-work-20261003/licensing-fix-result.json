@@ -1,0 +1,19 @@
+{
+  "run_id": "member-work-20261003",
+  "node_id": "licensing-fix",
+  "input_sha256": "91213681f2ccef6957c07490d2a81531b373b76a55549298173276d64cdf7a6c",
+  "status": "complete",
+  "summary": "Closed task relinking model-licensing bypass. Tasks retain server-owned cumulative contentRequirementIds initialized at creation/planning and extended monotonically on updates. Model task views redact using current and historical requirements, with conservative narrative withholding for known AICPA source documents when original licensed nodes are unavailable. Runtime sources frozen; prior server-result.json preserved.",
+  "evidence": [
+    "Changed only packages/core/src/types.ts, apps/server/src/services/visua.ts, apps/server/src/services/work.ts, apps/server/test/member-work.test.ts, packages/agents/src/tools.ts, packages/agents/test/licensing.test.ts.",
+    "Regression checks cover user tasks without source after unlink/relink, planner provenance initialization, immutable provenance through API and hostile direct service patches, legacy provenance initialization, preserved member reassignment/link behavior, source-only licensed legacy fallback, exact-fragment redaction, and unchanged offline/operator-permission behavior. Fixtures contain fake licensed strings only.",
+    "Model protection applies to list_tasks, workspaceContext via modelTask, and get_requirement related task titles.",
+    "Final focused command (cwd /Users/artem/visua): env -u VISUA_DATABASE_URL -u VISUA_DB -u VISUA_TEST_DATABASE_URL VISUA_AGENT_MODE=offline pnpm exec vitest run apps/server/test/member-work.test.ts packages/agents/test/licensing.test.ts apps/server/test/api.test.ts apps/server/test/storage.test.ts; passed 4 files, 93 tests passed, 1 skipped, 22.03s.",
+    "git diff --check -- packages/core/src/types.ts apps/server/src/services/visua.ts apps/server/src/services/work.ts apps/server/test/member-work.test.ts packages/agents/src/tools.ts packages/agents/test/licensing.test.ts passed."
+  ],
+  "limitations": [
+    "Focused server tests executed on SQLite; suites use testDatabase for lead PostgreSQL integration verification.",
+    "No worker builds, running servers, browser work, Git/index changes, commits, pushes or delegation. Broad typecheck/full checks and Docker delivery belong to lead.",
+    "Legacy tasks whose original requirement ids and source document are both missing cannot recover lost provenance automatically; unchanged records remain readable, while future edits preserve every available requirement provenance id."
+  ]
+}

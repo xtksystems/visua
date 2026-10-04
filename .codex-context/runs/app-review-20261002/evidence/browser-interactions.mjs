@@ -1,0 +1,23 @@
+import { chromium } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
+import path from 'node:path';
+const OUT=path.dirname(new URL(import.meta.url).pathname),BASE='http://localhost:8787',W='/w/northwind-health';
+const result={startedAt:new Date().toISOString(),baseURL:BASE,actions:[],errors:[],blockedMutations:[]};
+const browser=await chromium.launch({args:['--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});
+const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1});
+await context.route('**/api/**',async route=>{const req=route.request();if(!['GET','HEAD','OPTIONS'].includes(req.method())&&!req.url().includes('/auth/dev/login')){result.blockedMutations.push({method:req.method(),url:req.url()});return route.abort('blockedbyclient');}return route.continue();});
+const page=await context.newPage();page.on('pageerror',e=>result.errors.push(e.message));
+page.setDefaultTimeout(10000);
+async function step(name,act){try{await act();result.actions.push({name,passed:true});}catch(e){result.actions.push({name,passed:false,error:e.message});}await writeFile(path.join(OUT,'browser-interactions.json'),JSON.stringify(result,null,2));}
+async function shot(name){await page.screenshot({path:path.join(OUT,`browser-${name}.png`),timeout:10000});}
+try{
+ await page.request.post(BASE+'/api/auth/dev/login',{data:{email:'morgan.lee@northwind-health.example'}});
+ await step('phone menu opens and links to action plan',async()=>{await page.goto(BASE+W);await page.getByRole('button',{name:'Open menu'}).click();await page.getByRole('navigation',{name:'Primary'}).getByRole('link',{name:'Action plan',exact:true}).click();await page.getByRole('heading',{name:'Action plan',exact:true}).waitFor();result.menuClosedAfterNavigation=await page.getByRole('button',{name:'Open menu'}).count()===1;});
+ await step('phone task details open using Enter',async()=>{const card=page.locator('.card[role="button"]').first();await card.focus();await page.keyboard.press('Enter');const d=page.getByRole('dialog');await d.waitFor();result.taskDetails=(await d.innerText()).slice(0,1600);await shot('phone-task-details');await d.getByRole('button',{name:'Close',exact:true}).click();});
+ await step('phone task timeline switch',async()=>{await page.getByRole('button',{name:'Timeline',exact:true}).click();result.timelineExcerpt=(await page.getByRole('main').innerText()).slice(0,1600);});
+ await step('phone evidence provenance details',async()=>{await page.goto(BASE+W+'/evidence');await page.locator('tbody button').first().click();const d=page.getByRole('dialog');await d.waitFor();result.evidenceDetails=(await d.innerText()).slice(0,1600);await shot('phone-evidence-details');await d.getByRole('button',{name:'Close',exact:true}).click();});
+ await step('phone search returns cited requirement',async()=>{await page.getByRole('button',{name:'Search or ask the copilot'}).click();const d=page.getByRole('dialog',{name:'Command palette'});await d.locator('input').fill('PR.AA-01');await page.waitForTimeout(900);result.searchResults=(await d.innerText()).slice(0,1400);await page.keyboard.press('Escape');});
+ await step('phone existing approvals inbox',async()=>{await page.goto(BASE+W+'/agents');await page.getByRole('tab',{name:/Approvals inbox/}).click();result.approvalsExcerpt=(await page.getByRole('main').innerText()).slice(0,1600);});
+ await step('phone requirement inspector screenshot',async()=>{await page.goto(BASE+W+'/observatory/nist-csf-2.0?select=nist-csf-2.0%3APR.AA-01');await page.getByRole('complementary',{name:'PR.AA-01 details'}).waitFor();await page.waitForTimeout(1200);await shot('phone-observatory-inspector');});
+ await step('viewer has no agent launch or approval actions',async()=>{await page.request.post(BASE+'/api/auth/dev/login',{data:{email:'jordan.park@northwind-health.example'}});await page.setViewportSize({width:1440,height:900});await page.goto(BASE+W+'/agents');await page.getByRole('tab',{name:/Approvals inbox/}).click();result.viewer={launchHeading:await page.getByRole('heading',{name:'Launch an agent'}).count(),approveButtons:await page.getByRole('button',{name:/^Approve/}).count(),waitingText:await page.getByText('Awaiting an approver').count(),role:await page.locator('.role-badge').innerText()};if(result.viewer.launchHeading||result.viewer.approveButtons)throw new Error('Viewer saw modifying agent controls');});
+}finally{result.finishedAt=new Date().toISOString();await writeFile(path.join(OUT,'browser-interactions.json'),JSON.stringify(result,null,2));await browser.close();console.log(JSON.stringify(result,null,2));}

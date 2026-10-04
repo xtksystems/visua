@@ -1,0 +1,240 @@
+{
+  "status": "complete",
+  "commit": "1dc5ed126dced52c364b403dd29f9ce62829b4da",
+  "scope": "G02 through G12; G01 reproduced separately by root",
+  "method": "Read-only repository source inspection. No app/service/database/Git changes or provider dispatch. No runtime tests.",
+  "findings": [
+    {
+      "finding": "G02",
+      "disposition": "qualified",
+      "severity": "medium",
+      "conclusion": "Narrative-only evidence is accepted when its proposal is approved or explicitly granted autonomy. This is an intentional review boundary, not an authorization bypass. A genuine provenance weakness remains: an approver can null checkResultId in edits and move a check-backed proposal onto the narrative path; narrative kinds include automated-check and attestation without check-backed enforcement or a digest.",
+      "trigger_and_constraints": "A work.approve principal approves a create-evidence proposal, optionally edits checkResultId to null; or an admin enables create-evidence autonomy and a permitted agent calls propose_evidence. For assessor level 3, accepted automated-check evidence additionally needs a completed task and suitable current/target state. No automatic verifiedAt is set.",
+      "evidence": [
+        "packages/agents/src/tools.ts:572-598",
+        "packages/agents/src/offline.ts:403-415",
+        "apps/server/src/services/visua.ts:1550",
+        "apps/server/src/services/visua.ts:1560",
+        "apps/server/src/services/visua.ts:1627-1647",
+        "apps/web/src/pages/SettingsPage.tsx:47-54"
+      ],
+      "qualifications": [
+        "The proposed extra separate review step is a product decision: a human proposal approval currently serves as the review.",
+        "The tool description forbids plans/drafts, but this semantic restriction is not deterministically enforced; no actual false narrative from a live run was observed.",
+        "checkResultId removal changes source to agent; it does not modify the stored connector observation, although it defeats the intended check-provenance path.",
+        "Do not call this a launch blocker or contributor privilege bypass without a defined assurance requirement."
+      ]
+    },
+    {
+      "finding": "G03",
+      "disposition": "qualified",
+      "severity": "medium",
+      "conclusion": "Expired historical evidence can keep a requirement at-risk despite fresh replacement evidence; rejected/pending past-dated evidence also contributes. The code implements the explicit any-expired precedence contract, so this is a missing supersession/lifecycle policy rather than an established contradiction of the current status specification.",
+      "trigger_and_constraints": "A requirement with current>0 retains an expired item and a fresh accepted replacement; repeated person connector runs append 30-day items. The same occurs for retained past-dated rejected/pending items. Root is independently reproducing this case; no run performed here.",
+      "evidence": [
+        "packages/core/src/status.ts:25-30",
+        "packages/core/src/status.ts:56-65",
+        "apps/server/src/services/visua.ts:1262-1264",
+        "apps/server/src/services/visua.ts:1286-1290",
+        "packages/agents/src/tools.ts:689-696",
+        "docs/architecture.md:138-145",
+        ".codex-context/invariants.md:status precedence contract"
+      ],
+      "qualifications": [
+        "High/launch-blocker framing is unsupported.",
+        "Fresh evidence does not override expiry under the current explicit rule. Choosing which series/item replaces which requires a policy and identity model.",
+        "Retiring old evidence, filtering rejected items, and overriding status are possible mitigations; the review did not establish a requirement for automatic retirement."
+      ]
+    },
+    {
+      "finding": "G04",
+      "disposition": "qualified",
+      "severity": "low",
+      "conclusion": "Human connector runs deliberately create accepted machine-observation evidence at contributor capability. This is documented automation, not a contributor bypass of human evidence approval. Presence heuristics and the common api-automated label warrant clearer assurance and automation-depth descriptions.",
+      "trigger_and_constraints": "A contributor runs an admin-configured repo connector containing even an empty CODEOWNERS file. The check passes and files evidence linked to broad control IDs. This evidence is one recorded indicator; it does not independently set verifiedAt or demonstrate every part of the requirement.",
+      "evidence": [
+        "apps/server/src/app.ts:555",
+        "apps/server/src/services/visua.ts:1263-1264",
+        "apps/server/src/services/visua.ts:1272-1295",
+        "apps/server/src/connectors/repo-scan.ts:80-87",
+        "packages/agents/src/offline.ts:403-415",
+        "packages/core/src/status.ts:67-71"
+      ],
+      "qualifications": [
+        "Agents intentionally use fileEvidence:false plus proposals; human runs intentionally file machine evidence directly.",
+        "Check-to-requirement links are evidence coverage associations, not published crosswalk claims. Calling every editorial check link an invariant violation conflates these roles.",
+        "Labeling local filesystem checks api-automated is misleading taxonomy if api-automated is intended to mean external API integration."
+      ]
+    },
+    {
+      "finding": "G05",
+      "disposition": "accepted",
+      "severity": "medium",
+      "conclusion": "Weak related-to sources can yield a level-3 suggestion with medium confidence solely because there are multiple sources. Offline Crosswalk Analyst does not inspect target evidence and omits available mapping authority/citations. This is overconfident implementation projection, not literal evidence creation or verified-status assignment.",
+      "trigger_and_constraints": "Two or more applicable mapped source states at level4, with related-to strength0.35: best=1.4, weighted mean=4, suggested=round(2.7)=3, confidence=medium. The target must be enabled/applicable and have lower current. Applying requires human approval or explicit set-level autonomy.",
+      "evidence": [
+        "packages/core/src/crosswalk.ts:12-28",
+        "packages/core/src/crosswalk.ts:35-48",
+        "packages/core/src/crosswalk.ts:106-137",
+        "packages/agents/src/offline.ts:595-623",
+        "packages/agents/src/agents.ts:40-42",
+        "packages/agents/src/agents.ts:82-84",
+        "apps/server/src/services/visua.ts:1492-1507",
+        "apps/server/src/services/visua.ts:1589-1591"
+      ],
+      "qualifications": [
+        "The mapping-is-never-evidence invariant is not literally broken by this path: it creates an assessment proposal and no evidence row.",
+        "Assessor prompt caps do not constitute a server validation contract for every agent or user assessment; the crosswalk role nevertheless explicitly requires justified evidence.",
+        "Current exceeding target is not necessarily invalid: target is a goal rather than a maximum, so target capping is an optional projection policy.",
+        "A precise replacement math formula is a design decision, not proven by the finding; source confidence and scale semantics need validation."
+      ]
+    },
+    {
+      "finding": "G06",
+      "disposition": "accepted",
+      "severity": "medium",
+      "conclusion": "Known-document citations trust the model-supplied quote, locator and page without verifying corpus membership. This permits false provenance to be stored as an official citation. Several action types record no citations, contrary to the universal README claim.",
+      "trigger_and_constraints": "A Claude assessment or policy tool supplies a valid documentId with an invented quote/page. Schema validation establishes shape only; normalizeCitations retains the fields. Unknown IDs are silently dropped. Offline citations are search hits rather than pinned node citations.",
+      "evidence": [
+        "packages/agents/src/tools.ts:52-61",
+        "packages/agents/src/tools.ts:437-466",
+        "packages/agents/src/offline.ts:70-73",
+        "packages/agents/src/offline.ts:618-623",
+        "packages/agents/src/agents.ts:114",
+        "README.md:8-11"
+      ],
+      "qualifications": [
+        "A fabricated runtime citation was not executed here; the acceptance path is source-confirmed.",
+        "Search-based citations and hyphen/truncation normalization are not inherently false citations. Their factual mismatch requires a specific corpus comparison; do not elevate those observations alone.",
+        "Not every operational task/check action needs framework text; the universal marketing claim should reflect actual stored references."
+      ]
+    },
+    {
+      "finding": "G07",
+      "disposition": "qualified",
+      "severity": "medium",
+      "conclusion": "Corpus visibility is intentionally installation-wide; installed AICPA content being visible to all authenticated users is an operator licensing/entitlement constraint, not demonstrated cross-tenant data leakage. The separate relinked-task model-text gate weakness is real: redaction derives solely from current requirementIds and loses provenance when links change.",
+      "trigger_and_constraints": "The installation must have licensed extractions and a task containing criterion/point-of-focus text, typically produced locally; a contributor relinks that task to unlicensed nodes without replacing description/checklist, then a Claude run includes its taskId while VISUA_AICPA_AI_USE is not permitted. modelTask finds no licensed linked nodes and sends retained text.",
+      "evidence": [
+        "apps/server/src/app.ts:289-359",
+        "corpus/README.md:90-103",
+        "packages/agents/src/tools.ts:232-251",
+        "packages/agents/src/tools.ts:642-652",
+        "packages/agents/src/runtime.ts:34-42",
+        "packages/agents/src/mode.ts:30-36",
+        "apps/server/src/services/visua.ts:937-952"
+      ],
+      "qualifications": [
+        "No AICPA license breach is adjudicated. Global installed-corpus behavior is explicitly documented.",
+        "Fresh clones use the Visua skeleton and do not have this licensed-text exposure.",
+        "The model gate must be active (Claude mode and no permitted setting); offline local processing is intentionally exempt.",
+        "The relink issue violates the explicit withholding contract; persist source provenance or sanitize all content rather than relying only on current links."
+      ]
+    },
+    {
+      "finding": "G08",
+      "disposition": "accepted",
+      "severity": "medium",
+      "conclusion": "The trust monitoring list incorrectly deduplicates checks across different connectors by checkId alone. A newer passing result for target A hides a failing result for target B. Other claims concern metric naming and intentional override/evidence policies.",
+      "trigger_and_constraints": "Two configured connectors produce the same checkId; the pass on A is newer than the fail on B, both within the latest100 rows. Public trust route keeps only the first checkId and drops B. No evidence or authorization bypass is required.",
+      "evidence": [
+        "apps/server/src/app.ts:675-689",
+        "packages/core/src/scoring.ts:110-128",
+        "packages/core/src/status.ts:48-50",
+        "packages/core/src/status.ts:67-71",
+        "apps/server/src/services/visua.ts:1129-1147",
+        "docs/architecture.md:138-150"
+      ],
+      "qualifications": [
+        "Readiness is explicitly documented as priority-weighted current/target, with evidenceCoverage separate. Its self-assessed basis needs clear public wording; this is not a hidden math defect.",
+        "Manual status override precedes risk by explicit contract; override-only verification should be labeled, not described as bypassing that contract.",
+        "Approving a policy intentionally generates policy evidence. Whether that proves design or operation is an assurance policy, not proof of complete compliance."
+      ]
+    },
+    {
+      "finding": "G09",
+      "disposition": "qualified",
+      "severity": "medium",
+      "conclusion": "Exported level0 as planned contradicts the local scale label not yet planned. Law gap/POAM exports use stored applicability while scores apply current date windows, producing inconsistent present-day reports. CSV leaves formula-leading user values unchanged, a conditional spreadsheet formula-injection risk. No OSCAL schema-conformance verdict is made.",
+      "trigger_and_constraints": "Export an untouched applicable RMF control at current0; export upcoming or ended law obligations whose stored applicable remains true and current<target; or export a user title/owner/notes beginning with a spreadsheet formula and open/import it in a spreadsheet that evaluates formulas.",
+      "evidence": [
+        "apps/server/src/services/exports.ts:10-14",
+        "apps/server/src/services/exports.ts:219-226",
+        "apps/server/src/services/exports.ts:238-258",
+        "apps/server/src/services/exports.ts:272-313",
+        "apps/server/src/services/exports.ts:323-345",
+        "packages/core/src/levels.ts:77-87",
+        "apps/server/src/services/visua.ts:807-821"
+      ],
+      "qualifications": [
+        "No official OSCAL schema was fetched/validated in this bounded task, so enum or overall schema invalidity is unverified, not an accepted claim.",
+        "Omitting tailoring provenance and changing entity UUIDs are interoperability/audit opportunities unless stable-reference requirements are established.",
+        "An expired ATO does not by itself prove the system is not operational; operational state and current authorization are distinct, so that alleged causal defect is rejected.",
+        "Upcoming obligations being assessable/plannable is documented (architecture.md:170); including them without present/upcoming labeling is the report inconsistency.",
+        "CSV evaluation depends on the downstream application and import behavior; no command execution or spreadsheet opening was attempted."
+      ]
+    },
+    {
+      "finding": "G10",
+      "disposition": "accepted",
+      "severity": "medium",
+      "conclusion": "Published obligation codes derive from array position rather than the available stable source obligationId. An insertion/reorder during a future corpus refresh can silently move persisted assessments and evidence onto another statutory obligation. This is a concrete migration/integrity hazard, not observed current corruption.",
+      "trigger_and_constraints": "Refresh a law by inserting or reordering obligations while retaining persisted workspaces; index-based codes are reused for changed semantics. Existing references continue to resolve to those codes. Current corpus static state is not itself broken.",
+      "evidence": [
+        "packages/frameworks/src/ingest/state-laws.ts:173-189",
+        "CLAUDE.md:48-49",
+        "packages/core/src/types.ts:RequirementState and Evidence node references"
+      ],
+      "qualifications": [
+        "Use source obligationId to freeze published code assignments; do not rename existing published codes blindly to source IDs.",
+        "Counts/law-code tests alone cannot prove stable code-to-obligation identity.",
+        "A refresh migration must handle removals and historical references as well as insertions."
+      ]
+    },
+    {
+      "finding": "G11",
+      "disposition": "qualified",
+      "severity": "low",
+      "conclusion": "Audit chaining authenticates recorded summaries, not complete entity content or an externally anchored final head. Evidence content/digests are absent from corresponding chained mutation summaries; flight-recorder steps are separate. This is an assurance limitation with an overstated deletion-detection comment, not a demonstrated app-level tampering exploit.",
+      "trigger_and_constraints": "A database writer alters an evidence row or removes the chain suffix; verifyAuditTrail still verifies the remaining summaries. An API metadata mutation emits a generic update entry without before/after values. Agent execution deliberately leaves principalContext and uses an agent/autonomy actor label; startedBy remains on its run record.",
+      "evidence": [
+        "apps/server/src/services/visua.ts:204-242",
+        "apps/server/src/services/visua.ts:144-156",
+        "apps/server/src/services/visua.ts:1034-1036",
+        "apps/server/src/services/visua.ts:1059-1069",
+        "apps/server/src/services/visua.ts:1320-1333",
+        "apps/server/src/services/visua.ts:1344-1352",
+        "apps/server/src/services/visua.ts:1550"
+      ],
+      "qualifications": [
+        "Tail truncation or undetectable row alteration requires database/operator compromise; no route removes arbitrary audit rows.",
+        "Evidence digest exists on upload/check paths but is not itself chained into collection/review/update audit entries.",
+        "Every normal mutation is still logged transactionally; lack of full post-state hashing does not mean no audit record exists.",
+        "External head anchoring, richer state diffs and onBehalfOf are useful assurance improvements; agent labels are expected system actors, not impersonation."
+      ]
+    },
+    {
+      "finding": "G12",
+      "disposition": "accepted",
+      "severity": "low",
+      "conclusion": "The policy-template fallback chooses array element0, the AI governance template, for unrelated unmatched requirement codes. Offline Policy Author therefore produces AI-specific roles/scope for controls such as SI-3. The Also satisfies mapping heading additionally overstates a related mapping.",
+      "trigger_and_constraints": "Run offline policy-author for an enabled/applicable SI-3 node or another unmatched code. templateFor returns AI template and composePolicy uses those roles/scope. Publication or accepted policy evidence still requires human approval; generation itself is a low-risk content defect.",
+      "evidence": [
+        "packages/agents/src/policies.ts:20-36",
+        "packages/agents/src/policies.ts:203-214",
+        "packages/agents/src/policies.ts:301-307",
+        "packages/agents/src/offline.ts:486-525"
+      ],
+      "qualifications": [
+        "An inappropriate draft is not automatic false certification.",
+        "Use a semantically appropriate fallback or require explicit policy choice; a universal information-security fallback may also be inappropriate for state AI laws."
+      ]
+    }
+  ],
+  "limitations": [
+    "OSCAL official schema/conformance was not verified; local semantic contradictions are identified separately.",
+    "Licensed corpus contents were not exposed or transmitted; relink behavior is source-derived.",
+    "No concrete downstream spreadsheet execution, future corpus refresh or live model false citation was run.",
+    "Root separately reproduces G01/G03/G06; those outcomes are not claimed as this worker evidence."
+  ]
+}

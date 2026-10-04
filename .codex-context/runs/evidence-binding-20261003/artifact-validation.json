@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "final_gate_source_files_unchanged": 23,
+  "fan_in_complete": true,
+  "native_nodes_accepted": 3,
+  "local_markdown_links_checked": 87,
+  "new_files_whitespace_checked": 86,
+  "tracked_diff_whitespace": "passed",
+  "review_reports": "schema/semantic shape valid; corrected report pass"
+}

@@ -1,0 +1,82 @@
+{
+  "status": "passed",
+  "focused_final": {
+    "log": "focused-final.log",
+    "files": 7,
+    "passed": 195
+  },
+  "repo_worker": {
+    "passed": 38
+  },
+  "typecheck": "passed",
+  "full_check": {
+    "command": "env -u VISUA_DATABASE_URL -u VISUA_DB -u VISUA_TEST_DATABASE_URL -u NODE_ENV -u VISUA_REPO_SCAN_ROOTS VISUA_AGENT_MODE=offline VISUA_AUTH_MODE=dev VISUA_PUBLIC_URL=http://localhost:8799 pnpm check",
+    "log": "full-check-delivery.log",
+    "source": "full-check-delivery-scope.json",
+    "status": "passed",
+    "exit_code": 0,
+    "seconds": 182,
+    "lanes": {
+      "licensing": "passed",
+      "typecheck": "passed",
+      "sqlite": {
+        "passed": 299,
+        "skipped": 2
+      },
+      "postgres": {
+        "passed": 301
+      },
+      "playwright": {
+        "passed": 23
+      },
+      "corpus": "passed",
+      "design": "passed"
+    },
+    "post_check_changes": "Completion prose and context/run records only; no source/test mutation."
+  },
+  "updated_utc": "2026-10-03T18:08:57.470903+00:00",
+  "first_full_check": {
+    "status": "passed",
+    "seconds": 191,
+    "sqlite_passed": 295,
+    "sqlite_skipped": 2,
+    "postgres_passed": 297,
+    "playwright_passed": 23,
+    "log": "full-check.log",
+    "scope": "full-check-scope.json",
+    "stale_reason": "DNS lifetime fix afterward"
+  },
+  "dns_regression": {
+    "passed": 57,
+    "files": 4,
+    "log": "dns-regression-final.log"
+  },
+  "dns_fix_full_check": {
+    "status": "passed",
+    "seconds": 260,
+    "sqlite_passed": 298,
+    "sqlite_skipped": 2,
+    "postgres_passed": 300,
+    "playwright_passed": 23,
+    "log": "full-check-final.log",
+    "scope": "full-check-final-scope.json",
+    "stale_reason": "deferred helper start restored and synchronous cancellation test afterward"
+  },
+  "review": {
+    "initial": "one supported medium DNS lifetime finding",
+    "followup": "pass, original and introduced sync cancellation races closed",
+    "log": "fix-review-final-focused.log",
+    "focused_passed": 90
+  },
+  "runtime": {
+    "node": "26.0.0",
+    "pnpm": "10.33.0"
+  },
+  "limitations": [
+    "Scan root ancestors must be operator-controlled; portable Node APIs cannot eliminate adversarial concurrent ancestor replacement.",
+    "Uncancellable DNS/filesystem calls retain capacity until physical completion; filesystem kernel stalls can outlast scan cancellation.",
+    "Stalled DNS tests hold mocked callbacks; policy timers are accelerated in focused regression tests.",
+    "This repository has oversized framework JSON, so secret scan warns with no findings and incomplete coverage.",
+    "Docker deployment uses October 2 source and was not updated."
+  ]
+}

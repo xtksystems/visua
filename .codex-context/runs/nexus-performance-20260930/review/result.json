@@ -1,0 +1,37 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "No supplied-source defect breaks a stated invariant. Checked and holding: pillar instance order, hit-testing, foot-ring alignment and bounding spheres; symmetric lane routing for two-way mappings; per-arc dash distances that match the line segments; distinct, static threat-status dashes; the home view merging arcs by framework pair and mapping set, and focus showing exact group links; disposal of arc and sector geometry and materials; height animations that stop once settled; camera time steps capped after a long idle; agent and reduced-motion redraws that stop correctly. Two low-severity risks remain: color-only changes (Observatory lens) depend on something else waking the scene, and the layout observer wakes the scene for HUD changes that cannot move the panels.",
+  "coverage": [
+    "Nexus.tsx: PillarField instancing, colors, hit-testing, foot alignment, bounding spheres",
+    "Nexus.tsx: arcsFor lane routing, overviewBundles/overviewArcs merging, batch/arcDistances dash attributes, Arcs disposal and visibility",
+    "Nexus.tsx Rig and Observatory.tsx CameraRig: home, selection and safe-area reframing, reduced-motion handling",
+    "demandRendering.ts: DemandCameraControls time-step cap, observeSceneLayout observers and transition loop",
+    "ScreenLabels.tsx: label measurement, invalidation, per-frame placement",
+    "framing.ts: useSafeArea view offset and invalidation, fitRing",
+    "FrameworkScene.tsx: UnitField animation and colors, Beacons/Satellites/Crystals remounts by key, Core/Comets/ShaderWarmup redraw loops"
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "apps/web/src/scene/FrameworkScene.tsx:101-111 (same pattern in Beacons, Satellites, Crystals, Nexus PillarField)",
+      "mechanism": "With on-demand rendering, instance color writes in a layout effect show up only if a frame is requested. The height effect calls invalidate() (line 94), but the color effect does not. A lens-only change does not rebuild the scene labels (their memo has no lens dependency, lines 485-536), so the new colors appear only if something else happens to request a frame, such as the renderer noticing new inline handler functions or a HUD DOM change.",
+      "evidence": "Line 94 calls invalidate() after height targets change. Lines 101-111 call setColorAt and set needsUpdate, but never invalidate(). The SceneLabels memo dependencies are [layout, state, selectedId, hoveredId, focusIds, onSelect].",
+      "recommendation": "Call invalidate() at the end of the color and placement layout effects, and add a demand-rendering test that a lens-only change triggers a draw."
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/src/scene/demandRendering.ts:37-63",
+      "mechanism": "Any transform, margin or padding transition on any element inside a HUD panel adds the element to the transition set. The scene then redraws on every animation frame, and every label is re-measured, until the transition ends. A transform on a child cannot change the panel's on-screen rectangle, and the ResizeObserver on the panels already catches real size changes. Separately, any text change inside the stage root also triggers a re-measure and a redraw. A ticking readout or a button's hover animation therefore causes draw work while the scene itself is idle.",
+      "evidence": "Line 51 accepts any target with closest('[data-hud]'). Line 52's property list includes transform and padding. flush (lines 20-26) keeps rescheduling while the transition set is non-empty. Line 46 observes text changes and class/style changes across the whole root subtree.",
+      "recommendation": "Only track transitions whose target is a HUD panel itself or contains one. Ignore text changes inside [data-hud] unless panels are added or removed. Add a test that a transition on a HUD child does not start a redraw loop."
+    }
+  ],
+  "limitations": [
+    "Not supplied, so not checked: spatialGeometry.ts (arcTriangles winding, hexRimGeometry), SpatialGround.tsx, colors.ts, global.css, the page and HUD components (CrosswalkPage, ObservatoryPage) and the useAgentActivity store.",
+    "Arc line width depends on the three.js version updating the line resolution before each draw. Arcs sets it in a useEffect without requesting a redraw, so on an older version a newly focused arc could be drawn once at the wrong width.",
+    "PillarField and UnitField rely on React Three Fiber rebuilding the instanced mesh when the instance count changes, while the other instanced components force a remount with a key. Correct handling depends on the library version.",
+    "Whether real HUD animations or readouts trigger finding 2 depends on CSS and page code that was not supplied.",
+    "Nothing was run and nothing was checked in a browser. The full integrated tests were still running when this review was done."
+  ]
+}

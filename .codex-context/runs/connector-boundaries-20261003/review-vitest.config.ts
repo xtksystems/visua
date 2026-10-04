@@ -1,0 +1,2 @@
+import { defineConfig } from "vitest/config";
+export default defineConfig({ test: { include: [".codex-context/runs/connector-boundaries-20261003/review-*.test.ts"], environment: "node", testTimeout: 10000, pool: "threads" } });

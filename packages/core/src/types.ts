@@ -381,7 +381,12 @@ export interface RequirementState {
   applicabilityRationale?: string;
   /** A person's documented "not applicable" decision. Kept separately so scope changes never overwrite it. */
   userExclusion?: { rationale: string; at: string; by: string };
+  /** Display name or an explicitly external owner label. */
   owner?: string;
+  /** Stable user id for a member of the workspace's organization. */
+  ownerUserId?: string;
+  /** Calendar date, YYYY-MM-DD. */
+  dueDate?: string;
   notes?: string;
   /** Set when an assessor (human or approved agent) verified the implementation. */
   verifiedAt?: string;
@@ -438,7 +443,9 @@ export interface Task {
   status: TaskStatus;
   priority: Priority;
   requirementIds: string[];
-  assignee?: { type: "person" | "agent"; id: string; name: string };
+  /** Server-owned, cumulative requirement provenance for task text; retained when links change. */
+  contentRequirementIds?: string[];
+  assignee?: { type: "person" | "agent" | "external"; id: string; name: string };
   startDate?: string;
   dueDate?: string;
   effortHours?: number;
@@ -467,6 +474,25 @@ export type EvidenceKind =
 
 export type EvidenceStatus = "pending-review" | "accepted" | "rejected" | "expired";
 
+/** The artifact and applicability window a person inspected when deciding. */
+export interface EvidenceReviewScope {
+  sha256?: string;
+  requirementIds: string[];
+  collectedAt: string;
+  validUntil?: string;
+}
+
+export interface EvidenceReview {
+  id: string;
+  decision: "accepted" | "rejected";
+  reviewedBy: string;
+  reviewedAt: string;
+  /** Missing scope archives a legacy decision; it never grants current approval. */
+  scope?: EvidenceReviewScope;
+  note?: string;
+  legacy?: boolean;
+}
+
 export interface Evidence {
   id: string;
   workspaceId: string;
@@ -485,6 +511,8 @@ export interface Evidence {
   sha256?: string;
   reviewedBy?: string;
   reviewedAt?: string;
+  /** Server-owned, append-only decisions with immutable scope snapshots. */
+  reviewHistory?: EvidenceReview[];
   createdAt: string;
 }
 

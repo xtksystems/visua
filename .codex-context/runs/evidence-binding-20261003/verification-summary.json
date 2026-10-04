@@ -1,0 +1,71 @@
+{
+  "status": "passed",
+  "updated_utc": "2026-10-03T19:22:39.366312+00:00",
+  "cwd": "/Users/artem/visua",
+  "full_check": {
+    "command": "env -u VISUA_DATABASE_URL -u VISUA_DB -u VISUA_TEST_DATABASE_URL -u NODE_ENV -u VISUA_REPO_SCAN_ROOTS VISUA_AGENT_MODE=offline VISUA_AUTH_MODE=dev VISUA_PUBLIC_URL=http://localhost:8799 pnpm check",
+    "log": "full-check-delivery.log",
+    "source": "full-check-delivery-scope.json",
+    "exit_code": 0,
+    "seconds": 266,
+    "lanes": {
+      "licensing": "passed",
+      "typecheck": "passed",
+      "sqlite": {
+        "passed": 360,
+        "skipped": 2
+      },
+      "postgres": {
+        "passed": 362
+      },
+      "playwright": {
+        "passed": 24
+      },
+      "corpus": "passed",
+      "design": "passed"
+    },
+    "post_check_changes": "Completion prose and context/run records only; no code/test/config/dependency mutation."
+  },
+  "focused": {
+    "core": {
+      "passed": 52,
+      "log": "core-worker-summary.json"
+    },
+    "initial_integration": {
+      "passed": 98,
+      "skipped": 1,
+      "log": "focused-sqlite.log"
+    },
+    "corrected_evidence": {
+      "passed": 19,
+      "log": "digest-fix-sqlite.log"
+    },
+    "corrected_browser": {
+      "passed": 2,
+      "log": "browser-fix.log"
+    }
+  },
+  "review": {
+    "initial": "Three supported findings, preserved in independent-review.json",
+    "corrections": "Canonical artifact envelope, fixed dialog snapshot, migrated digests for unbound legacy artifacts, including pending uploads",
+    "recheck": "pass; no supported remaining findings in bounded scope",
+    "report": "fix-review.json"
+  },
+  "first_full_check": {
+    "status": "failed",
+    "log": "full-check-first.log",
+    "sqlite_passed": 359,
+    "postgres_passed": 361,
+    "playwright_passed": 23,
+    "playwright_failed": 1,
+    "delivery_valid": false,
+    "reason": "Evidence table overflow; source also changed for supported review corrections"
+  },
+  "limitations": [
+    "Legacy malformed dates remain preserved and must be repaired through the evidence edit API before renewed review.",
+    "Metadata-only records cannot be accepted until an artifact is supplied.",
+    "Full evidence object storage, artifact versions/supersession, review reasons/withdrawal and richer lifecycle UI remain milestone 2 work.",
+    "Existing explicit autonomy permissions are preserved; no external model calls or deployment were performed.",
+    "Running Docker service retains October 2 source; local workspace changes are uncommitted."
+  ]
+}

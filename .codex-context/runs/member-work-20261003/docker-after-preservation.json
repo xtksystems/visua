@@ -1,0 +1,59 @@
+{
+  "integrity": "ok",
+  "tables": {
+    "workspaces": {
+      "count": 1,
+      "sha256": "1d43e4b37884cd2fa224108bddf1d338cfb1ba588e56b170628f342de6b58dbb",
+      "identitiesSha256": "00f266ccf50df64f5f3f009ab152e2f5461f82a23bcfe0650ad5613a0ea47fa8",
+      "contentSha256": "e3b2f6a2df830b9a61aa56a48f9c5e300e4d0fa79b78d0ab3db27ae801e714ff"
+    },
+    "requirement_states": {
+      "count": 1487,
+      "sha256": "b1bf77d07290f2f3954c8014c5f93d71b36cce6cbbfeb0be24259adf8df7dac6",
+      "identitiesSha256": "ab7d3cfb1108757b20eda6fe2a2d1c298a75672ff640b6b3d02cfef34769ba18",
+      "contentSha256": "2afade4ba60c4854512da8316e6d9f325d859685b1def9c101bd807a030e445e"
+    },
+    "tasks": {
+      "count": 18,
+      "sha256": "dcc2f35263b173d21dc717cb113a5f7d7c4f29e3b3a6dff3913e3e3a54aebbfe",
+      "identitiesSha256": "605bd80ff74162275558f75529512e1bd4377984ef8fbfcbccae218de30e7a18",
+      "contentSha256": "91001180ba4840391bec04de5059aea005f87304dcdd16382106eb56f6d768ff"
+    },
+    "activity": {
+      "count": 107,
+      "sha256": "3b0046e5df3f0b2aef581204ea821658ee31a2a559dd671bbe99cdbe03ea72f2",
+      "identitiesSha256": "6a9305b517eae3bf9c6aef97b5d665bc60a8e3f42ce0f3efd06af5b4b7d3e258",
+      "contentSha256": "7f6643442b43b85c8a419fa8bec5ed52b41af41901fef85c0e342aae8bf6bce2"
+    },
+    "tenants": {
+      "count": 2,
+      "sha256": "083b6bb6af191b1214286474e6b852d82f8d00d11202bbf6aa074fca50528d99",
+      "identitiesSha256": "bc1fa6bd1327270392ec6f9d5213e6648ee652958b870db5de57280ae3dec19c",
+      "contentSha256": "9dededba2c64f04f6883d8e2a934a123f772d408ddf6127d0220667ee25fff72"
+    },
+    "memberships": {
+      "count": 9,
+      "sha256": "48981855f1c5c7d0df44ea34af1686f8ba6e820939c565ba9937763206f7b47b",
+      "identitiesSha256": "c672f5896a65ba680ce5fd2adaf56e935b48032ab98dbc291303465f0b3edd16",
+      "contentSha256": "48981855f1c5c7d0df44ea34af1686f8ba6e820939c565ba9937763206f7b47b"
+    }
+  },
+  "evidenceStatuses": {
+    "pending-review": 18
+  },
+  "maxActivitySeq": 97,
+  "historicalActivity": {
+    "count": 89,
+    "sha256": "3ed452dfb2f6a934deb994106b7d552c07a901ab92192b49f62b9ca8714bbd98"
+  },
+  "migrations": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "evidenceCount": 18,
+  "evidenceIdentitiesSha256": "f9b2763bab4149f1c1c11abe1995d206845a48ec6dcbf751702d5d8d86179b0e",
+  "legacyReviewCount": 18
+}

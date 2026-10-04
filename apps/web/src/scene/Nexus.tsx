@@ -4,11 +4,10 @@
  * Pillar height = number of units (log), pillar color = group status, arc
  * width = number of unit-level mappings, arc color = source → target framework.
  */
-import { CameraControls, PerformanceMonitor, Stars } from "@react-three/drei";
-import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Color, FogExp2, QuadraticBezierCurve3, Vector3, type PerspectiveCamera } from "three";
+import { CameraControls } from "@react-three/drei";
+import { Canvas, useThree, type ThreeEvent } from "@react-three/fiber";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { Color, CubicBezierCurve3, CylinderGeometry, FogExp2, Float32BufferAttribute, InstancedBufferAttribute, InstancedMesh, Object3D, RingGeometry, Vector3, type PerspectiveCamera } from "three";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2.js";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry.js";
@@ -16,6 +15,8 @@ import { designSystem } from "@visua/design";
 import type { FrameworkFamily, Status } from "@visua/core";
 import { allFrameworks, frameworkMeta } from "../lib/frameworks.ts";
 import type { LinkStatus, ThreatRing } from "../lib/types.ts";
+import { DemandCameraControls } from "./demandRendering.ts";
+import { arcTriangles, positionGeometry } from "./spatialGeometry.ts";
 import { TOKENS } from "./colors.ts";
 import { fitRing, titleSize, useSafeArea } from "./framing.ts";
 import type { Vec3 } from "./layout.ts";
@@ -67,7 +68,7 @@ export function frameworkColor(id: string): string | undefined {
   if (!meta || meta.family === "threat") return undefined;
   const base = c[`framework-${meta.family}` as keyof typeof c];
   const first = allFrameworks().find((f) => f.family === meta.family)?.id === id;
-  return first ? base : `#${new Color(base).lerp(new Color("#ffffff"), 0.45).getHexString()}`;
+  return first ? base : `#${new Color(base).lerp(TOKENS.surface, 0.25).getHexString()}`;
 }
 
 export interface NexusLayout {
@@ -119,65 +120,103 @@ const inkOf = (framework: string) => {
 
 const heightOf = (units: number) => 0.8 + Math.log2(units + 1) * 0.75;
 
-function Pillars({ layout, selected, hovered, related, onHover, onSelect }: { layout: NexusLayout; selected: string | null; hovered: string | null; related: Set<string>; onHover: (id: string | null) => void; onSelect: (id: string) => void }) {
-  const focus = hovered ?? selected;
+const pillarShape = new CylinderGeometry(0.62, 0.7, 1, 6).translate(0, 0.5, 0);
+const threatShape = new CylinderGeometry(0.5, 0.5, 1, 3).translate(0, 0.5, 0);
+const pillarFoot = new RingGeometry(0.8, 1.0, 6, 1, Math.PI / 6).rotateX(-Math.PI / 2);
+const threatFoot = new RingGeometry(0.6, 0.8, 3, 1, Math.PI / 6).rotateX(-Math.PI / 2);
+
+type PillarProps = { layout: NexusLayout; selected: string | null; hovered: string | null; related: Set<string>; onHover: (id: string | null) => void; onSelect: (id: string) => void };
+
+/** Two instanced fields preserve kind silhouettes without one draw call per group. */
+function PillarField({ inner, layout, selected, hovered, related, onHover, onSelect }: PillarProps & { inner: boolean }) {
+  const invalidate = useThree((s) => s.invalidate);
+  const mesh = useRef<InstancedMesh>(null);
+  const feet = useRef<InstancedMesh>(null);
+  const items = useMemo(() => [...layout.positions].filter(([, p]) => p.inner === inner), [layout, inner]);
+  useLayoutEffect(() => {
+    const m = mesh.current, f = feet.current;
+    if (!m || !f) return;
+    const transform = new Object3D();
+    const focus = hovered ?? selected;
+    items.forEach(([id, p], i) => {
+      const dim = !!focus && id !== focus && !related.has(id);
+      const color = p.group.status !== null ? TOKENS.status[p.group.status].clone() : inkOf(p.framework).lerp(TOKENS.neutral, 0.56);
+      if (dim) color.lerp(TOKENS.neutral, 0.72);
+      transform.position.set(p.pos[0], 0, p.pos[2]);
+      transform.scale.set(1, heightOf(p.group.units) * (inner ? 0.8 : 1), 1);
+      transform.updateMatrix();
+      m.setMatrixAt(i, transform.matrix);
+      m.setColorAt(i, color);
+      transform.position.y = 0.035;
+      transform.scale.setScalar(1);
+      transform.updateMatrix();
+      f.setMatrixAt(i, transform.matrix);
+      f.setColorAt(i, inkOf(p.framework).lerp(TOKENS.neutral, dim ? 0.85 : 0.25));
+    });
+    for (const field of [m, f]) {
+      field.instanceMatrix.needsUpdate = true;
+      if (field.instanceColor) field.instanceColor.needsUpdate = true;
+      field.computeBoundingSphere();
+    }
+    invalidate();
+  }, [items, selected, hovered, related, inner, invalidate]);
+  const hit = (e: ThreeEvent<PointerEvent | MouseEvent>) => e.instanceId === undefined ? undefined : items[e.instanceId]?.[0];
+  if (!items.length) return null;
   return (
     <group>
-      {[...layout.positions.entries()].map(([id, p]) => {
-        const h = heightOf(p.group.units) * (p.inner ? 0.8 : 1);
-        const enabled = p.group.status !== null;
-        const base = enabled ? TOKENS.status[p.group.status!] : inkOf(p.framework).multiplyScalar(0.45);
-        const dim = focus && id !== focus && !related.has(id);
-        const isSel = id === selected;
-        return (
-          <group key={id} position={[p.pos[0], 0, p.pos[2]]}>
-            <mesh
-              position={[0, h / 2, 0]}
-              onPointerOver={(e: ThreeEvent<PointerEvent>) => {
-                e.stopPropagation();
-                onHover(id);
-                document.body.style.cursor = "pointer";
-              }}
-              onPointerOut={() => {
-                onHover(null);
-                document.body.style.cursor = "";
-              }}
-              onClick={(e: ThreeEvent<MouseEvent>) => {
-                e.stopPropagation();
-                onSelect(id);
-              }}
-            >
-              {p.inner ? <cylinderGeometry args={[0.5, 0.5, h, 3]} /> : <cylinderGeometry args={[0.62, 0.7, h, 6]} />}
-              <meshStandardMaterial color={base} emissive={base} emissiveIntensity={isSel ? 1.4 : id === hovered ? 0.9 : 0.28} transparent opacity={dim ? 0.22 : 1} roughness={0.45} metalness={0.1} />
-            </mesh>
-          </group>
-        );
+      <instancedMesh ref={mesh} args={[inner ? threatShape : pillarShape, undefined, items.length]}
+        onPointerMove={(e) => { e.stopPropagation(); const id = hit(e); if (id) onHover(id); document.body.style.cursor = "pointer"; }}
+        onPointerOut={() => { onHover(null); document.body.style.cursor = ""; }}
+        onClick={(e) => { e.stopPropagation(); const id = hit(e); if (id) onSelect(id); }}>
+        <meshStandardMaterial roughness={0.62} metalness={0.08} flatShading />
+      </instancedMesh>
+      <instancedMesh ref={feet} args={[inner ? threatFoot : pillarFoot, undefined, items.length]} raycast={() => null}>
+        <meshBasicMaterial polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-2} />
+      </instancedMesh>
+    </group>
+  );
+}
+
+function Pillars(props: PillarProps) {
+  return (
+    <group>
+      <PillarField {...props} inner={false} />
+      <PillarField {...props} inner />
+      {[props.selected, props.hovered].map((id, i) => {
+        const p = id ? props.layout.positions.get(id) : undefined;
+        return <mesh key={i} visible={!!p && !(i === 1 && id === props.selected)} position={p ? [p.pos[0], 0.05, p.pos[2]] : [0, 0, 0]} rotation-x={-Math.PI / 2} raycast={() => null}>
+          <ringGeometry args={[1.05, 1.22, 6, 1, Math.PI / 6]} />
+          <meshBasicMaterial color={TOKENS.primary} transparent opacity={i === 0 ? 1 : 0.55} toneMapped={false} />
+        </mesh>;
       })}
     </group>
   );
 }
 
 function Sectors({ layout }: { layout: NexusLayout }) {
-  return (
-    <group>
-      {layout.sectors.map((s) => {
-        const color = inkOf(s.framework.id);
-        const r = s.inner ? INNER_RADIUS : RADIUS;
-        return (
-          <group key={s.framework.id}>
-            <mesh rotation-x={-Math.PI / 2} position={[0, 0.02, 0]}>
-              <ringGeometry args={[r - 1.5, r - (s.inner ? 1.2 : 1.0), 96, 1, s.start, s.end - s.start]} />
-              <meshBasicMaterial color={color} transparent opacity={s.inner ? 0.6 : 0.85} toneMapped={false} />
-            </mesh>
-            <mesh rotation-x={-Math.PI / 2} position={[0, 0.01, 0]}>
-              <ringGeometry args={[r - 1.0, r + (s.inner ? 1.1 : 1.6), 96, 1, s.start, s.end - s.start]} />
-              <meshBasicMaterial color={color} transparent opacity={0.07} />
-            </mesh>
-          </group>
-        );
-      })}
-    </group>
-  );
+  const geometry = useMemo(() => {
+    const ground: number[] = [], rail: number[] = [], groundColors: number[] = [], railColors: number[] = [];
+    const append = (points: number[], colors: number[], vertices: number[], color: Color) => {
+      points.push(...vertices);
+      for (let i = 0; i < vertices.length / 3; i++) colors.push(color.r, color.g, color.b);
+    };
+    for (const sector of layout.sectors) {
+      const radius = sector.inner ? INNER_RADIUS : RADIUS;
+      const ink = inkOf(sector.framework.id);
+      // Nexus uses -sin(angle) for Z, so reverse the angular interval for XZ geometry.
+      append(ground, groundColors, arcTriangles(radius - 1.6, radius + (sector.inner ? 1.1 : 1.6), -sector.end, -sector.start, -0.04), ink.clone().lerp(TOKENS.neutral, 0.92));
+      append(rail, railColors, arcTriangles(radius - 1.6, radius - 1.35, -sector.end, -sector.start, 0.015), ink.clone().lerp(TOKENS.neutral, sector.inner ? 0.4 : 0.15));
+    }
+    const base = positionGeometry(ground), edge = positionGeometry(rail);
+    base.setAttribute("color", new Float32BufferAttribute(groundColors, 3));
+    edge.setAttribute("color", new Float32BufferAttribute(railColors, 3));
+    return { base, edge };
+  }, [layout]);
+  useEffect(() => () => { geometry.base.dispose(); geometry.edge.dispose(); }, [geometry]);
+  return <group>
+    <mesh geometry={geometry.base} raycast={() => null}><meshBasicMaterial vertexColors /></mesh>
+    <mesh geometry={geometry.edge} raycast={() => null}><meshBasicMaterial vertexColors toneMapped={false} /></mesh>
+  </group>;
 }
 
 const sectorAnchor = (s: NexusLayout["sectors"][number]): Vec3 => {
@@ -247,13 +286,26 @@ interface ArcGeometry {
  */
 export const LINK_DASH: Record<LinkStatus, { dashSize: number; gapSize: number } | null> = {
   final: null,
-  draft: { dashSize: 1.1, gapSize: 0.55 },
-  unreviewed: { dashSize: 0.28, gapSize: 0.5 },
-  superseded: { dashSize: 0.28, gapSize: 0.5 },
+  draft: { dashSize: 1.2, gapSize: 0.6 },
+  unreviewed: { dashSize: 0.45, gapSize: 0.55 },
+  superseded: { dashSize: 0.45, gapSize: 1.6 },
 };
 
-function arcsFor(layout: NexusLayout, bundles: NexusBundle[]): ArcGeometry[] {
+export function arcsFor(layout: NexusLayout, bundles: NexusBundle[]): ArcGeometry[] {
   const out: ArcGeometry[] = [];
+  const lanes = new Map<string, string[]>();
+  for (const b of bundles) {
+    const pair = JSON.stringify([b.a, b.b].sort());
+    const sets = lanes.get(pair) ?? [];
+    if (!sets.includes(b.setId)) sets.push(b.setId);
+    lanes.set(pair, sets);
+  }
+  for (const sets of lanes.values()) sets.sort();
+  const hubs = new Map(layout.sectors.map((s) => {
+    const mid = (s.start + s.end) / 2;
+    const radius = s.inner ? INNER_RADIUS * 0.7 : RADIUS * 0.18;
+    return [s.framework.id, new Vector3(Math.cos(mid) * radius, 0, -Math.sin(mid) * radius)];
+  }));
   for (const b of bundles) {
     const pa = layout.positions.get(b.a);
     const pb = layout.positions.get(b.b);
@@ -261,10 +313,18 @@ function arcsFor(layout: NexusLayout, bundles: NexusBundle[]): ArcGeometry[] {
     const a = new Vector3(pa.pos[0] * 0.955, 0.3, pa.pos[2] * 0.955);
     const z = new Vector3(pb.pos[0] * 0.955, 0.3, pb.pos[2] * 0.955);
     const chord = a.distanceTo(z);
-    const mid = a.clone().add(z).multiplyScalar(0.5);
-    // Threat links rise from the inner ring in a lower, flatter arc.
-    const control = pa.inner || pb.inner ? mid.multiplyScalar(0.7).setY(3 + chord * 0.28) : mid.multiplyScalar(0.18).setY(4 + chord * 0.42);
-    const points = new QuadraticBezierCurve3(a, control, z).getPoints(40);
+    // Shared framework hubs organize dense crossings while endpoints remain at their groups.
+    const rise = (pa.inner || pb.inner ? 3 + chord * 0.28 : 4 + chord * 0.42) * 2 / 3;
+    const c1 = a.clone().lerp(hubs.get(pa.framework) ?? a, 0.55).setY(rise);
+    const c2 = z.clone().lerp(hubs.get(pb.framework) ?? z, 0.55).setY(rise);
+    // Separate parallel publication sets in XZ so a solid link cannot hide a draft.
+    const sets = lanes.get(JSON.stringify([b.a, b.b].sort()))!;
+    const lane = (sets.indexOf(b.setId) - (sets.length - 1) / 2) * 1.2;
+    const direction = b.a < b.b ? 1 : -1;
+    const offset = new Vector3(-(z.z - a.z), 0, z.x - a.x).normalize().multiplyScalar(lane * direction);
+    c1.add(offset);
+    c2.add(offset);
+    const points = new CubicBezierCurve3(a, c1, c2, z).getPoints(40);
     const ca = inkOf(pa.framework);
     const cb = inkOf(pb.framework);
     const colors = points.map((_, i) => {
@@ -278,58 +338,117 @@ function arcsFor(layout: NexusLayout, bundles: NexusBundle[]): ArcGeometry[] {
   return out;
 }
 
+/** Home view aggregates relationships by framework pair and provenance/status set.
+ * Selecting a group restores its exact group-to-group connections. */
+export function overviewBundles(layout: NexusLayout, bundles: NexusBundle[]): NexusBundle[] {
+  const groups = new Map<string, NexusBundle>();
+  for (const b of bundles) {
+    const a = layout.positions.get(b.a)?.framework;
+    const z = layout.positions.get(b.b)?.framework;
+    if (!a || !z) continue;
+    const [from, to] = [a, z].sort() as [string, string];
+    const key = JSON.stringify([b.setId, from, to]);
+    const existing = groups.get(key);
+    if (existing) existing.count += b.count;
+    else groups.set(key, { a: from, b: to, count: b.count, setId: b.setId });
+  }
+  return [...groups.values()];
+}
+
+function overviewArcs(layout: NexusLayout, bundles: NexusBundle[]): ArcGeometry[] {
+  const positions: NexusLayout["positions"] = new Map();
+  for (const s of layout.sectors) {
+    const angle = (s.start + s.end) / 2;
+    const radius = s.inner ? INNER_RADIUS : RADIUS;
+    positions.set(s.framework.id, { angle, pos: [radius * Math.cos(angle), 0, -radius * Math.sin(angle)], framework: s.framework.id, inner: s.inner,
+      group: { id: s.framework.id, code: s.framework.shortName, title: s.framework.shortName, units: 0, readiness: null, status: null } });
+  }
+  return arcsFor({ positions, sectors: layout.sectors }, overviewBundles(layout, bundles));
+}
+
 /** Line widths (pixels) snap to a few steps so arcs batch into a handful of draw calls. */
 const WIDTHS = [1, 1.5, 2.2, 3, 4, 5.4, 7.2];
 const snapWidth = (w: number) => WIDTHS.reduce((best, x) => (Math.abs(x - w) < Math.abs(best - w) ? x : best), WIDTHS[0]!);
 
 interface Batch {
   line: LineSegments2;
-  animated: boolean;
-  /** The resting opacity, restored when nothing is in focus. */
-  opacity: number;
 }
 
-function batch(arcs: ArcGeometry[], opts: { width: number; opacity: number; dash: { dashSize: number; gapSize: number } | null; animated: boolean }): Batch {
+/** Reset dash phase for each relationship, independent of its place in the batch. */
+export function arcDistances(arcs: { points: Vector3[] }[]): { starts: number[]; ends: number[] } {
+  const starts: number[] = [], ends: number[] = [];
+  for (const arc of arcs) {
+    let distance = 0;
+    for (let i = 0; i + 1 < arc.points.length; i++) {
+      starts.push(distance);
+      distance += arc.points[i]!.distanceTo(arc.points[i + 1]!);
+      ends.push(distance);
+    }
+  }
+  return { starts, ends };
+}
+
+function batch(arcs: ArcGeometry[], opts: { width: number; opacity: number; wash?: number; dash: { dashSize: number; gapSize: number } | null }): Batch {
   const positions: number[] = [];
   const colors: number[] = [];
+  const wash = opts.wash ?? 0;
+  const keep = 1 - wash;
   for (const arc of arcs) {
     for (let i = 0; i < arc.points.length - 1; i++) {
       const p = arc.points[i]!;
       const q = arc.points[i + 1]!;
+      const a = arc.colors[i]!;
+      const z = arc.colors[i + 1]!;
       positions.push(p.x, p.y, p.z, q.x, q.y, q.z);
-      colors.push(...arc.colors[i]!, ...arc.colors[i + 1]!);
+      colors.push(
+        a[0] * keep + TOKENS.neutral.r * wash,
+        a[1] * keep + TOKENS.neutral.g * wash,
+        a[2] * keep + TOKENS.neutral.b * wash,
+        z[0] * keep + TOKENS.neutral.r * wash,
+        z[1] * keep + TOKENS.neutral.g * wash,
+        z[2] * keep + TOKENS.neutral.b * wash,
+      );
     }
   }
   const geometry = new LineSegmentsGeometry();
   geometry.setPositions(positions);
   geometry.setColors(colors);
-  const material = new LineMaterial({ linewidth: opts.width, vertexColors: true, transparent: true, opacity: opts.opacity, depthWrite: false, dashed: !!opts.dash, dashSize: opts.dash?.dashSize ?? 1, gapSize: opts.dash?.gapSize ?? 1 });
+  const material = new LineMaterial({ linewidth: opts.width, vertexColors: true, transparent: opts.opacity < 1, opacity: opts.opacity, depthWrite: opts.opacity === 1, dashed: !!opts.dash, dashSize: opts.dash?.dashSize ?? 1, gapSize: opts.dash?.gapSize ?? 1 });
   material.toneMapped = false;
   const line = new LineSegments2(geometry, material);
-  if (opts.dash) line.computeLineDistances();
-  return { line, animated: opts.animated, opacity: opts.opacity };
+  if (opts.dash) {
+    const distances = arcDistances(arcs);
+    geometry.setAttribute("instanceDistanceStart", new InstancedBufferAttribute(new Float32Array(distances.starts), 1));
+    geometry.setAttribute("instanceDistanceEnd", new InstancedBufferAttribute(new Float32Array(distances.ends), 1));
+  }
+  return { line };
 }
 
 /**
  * All arcs in a few draw calls (the Nexus drew one mesh per bundle, ~960 a frame):
- * resting arcs batch by width, opacity and dash style, and dim together when a pillar
- * is in focus; the focused pillar's arcs are drawn again on top, wider and bright.
+ * resting arcs batch by width and dash style. Their colors are mixed toward the canvas
+ * and rendered without alpha blending, so dense crossings do not accumulate into a
+ * dark patch. Focusing a pillar hides unrelated links and shows its own arcs wider
+ * and in framework color.
  */
-function Arcs({ arcs, focus, reducedMotion }: { arcs: ArcGeometry[]; focus: string | null; reducedMotion: boolean }) {
+function Arcs({ arcs, overview, focus }: { arcs: ArcGeometry[]; overview: ArcGeometry[]; focus: string | null }) {
+  const invalidate = useThree((s) => s.invalidate);
   const size = useThree((s) => s.size);
   const resting = useMemo(() => {
     const groups = new Map<string, ArcGeometry[]>();
-    for (const arc of arcs) {
+    for (const arc of overview) {
       const dash = arc.status ? LINK_DASH[arc.status] : null;
-      const key = `${snapWidth(arc.width)}|${arc.bundle.count > 2 ? 0.3 : 0.14}|${dash ? `${dash.dashSize}/${dash.gapSize}` : "-"}`;
-      groups.set(key, [...(groups.get(key) ?? []), arc]);
+      const key = `${snapWidth(arc.width)}|${dash ? `${dash.dashSize}/${dash.gapSize}` : "-"}`;
+      const list = groups.get(key);
+      if (list) list.push(arc);
+      else groups.set(key, [arc]);
     }
     return [...groups.entries()].map(([key, list]) => {
-      const [w, o] = key.split("|");
+      const [w] = key.split("|");
       const dash = list[0]!.status ? LINK_DASH[list[0]!.status] : null;
-      return batch(list, { width: Number(w), opacity: Number(o), dash, animated: false });
+      return batch(list, { width: Math.max(0.8, Number(w) * 0.7), opacity: 1, wash: 0.18, dash });
     });
-  }, [arcs]);
+  }, [overview]);
   const active = useMemo(() => {
     if (!focus) return [];
     const touching = arcs.filter((a) => a.bundle.a === focus || a.bundle.b === focus);
@@ -337,21 +456,20 @@ function Arcs({ arcs, focus, reducedMotion }: { arcs: ArcGeometry[]; focus: stri
     for (const arc of touching) {
       const dash = arc.status ? LINK_DASH[arc.status] : null;
       const key = `${snapWidth(arc.width * 1.35)}|${dash ? `${dash.dashSize}/${dash.gapSize}` : "-"}`;
-      groups.set(key, [...(groups.get(key) ?? []), arc]);
+      const list = groups.get(key);
+      if (list) list.push(arc);
+      else groups.set(key, [arc]);
     }
-    // Requirement arcs in focus march (dashes move) unless motion is reduced; threat arcs keep their status pattern.
+    // Selection changes emphasis; dash patterns continue to encode publication status.
     return [...groups.entries()].map(([key, list]) => {
       const dash = list[0]!.status ? LINK_DASH[list[0]!.status] : null;
-      const animated = !dash && !reducedMotion;
-      return batch(list, { width: Number(key.split("|")[0]), opacity: 0.95, dash: dash ?? (animated ? { dashSize: 1.6, gapSize: 0.5 } : null), animated });
+      return batch(list, { width: Number(key.split("|")[0]), opacity: 1, dash });
     });
-  }, [arcs, focus, reducedMotion]);
-  useEffect(() => {
-    for (const b of resting) (b.line.material as LineMaterial).opacity = focus ? 0.022 : b.opacity;
-  }, [resting, focus]);
+  }, [arcs, focus]);
   useEffect(() => {
     for (const b of [...resting, ...active]) (b.line.material as LineMaterial).resolution.set(size.width, size.height);
-  }, [resting, active, size]);
+    invalidate();
+  }, [resting, active, size, invalidate]);
   useEffect(
     () => () => {
       for (const b of resting) {
@@ -370,13 +488,10 @@ function Arcs({ arcs, focus, reducedMotion }: { arcs: ArcGeometry[]; focus: stri
     },
     [active],
   );
-  useFrame((_, dt) => {
-    for (const b of active) if (b.animated) (b.line.material as LineMaterial).dashOffset -= dt * 2.4;
-  });
   return (
     <group>
       {resting.map((b, i) => (
-        <primitive key={`r${i}`} object={b.line} />
+        <primitive key={`r${i}`} object={b.line} visible={focus === null} />
       ))}
       {active.map((b, i) => (
         <primitive key={`a${i}`} object={b.line} />
@@ -432,15 +547,15 @@ function Rig({ selected, layout, reducedMotion }: { selected: string | null; lay
     if (atHome.current && !selected) home(!reducedMotion);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [safe]);
-  return <CameraControls ref={controls} makeDefault minDistance={18} maxDistance={260} maxPolarAngle={Math.PI * 0.47} smoothTime={reducedMotion ? 0.001 : 0.4} />;
+  return <CameraControls ref={controls} impl={DemandCameraControls} makeDefault minDistance={18} maxDistance={260} maxPolarAngle={Math.PI * 0.47} smoothTime={reducedMotion ? 0.001 : 0.4} />;
 }
 
 export function NexusCanvas({ data, selected, onSelect, onHover, hovered }: { data: NexusData; selected: string | null; onSelect: (id: string | null) => void; onHover: (id: string | null) => void; hovered: string | null }) {
   const reducedMotion = usePrefersReducedMotion();
-  const [effects, setEffects] = useState(true);
   const layout = useMemo(() => nexusLayout(data.frameworks, threatFrameworks(data.threats)), [data.frameworks, data.threats]);
   const bundles = useMemo<NexusBundle[]>(() => [...data.bundles, ...(data.threats?.bundles ?? []).map((b) => ({ a: b.a, b: b.b, count: b.count, setId: `threat:${b.best}` }))], [data.bundles, data.threats]);
   const arcs = useMemo(() => arcsFor(layout, bundles), [layout, bundles]);
+  const overview = useMemo(() => overviewArcs(layout, bundles), [layout, bundles]);
   const focus = hovered ?? selected;
   const related = useMemo(() => {
     const s = new Set<string>();
@@ -453,6 +568,7 @@ export function NexusCanvas({ data, selected, onSelect, onHover, hovered }: { da
   }, [focus, bundles]);
   return (
     <Canvas
+      frameloop="demand"
       dpr={[1, 1.75]}
       camera={{ fov: 45, near: 0.1, far: 2000, position: [0, 82, 92] }}
       gl={{ antialias: true, powerPreference: "high-performance", preserveDrawingBuffer: true }}
@@ -461,26 +577,15 @@ export function NexusCanvas({ data, selected, onSelect, onHover, hovered }: { da
     >
       <color attach="background" args={[TOKENS.neutral]} />
       <fogExp2 attach="fog" args={[TOKENS.neutral, 0.0065]} />
-      <hemisphereLight args={[TOKENS.primaryContainer, TOKENS.neutral, 0.9]} />
-      <ambientLight intensity={0.3} />
-      <directionalLight position={[30, 60, 20]} intensity={1.4} />
-      <Stars radius={140} depth={60} count={1200} factor={2.2} saturation={0} fade speed={0} />
-      <mesh rotation-x={-Math.PI / 2} position={[0, -0.02, 0]}>
-        <circleGeometry args={[RADIUS + 12, 96]} />
-        <meshBasicMaterial color={TOKENS.grid} transparent opacity={0.35} />
-      </mesh>
+      <hemisphereLight args={[TOKENS.surface, TOKENS.primaryContainer, 0.85]} />
+      <ambientLight intensity={0.25} />
+      <directionalLight position={[30, 60, 20]} intensity={2.1} />
+      <directionalLight position={[-40, 22, -30]} intensity={0.4} color={TOKENS.neutral} />
       <Sectors layout={layout} />
-      <Arcs arcs={arcs} focus={focus} reducedMotion={reducedMotion} />
+      <Arcs arcs={arcs} overview={overview} focus={focus} />
       <Pillars layout={layout} selected={selected} hovered={hovered} related={related} onHover={onHover} onSelect={(id) => onSelect(id)} />
       <NexusLabels layout={layout} selected={selected} hovered={hovered} related={related} onSelect={onSelect} />
       <Rig selected={selected} layout={layout} reducedMotion={reducedMotion} />
-      <PerformanceMonitor onDecline={() => setEffects(false)} />
-      {effects && (
-        <EffectComposer multisampling={0}>
-          <Bloom luminanceThreshold={0.75} luminanceSmoothing={0.2} intensity={0.8} mipmapBlur />
-          <Vignette offset={0.28} darkness={0.55} />
-        </EffectComposer>
-      )}
     </Canvas>
   );
 }

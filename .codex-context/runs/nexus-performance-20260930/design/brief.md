@@ -1,0 +1,580 @@
+You are Claude Opus 5.5, explicitly requested for difficult 3D reasoning. Bounded tool-free worker; at most 900 words total. Task: substantially improve Visua Crosswalk Nexus visual quality AND rendering performance. Light matte 3D, semantic height=count, status colors, framework identity along mapping arcs. Existing arcs batched, pillars currently individual meshes, perpetual loop and decorative marching selected links. Lead will implement instanced pillars, demand rendering and better layered sector grounds. Propose 2-3 precise high-impact visual improvements and implementation algorithms for density, focus, semantically correct threat dash patterns and batched geometry, preserve positions/camera/2D list. No dependencies, bloom, shadows, invented mappings, or decorative motion. No tools/screenshots supplied: source reasoning only. Include risk/acceptance advice. Do not output full file rewrites. Own report only; Codex implements and tests. Stop after this bounded analysis.
+
+SOURCE apps/web/src/scene/Nexus.tsx
+/**
+ * The Crosswalk Nexus: every framework on one ring, its requirement groups as
+ * pillars, and authoritative mappings as bundled arcs rising between them.
+ * Pillar height = number of units (log), pillar color = group status, arc
+ * width = number of unit-level mappings, arc color = source → target framework.
+ */
+import { CameraControls } from "@react-three/drei";
+import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
+import { Color, FogExp2, QuadraticBezierCurve3, Vector3, type PerspectiveCamera } from "three";
+import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
+import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2.js";
+import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry.js";
+import { designSystem } from "@visua/design";
+import type { FrameworkFamily, Status } from "@visua/core";
+import { allFrameworks, frameworkMeta } from "../lib/frameworks.ts";
+import type { LinkStatus, ThreatRing } from "../lib/types.ts";
+import { TOKENS } from "./colors.ts";
+import { fitRing, titleSize, useSafeArea } from "./framing.ts";
+import type { Vec3 } from "./layout.ts";
+import { usePrefersReducedMotion } from "./Observatory.tsx";
+import { hudRects, ScreenLabels, type ScreenLabel } from "./ScreenLabels.tsx";
+
+export interface NexusGroup {
+  id: string;
+  code: string;
+  title: string;
+  units: number;
+  readiness: number | null;
+  status: Status | null;
+}
+export interface NexusFramework {
+  id: string;
+  shortName: string;
+  family: FrameworkFamily;
+  enabled: boolean;
+  groups: NexusGroup[];
+}
+export interface NexusBundle {
+  a: string;
+  b: string;
+  count: number;
+  setId: string;
+}
+export interface NexusData {
+  frameworks: NexusFramework[];
+  sets: { id: string; title: string; authority: string; source: string; target: string; count: number; documentId?: string; documentTitle?: string }[];
+  bundles: NexusBundle[];
+  /** Inner ring: threat catalogs bundled onto the requirement groups their publishers link them to. */
+  threats?: ThreatRing;
+}
+
+const RADIUS = 30;
+const INNER_RADIUS = 13;
+const FRAMEWORK_GAP = 0.16;
+const c = designSystem.colors;
+const order = (id: string) => allFrameworks().findIndex((f) => f.id === id);
+
+/**
+ * A framework's hue is its family's (DESIGN.md framework-*). A second framework of the
+ * same family (RMF tasks after the SP 800-53 catalog) is lifted toward white to tell
+ * them apart. Threat catalogs have no identity hue: they use neutral ink.
+ */
+export function frameworkColor(id: string): string | undefined {
+  const meta = frameworkMeta(id);
+  if (!meta || meta.family === "threat") return undefined;
+  const base = c[`framework-${meta.family}` as keyof typeof c];
+  const first = allFrameworks().find((f) => f.family === meta.family)?.id === id;
+  return first ? base : `#${new Color(base).lerp(TOKENS.surface, 0.25).getHexString()}`;
+}
+
+export interface NexusLayout {
+  positions: Map<string, { angle: number; pos: [number, number, number]; framework: string; group: NexusGroup; inner: boolean }>;
+  sectors: { framework: NexusFramework; start: number; end: number; inner: boolean }[];
+}
+
+/** Lay groups around a ring, one sector per framework (or threat catalog). */
+function ring(frameworks: NexusFramework[], radius: number, inner: boolean, into: NexusLayout) {
+  const total = frameworks.reduce((s, f) => s + f.groups.length, 0);
+  const per = (Math.PI * 2 - FRAMEWORK_GAP * frameworks.length) / Math.max(1, total);
+  let angle = Math.PI / 2 + FRAMEWORK_GAP / 2;
+  for (const f of frameworks) {
+    const start = angle;
+    for (const g of f.groups) {
+      const a = angle + per / 2;
+      into.positions.set(g.id, { angle: a, pos: [radius * Math.cos(a), 0, -radius * Math.sin(a)], framework: f.id, group: g, inner });
+      angle += per;
+    }
+    into.sectors.push({ framework: f, start, end: angle, inner });
+    angle += FRAMEWORK_GAP;
+  }
+}
+
+/** Threat catalogs as ring frameworks: their groups (tactics, entries, objectives) colored by pooled coverage. */
+export function threatFrameworks(threats: ThreatRing | undefined): NexusFramework[] {
+  return (threats?.catalogs ?? []).map((c) => ({
+    id: c.id,
+    shortName: c.shortName,
+    family: "threat",
+    enabled: true,
+    groups: c.groups.map((g) => ({ id: g.id, code: g.code, title: g.title, units: g.units, readiness: g.readiness, status: g.status })),
+  }));
+}
+
+export function nexusLayout(frameworks: NexusFramework[], threats?: NexusFramework[]): NexusLayout {
+  const layout: NexusLayout = { positions: new Map(), sectors: [] };
+  ring([...frameworks].sort((a, b) => order(a.id) - order(b.id)), RADIUS, false, layout);
+  if (threats?.length) ring(threats, INNER_RADIUS, true, layout);
+  return layout;
+}
+
+/** Threat catalogs carry no identity hue (DESIGN.md): neutral ink. */
+const THREAT_INK = TOKENS.muted;
+const inkOf = (framework: string) => {
+  const hue = frameworkColor(framework);
+  return hue ? new Color(hue) : THREAT_INK.clone();
+};
+
+const heightOf = (units: number) => 0.8 + Math.log2(units + 1) * 0.75;
+
+function Pillars({ layout, selected, hovered, related, onHover, onSelect }: { layout: NexusLayout; selected: string | null; hovered: string | null; related: Set<string>; onHover: (id: string | null) => void; onSelect: (id: string) => void }) {
+  const focus = hovered ?? selected;
+  return (
+    <group>
+      {[...layout.positions.entries()].map(([id, p]) => {
+        const h = heightOf(p.group.units) * (p.inner ? 0.8 : 1);
+        const enabled = p.group.status !== null;
+        const base = enabled ? TOKENS.status[p.group.status!] : inkOf(p.framework).lerp(TOKENS.neutral, 0.56);
+        const dim = focus && id !== focus && !related.has(id);
+        const isSel = id === selected;
+        return (
+          <group key={id} position={[p.pos[0], 0, p.pos[2]]}>
+            <mesh
+              position={[0, h / 2, 0]}
+              onPointerOver={(e: ThreeEvent<PointerEvent>) => {
+                e.stopPropagation();
+                onHover(id);
+                document.body.style.cursor = "pointer";
+              }}
+              onPointerOut={() => {
+                onHover(null);
+                document.body.style.cursor = "";
+              }}
+              onClick={(e: ThreeEvent<MouseEvent>) => {
+                e.stopPropagation();
+                onSelect(id);
+              }}
+            >
+              {p.inner ? <cylinderGeometry args={[0.5, 0.5, h, 3]} /> : <cylinderGeometry args={[0.62, 0.7, h, 6]} />}
+              <meshStandardMaterial color={base} transparent opacity={dim ? 0.32 : 1} roughness={0.7} metalness={0.04} />
+            </mesh>
+            {(isSel || id === hovered) && (
+              <mesh rotation-x={-Math.PI / 2} position={[0, 0.045, 0]} raycast={() => null}>
+                <ringGeometry args={p.inner ? [0.65, 0.84, 6] : [0.82, 1.02, 6]} />
+                <meshBasicMaterial color={TOKENS.primary} transparent opacity={isSel ? 0.95 : 0.55} toneMapped={false} />
+              </mesh>
+            )}
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
+function Sectors({ layout }: { layout: NexusLayout }) {
+  return (
+    <group>
+      {layout.sectors.map((s) => {
+        const color = inkOf(s.framework.id);
+        const r = s.inner ? INNER_RADIUS : RADIUS;
+        return (
+          <group key={s.framework.id}>
+            <mesh rotation-x={-Math.PI / 2} position={[0, 0.02, 0]}>
+              <ringGeometry args={[r - 1.5, r - (s.inner ? 1.2 : 1.0), 96, 1, s.start, s.end - s.start]} />
+              <meshBasicMaterial color={color} transparent opacity={s.inner ? 0.42 : 0.65} toneMapped={false} />
+            </mesh>
+            <mesh rotation-x={-Math.PI / 2} position={[0, 0.01, 0]}>
+              <ringGeometry args={[r - 1.0, r + (s.inner ? 1.1 : 1.6), 96, 1, s.start, s.end - s.start]} />
+              <meshBasicMaterial color={color} transparent opacity={0.08} />
+            </mesh>
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
+const sectorAnchor = (s: NexusLayout["sectors"][number]): Vec3 => {
+  const mid = (s.start + s.end) / 2;
+  // Framework names sit outside the outer ring; threat-catalog names just inside the inner one.
+  const r = s.inner ? INNER_RADIUS - 2.6 : RADIUS + 2.4;
+  return [r * Math.cos(mid), 0.3, -r * Math.sin(mid)];
+};
+
+/**
+ * Names and codes in screen space (ScreenLabels): framework names with their identity
+ * swatch outside the ring, threat catalogs inside theirs, then pillar codes by priority —
+ * the selection and hover first, their linked groups next; the rest where they fit.
+ */
+function NexusLabels({ layout, selected, hovered, related, onSelect }: { layout: NexusLayout; selected: string | null; hovered: string | null; related: Set<string>; onSelect: (id: string) => void }) {
+  const labels = useMemo<ScreenLabel[]>(() => {
+    const out: ScreenLabel[] = [];
+    const focus = hovered ?? selected;
+    const owner = selected ? layout.positions.get(selected)?.framework : undefined;
+    for (const s of layout.sectors) {
+      const anchor = sectorAnchor(s);
+      out.push({
+        id: `sector:${s.framework.id}`,
+        variant: "sector",
+        position: anchor,
+        outwardFrom: s.inner ? [anchor[0] * 4, 0, anchor[2] * 4] : [0, 0, 0],
+        title: s.framework.shortName,
+        sub: s.inner ? `${s.framework.groups.length} groups · threats` : `${s.framework.groups.length} groups${s.framework.enabled ? "" : " · not enabled"}`,
+        swatch: frameworkColor(s.framework.id),
+        priority: s.inner ? 480 : owner === s.framework.id ? 620 : 500,
+      });
+    }
+    for (const [id, p] of layout.positions) {
+      const emphasized = id === selected || id === hovered;
+      if (focus && !emphasized && !related.has(id)) continue;
+      // The threat ring's codes sit among the arcs: they appear once a pillar is in focus.
+      if (!focus && p.inner) continue;
+      const h = heightOf(p.group.units) * (p.inner ? 0.8 : 1);
+      out.push({
+        id: `pillar:${id}`,
+        variant: emphasized ? "selected" : "code",
+        position: [p.pos[0], h + 0.5, p.pos[2]],
+        title: p.group.code,
+        priority: id === selected ? 1000 : id === hovered ? 900 : related.has(id) ? 420 : p.inner ? 140 : 150,
+        active: id === selected,
+        onClick: () => onSelect(id),
+      });
+    }
+    return out;
+  }, [layout, selected, hovered, related, onSelect]);
+  return <ScreenLabels labels={labels} />;
+}
+
+interface ArcGeometry {
+  key: string;
+  bundle: NexusBundle;
+  points: Vector3[];
+  colors: [number, number, number][];
+  width: number;
+  /** Threat links only: the status of the strongest link in the bundle. */
+  status?: LinkStatus;
+}
+
+/**
+ * Threat links show their status as a dash pattern (legend in the Nexus HUD): final
+ * links solid, drafts dashed, unreviewed and superseded ones dotted.
+ */
+export const LINK_DASH: Record<LinkStatus, { dashSize: number; gapSize: number } | null> = {
+  final: null,
+  draft: { dashSize: 1.1, gapSize: 0.55 },
+  unreviewed: { dashSize: 0.28, gapSize: 0.5 },
+  superseded: { dashSize: 0.28, gapSize: 0.5 },
+};
+
+function arcsFor(layout: NexusLayout, bundles: NexusBundle[]): ArcGeometry[] {
+  const out: ArcGeometry[] = [];
+  for (const b of bundles) {
+    const pa = layout.positions.get(b.a);
+    const pb = layout.positions.get(b.b);
+    if (!pa || !pb) continue;
+    const a = new Vector3(pa.pos[0] * 0.955, 0.3, pa.pos[2] * 0.955);
+    const z = new Vector3(pb.pos[0] * 0.955, 0.3, pb.pos[2] * 0.955);
+    const chord = a.distanceTo(z);
+    const mid = a.clone().add(z).multiplyScalar(0.5);
+    // Threat links rise from the inner ring in a lower, flatter arc.
+    const control = pa.inner || pb.inner ? mid.multiplyScalar(0.7).setY(3 + chord * 0.28) : mid.multiplyScalar(0.18).setY(4 + chord * 0.42);
+    const points = new QuadraticBezierCurve3(a, control, z).getPoints(40);
+    const ca = inkOf(pa.framework);
+    const cb = inkOf(pb.framework);
+    const colors = points.map((_, i) => {
+      const t = i / (points.length - 1);
+      const col = ca.clone().lerp(cb, t);
+      return [col.r, col.g, col.b] as [number, number, number];
+    });
+    const status = b.setId.startsWith("threat:") ? (b.setId.slice(7) as LinkStatus) : undefined;
+    out.push({ key: `${b.setId}|${b.a}|${b.b}`, bundle: b, points, colors, width: 0.5 + Math.sqrt(b.count) * 0.55, ...(status ? { status } : {}) });
+  }
+  return out;
+}
+
+/** Line widths (pixels) snap to a few steps so arcs batch into a handful of draw calls. */
+const WIDTHS = [1, 1.5, 2.2, 3, 4, 5.4, 7.2];
+const snapWidth = (w: number) => WIDTHS.reduce((best, x) => (Math.abs(x - w) < Math.abs(best - w) ? x : best), WIDTHS[0]!);
+
+interface Batch {
+  line: LineSegments2;
+  animated: boolean;
+}
+
+function batch(arcs: ArcGeometry[], opts: { width: number; opacity: number; wash?: number; dash: { dashSize: number; gapSize: number } | null; animated: boolean }): Batch {
+  const positions: number[] = [];
+  const colors: number[] = [];
+  const wash = opts.wash ?? 0;
+  const keep = 1 - wash;
+  for (const arc of arcs) {
+    for (let i = 0; i < arc.points.length - 1; i++) {
+      const p = arc.points[i]!;
+      const q = arc.points[i + 1]!;
+      const a = arc.colors[i]!;
+      const z = arc.colors[i + 1]!;
+      positions.push(p.x, p.y, p.z, q.x, q.y, q.z);
+      colors.push(
+        a[0] * keep + TOKENS.neutral.r * wash,
+        a[1] * keep + TOKENS.neutral.g * wash,
+        a[2] * keep + TOKENS.neutral.b * wash,
+        z[0] * keep + TOKENS.neutral.r * wash,
+        z[1] * keep + TOKENS.neutral.g * wash,
+        z[2] * keep + TOKENS.neutral.b * wash,
+      );
+    }
+  }
+  const geometry = new LineSegmentsGeometry();
+  geometry.setPositions(positions);
+  geometry.setColors(colors);
+  const material = new LineMaterial({ linewidth: opts.width, vertexColors: true, transparent: opts.opacity < 1, opacity: opts.opacity, depthWrite: false, dashed: !!opts.dash, dashSize: opts.dash?.dashSize ?? 1, gapSize: opts.dash?.gapSize ?? 1 });
+  material.toneMapped = false;
+  const line = new LineSegments2(geometry, material);
+  if (opts.dash) line.computeLineDistances();
+  return { line, animated: opts.animated };
+}
+
+/**
+ * All arcs in a few draw calls (the Nexus drew one mesh per bundle, ~960 a frame):
+ * resting arcs batch by width and dash style. Their colors are mixed toward the canvas
+ * and rendered without alpha blending, so dense crossings do not accumulate into a
+ * dark patch. Focusing a pillar hides unrelated links and shows its own arcs wider
+ * and in framework color.
+ */
+function Arcs({ arcs, focus, reducedMotion }: { arcs: ArcGeometry[]; focus: string | null; reducedMotion: boolean }) {
+  const size = useThree((s) => s.size);
+  const resting = useMemo(() => {
+    const groups = new Map<string, ArcGeometry[]>();
+    for (const arc of arcs) {
+      const dash = arc.status ? LINK_DASH[arc.status] : null;
+      const key = `${snapWidth(arc.width)}|${dash ? `${dash.dashSize}/${dash.gapSize}` : "-"}`;
+      groups.set(key, [...(groups.get(key) ?? []), arc]);
+    }
+    return [...groups.entries()].map(([key, list]) => {
+      const [w] = key.split("|");
+      const dash = list[0]!.status ? LINK_DASH[list[0]!.status] : null;
+      return batch(list, { width: Math.max(0.8, Number(w) * 0.7), opacity: 1, wash: 0.35, dash, animated: false });
+    });
+  }, [arcs]);
+  const active = useMemo(() => {
+    if (!focus) return [];
+    const touching = arcs.filter((a) => a.bundle.a === focus || a.bundle.b === focus);
+    const groups = new Map<string, ArcGeometry[]>();
+    for (const arc of touching) {
+      const dash = arc.status ? LINK_DASH[arc.status] : null;
+      const key = `${snapWidth(arc.width * 1.35)}|${dash ? `${dash.dashSize}/${dash.gapSize}` : "-"}`;
+      groups.set(key, [...(groups.get(key) ?? []), arc]);
+    }
+    // Requirement arcs in focus march (dashes move) unless motion is reduced; threat arcs keep their status pattern.
+    return [...groups.entries()].map(([key, list]) => {
+      const dash = list[0]!.status ? LINK_DASH[list[0]!.status] : null;
+      const animated = !dash && !reducedMotion;
+      return batch(list, { width: Number(key.split("|")[0]), opacity: 0.95, dash: dash ?? (animated ? { dashSize: 1.6, gapSize: 0.5 } : null), animated });
+    });
+  }, [arcs, focus, reducedMotion]);
+  useEffect(() => {
+    for (const b of [...resting, ...active]) (b.line.material as LineMaterial).resolution.set(size.width, size.height);
+  }, [resting, active, size]);
+  useEffect(
+    () => () => {
+      for (const b of resting) {
+        b.line.geometry.dispose();
+        (b.line.material as LineMaterial).dispose();
+      }
+    },
+    [resting],
+  );
+  useEffect(
+    () => () => {
+      for (const b of active) {
+        b.line.geometry.dispose();
+        (b.line.material as LineMaterial).dispose();
+      }
+    },
+    [active],
+  );
+  useFrame((_, dt) => {
+    for (const b of active) if (b.animated) (b.line.material as LineMaterial).dashOffset -= dt * 2.4;
+  });
+  return (
+    <group>
+      {resting.map((b, i) => (
+        <primitive key={`r${i}`} object={b.line} visible={focus === null} />
+      ))}
+      {active.map((b, i) => (
+        <primitive key={`a${i}`} object={b.line} />
+      ))}
+    </group>
+  );
+}
+
+/** Seen from above the SOC 2 / CSF side, like the original home view (0, 82, 92 → 0, −2, 6). */
+const HOME_DIRECTION = new Vector3(0, 84, 86);
+
+function Rig({ selected, layout, reducedMotion }: { selected: string | null; layout: NexusLayout; reducedMotion: boolean }) {
+  const controls = useRef<CameraControls>(null);
+  const camera = useThree((s) => s.camera) as PerspectiveCamera;
+  const gl = useThree((s) => s.gl);
+  const scene = useThree((s) => s.scene);
+  const size = useThree((s) => s.size);
+  const safe = useSafeArea();
+  const atHome = useRef(true);
+  const framed = useRef(false);
+  const home = (transition: boolean) => {
+    if (!safe || !controls.current) return;
+    const titles = layout.sectors.filter((s) => !s.inner).map((s) => ({ anchor: new Vector3(...sectorAnchor(s)), ...titleSize(s.framework.shortName, { swatch: true, sub: 110 }) }));
+    const pose = fitRing({ camera, width: size.width, height: size.height, safe, panels: hudRects(gl.domElement), radius: RADIUS + 1.6, top: 7, titles, dir: HOME_DIRECTION, center: 0.1 });
+    if (scene.fog instanceof FogExp2) scene.fog.density = (0.0065 * 120) / Math.max(60, pose.distance);
+    void controls.current.setLookAt(pose.position.x, pose.position.y, pose.position.z, pose.target.x, pose.target.y, pose.target.z, transition && framed.current);
+    framed.current = true;
+    atHome.current = true;
+  };
+  useEffect(() => {
+    const c = controls.current;
+    if (!c) return;
+    const away = () => {
+      atHome.current = false;
+    };
+    c.addEventListener("controlstart", away);
+    return () => c.removeEventListener("controlstart", away);
+  }, []);
+  useEffect(() => {
+    if (!selected) {
+      home(!reducedMotion);
+      return;
+    }
+    const p = layout.positions.get(selected);
+    if (!p) return;
+    atHome.current = false;
+    // Look across the ring from behind the selected pillar so its arcs fan out toward the viewer.
+    const back = new Vector3(p.pos[0], 0, p.pos[2]).normalize();
+    void controls.current?.setLookAt(back.x * 70, 42, back.z * 70, -back.x * 6, 3, -back.z * 6, !reducedMotion);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected, layout, reducedMotion]);
+  useEffect(() => {
+    if (atHome.current && !selected) home(!reducedMotion);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [safe]);
+  return <CameraControls ref={controls} makeDefault minDistance={18} maxDistance={260} maxPolarAngle={Math.PI * 0.47} smoothTime={reducedMotion ? 0.001 : 0.4} />;
+}
+
+export function NexusCanvas({ data, selected, onSelect, onHover, hovered }: { data: NexusData; selected: string | null; onSelect: (id: string | null) => void; onHover: (id: string | null) => void; hovered: string | null }) {
+  const reducedMotion = usePrefersReducedMotion();
+  const layout = useMemo(() => nexusLayout(data.frameworks, threatFrameworks(data.threats)), [data.frameworks, data.threats]);
+  const bundles = useMemo<NexusBundle[]>(() => [...data.bundles, ...(data.threats?.bundles ?? []).map((b) => ({ a: b.a, b: b.b, count: b.count, setId: `threat:${b.best}` }))], [data.bundles, data.threats]);
+  const arcs = useMemo(() => arcsFor(layout, bundles), [layout, bundles]);
+  const focus = hovered ?? selected;
+  const related = useMemo(() => {
+    const s = new Set<string>();
+    if (!focus) return s;
+    for (const b of bundles) {
+      if (b.a === focus) s.add(b.b);
+      if (b.b === focus) s.add(b.a);
+    }
+    return s;
+  }, [focus, bundles]);
+  return (
+    <Canvas
+      dpr={[1, 1.75]}
+      camera={{ fov: 45, near: 0.1, far: 2000, position: [0, 82, 92] }}
+      gl={{ antialias: true, powerPreference: "high-performance", preserveDrawingBuffer: true }}
+      onPointerMissed={() => onSelect(null)}
+      aria-label="3D crosswalk Nexus. Use the group list beside it for keyboard navigation."
+    >
+      <color attach="background" args={[TOKENS.neutral]} />
+      <fogExp2 attach="fog" args={[TOKENS.neutral, 0.0065]} />
+      <hemisphereLight args={[TOKENS.surface, TOKENS.primaryContainer, 1.15]} />
+      <ambientLight intensity={0.45} />
+      <directionalLight position={[30, 60, 20]} intensity={1.65} />
+      <directionalLight position={[-40, 22, -30]} intensity={0.4} color={TOKENS.neutral} />
+      <mesh rotation-x={-Math.PI / 2} position={[0, -0.02, 0]}>
+        <circleGeometry args={[RADIUS + 12, 96]} />
+        <meshBasicMaterial color={TOKENS.primaryContainer} transparent opacity={0.35} />
+      </mesh>
+      <Sectors layout={layout} />
+      <Arcs arcs={arcs} focus={focus} reducedMotion={reducedMotion} />
+      <Pillars layout={layout} selected={selected} hovered={hovered} related={related} onHover={onHover} onSelect={(id) => onSelect(id)} />
+      <NexusLabels layout={layout} selected={selected} hovered={hovered} related={related} onSelect={onSelect} />
+      <Rig selected={selected} layout={layout} reducedMotion={reducedMotion} />
+    </Canvas>
+  );
+}
+
+SOURCE apps/web/src/scene/spatialGeometry.ts
+/** Ground geometry stays on XZ: surface offsets prevent z-fighting, never encode data. */
+import { BufferGeometry, Float32BufferAttribute } from "three";
+import type { Layout, Vec3 } from "./layout.ts";
+
+export type Point2 = [number, number];
+
+/** Counter-clockwise convex hull in XZ, including the footprint of every cell. */
+export function convexHull(points: Point2[]): Point2[] {
+  const sorted = [...new Map(points.map((p) => [`${p[0]},${p[1]}`, p])).values()].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  if (sorted.length < 3) return sorted;
+  const cross = (a: Point2, b: Point2, c: Point2) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+  const half = (list: Point2[]) => {
+    const out: Point2[] = [];
+    for (const p of list) {
+      while (out.length > 1 && cross(out.at(-2)!, out.at(-1)!, p) <= 0) out.pop();
+      out.push(p);
+    }
+    return out;
+  };
+  return [...half(sorted).slice(0, -1), ...half([...sorted].reverse()).slice(0, -1)];
+}
+
+export function rootOf(layout: Layout, id: string | null): string | undefined {
+  let node = id ? layout.byId.get(id) : undefined;
+  while (node?.parentId) node = layout.byId.get(node.parentId);
+  return node?.id;
+}
+
+export function districtHulls(layout: Layout): Map<string, Point2[]> {
+  const points = new Map<string, Point2[]>();
+  for (const id of layout.units) {
+    const root = rootOf(layout, id);
+    const p = layout.positions.get(id);
+    if (!root || !p) continue;
+    const list = points.get(root) ?? [];
+    for (let i = 0; i < 6; i++) {
+      const a = i * Math.PI / 3;
+      list.push([p[0] + Math.sin(a) * layout.cell * 1.3, p[2] + Math.cos(a) * layout.cell * 1.3]);
+    }
+    points.set(root, list);
+  }
+  return new Map([...points].map(([id, pts]) => [id, convexHull(pts)]));
+}
+
+/** Explicit upward winding for a triangle fan on XZ. */
+export function hullTriangles(hull: Point2[], y: number): number[] {
+  const out: number[] = [];
+  for (let i = 1; i + 1 < hull.length; i++) {
+    for (const p of [hull[0]!, hull[i + 1]!, hull[i]!]) out.push(p[0], y, p[1]);
+  }
+  return out;
+}
+
+/** An annular strip, with subdivision proportional to its angular span. */
+export function arcTriangles(inner: number, outer: number, start: number, end: number, y: number): number[] {
+  if (end <= start || outer <= inner) return [];
+  const out: number[] = [];
+  const steps = Math.max(1, Math.ceil((end - start) * 40));
+  const p = (r: number, a: number): Vec3 => [Math.cos(a) * r, y, Math.sin(a) * r];
+  for (let i = 0; i < steps; i++) {
+    const a = start + (end - start) * i / steps;
+    const b = start + (end - start) * (i + 1) / steps;
+    for (const v of [p(inner, a), p(inner, b), p(outer, a), p(outer, a), p(inner, b), p(outer, b)]) out.push(...v);
+  }
+  return out;
+}
+
+export function positionGeometry(positions: number[]): BufferGeometry {
+  const geometry = new BufferGeometry();
+  geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
+  return geometry;
+}
+
+/** A flat six-sided rim aligned with Three's CylinderGeometry, for instancing. */
+export function hexRimGeometry(inner = 0.9): BufferGeometry {
+  const out: number[] = [];
+  for (let i = 0; i < 6; i++) {
+    const a = i * Math.PI / 3;
+    const b = (i + 1) * Math.PI / 3;
+    const p = (r: number, angle: number) => [Math.sin(angle) * r, 0, Math.cos(angle) * r];
+    for (const v of [p(inner, a), p(1, a), p(inner, b), p(1, a), p(1, b), p(inner, b)]) out.push(...v);
+  }
+  return positionGeometry(out);
+}

@@ -1,0 +1,20 @@
+{
+  "status": "complete",
+  "verdict": "pass",
+  "summary": "Completed bounded affected-flow re-review against all 61 matching fix-review-scope.json pins. All four original findings are fixed in current source: cross-framework deep-link cleanup, workspace/session live-activity isolation, delayed inspector task/evidence errors, and duplicated Plan notifications. ProposalCard now uses canonical workspace identity. No remaining supported issue was identified within this assigned scope.",
+  "coverage": [
+    "Checked all 61 source SHA-256 pins at start and end; no drift. Brief SHA-256 is 6df36f0758058eb66f16aaf607d0fd302bdfed18e085e428ed4315acd54e7725. Preserved original selection-review.json and its envelope/evidence unchanged.",
+    "Original live-activity finding: fixed. Read state/agentActivity.ts setWorkspace/reset, Shell layout activation and unmount reset, auth.ts useResetSession, and events.ts closed/current-canonical-id guards. Traced workspace switches, principal/session reset, connection cleanup, queued old-source messages and same-workspace reconnection invalidation through the actual source.",
+    "Original cross-framework deep-link finding: fixed. Read Observatory selectNode, URL-to-store effect and framework cleanup; cleanup now preserves valid target params from the new graph. Read mapped navigation regression covering initially uncached target graph and the subsequent cached return path.",
+    "Original delayed task/evidence error finding: fixed. Read Inspector keyed observer lifetime, useSelectionError and hook-level handlers on Assessment, TasksTab and EvidenceTab. The global default skips these explicit handlers; inactive originating components suppress late errors. Read active-failure tests that retain drafts/dialog content and delayed-failure tests that capture toast history by substring after A-to-B navigation.",
+    "Original duplicated Plan notification finding: fixed. Read contextual hook-level onError options on plan/create and removal of per-call duplicate handlers; compared against main MutationCache suppression and useWsMutation option forwarding. Read task/plan failure tests asserting exactly one toast and retained quick-add draft.",
+    "Inspected ProposalCard canonical mutation path through useWorkspaceId, work.approve gate and useWsMutation id-keyed invalidation; reread workspace.ts and relevant queries.ts canonical alias/query-key paths and adjacent sign-out/login behavior.",
+    "Inspected completed root-owned review-regressions-after.log: eight named affected-flow regressions report passing in 28.3 seconds. Inspected current corresponding e2e source rather than claiming reviewer execution. The source tests and assertions cover the behaviors above; the live-activity fixture additionally dispatches an event from a saved obsolete source after it closes."
+  ],
+  "findings": [],
+  "limitations": [
+    "This is an adjudication follow-up with inherited original findings and intended fixes, not a fresh generic independent review.",
+    "Reviewer performed source analysis and artifact inspection only; no builds, tests, server/browser execution or external-provider calls were run by this reviewer. The root-supplied regression log reports 8 passed; this review did not independently establish its built-bundle digest.",
+    "Full project check is owned by root and was not assessed in this bounded affected-flow review. Runtime provider/model identity remains unknown."
+  ]
+}

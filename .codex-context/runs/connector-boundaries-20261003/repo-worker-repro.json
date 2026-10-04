@@ -1,0 +1,51 @@
+{
+  "source": "pre-change repo-scan.ts",
+  "scenario": "allowlisted repository contains file symlinks to a sibling directory",
+  "policy": {
+    "checkId": "security-policy",
+    "title": "Vulnerability disclosure policy (SECURITY.md)",
+    "outcome": "pass",
+    "detail": "Found SECURITY.md",
+    "observed": {
+      "file": "SECURITY.md"
+    },
+    "requirements": {
+      "csf": [
+        "ID.RA-08"
+      ],
+      "soc2": [
+        "CC2.3"
+      ],
+      "sp80053": [
+        "RA-5(11)"
+      ]
+    }
+  },
+  "secrets": {
+    "checkId": "secrets",
+    "title": "No credentials committed to the repository",
+    "outcome": "fail",
+    "detail": "1 potential secret(s): AWS access key id in linked.txt",
+    "observed": {
+      "findings": [
+        {
+          "file": "linked.txt",
+          "kind": "AWS access key id"
+        }
+      ]
+    },
+    "requirements": {
+      "csf": [
+        "PR.AA-01",
+        "PR.DS-01"
+      ],
+      "soc2": [
+        "CC6.1"
+      ],
+      "sp80053": [
+        "IA-5"
+      ]
+    }
+  },
+  "conclusion": "Old source followed escaping file symlinks: external SECURITY.md passed, external fake AWS key produced a finding. No key bytes included."
+}

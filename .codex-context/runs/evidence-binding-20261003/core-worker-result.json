@@ -1,0 +1,17 @@
+{
+  "run_id": "evidence-binding-20261003",
+  "node_id": "core-worker",
+  "input_sha256": "9178f634dd564f41ee74e872151d01a03ed413560ce1a87598a6e134a3b4a890",
+  "status": "complete",
+  "summary": "Added strict evidence dates, canonical review scopes and approval-bound validity/freshness without changing status precedence or scoring thresholds.",
+  "evidence": [
+    "Old-source sanitized fixture: malformed expiry counted valid and a changed requirement link retained verified status; core-worker-reproduction.json records source digests.",
+    "Focused Vitest suites passed: 2 files, 52 tests covering strict dates, link/window/hash scope binding, review metadata, expiry/freshness, status precedence and scoring.",
+    "pnpm --filter @visua/core typecheck passed.",
+    "git diff --check for owned core paths passed."
+  ],
+  "limitations": [
+    "Artifact SHA computation, append-only history enforcement, migration, server routes, agent proposals and UI integration are owned by root and were not tested by this worker.",
+    "Core verifies the supplied SHA and bound review snapshot; it does not hash artifact content."
+  ]
+}

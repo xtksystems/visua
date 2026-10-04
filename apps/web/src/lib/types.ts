@@ -28,6 +28,12 @@ import type {
 
 export type { ActivityEvent, AgentRun, CheckResult, Connector, Evidence, Policy, Proposal, RequirementNode, RequirementState, Risk, Status, Task, Workspace };
 
+export interface WorkspaceMember { id: string; name: string }
+export interface MyWork {
+  tasks: Task[];
+  requirements: { id: string; code: string; title: string; state: RequirementState; status: Status }[];
+}
+
 export interface Meta {
   product: { name: string; version: string };
   frameworks: (FrameworkDescriptor & { units: number })[];
@@ -333,7 +339,7 @@ export interface RunWithProposals extends AgentRun {
 }
 
 export interface SearchResult {
-  nodes: { id: string; code: string; title: string; text: string; framework: string; kind: string }[];
+  nodes: { id: string; code: string; title: string; text: string; framework: string; kind: string; assessable: boolean }[];
   passages: { documentId: string; documentTitle: string; page?: number; locator?: string; quote: string; score: number }[];
 }
 

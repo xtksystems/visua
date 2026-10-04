@@ -1,0 +1,46 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "Completed independent bounded integrity review of the original evidence-binding working tree matching review-source.json. Found one executed approval bypass and two source-traced defects. Author began fixes during the pass; this report is not final-state acceptance.",
+  "coverage": [
+    "Validated all 17 input SHA-256 fingerprints before review; each matched review-source.json. Actual start/end hashes and source changes are saved in review-source-observed.json.",
+    "Read AGENTS.md, CLAUDE.md, startup project context, workflow, evidence-binding task contract and adversarial-review output contract with fresh context.",
+    "Inspected packages/core/src/evidence.ts, status.ts, evidence types/exports, core.test.ts changes and evidence.test.ts; traced strict date parsing, canonical scope sets, current review binding, validity/freshness and score/status precedence.",
+    "Inspected apps/server/src/services/evidence.ts, audit.ts and relevant visua.ts flows: create/update/review evidence, policy approval, connector filing, passingCheck, agent host snapshots, proposal creation/edits/application, workspace locking, audit and after-commit events.",
+    "Inspected migration 5 and migration runner; traced baseline activity/revision schema and SQLite/Postgres drivers, Store atomic/savepoint behavior and collection JSON serialization for rollback and cross-instance locking.",
+    "Inspected app.ts evidence/proposal schemas and routes, authentication/workspace-access/capability dependencies, seed demo evidence, services/views.ts coverage and agents/tools.ts evidence consumers/proposal tools.",
+    "Inspected EvidencePage.tsx in full and queries.ts/events.ts dependencies: view snapshot, evidence refetch, approve scope, history display and validity metrics.",
+    "Executed isolated in-memory SQLite authenticated API reproduction proving different content/data artifacts retain the same digest and existing accepted review on the original code.",
+    "Executed focused existing core and server evidence-binding tests: 3 files and 70 tests passed. Inspected evidence-binding migration, rollback, stale-review, connector/proposal regression tests and relevant api.test.ts changes.",
+    "Communicated each supported issue to the integration owner; observed author source drift and failure of original regression assertions after two fixes started, without editing implementation."
+  ],
+  "findings": [
+    {
+      "severity": "high",
+      "location": "Original apps/server/src/services/evidence.ts:11-17 and apps/server/src/services/visua.ts:1066-1070 (bound to review-source.json)",
+      "mechanism": "Raw content-only hashing and canonical combined-artifact hashing share an ambiguous encoding. A normal evidence edit can change both content and structured data while preserving SHA, so scope comparison leaves the previous acceptance current without a new review.",
+      "evidence": "Executed authenticated API fixture: POST content = {\"content\":\"MFA disabled\",\"data\":{\"enabled\":false}} as literal text; accept it; PATCH content=\"MFA disabled\", data={\"enabled\":false}. PATCH returned 200, SHA stayed a4e0b3b3cdce4dce2ca80a0c0c91bcd6fd28c04b35c5c34b9cf981bac65b0223, status stayed accepted, history had one entry, and hasCurrentEvidenceReview/isEvidenceValid remained true. review-execution.json records the observed result. No cryptographic collision is needed.",
+      "recommendation": "Use a single unambiguous artifact envelope for all nonconnector shapes, preserving the connector observation recipe, and add a regression that requires pending-review for this shape-changing edit. Recompute legacy current digests without attesting old approvals when changing the digest format."
+    },
+    {
+      "severity": "medium",
+      "location": "Original apps/web/src/pages/EvidencePage.tsx:102,184,213,288-324; apps/web/src/lib/events.ts:64-66",
+      "mechanism": "The modal displays a fixed inspected Evidence snapshot, but Accept uses the latest query row instead. If evidence changes and refetches while the modal is open, the reviewer still reads artifact A; after closing it, the row action submits scope B, allowing the server to approve B without the person inspecting it.",
+      "evidence": "Source-traced prediction, not browser-executed: setViewing(e) stores A; the dialog renders viewing.content/data; evidence.updated invalidates the evidence query; query refetch updates row e while viewing remains A; the row Accept handler passes refreshed e to evidenceReviewScope. There is no approval action using viewing and no retained inspected-scope validation. Server scope validation correctly rejects A against B, but the UI sends B.",
+      "recommendation": "Approve/reject from the inspection dialog using its immutable viewing snapshot, or retain the inspected scope and invalidate the inspection when protected fields change. Ensure approval cannot silently substitute a refetched row scope; verify with a two-client concurrent-edit UI regression."
+    },
+    {
+      "severity": "medium",
+      "location": "Original apps/server/src/storage/migrations.ts:213-215 and apps/server/src/services/visua.ts:1046",
+      "mechanism": "The legacy migration changes acceptance to pending-review while retaining a missing legacy SHA. Older internally created manual/policy/demo artifacts can have real content with no SHA because prior createEvidence accepted only an input digest. Their expected scope has no hash, and reviewEvidence rejects them before a renewed decision, so the ledger cannot re-review these artifacts without an unrelated API edit to recompute the hash.",
+      "evidence": "Source-traced prediction on original fingerprint: migration next spreads prev without computing sha256; reviewEvidence compares artifactHash(prev) with prev.sha256 and throws when real content hashes to a digest but prev.sha256 is undefined. Original createEvidence in the diff used sha256: input.sha256, while policy/demo call sites supplied content without a SHA. No original migration reproduction was completed before author repaired it; later isolated fixture confirmed a nonmissing migrated SHA and therefore failed the original missing-SHA regression assertion.",
+      "recommendation": "Compute a current server-owned digest during migration while keeping status pending-review and archiving the prior decision with no scope. Audit old/new digests transactionally. Handle all unbound artifacts, including previously pending records, so a digest-format upgrade does not strand unreviewed uploads."
+    }
+  ],
+  "limitations": [
+    "Findings concern the immutable initial review-source fingerprint. apps/server/src/services/evidence.ts, migration and tests changed during review; see actual_at_review_end and changed_during_review in review-source-observed.json. No final-state pass is claimed.",
+    "PostgreSQL migration, rollback and multi-instance race behavior were source-traced but not executed; only isolated SQLite was used. No Docker/services, deployments, commits or external providers were used.",
+    "UI concurrent-edit behavior was source-traced, not browser-executed. No full web e2e or full repository check was run in this bounded review.",
+    "Review was read-only except run-local report/reproduction artifacts; the reproduction script retains original regression assertions and intentionally fails after the author fixes."
+  ]
+}

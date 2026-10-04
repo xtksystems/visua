@@ -24,7 +24,7 @@ export const CSRF_HEADER = "x-visua-csrf";
 const SAFE = new Set(["GET", "HEAD", "OPTIONS"]);
 
 /** Routes that answer without a signed-in principal. */
-const PUBLIC_ROUTES = [/^\/api\/health$/, /^\/api\/auth\/(config|me|dev\/login|oidc\/start|oidc\/callback|sso\/discover|logout)$/, /^\/api\/trust\//];
+const PUBLIC_ROUTES = [/^\/api\/(health|ready)$/, /^\/api\/auth\/(config|me|dev\/login|oidc\/start|oidc\/callback|sso\/discover|logout)$/, /^\/api\/trust\//];
 
 export const cookieName = (auth: AuthService) => (auth.config.secureCookies ? "__Host-visua_session" : "visua_session");
 /** Pre-auth cookie that binds an OpenID Connect flow to the browser that started it. */
@@ -80,6 +80,7 @@ export function securityHeaders(auth: AuthService): MiddlewareHandler<AppEnv> {
 /** Resolve the principal (bearer API token or session cookie) and run the request as it. */
 export function authenticate(auth: AuthService): MiddlewareHandler<AppEnv> {
   return async (c, next) => {
+    if (c.req.path === "/api/health" || c.req.path === "/api/ready") return next();
     let principal: Principal | undefined;
     const header = c.req.header("authorization");
     if (header?.toLowerCase().startsWith("bearer ")) {

@@ -1,0 +1,5 @@
+{
+  "file": "apps/web/src/pages/PlanPage.tsx",
+  "sha256": "f5b593e91ac9e24bfec37058226d966ea0b58fa143514194b7977517e7a6c8ad",
+  "reason": "Browser exact accessible label for search included helper hint; explicit aria-label binds search field name. Only this one input changed after initial review snapshot."
+}

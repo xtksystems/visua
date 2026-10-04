@@ -1,0 +1,19 @@
+{
+  "run_id": "evidence-binding-20261003",
+  "node_id": "fix-review",
+  "input_sha256": "6ea6602a54087d4beeabb79b9138cb1da5180480afca1c0aee50fc1c2fa97f0a",
+  "status": "complete",
+  "summary": "The three original findings are resolved within the corrected fingerprint-bound scope. Independent isolated API/migration checks and 19 focused SQLite regressions passed; no supported remaining findings were identified in this bounded recheck.",
+  "evidence": [
+    "fix-review.json",
+    "fix-review-source-observed.json",
+    "fix-review-execution.json",
+    "fix-review-reproduction.ts",
+    "Seven corrected fingerprints matched at both ends; isolated corrected API/mixed legacy migration checks passed; 19 focused SQLite evidence tests passed."
+  ],
+  "limitations": [
+    "PostgreSQL execution and multi-instance races were not rerun in this bounded recheck; root owns the full final gate. SQLite checks and source tracing do not establish a PostgreSQL runtime pass.",
+    "Browser tests were inspected but not independently executed, to avoid a duplicate browser/server run during the root integration gate. UI conclusion is supported by raw corrected handlers, inspected SSE/refetch dependencies and executed server stale-scope refusal.",
+    "No full integration suite, deployment, Docker/service mutation, commit or external-provider work was performed. Original independent-review.json and its evidence artifacts were preserved."
+  ]
+}

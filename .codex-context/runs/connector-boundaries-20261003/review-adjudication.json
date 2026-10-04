@@ -1,0 +1,12 @@
+{
+  "finding": "medium DNS lifetime capacity gap",
+  "accepted": true,
+  "fix": [
+    "work-scope.ts",
+    "guardedLookup registers physical DNS completion",
+    "withConnectorBudget awaits scope drain before freeing slots"
+  ],
+  "regressions": "connector-dns-lifetime.test.ts",
+  "status": "closed: focused independent follow-up and full final check passed",
+  "additional_closed_finding": "Synchronous work aborted parent before listener attached; restored deferred startup and added regression"
+}

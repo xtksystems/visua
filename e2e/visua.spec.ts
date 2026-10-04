@@ -1,7 +1,49 @@
 import { expect, test, type Page } from "@playwright/test";
+import type { Evidence } from "@visua/core";
 
 const WS = "/w/northwind-health";
 const MORGAN = "morgan.lee@northwind-health.example";
+
+test("evidence review binds the inspected artifact and preserves history after an expiry edit", async ({ page }) => {
+  const csrf = await signIn(page);
+  const title = "Browser approval binding artifact";
+  const url = "/api/workspaces/northwind-health/evidence";
+  const response = await page.request.post(url, { headers: { "x-visua-csrf": csrf }, data: { title, requirementIds: ["nist-csf-2.0:PR.AA-01"], content: "Observed MFA configuration from browser fixture" } });
+  expect(response.status()).toBe(201);
+  const e = await response.json() as Evidence;
+  await page.goto(`${WS}/evidence`);
+  const row = page.getByRole("row").filter({ hasText: title });
+  await expect(row).toContainText("pending review");
+  const reviewedResponse = page.waitForResponse((r) => r.url().endsWith(`/evidence/${e.id}`) && r.request().method() === "PATCH");
+  await row.getByText(title, { exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Accept", exact: true }).click();
+  const reviewed = await reviewedResponse;
+  expect(reviewed.status()).toBe(200);
+  const body = await reviewed.json() as Evidence;
+  expect(body.reviewHistory).toHaveLength(1);
+  expect(body.reviewHistory![0]!.scope?.sha256).toBe(e.sha256);
+  await page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
+  await expect(row).toContainText("no expiry");
+  const amended = await page.request.patch(`${url}/${e.id}`, { headers: { "x-visua-csrf": csrf }, data: { validUntil: "2030-12-31" } });
+  expect(amended.status()).toBe(200);
+  await page.reload();
+  await expect(row).toContainText("pending review");
+  await row.getByText(title, { exact: true }).click();
+  await expect(page.getByRole("dialog")).toContainText("Review history");
+  await expect(page.getByRole("dialog")).toContainText(e.sha256!);
+  await expect(page.getByRole("dialog")).toContainText("accepted by");
+  // An edit arriving while the dialog is open must not change the inspected snapshot.
+  const replaced = await page.request.patch(`${url}/${e.id}`, { headers: { "x-visua-csrf": csrf }, data: { content: "A different configuration arrived during inspection" } });
+  expect(replaced.status()).toBe(200);
+  await expect(page.getByRole("dialog")).toContainText("Observed MFA configuration from browser fixture");
+  const staleResponse = page.waitForResponse((r) => r.url().endsWith(`/evidence/${e.id}`) && r.request().method() === "PATCH");
+  await page.getByRole("dialog").getByRole("button", { name: "Accept", exact: true }).click();
+  expect((await staleResponse).status()).toBe(400);
+  await expect(page.getByText("Evidence changed since it was inspected; reload it before reviewing", { exact: true })).toBeVisible();
+  const final = await (await page.request.get(url)).json() as Evidence[];
+  expect(final.find((item) => item.id === e.id)?.status).toBe("pending-review");
+
+});
 
 /** Developer sign-in (the e2e server runs in developer mode); returns the session's CSRF token. */
 async function signIn(page: Page, email = MORGAN): Promise<string> {
@@ -30,8 +72,10 @@ test("home shows the workspace, its frameworks and next best actions", async ({ 
   expect(errors).toEqual([]);
 });
 
-test("mission control opens each framework's own program page", async ({ page }) => {
+test("overview opens each framework's own program page", async ({ page }) => {
   await signIn(page);
+  const summary = await (await page.request.get("/api/workspaces/northwind-health")).json() as { workspace: { id: string } };
+  const canonicalBase = `/w/${summary.workspace.id}`;
   await page.goto(WS);
   await expect(page.getByRole("heading", { level: 1, name: "Northwind Health" })).toBeVisible();
   const expected: [string, string][] = [
@@ -44,10 +88,10 @@ test("mission control opens each framework's own program page", async ({ page })
   ];
   for (const [name, path] of expected) {
     const card = page.locator(".panel").filter({ has: page.getByRole("heading", { level: 3, name, exact: true }) });
-    await expect(card.getByRole("link", { name: /Program/ })).toHaveAttribute("href", `${WS}${path}`);
+    await expect(card.getByRole("link", { name: /Program/ })).toHaveAttribute("href", `${canonicalBase}${path}`);
   }
   await page.locator(".panel").filter({ has: page.getByRole("heading", { level: 3, name: "State AI laws", exact: true }) }).getByRole("link", { name: /Program/ }).click();
-  await expect(page).toHaveURL(new RegExp(`${WS}/laws$`));
+  await expect(page).toHaveURL(new RegExp(`${canonicalBase}/laws$`));
 });
 
 test("Observatory renders the 3D scene with its keyboard-accessible 2D twin", async ({ page }) => {
@@ -68,12 +112,10 @@ test("Observatory renders the 3D scene with its keyboard-accessible 2D twin", as
 });
 
 /**
- * Opens the CSF Observatory counting WebGL program links, and returns the count once loading has
- * settled plus a step runner: a step (a selection) must link nothing. Linking a program blocks
- * the frame that first draws its material: 60 to 100 ms when the selection halo, its path and
- * agent comets appeared on the first click.
+ * Opens the CSF Observatory counting WebGL program links. Once loading has settled,
+ * selecting a node must not compile a new shader and block the first interaction.
  */
-async function observatoryCountingLinks(page: Page, settle?: () => Promise<void>) {
+async function observatoryCountingLinks(page: Page) {
   await page.addInitScript(() => {
     const w = window as unknown as { __links: number };
     w.__links = 0;
@@ -93,8 +135,6 @@ async function observatoryCountingLinks(page: Page, settle?: () => Promise<void>
       for (let i = 0; i < 4; i++) await new Promise(requestAnimationFrame);
       return (window as unknown as { __links: number }).__links;
     });
-  const effects = () => page.locator(".observatory__canvas canvas").getAttribute("data-effects");
-  await settle?.();
   // Loaded: the program count holds still across a few samples.
   let loaded = -1;
   for (let still = 0, sample = 0; still < 3 && sample < 30; sample++) {
@@ -103,22 +143,10 @@ async function observatoryCountingLinks(page: Page, settle?: () => Promise<void>
     loaded = now;
   }
   expect(loaded).toBeGreaterThan(0);
-  // When the performance monitor drops post-processing during a step (slow frames), every
-  // material recompiles for the screen and the step says nothing about the selection: the scene
-  // warms up again, and the step is taken again (it happens at most once).
   const step = async (label: string, act: () => Promise<void>) => {
-    for (let attempt = 0; attempt < 2; attempt++) {
-      const before = await effects();
-      const count = await links();
-      await act();
-      const after = await links();
-      if ((await effects()) === before) {
-        expect(after, `programs linked by ${label}`).toBe(count);
-        return;
-      }
-      await links();
-    }
-    throw new Error(`Post-processing kept changing during ${label}`);
+    const count = await links();
+    await act();
+    expect(await links(), `programs linked by ${label}`).toBe(count);
   };
   const selections = async () => {
     // Drill into a function, open one of its outcomes, then a sibling, then back up to the parent.
@@ -131,25 +159,126 @@ async function observatoryCountingLinks(page: Page, settle?: () => Promise<void>
     await step("selecting a sibling", () => page.keyboard.press("ArrowRight"));
     await step("selecting the parent", () => page.keyboard.press("Escape"));
   };
-  return { effects, selections };
+  return selections;
 }
 
 test("Observatory compiles its shaders before the first selection, not on it", async ({ page }) => {
-  const { selections } = await observatoryCountingLinks(page);
+  const selections = await observatoryCountingLinks(page);
   await selections();
 });
 
-test("Observatory still compiles no shader on a selection once slow frames drop post-processing", async ({ page }) => {
-  const canvas = page.locator(".observatory__canvas canvas");
-  const { effects, selections } = await observatoryCountingLinks(page, async () => {
-    // Slow the page down until the performance monitor turns bloom and vignette off.
-    const cdp = await page.context().newCDPSession(page);
-    await cdp.send("Emulation.setCPUThrottlingRate", { rate: 20 });
-    await expect(canvas).toHaveAttribute("data-effects", "false", { timeout: 60_000 });
-    await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
+test("reduced-motion Observatory keeps a static agent cue and still idle scenes", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => {
+    class SceneEvents extends EventTarget {
+      constructor() {
+        super();
+        (window as unknown as { sceneEvents: EventTarget }).sceneEvents = this;
+      }
+      close() {}
+    }
+    Object.defineProperty(window, "EventSource", { value: SceneEvents });
   });
-  expect(await effects()).toBe("false");
-  await selections();
+  await signIn(page);
+  const errors = watchErrors(page);
+  await page.goto(`${WS}/observatory/nist-csf-2.0`);
+  await expect(page.locator('.scene-label--sector[data-shown="true"]').first()).toBeVisible();
+  const frame = () => page.evaluate(async () => {
+    for (let i = 0; i < 8; i++) await new Promise(requestAnimationFrame);
+    return document.querySelector<HTMLCanvasElement>(".observatory__canvas canvas")!.toDataURL();
+  });
+  const idle = await frame();
+  expect(await frame()).toBe(idle);
+  // No hot nodes: activity must remain visible at the core, even without comets.
+  await page.evaluate(() => {
+    (window as unknown as { sceneEvents: EventTarget }).sceneEvents.dispatchEvent(new MessageEvent("visua", {
+      data: JSON.stringify({ type: "agent.run.updated", data: { id: "visual-fixture", agent: "copilot", status: "running" } }),
+    }));
+  });
+  const active = await frame();
+  expect(active).not.toBe(idle);
+  expect(await frame()).toBe(active);
+  await page.getByRole("button", { name: "Terrain", exact: true }).click();
+  const terrain = await frame();
+  expect(terrain).not.toBe(active);
+  expect(await frame()).toBe(terrain);
+  expect(errors).toEqual([]);
+});
+
+test("3D views sleep when idle and wake for selection, layout and agent activity", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.addInitScript(() => {
+    const w = window as unknown as { renderedFrames: number; sceneEvents: EventTarget };
+    w.renderedFrames = 0;
+    const clear = WebGL2RenderingContext.prototype.clear;
+    WebGL2RenderingContext.prototype.clear = function (mask) {
+      w.renderedFrames++;
+      return clear.call(this, mask);
+    };
+    class SceneEvents extends EventTarget {
+      constructor() { super(); w.sceneEvents = this; }
+      close() {}
+    }
+    Object.defineProperty(window, "EventSource", { value: SceneEvents });
+  });
+  await signIn(page);
+  const errors = watchErrors(page);
+  const frames = () => page.evaluate(() => (window as unknown as { renderedFrames: number }).renderedFrames);
+  const sleep = async () => {
+    let previous = -1, still = 0;
+    await expect.poll(async () => {
+      const now = await frames();
+      still = now === previous && now > 0 ? still + 1 : 0;
+      previous = now;
+      return still;
+    }, { timeout: 30_000, intervals: [250] }).toBeGreaterThanOrEqual(12);
+    const before = await frames();
+    await page.waitForTimeout(500);
+    expect(await frames()).toBe(before);
+    return before;
+  };
+  await page.goto(`${WS}/crosswalk`);
+  await expect(page.locator('.scene-label--sector[data-shown="true"]').first()).toBeVisible();
+  const home = await sleep();
+  await page.getByRole("textbox", { name: "Find a requirement group" }).fill("PR.AA");
+  await page.getByRole("listitem").filter({ hasText: "PR.AA" }).first().click();
+  await expect(page).toHaveURL(/group=nist-csf-2\.0%3APR\.AA/);
+  expect(await sleep()).toBeGreaterThan(home);
+  await page.goto(`${WS}/observatory/nist-csf-2.0`);
+  await expect(page.locator('.scene-label--sector[data-shown="true"]').first()).toBeVisible();
+  await expect(page.locator(".hud-stats")).toBeVisible();
+  // Let initial shader warmup finish before measuring idle; software GPU work
+  // can pause the first few draws even though data and labels are already ready.
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    for (let i = 0; i < 8; i++) await new Promise(requestAnimationFrame);
+  });
+  const constellation = await sleep();
+  await page.getByRole("group", { name: "Lens", exact: true }).getByRole("button", { name: "Evidence", exact: true }).click();
+  expect(await sleep()).toBeGreaterThan(constellation);
+  await page.getByRole("button", { name: "Terrain", exact: true }).click();
+  expect(await sleep()).toBeGreaterThan(constellation);
+  await page.evaluate(() => {
+    const events = (window as unknown as { sceneEvents: EventTarget }).sceneEvents;
+    for (const event of [
+      { type: "agent.run.updated", data: { id: "wake-fixture", agent: "copilot", status: "running" } },
+      { type: "agent.step", data: { runId: "wake-fixture", agent: "copilot", step: { id: "wake-step", at: new Date().toISOString(), type: "thought", title: "Checking", nodeIds: ["nist-csf-2.0:PR.AA-01"] } } },
+    ]) events.dispatchEvent(new MessageEvent("visua", { data: JSON.stringify(event) }));
+  });
+  const active = await frames();
+  await expect.poll(frames).toBeGreaterThan(active + 3);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const reduced = await sleep();
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect.poll(frames).toBeGreaterThan(reduced + 3);
+  await page.evaluate(() => {
+    (window as unknown as { sceneEvents: EventTarget }).sceneEvents.dispatchEvent(new MessageEvent("visua", {
+      data: JSON.stringify({ type: "agent.run.updated", data: { id: "wake-fixture", agent: "copilot", status: "completed" } }),
+    }));
+  });
+  await sleep();
+  expect(errors).toEqual([]);
 });
 
 test("Crosswalk Nexus selects a group and lists authoritative mappings", async ({ page }) => {
@@ -270,8 +399,10 @@ test("tenant separation: another organization cannot see Northwind Health", asyn
   const list = (await (await page.request.get("/api/workspaces")).json()) as unknown[];
   expect(list).toHaveLength(0);
   await page.goto(WS);
-  // Contoso Bank has no workspace yet: its owner is sent to onboarding, never into Northwind.
-  await expect(page).toHaveURL(/\/onboarding$/);
+  // An inaccessible deep link stays available to retry without exposing the other tenant.
+  await expect(page.getByRole("alert")).toContainText("Unable to open this workspace");
+  await expect(page).toHaveURL(new RegExp(`${WS}$`));
+  await expect(page.getByRole("heading", { name: "Northwind Health", exact: true })).toHaveCount(0);
 });
 
 test("organization admin: members, roles and a one-time API token", async ({ page }) => {

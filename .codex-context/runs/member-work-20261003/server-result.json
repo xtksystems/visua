@@ -1,0 +1,19 @@
+{
+  "run_id": "member-work-20261003",
+  "node_id": "server",
+  "input_sha256": "61d0817844f80edde499c028e02124179f2782e8e3013dae34d55ac99d658138",
+  "status": "complete",
+  "summary": "Implemented member-based requirement/task assignment with canonical stored names, explicit external task assignees, nullable clears, strict calendar dates and effective task ranges, editable enabled assessable links with preserved provenance, minimal tenant directory and identity-based My work. All prior dirty packages preserved. Runtime sources frozen.",
+  "evidence": [
+    "Changed packages/core/src/types.ts, apps/server/src/app.ts, apps/server/src/services/visua.ts; added apps/server/src/services/work.ts and apps/server/test/member-work.test.ts.",
+    "New regression suite has 11 cases covering tenancy, current/departed members, spoofed-name canonicalization, legacy compatibility, external labels and null clears, impossible dates/timestamps/ranges, proposal validation, task link provenance, stable identity My work versus same-name/external/agent, token empty lists, read-only write denial, and transactional audit/event rollback.",
+    "Final focused test command (cwd /Users/artem/visua): env -u VISUA_DATABASE_URL -u VISUA_DB -u VISUA_TEST_DATABASE_URL VISUA_AGENT_MODE=offline pnpm exec vitest run apps/server/test/member-work.test.ts apps/server/test/api.test.ts apps/server/test/storage.test.ts; passed 3 files, 79 tests passed and 1 skipped, 18.13s.",
+    "git diff --check -- packages/core/src/types.ts apps/server/src/app.ts apps/server/src/services/visua.ts apps/server/src/services/work.ts apps/server/test/member-work.test.ts passed.",
+    "Notified lead of demo legacy user ids/range inconsistency; lead reports demo adapted to actual tenant members and consistent dates.",
+    "Added assessable:boolean to global /api/search nodes at lead request for task link editing."
+  ],
+  "limitations": [
+    "Worker verification ran SQLite only with all database environment variables unset per brief; testDatabase allows the same new suite to run on PostgreSQL during lead integration checks.",
+    "No worker builds, servers, browser work, commits, index changes or pushes; broad typecheck, PostgreSQL, browser/full checks and Docker delivery belong to lead."
+  ]
+}

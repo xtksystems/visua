@@ -1,9 +1,10 @@
 /** Evidence & monitoring: provenance-first evidence ledger, connectors and checks. */
+import { evidenceFreshness, evidenceReviewScope, isEvidenceValid } from "@visua/core";
 import { Check, Plug, Play, Plus, ShieldCheck, X } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
 import { useRunAgent } from "../components/inspector/Inspector.tsx";
 import { CodeTag, Dialog, Empty, Metric, Segmented, toast } from "../components/ui/index.tsx";
+import { useWorkspaceId } from "../lib/workspace.ts";
 import { api } from "../lib/api.ts";
 import { useCan } from "../lib/auth.ts";
 import { relativeTime, shortDate, truncate } from "../lib/format.ts";
@@ -28,6 +29,9 @@ function provenance(e: Evidence): { label: string; title: string } {
 function freshness(e: Evidence): { label: string; color: string } {
   if (e.status === "rejected") return { label: "rejected", color: "var(--color-on-surface-muted)" };
   if (e.status === "pending-review") return { label: "pending review", color: "var(--color-tertiary)" };
+  const state = evidenceFreshness(e);
+  if (state === "none") return { label: "requires review or correction", color: "var(--color-status-in-progress)" };
+  if (state === "expired") return { label: `expired${e.validUntil ? ` ${shortDate(e.validUntil)}` : ""}`, color: "var(--color-status-at-risk)" };
   if (!e.validUntil) return { label: "no expiry", color: "var(--color-status-verified)" };
   const days = (new Date(e.validUntil).getTime() - Date.now()) / 86_400_000;
   if (days < 0) return { label: `expired ${shortDate(e.validUntil)}`, color: "var(--color-status-at-risk)" };
@@ -36,7 +40,8 @@ function freshness(e: Evidence): { label: string; color: string } {
 }
 
 function AddConnector({ onClose }: { onClose: () => void }) {
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
+  const canConfigure = useCan("workspace.configure");
   const meta = useMeta();
   const kinds = meta.data?.connectorKinds ?? [];
   const [kind, setKind] = useState(kinds[0]?.kind ?? "web-posture");
@@ -53,7 +58,7 @@ function AddConnector({ onClose }: { onClose: () => void }) {
           <button className="btn" onClick={onClose}>
             Cancel
           </button>
-          <button className="btn btn--primary" onClick={() => create.mutate(undefined, { onSuccess: () => (toast("Connector added"), onClose()), onError: (e) => toast((e as Error).message, "error") })}>
+          <button className="btn btn--primary" disabled={!canConfigure || create.isPending} onClick={() => create.mutate(undefined, { onSuccess: () => (toast("Connector added"), onClose()), onError: (e) => toast((e as Error).message, "error") })}>
             Add connector
           </button>
         </>
@@ -88,7 +93,8 @@ function AddConnector({ onClose }: { onClose: () => void }) {
 }
 
 export function EvidencePage() {
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
+  const canConfigure = useCan("workspace.configure");
   const { data: evidence = [] } = useEvidence(ws);
   const { data: connectors = [] } = useConnectors(ws);
   const { data: checks = [] } = useChecks(ws);
@@ -96,7 +102,8 @@ export function EvidencePage() {
   const [filter, setFilter] = useState<"all" | "pending" | "expiring" | "connector">("all");
   const [adding, setAdding] = useState(false);
   const [viewing, setViewing] = useState<Evidence | null>(null);
-  const review = useWsMutation(ws, (v: { id: string; decision: "accepted" | "rejected" }) => api.patch(`/workspaces/${encodeURIComponent(ws)}/evidence/${v.id}`, { decision: v.decision }));
+  const review = useWsMutation(ws, async (v: { evidence: Evidence; decision: "accepted" | "rejected" }) => api.patch<Evidence>(`/workspaces/${encodeURIComponent(ws)}/evidence/${v.evidence.id}`, { decision: v.decision, expectedScope: evidenceReviewScope(v.evidence) }));
+  const canWrite = useCan("work.write");
   const canReview = useCan("work.approve");
   const runConnector = useWsMutation(ws, (id: string) => api.post<CheckResult[]>(`/workspaces/${encodeURIComponent(ws)}/connectors/${id}/run`));
   const list = useMemo(() => {
@@ -119,7 +126,7 @@ export function EvidencePage() {
       return true;
     });
   }, [checks]);
-  const accepted = evidence.filter((e) => e.status === "accepted").length;
+  const accepted = evidence.filter((e) => isEvidenceValid(e)).length;
   const expired = evidence.filter((e) => e.validUntil && new Date(e.validUntil).getTime() < Date.now()).length;
   return (
     <div className="page">
@@ -130,16 +137,17 @@ export function EvidencePage() {
           <p>Evidence must show what is actually in place. Every item records where it came from, when, who reviewed it, and a content hash. Agents cannot file plans or drafts as evidence.</p>
         </div>
         <div className="page__actions">
-          <button className="btn btn--agent" onClick={() => run("evidence-collector", "Run monitoring checks and find implemented requirements without evidence", {})}>
+          <button className="btn btn--agent" disabled={!canWrite} onClick={() => run("evidence-collector", "Run monitoring checks and find implemented requirements without evidence", {})}>
             Collect with agent
           </button>
-          <button className="btn" onClick={() => setAdding(true)}>
+          <button className="btn" disabled={!canConfigure} title={canConfigure ? undefined : "Only admins and owners configure connectors"} onClick={() => setAdding(true)}>
             <Plug size={14} /> Add connector
           </button>
         </div>
       </header>
+      {!canWrite && <p className="muted" role="note">Read-only access. You can inspect evidence and monitoring results; contributors run collections and approvers review evidence.</p>}
       <div className="grid grid--4" style={{ marginBottom: 20 }}>
-        <Metric label="Evidence items" value={evidence.length} sub={`${accepted} accepted`} />
+        <Metric label="Evidence items" value={evidence.length} sub={`${accepted} currently valid`} />
         <Metric label="Awaiting review" value={evidence.filter((e) => e.status === "pending-review").length} />
         <Metric label="Expired" value={expired} sub="Expired evidence puts requirements at risk" />
         <Metric label="Connectors" value={connectors.length} sub={`${latestChecks.filter((c) => c.outcome === "pass").length}/${latestChecks.length} checks passing`} />
@@ -202,17 +210,10 @@ export function EvidencePage() {
                           {e.requirementIds.length > 4 ? <span className="muted">+{e.requirementIds.length - 4}</span> : null}
                         </div>
                       </td>
-                      <td style={{ color: f.color, fontSize: 12.5, whiteSpace: "nowrap" }}>{f.label}</td>
+                      <td style={{ color: f.color, fontSize: 12.5 }}>{f.label}</td>
                       <td style={{ whiteSpace: "nowrap" }}>
                         {e.status === "pending-review" && canReview && (
-                          <>
-                            <button className="btn btn--sm btn--icon" title="Accept" onClick={() => review.mutate({ id: e.id, decision: "accepted" })}>
-                              <Check size={13} />
-                            </button>{" "}
-                            <button className="btn btn--sm btn--icon" title="Reject" onClick={() => review.mutate({ id: e.id, decision: "rejected" })}>
-                              <X size={13} />
-                            </button>
-                          </>
+                          <button className="btn btn--sm" onClick={() => setViewing(e)}>Review</button>
                         )}
                       </td>
                     </tr>
@@ -238,7 +239,7 @@ export function EvidencePage() {
                   <span className="spacer" />
                   <button
                     className="btn btn--sm"
-                    disabled={runConnector.isPending}
+                    disabled={!canWrite || runConnector.isPending}
                     onClick={() =>
                       runConnector.mutate(c.id, {
                         onSuccess: (r) => toast(`${c.name}: ${r.filter((x) => x.outcome === "pass").length}/${r.length} checks passing`),
@@ -273,16 +274,21 @@ export function EvidencePage() {
           })}
           {!connectors.length && (
             <Empty title="No connectors yet">
-              <button className="btn btn--sm" onClick={() => setAdding(true)} style={{ marginTop: 8 }}>
+              <button className="btn btn--sm" disabled={!canConfigure} onClick={() => setAdding(true)} style={{ marginTop: 8 }}>
                 <Plus size={13} /> Add a connector
               </button>
             </Empty>
           )}
         </div>
       </div>
-      {adding && <AddConnector onClose={() => setAdding(false)} />}
+      {adding && canConfigure && <AddConnector onClose={() => setAdding(false)} />}
       {viewing && (
-        <Dialog wide title={viewing.title} onClose={() => setViewing(null)}>
+        <Dialog wide title={viewing.title} onClose={() => setViewing(null)} footer={viewing.status === "pending-review" && canReview ? (
+          <>
+            <button className="btn" disabled={review.isPending} onClick={() => review.mutate({ evidence: viewing, decision: "rejected" }, { onSuccess: (next) => { setViewing(next); toast("Evidence rejected"); }, onError: (err) => toast((err as Error).message, "error") })}><X size={13} /> Reject</button>
+            <button className="btn btn--primary" disabled={review.isPending} onClick={() => review.mutate({ evidence: viewing, decision: "accepted" }, { onSuccess: (next) => { setViewing(next); toast("Evidence accepted"); }, onError: (err) => toast((err as Error).message, "error") })}><Check size={13} /> Accept</button>
+          </>
+        ) : undefined}>
           <dl className="kv" style={{ marginBottom: 12 }}>
             <dt>Provenance</dt>
             <dd>
@@ -294,6 +300,8 @@ export function EvidencePage() {
               {viewing.status}
               {viewing.reviewedBy ? ` by ${viewing.reviewedBy} ${relativeTime(viewing.reviewedAt)}` : ""}
             </dd>
+            <dt>Requirements</dt>
+            <dd>{viewing.requirementIds.map((id) => <CodeTag key={id} id={id} />)}</dd>
             <dt>Collected</dt>
             <dd>{new Date(viewing.collectedAt).toLocaleString()}</dd>
             <dt>Valid until</dt>
@@ -303,6 +311,19 @@ export function EvidencePage() {
               {viewing.sha256 ?? "—"}
             </dd>
           </dl>
+          {!!viewing.reviewHistory?.length && (
+            <section className="stack" style={{ gap: 8, marginBottom: 12 }} aria-label="Review history">
+              <h3>Review history</h3>
+              {viewing.reviewHistory.map((r) => (
+                <div key={r.id} className="panel" style={{ fontSize: 12 }}>
+                  <div>{r.decision} by {r.reviewedBy} · {shortDate(r.reviewedAt)}{r.legacy ? " · legacy decision; renewed review required" : ""}</div>
+                  {r.scope && <div className="muted">{r.scope.requirementIds.map((id) => <CodeTag key={id} id={id} />)} · collected {shortDate(r.scope.collectedAt)} · {r.scope.validUntil ? `valid through ${shortDate(r.scope.validUntil)}` : "no expiry"}</div>}
+                  {r.scope?.sha256 && <div className="mono muted wrap-anywhere">Artifact SHA-256: {r.scope.sha256}</div>}
+                  {r.note && <p>{r.note}</p>}
+                </div>
+              ))}
+            </section>
+          )}
           {viewing.content && <pre className="panel mono" style={{ whiteSpace: "pre-wrap", fontSize: 12, maxHeight: 320, overflow: "auto" }}>{viewing.content}</pre>}
           {viewing.data && <pre className="panel mono" style={{ whiteSpace: "pre-wrap", fontSize: 11.5, maxHeight: 260, overflow: "auto", marginTop: 8 }}>{JSON.stringify(viewing.data, null, 2)}</pre>}
         </Dialog>

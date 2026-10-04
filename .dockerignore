@@ -1,0 +1,27 @@
+.git
+.codex-context
+**/node_modules
+**/dist
+**/.local
+.screens
+.check
+test-results
+playwright-report
+blob-report
+data
+apps/server/data
+docs
+e2e
+.env
+.env.*
+**/.env
+**/.env.*
+*.db
+*.db-*
+*.log
+
+# Keep licensed AICPA material and derived data out of the image.
+corpus/aicpa-soc2
+packages/frameworks/data/aicpa-*.json
+packages/frameworks/data/mappings/*tsc-2017*.json
+packages/frameworks/data/chunks/aicpa-soc2.json

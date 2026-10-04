@@ -6,10 +6,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, Gavel, Scale, Telescope } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import type { Status } from "@visua/core";
 import { LawTimeline } from "../components/laws/Timeline.tsx";
 import { Empty, Progress, StatusBar, StatusChip, toast } from "../components/ui/index.tsx";
+import { useWorkspaceId } from "../lib/workspace.ts";
 import { api } from "../lib/api.ts";
 import { useCan } from "../lib/auth.ts";
 import { keys, useWorkspace } from "../lib/queries.ts";
@@ -297,7 +298,7 @@ function LawCard({ ws, law, onCollapse }: { ws: string; law: Law; onCollapse?: (
 }
 
 export function LawsPage() {
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
   const qc = useQueryClient();
   const workspace = useWorkspace(ws);
   const canConfigure = useCan("workspace.configure");

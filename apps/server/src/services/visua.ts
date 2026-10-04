@@ -6,6 +6,9 @@
  */
 import {
   assessTiers,
+  evidenceReviewScope,
+  normalizeEvidenceDate,
+  sameEvidenceReviewScope,
   buildSnapshot,
   categorize,
   clampLevel,
@@ -29,6 +32,7 @@ import {
   type CheckResult,
   type Connector,
   type Evidence,
+  type EvidenceReviewScope,
   type FrameworkIndex,
   type FrameworkOverlay,
   type FrameworkScore,
@@ -41,6 +45,7 @@ import {
   type Risk,
   type RmfSettings,
   type Soc2Settings,
+  type Status,
   type Task,
   type TrustCenterSettings,
   type Workspace,
@@ -49,9 +54,12 @@ import {
 import { executeAgent, type AgentHost, type ProposalInput } from "@visua/agents";
 import type { FrameworkRegistry } from "@visua/frameworks";
 import { AsyncLocalStorage } from "node:async_hooks";
-import { createHash } from "node:crypto";
+import { canonical, chainHash, GENESIS } from "../audit.ts";
+import { artifactHash, evidenceAuditSnapshot, type EvidencePatch } from "./evidence.ts";
+import { isWorkDate, requirementWorkSnapshot, taskWorkSnapshot, type RequirementPatch, type TaskPatch } from "./work.ts";
+export { chainHash } from "../audit.ts";
 import type { EventBus, VisuaEventType } from "../bus.ts";
-import { FRAMEWORK_OF_REF, connectorKind, type RequirementRefs } from "../connectors/index.ts";
+import { CONNECTOR_KINDS, FRAMEWORK_OF_REF, connectorKind, type ConnectorKind, type RequirementRefs } from "../connectors/index.ts";
 import { txContext } from "../storage/driver.ts";
 import type { Store } from "../storage/index.ts";
 
@@ -64,26 +72,6 @@ export interface Principal {
 }
 export const principalContext = new AsyncLocalStorage<Principal>();
 
-const GENESIS = "0".repeat(64);
-
-/** Canonical JSON (sorted keys) so the hash is independent of property order. */
-function canonical(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
-  if (value && typeof value === "object") {
-    return `{${Object.keys(value as Record<string, unknown>)
-      .filter((k) => (value as Record<string, unknown>)[k] !== undefined)
-      .sort()
-      .map((k) => `${JSON.stringify(k)}:${canonical((value as Record<string, unknown>)[k])}`)
-      .join(",")}}`;
-  }
-  return JSON.stringify(value);
-}
-
-export function chainHash(prevHash: string, event: ActivityEvent): string {
-  const { hash: _ignored, ...body } = event;
-  void _ignored;
-  return createHash("sha256").update(prevHash).update(canonical(body)).digest("hex");
-}
 export class ValidationError extends Error {}
 
 const PRIORITY_ORDER: Priority[] = ["low", "medium", "high", "critical"];
@@ -170,9 +158,12 @@ export class VisuaService {
   readonly bus: EventBus;
   private readonly scoreCache = new Map<string, { rev: number; hour: string; score: WorkspaceScore }>();
   private readonly running = new Map<string, AbortController>();
+  private readonly executions = new Set<Promise<void>>();
+  private readonly connectorKinds: readonly ConnectorKind[];
 
-  constructor(store: Store, registry: FrameworkRegistry, bus: EventBus) {
+  constructor(store: Store, registry: FrameworkRegistry, bus: EventBus, connectorKinds: readonly ConnectorKind[] = CONNECTOR_KINDS) {
     this.store = store;
+    this.connectorKinds = connectorKinds;
     this.registry = registry;
     this.bus = bus;
   }
@@ -287,12 +278,74 @@ export class VisuaService {
     return out;
   }
 
+  /** Task links must be assessable units in an enabled framework of this workspace. */
+  private taskRequirements(ws: Workspace, ids: readonly string[] | undefined): string[] {
+    if (ids !== undefined && !Array.isArray(ids)) throw new ValidationError("Requirement links must be an array");
+    return [...new Set((ids ?? []).map((id) => this.assessableIn(ws, id).id))];
+  }
+
+  private workDate(value: unknown, field: string): string | undefined {
+    if (value === null || value === undefined) return undefined;
+    if (!isWorkDate(value)) throw new ValidationError(`${field} must be a valid calendar date (YYYY-MM-DD)`);
+    return value;
+  }
+
+  private taskDateRange(startDate: string | undefined, dueDate: string | undefined): void {
+    // Old records may contain timestamps. Only edited fields are revalidated, but their
+    // calendar days still participate in the effective range when a date is changed.
+    const start = startDate?.slice(0, 10), due = dueDate?.slice(0, 10);
+    if (isWorkDate(start) && isWorkDate(due) && due < start) throw new ValidationError("Due date must not precede start date");
+  }
+
+  private async memberName(ws: Workspace, userId: string): Promise<string> {
+    if (!ws.tenantId || typeof userId !== "string" || !userId) throw new ValidationError("Choose a current member of this workspace's organization");
+    // Serialize against membership removal, which uses the same organization lock.
+    await this.store.lock(`ws:${ws.tenantId}`);
+    const membership = await this.store.identity.memberships.get(ws.tenantId, userId);
+    const user = membership ? await this.store.identity.users.get(userId) : undefined;
+    if (!user) throw new ValidationError("Choose a current member of this workspace's organization");
+    return user.name;
+  }
+
+  private async taskAssignee(ws: Workspace, assignee: Task["assignee"] | null): Promise<Task["assignee"]> {
+    if (assignee === null || assignee === undefined) return undefined;
+    if (assignee.type === "person") return { type: "person", id: assignee.id, name: await this.memberName(ws, assignee.id) };
+    if (assignee.type !== "agent" && assignee.type !== "external") throw new ValidationError("Choose a member, agent, or external assignee");
+    if (typeof assignee.name !== "string" || !assignee.name.trim() || assignee.name.trim().length > 200) throw new ValidationError("An assignee needs a name of at most 200 characters");
+    if (assignee.type === "external" && assignee.id !== "external") throw new ValidationError("External assignees must use the external id");
+    if (typeof assignee.id !== "string" || !assignee.id) throw new ValidationError("An assignee needs an id");
+    return { type: assignee.type, id: assignee.id, name: assignee.name.trim() };
+  }
+
+  async workspaceMembers(workspaceId: string): Promise<{ id: string; name: string }[]> {
+    const ws = await this.workspace(workspaceId);
+    if (!ws.tenantId) return [];
+    return (await this.store.identity.memberships.forTenant(ws.tenantId)).map(({ user }) => ({ id: user.id, name: user.name }));
+  }
+
+  async myWork(workspaceId: string, userId: string | undefined): Promise<{ tasks: Task[]; requirements: { id: string; code: string; title: string; state: RequirementState; status: Status }[] }> {
+    const ws = await this.workspace(workspaceId);
+    if (!userId || !ws.tenantId || !(await this.store.identity.memberships.get(ws.tenantId, userId))) return { tasks: [], requirements: [] };
+    const [tasks, states] = await Promise.all([this.store.tasks.list(ws.id), this.store.states.list(ws.id)]);
+    const owned = states.flatMap((state) => {
+      if (state.ownerUserId !== userId) return [];
+      const node = this.registry.node(state.nodeId);
+      if (!node?.assessable || !this.frameworkSettings(ws, node.frameworkId)?.enabled || this.registry.framework(node.frameworkId)?.graph.framework.family === "threat") return [];
+      return [{ node, state }];
+    });
+    const scores = new Map(await Promise.all([...new Set(owned.map(({ node }) => node.frameworkId))].map(async (id) => [id, await this.score(ws.id, id)] as const)));
+    return {
+      tasks: tasks.filter((task) => task.assignee?.type === "person" && task.assignee.id === userId),
+      requirements: owned.map(({ node, state }) => ({ id: node.id, code: node.code, title: node.title, state, status: scores.get(node.frameworkId)?.statuses.get(node.id)?.status ?? "not-started" })),
+    };
+  }
+
   /**
    * The one rule for changing a requirement's assessment, for people and agents alike.
    * A requirement out of scope (by configuration or a documented exclusion) keeps no
    * levels, verification or status override; owner, notes and priority stay editable.
    */
-  private checkAssessment(node: RequirementNode, applicable: boolean, patch: Partial<RequirementState>, rationale: string | undefined): void {
+  private checkAssessment(node: RequirementNode, applicable: boolean, patch: Pick<RequirementPatch, "current" | "target" | "verifiedAt" | "statusOverride">, rationale: string | undefined): void {
     const touches: string[] = (["current", "target"] as const).filter((k) => patch[k] !== undefined);
     if (patch.verifiedAt) touches.push("verifiedAt");
     if (patch.statusOverride) touches.push("statusOverride");
@@ -845,7 +898,7 @@ export class VisuaService {
   async updateState(
     workspaceId: string,
     nodeId: string,
-    patch: Partial<Pick<RequirementState, "current" | "target" | "priority" | "applicable" | "applicabilityRationale" | "owner" | "notes" | "statusOverride" | "verifiedAt">>,
+    patch: RequirementPatch,
     actor = "user",
   ): Promise<RequirementState> {
     return this.mutate(workspaceId, async (ws) => {
@@ -875,9 +928,25 @@ export class VisuaService {
         if (prev.target === 0 && patch.target === undefined) scoping.target = defaultTarget;
       }
       this.checkAssessment(node, scoping.applicable ?? prev.applicable, patch, scoping.applicabilityRationale ?? prev.applicabilityRationale);
+      const assignment: Partial<RequirementState> = {};
+      if (patch.owner !== null && patch.owner !== undefined && (typeof patch.owner !== "string" || patch.owner.length > 200)) throw new ValidationError("Owner must be a label of at most 200 characters");
+      if (patch.ownerUserId !== undefined) {
+        if (patch.ownerUserId === null) {
+          assignment.ownerUserId = undefined;
+          assignment.owner = patch.owner?.trim() || undefined;
+        } else {
+          assignment.ownerUserId = patch.ownerUserId;
+          assignment.owner = await this.memberName(ws, patch.ownerUserId);
+        }
+      } else if (Object.hasOwn(patch, "owner")) {
+        assignment.ownerUserId = undefined;
+        assignment.owner = patch.owner?.trim() || undefined;
+      }
+      if (Object.hasOwn(patch, "dueDate")) assignment.dueDate = this.workDate(patch.dueDate, "Due date");
       const next: RequirementState = {
         ...prev,
-        ...patch,
+        ...patch as Partial<RequirementState>,
+        ...assignment,
         ...scoping,
         nodeId: node.id,
         current: patch.current !== undefined ? clampLevel(patch.current) : prev.current,
@@ -886,13 +955,17 @@ export class VisuaService {
         updatedBy: actor,
       };
       if (patch.statusOverride === null) delete next.statusOverride;
+      if (patch.verifiedAt === null) delete next.verifiedAt;
+      if (!next.owner) delete next.owner;
+      if (!next.ownerUserId) delete next.ownerUserId;
+      if (!next.dueDate) delete next.dueDate;
       if (!next.userExclusion) delete next.userExclusion;
       await this.store.states.put(ws.id, next);
       this.emit(ws.id, "state.updated", next);
       const changes = Object.entries(patch)
         .filter(([k, v]) => (prev as unknown as Record<string, unknown>)[k] !== v)
         .map(([k, v]) => `${k}: ${String((prev as unknown as Record<string, unknown>)[k] ?? "—")} → ${String(v)}`);
-      await this.log(ws.id, actor, "assessed", "requirement", node.id, `${node.code} ${changes.join(", ") || "updated"}`, { patch });
+      await this.log(ws.id, actor, "assessed", "requirement", node.id, `${node.code} ${changes.join(", ") || "updated"}`, { patch, before: requirementWorkSnapshot(prev), after: requirementWorkSnapshot(next) });
       return next;
     });
   }
@@ -903,7 +976,11 @@ export class VisuaService {
 
   async createTask(workspaceId: string, input: Partial<Task> & Pick<Task, "title">, actor = "user"): Promise<Task> {
     return this.mutate(workspaceId, async (ws) => {
-      const requirementIds = this.linkedRequirements(input.requirementIds);
+      const requirementIds = this.taskRequirements(ws, input.requirementIds);
+      const assignee = await this.taskAssignee(ws, input.assignee);
+      const startDate = this.workDate(input.startDate, "Start date");
+      const dueDate = this.workDate(input.dueDate, "Due date");
+      this.taskDateRange(startDate, dueDate);
       const ts = now();
       const task: Task = {
         id: newId("task"),
@@ -914,9 +991,10 @@ export class VisuaService {
         status: input.status ?? "todo",
         priority: input.priority ?? "medium",
         requirementIds,
-        assignee: input.assignee,
-        startDate: input.startDate,
-        dueDate: input.dueDate,
+        contentRequirementIds: [...requirementIds],
+        assignee,
+        startDate,
+        dueDate,
         effortHours: input.effortHours,
         checklist: (input.checklist ?? []).map((c) => ({ id: c.id || newId("chk"), text: c.text, done: !!c.done })),
         dependsOn: input.dependsOn ?? [],
@@ -929,7 +1007,7 @@ export class VisuaService {
       };
       await this.store.tasks.put(task);
       this.emit(ws.id, "task.created", task);
-      await this.log(ws.id, actor, "created", "task", task.id, `Task “${task.title}” created`);
+      await this.log(ws.id, actor, "created", "task", task.id, `Task “${task.title}” created`, { before: null, after: taskWorkSnapshot(task) });
       return task;
     });
   }
@@ -937,19 +1015,28 @@ export class VisuaService {
   async updateTask(
     workspaceId: string,
     taskId: string,
-    patch: Partial<Task>,
+    patch: TaskPatch,
     actor = "user",
   ): Promise<{ task: Task; suggestedLevels: { nodeId: string; code: string; from: number; to: number }[] }> {
     return this.mutate(workspaceId, async (ws) => {
       const prev = await this.store.tasks.get(taskId);
       if (!prev || prev.workspaceId !== ws.id) throw new NotFoundError(`Task '${taskId}' not found`);
-      if (patch.requirementIds) patch = { ...patch, requirementIds: this.linkedRequirements(patch.requirementIds) };
-      const next: Task = { ...prev, ...patch, id: prev.id, workspaceId: prev.workspaceId, updatedAt: now() };
+      const normalized: Partial<Task> = { ...patch as Partial<Task> };
+      if (Object.hasOwn(patch, "requirementIds")) normalized.requirementIds = this.taskRequirements(ws, patch.requirementIds);
+      if (Object.hasOwn(patch, "assignee")) normalized.assignee = await this.taskAssignee(ws, patch.assignee);
+      if (Object.hasOwn(patch, "startDate")) normalized.startDate = this.workDate(patch.startDate, "Start date");
+      if (Object.hasOwn(patch, "dueDate")) normalized.dueDate = this.workDate(patch.dueDate, "Due date");
+      const next: Task = { ...prev, ...normalized, id: prev.id, workspaceId: prev.workspaceId, source: prev.source, origin: prev.origin, updatedAt: now() };
+      next.contentRequirementIds = [...new Set([...(prev.contentRequirementIds ?? []), ...prev.requirementIds, ...next.requirementIds])];
+      if (Object.hasOwn(patch, "startDate") || Object.hasOwn(patch, "dueDate")) this.taskDateRange(next.startDate, next.dueDate);
+      if (!next.assignee) delete next.assignee;
+      if (!next.startDate) delete next.startDate;
+      if (!next.dueDate) delete next.dueDate;
       if (patch.status === "done" && prev.status !== "done") next.completedAt = now();
       if (patch.status && patch.status !== "done") delete next.completedAt;
       await this.store.tasks.put(next);
       this.emit(ws.id, "task.updated", next);
-      await this.log(ws.id, actor, "updated", "task", next.id, `Task “${next.title}”${patch.status && patch.status !== prev.status ? ` → ${patch.status}` : " updated"}`);
+      await this.log(ws.id, actor, "updated", "task", next.id, `Task “${next.title}”${patch.status && patch.status !== prev.status ? ` → ${patch.status}` : " updated"}`, { before: taskWorkSnapshot(prev), after: taskWorkSnapshot(next) });
       const suggestedLevels: { nodeId: string; code: string; from: number; to: number }[] = [];
       if (patch.status === "done" && prev.status !== "done") {
         const states = await this.store.states.getMany(ws.id, next.requirementIds);
@@ -993,7 +1080,7 @@ export class VisuaService {
       const ts = now();
       const created: Task[] = [];
       for (const p of planned) {
-        const task: Task = { ...p, createdAt: ts, updatedAt: ts };
+        const task: Task = { ...p, contentRequirementIds: [...p.requirementIds], createdAt: ts, updatedAt: ts };
         await this.store.tasks.put(task);
         created.push(task);
       }
@@ -1007,66 +1094,82 @@ export class VisuaService {
   // Evidence
   // -------------------------------------------------------------------------
 
+  private evidenceScope(e: Evidence): EvidenceReviewScope {
+    try { return evidenceReviewScope(e); }
+    catch (err) { throw new ValidationError((err as Error).message); }
+  }
+
+  private evidenceDecision(e: Evidence, decision: "accepted" | "rejected", actor: string, at: string, note?: string): Evidence {
+    const scope = this.evidenceScope(e);
+    if (decision === "accepted" && !scope.sha256) throw new ValidationError("Acceptance requires an artifact with a server-computed hash");
+    let reviewedAt: string;
+    try { reviewedAt = normalizeEvidenceDate(at); }
+    catch (err) { throw new ValidationError((err as Error).message); }
+    return {
+      ...e, status: decision, reviewedBy: actor, reviewedAt,
+      reviewHistory: [...(e.reviewHistory ?? []), { id: newId("rev"), decision, reviewedBy: actor, reviewedAt, scope, ...(note ? { note } : {}) }],
+    };
+  }
+
   async createEvidence(workspaceId: string, input: Partial<Evidence> & Pick<Evidence, "title">, actor = "user"): Promise<Evidence> {
     return this.mutate(workspaceId, async (ws) => {
       const ts = now();
       const requirementIds = this.linkedRequirements(input.requirementIds);
-      const evidence: Evidence = {
-        id: newId("ev"),
-        workspaceId: ws.id,
-        title: input.title.trim(),
-        description: input.description,
-        kind: input.kind ?? "document",
-        source: input.source ?? "manual",
-        connectorId: input.connectorId,
-        requirementIds,
-        status: input.status ?? "pending-review",
-        collectedAt: input.collectedAt ?? ts,
-        validUntil: input.validUntil,
-        content: input.content,
-        data: input.data,
-        fileName: input.fileName,
-        sha256: input.sha256,
-        reviewedBy: input.reviewedBy,
-        reviewedAt: input.reviewedAt,
-        createdAt: ts,
+      let evidence: Evidence = {
+        id: newId("ev"), workspaceId: ws.id, title: input.title.trim(),
+        description: input.description, kind: input.kind ?? "document", source: input.source ?? "manual",
+        connectorId: input.connectorId, requirementIds, status: "pending-review",
+        collectedAt: input.collectedAt ?? ts, validUntil: input.validUntil,
+        content: input.content, data: input.data, fileName: input.fileName, createdAt: ts, reviewHistory: [],
       };
+      const scope = this.evidenceScope(evidence);
+      evidence = { ...evidence, collectedAt: scope.collectedAt, validUntil: scope.validUntil };
+      evidence.sha256 = artifactHash(evidence);
+      if (input.status === "accepted" || input.status === "rejected") {
+        evidence = this.evidenceDecision(evidence, input.status, input.reviewedBy ?? actor, input.reviewedAt ?? ts);
+      }
       await this.store.evidence.put(evidence);
       this.emit(ws.id, "evidence.created", evidence);
-      await this.log(ws.id, actor, "collected", "evidence", evidence.id, `Evidence “${evidence.title}” added for ${requirementIds.map(codeOf).join(", ") || "no requirement"}`);
+      await this.log(ws.id, actor, "collected", "evidence", evidence.id, `Evidence “${evidence.title}” added for ${requirementIds.map(codeOf).join(", ") || "no requirement"}`, { before: null, after: evidenceAuditSnapshot(evidence) });
       return evidence;
     });
   }
 
-  async reviewEvidence(workspaceId: string, evidenceId: string, decision: "accepted" | "rejected", actor = "user", note?: string): Promise<Evidence> {
+  async reviewEvidence(workspaceId: string, evidenceId: string, decision: "accepted" | "rejected", actor = "user", note?: string, expectedScope?: EvidenceReviewScope): Promise<Evidence> {
     return this.mutate(workspaceId, async (ws) => {
       const prev = await this.store.evidence.get(evidenceId);
       if (!prev || prev.workspaceId !== ws.id) throw new NotFoundError(`Evidence '${evidenceId}' not found`);
-      const next: Evidence = {
-        ...prev,
-        status: decision,
-        reviewedBy: actor,
-        reviewedAt: now(),
-        description: note ? `${prev.description ?? ""}\n\nReview note: ${note}`.trim() : prev.description,
-      };
+      if (!expectedScope || !sameEvidenceReviewScope(expectedScope, this.evidenceScope(prev))) throw new ValidationError("Evidence changed since it was inspected; reload it before reviewing");
+      // Detect stored artifact corruption as well as stale caller snapshots.
+      if (artifactHash(prev) !== prev.sha256) throw new ValidationError("Evidence artifact does not match its recorded hash");
+      const next = this.evidenceDecision(prev, decision, actor, now(), note);
       await this.store.evidence.put(next);
       this.emit(ws.id, "evidence.updated", next);
-      await this.log(ws.id, actor, decision, "evidence", next.id, `Evidence “${next.title}” ${decision}`);
+      await this.log(ws.id, actor, decision, "evidence", next.id, `Evidence “${next.title}” ${decision}`, { before: evidenceAuditSnapshot(prev), after: evidenceAuditSnapshot(next), review: next.reviewHistory!.at(-1) });
       return next;
     });
   }
 
-  async updateEvidence(workspaceId: string, evidenceId: string, patch: Partial<Evidence>, actor = "user"): Promise<Evidence> {
+  async updateEvidence(workspaceId: string, evidenceId: string, patch: EvidencePatch, actor = "user"): Promise<Evidence> {
     return this.mutate(workspaceId, async (ws) => {
       const prev = await this.store.evidence.get(evidenceId);
       if (!prev || prev.workspaceId !== ws.id) throw new NotFoundError(`Evidence '${evidenceId}' not found`);
-      // Only the fields the caller sent: an absent title or link list is not a request to erase it.
-      const changes = Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined)) as Partial<Evidence>;
-      if (changes.requirementIds) changes.requirementIds = this.linkedRequirements(changes.requirementIds);
-      const next: Evidence = { ...prev, ...changes, id: prev.id, workspaceId: ws.id };
+      const allowed = new Set(["title", "description", "content", "data", "fileName", "requirementIds", "collectedAt", "validUntil"]);
+      const changes = Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined));
+      if (Object.keys(changes).some((key) => !allowed.has(key))) throw new ValidationError("Evidence identity and review history cannot be edited");
+      if (prev.source === "connector" && ["content", "data", "collectedAt"].some((key) => key in changes && canonical(changes[key]) !== canonical(prev[key as keyof Evidence]))) throw new ValidationError("Connector observations are immutable; run a new check to collect a new artifact");
+      if (changes["requirementIds"] !== undefined) changes["requirementIds"] = this.linkedRequirements(changes["requirementIds"] as string[]);
+      let next: Evidence = { ...prev, ...changes, validUntil: changes["validUntil"] === null ? undefined : changes["validUntil"] as string | undefined ?? prev.validUntil };
+      const scope = this.evidenceScope(next);
+      next = { ...next, collectedAt: scope.collectedAt, validUntil: scope.validUntil, sha256: artifactHash(next) };
+      let previousScope: EvidenceReviewScope | undefined;
+      try { previousScope = evidenceReviewScope(prev); } catch { /* Legacy malformed dates require repair and renewed review. */ }
+      if (!previousScope || !sameEvidenceReviewScope(previousScope, this.evidenceScope(next))) {
+        next = { ...next, status: "pending-review", reviewedBy: undefined, reviewedAt: undefined };
+      }
       await this.store.evidence.put(next);
       this.emit(ws.id, "evidence.updated", next);
-      await this.log(ws.id, actor, "updated", "evidence", next.id, `Evidence “${next.title}” updated`);
+      await this.log(ws.id, actor, "updated", "evidence", next.id, `Evidence “${next.title}” updated`, { before: evidenceAuditSnapshot(prev), after: evidenceAuditSnapshot(next), changedFields: Object.keys(changes).sort() });
       return next;
     });
   }
@@ -1187,7 +1290,7 @@ export class VisuaService {
   // -------------------------------------------------------------------------
 
   async createConnector(workspaceId: string, input: { kind: string; name?: string; config: Record<string, unknown> }, actor = "user"): Promise<Connector> {
-    const kind = connectorKind(input.kind);
+    const kind = connectorKind(input.kind, this.connectorKinds);
     if (!kind) throw new ValidationError(`Unknown connector kind '${input.kind}'`);
     for (const field of kind.configFields) {
       if (field.required && !String(input.config[field.key] ?? "").trim()) throw new ValidationError(`${field.label} is required`);
@@ -1231,7 +1334,7 @@ export class VisuaService {
     const ws = await this.workspace(workspaceId);
     const connector = await this.store.connectors.get(connectorId);
     if (!connector || connector.workspaceId !== ws.id) throw new NotFoundError(`Connector '${connectorId}' not found`);
-    const kind = connectorKind(connector.kind);
+    const kind = connectorKind(connector.kind, this.connectorKinds);
     if (!kind) throw new ValidationError(`Unknown connector kind '${connector.kind}'`);
     // The external call happens outside any transaction.
     let outputs;
@@ -1290,7 +1393,6 @@ export class VisuaService {
         validUntil: new Date(new Date(check.observedAt).getTime() + 30 * 86_400_000).toISOString(),
         content: check.detail,
         data: { checkId: check.checkId, observed: check.observed, automation: "api-automated" },
-        sha256: createHash("sha256").update(canonical({ checkId: check.checkId, observed: check.observed, observedAt: check.observedAt })).digest("hex"),
       },
       `connector:${connector.kind}`,
     );
@@ -1346,11 +1448,20 @@ export class VisuaService {
     this.running.set(runId, controller);
     principalContext.exit(() =>
       txContext.exit(() => {
-        void this.executeRun(runId, controller.signal)
+        const execution = this.executeRun(runId, controller.signal)
           .catch((err: unknown) => console.error(`[visua] agent run ${runId} crashed`, err))
-          .finally(() => this.running.delete(runId));
+          .finally(() => {
+            this.running.delete(runId);
+            this.executions.delete(execution);
+          });
+        this.executions.add(execution);
       }),
     );
+  }
+
+  /** Drain this instance's detached work before closing storage. Durable recovery is separate. */
+  async drainRuns(): Promise<void> {
+    while (this.executions.size) await Promise.all([...this.executions]);
   }
 
   /** Resolves when the run finishes (used by tests and synchronous API callers). */
@@ -1513,8 +1624,34 @@ export class VisuaService {
           return;
         }
         this.linkedRequirements(payload["requirementIds"] as string[] | undefined);
+        if (payload["validDays"] !== undefined && (!Number.isInteger(payload["validDays"]) || Number(payload["validDays"]) < 1 || Number(payload["validDays"]) > 730)) throw new ValidationError("Evidence validity must be between 1 and 730 whole days");
         return;
-      case "create-task":
+      case "review-evidence": {
+        const evidence = await this.store.evidence.get(String(payload["evidenceId"]));
+        if (!evidence || evidence.workspaceId !== ws.id) throw new NotFoundError("Evidence not found");
+        this.evidenceScope(evidence);
+        return;
+      }
+      case "create-task": {
+        this.taskRequirements(ws, payload["requirementIds"] as string[] | undefined);
+        const startDate = this.workDate(payload["startDate"], "Start date");
+        const dueDate = this.workDate(payload["dueDate"], "Due date");
+        this.taskDateRange(startDate, dueDate);
+        if (payload["assignee"] !== undefined) await this.taskAssignee(ws, payload["assignee"] as Task["assignee"]);
+        return;
+      }
+      case "update-task": {
+        const task = await this.store.tasks.get(String(payload["taskId"]));
+        if (!task || task.workspaceId !== ws.id) throw new NotFoundError("Task no longer exists");
+        if (Object.hasOwn(payload, "requirementIds")) this.taskRequirements(ws, payload["requirementIds"] as string[]);
+        if (Object.hasOwn(payload, "assignee")) await this.taskAssignee(ws, payload["assignee"] as Task["assignee"] | null);
+        if (Object.hasOwn(payload, "startDate") || Object.hasOwn(payload, "dueDate")) {
+          const startDate = Object.hasOwn(payload, "startDate") ? this.workDate(payload["startDate"], "Start date") : task.startDate;
+          const dueDate = Object.hasOwn(payload, "dueDate") ? this.workDate(payload["dueDate"], "Due date") : task.dueDate;
+          this.taskDateRange(startDate, dueDate);
+        }
+        return;
+      }
       case "create-policy":
       case "create-risk":
         this.linkedRequirements(payload["requirementIds"] as string[] | undefined);
@@ -1534,7 +1671,9 @@ export class VisuaService {
         type: input.type,
         title: input.title,
         rationale: input.rationale,
-        payload: input.payload,
+        payload: input.type === "review-evidence"
+          ? { ...input.payload, expectedScope: this.evidenceScope((await this.store.evidence.get(String(input.payload["evidenceId"])))!) }
+          : { ...input.payload },
         citations: input.citations,
         confidence: input.confidence,
         status: "pending",
@@ -1561,7 +1700,12 @@ export class VisuaService {
       if (decision === "approved") {
         try {
           // A savepoint: a change that fails half-way leaves nothing behind.
-          await this.store.transaction(() => this.applyProposal(next, actor));
+          await this.store.transaction(async () => {
+            if (prev.type === "create-evidence" && typeof prev.payload["checkResultId"] === "string" && next.payload["checkResultId"] !== prev.payload["checkResultId"]) throw new ValidationError("A connector evidence proposal must retain its original check reference");
+            if (prev.type === "review-evidence" && (next.payload["evidenceId"] !== prev.payload["evidenceId"] || canonical(next.payload["expectedScope"]) !== canonical(prev.payload["expectedScope"]))) throw new ValidationError("A review proposal must retain its original evidence and inspected scope");
+            await this.checkProposal(ws, { ...next, payload: next.payload });
+            await this.applyProposal(next, actor);
+          });
           next = { ...next, status: "applied" };
         } catch (err) {
           next = { ...next, status: "failed", rationale: `${next.rationale}\n\nApply failed: ${(err as Error).message}` };
@@ -1606,6 +1750,8 @@ export class VisuaService {
             priority: payload["priority"] as Priority,
             requirementIds: payload["requirementIds"] as string[],
             dueDate: payload["dueDate"] as string | undefined,
+            startDate: payload["startDate"] as string | undefined,
+            assignee: payload["assignee"] as Task["assignee"],
             effortHours: payload["effortHours"] as number | undefined,
             checklist,
             origin: "agent",
@@ -1618,7 +1764,11 @@ export class VisuaService {
         const task = await this.store.tasks.get(String(payload["taskId"]));
         if (!task || task.workspaceId !== p.workspaceId) throw new NotFoundError("Task no longer exists");
         const done = new Set((payload["completeChecklistItems"] as string[] | undefined) ?? []);
-        const patch: Partial<Task> = { checklist: task.checklist.map((c) => (done.has(c.id) ? { ...c, done: true } : c)) };
+        const patch: TaskPatch = { checklist: task.checklist.map((c) => (done.has(c.id) ? { ...c, done: true } : c)) };
+        if (Object.hasOwn(payload, "requirementIds")) patch.requirementIds = payload["requirementIds"] as string[];
+        if (Object.hasOwn(payload, "assignee")) patch.assignee = payload["assignee"] as Task["assignee"] | null;
+        if (Object.hasOwn(payload, "startDate")) patch.startDate = payload["startDate"] as string | null;
+        if (Object.hasOwn(payload, "dueDate")) patch.dueDate = payload["dueDate"] as string | null;
         if (payload["status"]) patch.status = payload["status"] as Task["status"];
         if (payload["note"]) patch.description = `${task.description}\n\n— ${new Date().toISOString().slice(0, 10)}: ${String(payload["note"])}`.trim();
         await this.updateTask(p.workspaceId, task.id, patch, by);
@@ -1647,7 +1797,7 @@ export class VisuaService {
         );
         return;
       case "review-evidence":
-        await this.reviewEvidence(p.workspaceId, String(payload["evidenceId"]), payload["decision"] === "rejected" ? "rejected" : "accepted", by);
+        await this.reviewEvidence(p.workspaceId, String(payload["evidenceId"]), payload["decision"] === "rejected" ? "rejected" : "accepted", by, typeof payload["note"] === "string" ? payload["note"] : undefined, payload["expectedScope"] as EvidenceReviewScope);
         return;
       case "create-policy":
         await this.createPolicy(

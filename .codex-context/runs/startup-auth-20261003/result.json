@@ -1,0 +1,20 @@
+{
+  "run_id": "startup-auth-20261003",
+  "node_id": "review",
+  "input_sha256": "6d1eab96e4df77742247d3a4a8a3dcd4419af5560dbf8623bf78956b7932682b",
+  "status": "complete",
+  "summary": "Completed the assigned read-only review against the recorded source snapshot. One medium finding: startup-failure cleanup closes storage before an already launched seeded agent drains, confirmed with isolated SQLite fault injection. The complete finding, reproduction method/output, coverage and limitations are preserved in review.json.",
+  "evidence": [
+    "review.json",
+    "plan.json#scope.files",
+    "apps/server/src/server.ts:108-111",
+    "apps/server/src/seed/demo.ts:336-339",
+    "apps/server/src/services/visua.ts:1350-1374"
+  ],
+  "limitations": [
+    "This was one bounded, fresh native review with no inherited author transcript. It did not inspect every unrelated service method or constitute a general security review.",
+    "Full unit/integration suites, real PostgreSQL fault injection, and a real OIDC sign-in were not executed by this reviewer; their test source and relevant implementation were inspected. Integration verification belongs to the root agent.",
+    "The reproduction uses process-local fault injection and an in-memory SQLite database to force the reachable startup timeout interleaving; it did not wait 120 seconds or invoke a model provider.",
+    "The report covers the recorded plan.json source snapshot only. Any subsequent fixes require targeted re-verification by the integration owner."
+  ]
+}

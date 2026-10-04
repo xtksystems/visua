@@ -1,0 +1,47 @@
+{
+  "renderer": "Chromium SwiftShader",
+  "viewport": "1440x900",
+  "reducedMotion": true,
+  "results": [
+    {
+      "name": "nexus",
+      "maxCallsPerFrame": 14,
+      "idleFrames": 0,
+      "idleDrawCalls": 0,
+      "sampleMs": 1502,
+      "errors": []
+    },
+    {
+      "name": "nexus-selected",
+      "maxCallsPerFrame": 15,
+      "idleFrames": 0,
+      "idleDrawCalls": 0,
+      "sampleMs": 1501,
+      "errors": []
+    },
+    {
+      "name": "observatory-csf",
+      "maxCallsPerFrame": 21,
+      "idleFrames": 0,
+      "idleDrawCalls": 0,
+      "sampleMs": 1502,
+      "errors": []
+    },
+    {
+      "name": "observatory-sp80053",
+      "maxCallsPerFrame": 18,
+      "idleFrames": 0,
+      "idleDrawCalls": 0,
+      "sampleMs": 1502,
+      "errors": []
+    },
+    {
+      "name": "terrain-sp80053",
+      "maxCallsPerFrame": 18,
+      "idleFrames": 0,
+      "idleDrawCalls": 0,
+      "sampleMs": 1501,
+      "errors": []
+    }
+  ]
+}

@@ -13,6 +13,7 @@
  * so a name that resolves to a public address when saved and a private one at sign-in (DNS
  * rebinding) is still refused. Every endpoint the discovery document names is checked the
  * same way.
+ * Monitoring connectors reuse this transport and lookup without a private-host exception.
  */
 import { lookup as dnsLookup, type LookupAddress } from "node:dns";
 import { request as httpRequest, type IncomingMessage } from "node:http";
@@ -20,9 +21,12 @@ import { request as httpsRequest } from "node:https";
 import { BlockList, isIP, type LookupFunction } from "node:net";
 import { brotliDecompressSync, gunzipSync, inflateSync } from "node:zlib";
 import type { CustomFetch } from "openid-client";
+import { trackPendingWork } from "../work-scope.ts";
 
-/** Largest response accepted from an identity provider (discovery, keys, tokens). */
+/** Maximum encoded and decoded response size for guarded outbound requests. */
 const MAX_BODY = 1024 * 1024;
+const GLOBAL_V6 = new BlockList();
+GLOBAL_V6.addSubnet("2000::", 3, "ipv6");
 
 const NON_PUBLIC = new BlockList();
 for (const [net, prefix] of [
@@ -47,6 +51,8 @@ for (const [net, prefix] of [
   ["64:ff9b:1::", 48], // local-use NAT64
   ["100::", 64], // discard
   ["2001:db8::", 32], // documentation
+  ["2001::", 23], // special-purpose assignments, including Teredo
+  ["3fff::", 20], // documentation
   ["fc00::", 7], // unique local
   ["fe80::", 10], // link-local
   ["ff00::", 8], // multicast
@@ -76,17 +82,17 @@ export function isNonPublicAddress(address: string): boolean {
   if (family === 4) return NON_PUBLIC.check(address, "ipv4");
   if (family === 6) {
     const v4 = embeddedIPv4(address);
-    return (v4 !== undefined && NON_PUBLIC.check(v4, "ipv4")) || NON_PUBLIC.check(address, "ipv6");
+    return NON_PUBLIC.check(address, "ipv6") || (v4 !== undefined ? NON_PUBLIC.check(v4, "ipv4") : !GLOBAL_V6.check(address, "ipv6"));
   }
   return true;
 }
 
 export class PrivateAddressError extends Error {
   readonly host: string;
-  constructor(host: string, address: string) {
+  constructor(host: string, address: string, purpose: "identity provider" | "connector" = "identity provider") {
     super(
-      `The identity provider ${host} is on a private or reserved address (${address}). ` +
-        `If it is an internal provider this server should reach, the operator can allow it with VISUA_OIDC_PRIVATE_ISSUERS.`,
+      `The ${purpose} ${host} is on a private or reserved address (${address}).` +
+        (purpose === "identity provider" ? " If it is an internal provider this server should reach, the operator can allow it with VISUA_OIDC_PRIVATE_ISSUERS." : " Connectors can reach public addresses only."),
     );
     this.host = host;
   }
@@ -108,6 +114,35 @@ export function privateHostAllowed(allowed: readonly string[]): (host: string) =
 
 /** The host of a URL as a bare name or IP literal (IPv6 without brackets). */
 export const bareHost = (url: URL) => url.hostname.toLowerCase().replace(/^\[|\]$/g, "");
+
+export function assertPublicTarget(target: URL, allow: (host: string) => boolean, purpose: "identity provider" | "connector" = "identity provider"): void {
+  if (target.protocol !== "https:" && target.protocol !== "http:") throw new TypeError(`Unsupported protocol ${target.protocol}`);
+  const host = bareHost(target);
+  if (!allow(host) && refusedLiteral(target, allow)) throw new PrivateAddressError(host, host, purpose);
+}
+
+/** Validate every answer in the lookup that the socket actually uses. */
+export function guardedLookup(allow: (host: string) => boolean, purpose: "identity provider" | "connector" = "identity provider"): LookupFunction {
+  return (hostname, lookupOptions, callback) => {
+    const finished = trackPendingWork();
+    try {
+      dnsLookup(hostname, { ...lookupOptions, all: true }, (err, addresses: LookupAddress[]) => {
+        try {
+          if (err) return callback(err, "", 0);
+          if (!addresses.length) return callback(Object.assign(new Error(`No address for ${hostname}`), { code: "ENOTFOUND" }), "", 0);
+          const refused = allow(hostname) ? undefined : addresses.find((a) => isNonPublicAddress(a.address));
+          if (refused) return callback(new PrivateAddressError(hostname, refused.address, purpose), "", 0);
+          if (lookupOptions.all) return callback(null, addresses);
+          const first = addresses[0]!;
+          callback(null, first.address, first.family);
+        } finally { finished(); }
+      });
+    } catch (err) {
+      finished();
+      throw err;
+    }
+  };
+}
 
 /** A literal address or `localhost` that would be refused: checked when an owner saves an issuer. */
 export function refusedLiteral(url: URL, allow: (host: string) => boolean): boolean {
@@ -143,35 +178,23 @@ async function bodyBytes(body: unknown): Promise<Buffer | undefined> {
  * A fetch for openid-client that refuses non-public addresses unless `allow(host)`.
  * Redirects are returned, never followed (openid-client asks for `redirect: "manual"`).
  */
-export function guardedFetch(allow: (host: string) => boolean): CustomFetch {
+export function guardedFetch(allow: (host: string) => boolean, purpose: "identity provider" | "connector" = "identity provider"): CustomFetch {
   return async (url, options) => {
     const target = new URL(url);
-    if (target.protocol !== "https:" && target.protocol !== "http:") throw new TypeError(`Unsupported protocol ${target.protocol}`);
-    const host = bareHost(target);
-    const open = allow(host);
-    // Node connects to literal addresses without a lookup: check those here.
-    if (!open && isIP(host) && isNonPublicAddress(host)) throw new PrivateAddressError(host, host);
-    const lookup: LookupFunction = (hostname, lookupOptions, callback) => {
-      dnsLookup(hostname, { ...lookupOptions, all: true }, (err, addresses: LookupAddress[]) => {
-        if (err) return callback(err, "", 0);
-        const refused = open ? undefined : addresses.find((a) => isNonPublicAddress(a.address));
-        if (refused) return callback(new PrivateAddressError(host, refused.address), "", 0);
-        if (lookupOptions.all) return callback(null, addresses);
-        const first = addresses[0];
-        if (!first) return callback(Object.assign(new Error(`No address for ${hostname}`), { code: "ENOTFOUND" }), "", 0);
-        callback(null, first.address, first.family);
-      });
-    };
+    assertPublicTarget(target, allow, purpose);
+    const lookup = guardedLookup(allow, purpose);
+    const deadline = AbortSignal.timeout(12_000);
+    const signal = options.signal ? AbortSignal.any([options.signal, deadline]) : deadline;
     const payload = await bodyBytes(options.body);
     return new Promise<Response>((resolve, reject) => {
       const send = target.protocol === "https:" ? httpsRequest : httpRequest;
-      const req = send(target, { method: options.method, headers: options.headers, lookup, signal: options.signal }, (res: IncomingMessage) => {
+      const req = send(target, { method: options.method, headers: options.headers, lookup, signal, agent: false }, (res: IncomingMessage) => {
         const chunks: Buffer[] = [];
         let size = 0;
         res.on("data", (chunk: Buffer) => {
           size += chunk.length;
           if (size > MAX_BODY) {
-            req.destroy(new Error(`The identity provider's response exceeds ${MAX_BODY} bytes`));
+            req.destroy(new Error(`The ${purpose}'s response exceeds ${MAX_BODY} bytes`));
             return;
           }
           chunks.push(chunk);

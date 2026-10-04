@@ -1,0 +1,19 @@
+{
+  "status": "complete",
+  "verdict": "pass",
+  "summary": "The original startup cleanup finding is addressed within the configured grace period. The failed-start path now drains active executions before closing storage and preserves the startup error; both shutdown paths share the deadline helper. The reduced SSO fixture retains its stated DNS-trouble and retry contract. No new supported issue was identified in this targeted correction follow-up.",
+  "coverage": [
+    "Read fix-brief.txt and the original review.json finding; this is targeted correction adjudication by the original reviewer, not a new independent first pass. Bound the inspected three-file snapshot to plan.json#scope.files; each source digest matched the recorded identity.",
+    "Inspected apps/server/src/server.ts:15-30 and 93-120. The common Promise.race helper bounds cleanup; ordinary shutdown still drains requests/rechecks/runs before storage close; failed-start cleanup now waits for rechecks and drainRuns before close. Cleanup failure is reported with both original and cleanup errors in AggregateError.",
+    "Read apps/server/test/startup.test.ts:101-125. Its regression holds the real executeRun implementation at entry, forces the real seeding path to fail via waitForRun, checks no store close before release, then checks the execution finished and storage closed exactly once with the original startup error.",
+    "Executed an isolated SQLite follow-up to the original reproduction via node --disable-warning=ExperimentalWarning --input-type=module from /Users/artem/visua. Process-local executeRun injection awaited release then queried SELECT 1; waitForRun injected the original failure. Before release: {\"closed\":false,\"running\":true}. After release: {\"startupError\":\"injected waitForRun timeout\",\"closed\":true,\"closedDuringExecution\":false,\"queryAfterRelease\":\"succeeded\",\"running\":false}. The process exited 0. No source files, external providers, Docker services or build caches were changed.",
+    "Inspected the fixture adjustment and its helpers in apps/server/test/sso-recheck.test.ts:17-27, 63-82 and 125-139. ETIMEOUT remains injected for the target domain. The fixture checks one lookup after calls at 24 and 24.5 hours, exercises the 25-hour retry, then daily unknown results through 240 hours; exact per-domain count 11 requires all intended due lookups. Final standing stays verified and the tenant audit trail contains no failing event."
+  ],
+  "findings": [],
+  "limitations": [
+    "This follow-up covers only the original startup cleanup finding, the shared deadline refactor and the revised SSO fixture contract; the broader original review was not repeated.",
+    "The added Vitest regression and revised SSO test were reviewed as source, not executed by this reviewer. Full suites and backend integration checks remain owned by the root agent.",
+    "The executed follow-up uses injected agent work and in-memory SQLite; it does not establish real PostgreSQL/model timeout behavior or execute the failed-start cleanup deadline expiry branch.",
+    "A forced deadline can leave unfinished work for process termination; source inspection confirms bounded rejection and preservation of both errors but does not claim durable agent recovery."
+  ]
+}

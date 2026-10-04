@@ -125,8 +125,15 @@ describe("re-checking SSO domains proven by DNS", () => {
   it("never counts DNS trouble against a domain", async () => {
     const { client, tenant, connection, record } = await provenOrg("ravi@flaky.example", "flaky-sso.example");
     failing.set(record.name, "ETIMEOUT");
+    lookups.length = 0;
     const t = Date.now();
-    for (let h = 24; h <= 24 * 10; h += 1) await recheckAll(new Date(t + h * 3_600_000 + 60_000));
+    // Check the hourly retry boundary, then persistent DNS trouble beyond the grace period.
+    // Hundreds of redundant polls can exceed the suite's timeout on local Postgres.
+    for (const h of [24, 24.5, 25, 48, 72, 96, 120, 144, 168, 192, 216, 240]) {
+      await recheckAll(new Date(t + h * 3_600_000 + 60_000));
+      if (h === 24.5) expect(lookups.filter((name) => name === record.name)).toHaveLength(1);
+    }
+    expect(lookups.filter((name) => name === record.name)).toHaveLength(11);
     expect(await status(client, tenant, connection.id)).toMatchObject({ standing: "verified" });
     expect((await trail(client, tenant)).some((e) => e.action === "failing")).toBe(false);
     failing.delete(record.name);

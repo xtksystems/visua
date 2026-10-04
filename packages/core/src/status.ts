@@ -1,4 +1,5 @@
 import type { CheckResult, Evidence, RequirementState, Status, Task } from "./types.ts";
+import { evidenceReviewScope, hasCurrentEvidenceReview } from "./evidence.ts";
 
 export interface StatusSignals {
   state: RequirementState | undefined;
@@ -17,21 +18,35 @@ export interface DerivedStatus {
 const DAY = 86_400_000;
 
 export function isEvidenceValid(e: Evidence, now: Date = new Date()): boolean {
-  if (e.status !== "accepted") return false;
-  if (e.validUntil && new Date(e.validUntil).getTime() < now.getTime()) return false;
-  return true;
+  if (e.status !== "accepted" || !hasCurrentEvidenceReview(e) || !Number.isFinite(now.getTime())) return false;
+  try {
+    const scope = evidenceReviewScope(e);
+    return new Date(scope.collectedAt).getTime() <= now.getTime()
+      && (scope.validUntil === undefined || now.getTime() <= new Date(scope.validUntil).getTime());
+  } catch {
+    return false;
+  }
 }
 
 export function evidenceFreshness(e: Evidence, now: Date = new Date()): "fresh" | "expiring" | "expired" | "none" {
-  if (!e.validUntil) return e.status === "expired" ? "expired" : "fresh";
-  const remaining = new Date(e.validUntil).getTime() - now.getTime();
-  if (remaining < 0 || e.status === "expired") return "expired";
-  if (remaining < 30 * DAY) return "expiring";
-  return "fresh";
+  if (e.status === "expired") return "expired";
+  if (!Number.isFinite(now.getTime())) return "none";
+  try {
+    const scope = evidenceReviewScope(e);
+    const remaining = scope.validUntil === undefined ? undefined : new Date(scope.validUntil).getTime() - now.getTime();
+    if (remaining !== undefined && remaining < 0) return "expired";
+    if (new Date(scope.collectedAt).getTime() > now.getTime() || e.status !== "accepted" || !hasCurrentEvidenceReview(e)) return "none";
+    return remaining !== undefined && remaining < 30 * DAY ? "expiring" : "fresh";
+  } catch {
+    return "none";
+  }
 }
 
 export function isTaskOverdue(t: Task, now: Date = new Date()): boolean {
-  return !!t.dueDate && t.status !== "done" && new Date(t.dueDate).getTime() < now.getTime();
+  if (!t.dueDate || t.status === "done" || !Number.isFinite(now.getTime())) return false;
+  // Calendar dates remain due through their UTC day. Preserve legacy timestamp precision.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(t.dueDate)) return t.dueDate < now.toISOString().slice(0, 10);
+  return new Date(t.dueDate).getTime() < now.getTime();
 }
 
 /**
