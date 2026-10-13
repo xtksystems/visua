@@ -3,6 +3,7 @@ import {
   PRIORITY_WEIGHT,
   buildSnapshot,
   evidenceFreshness,
+  effectiveEvidenceState,
   hasCurrentEvidenceReview,
   isEvidenceValid,
   isTaskOverdue,
@@ -145,7 +146,7 @@ export async function workspaceAttention(svc: VisuaService, ws: Workspace, at = 
     });
   }
 
-  // Reuse scoring's latest-per-(connector, check, requirement) selection. A later
+  // Reuse scoring's latest-per-recorded-target/check/requirement selection. A later
   // passing result may supersede only some links of an older multi-link failure.
   const failing = new Map<string, { check: CheckResult; ids: string[] }>();
   for (const id of requirements.keys()) {
@@ -159,7 +160,7 @@ export async function workspaceAttention(svc: VisuaService, ws: Workspace, at = 
   const unlinkedChecks = new Map<string, CheckResult>();
   for (const check of checks) {
     if (check.requirementIds.length) continue;
-    const key = JSON.stringify([check.connectorId, check.checkId]);
+    const key = JSON.stringify([check.connectorId, check.checkId, check.source?.configHash ?? null]);
     const previous = unlinkedChecks.get(key);
     if (!previous || previous.observedAt < check.observedAt) unlinkedChecks.set(key, check);
   }
@@ -188,8 +189,9 @@ export async function workspaceAttention(svc: VisuaService, ws: Workspace, at = 
       });
       continue;
     }
-    if (artifact.status === "rejected" || (freshness !== "expired" && freshness !== "expiring")) continue;
+    if (artifact.status === "rejected" || artifact.status === "withdrawn" || (freshness !== "expired" && freshness !== "expiring")) continue;
     const assessedRefs = refs.filter((ref) => ref.assessable);
+    if (assessedRefs.length && assessedRefs.every((ref) => effectiveEvidenceState(artifact, evidence, at, ref.id).supersededByIds.length)) continue;
     const alternatives = assessedRefs.filter((ref) => (snapshot.evidenceByNode.get(ref.id) ?? []).some((other) => other.id !== artifact.id && isEvidenceValid(other, at))).length;
     const coverage = !assessedRefs.length ? "" : alternatives === assessedRefs.length
       ? " All affected requirements currently have other valid accepted evidence."

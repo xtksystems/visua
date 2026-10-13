@@ -66,7 +66,7 @@ async function state(ws: string, nodeId: string, patch: Partial<RequirementState
 }
 async function artifact(ws: string, ids: string[], end?: number, status: "accepted" | "rejected" | "pending-review" = "accepted", start = -10): Promise<Evidence> {
   const value = await svc.createEvidence(ws, { title: `Artifact ${++sequence}`, content: "Observed configuration", requirementIds: ids, collectedAt: instant(start), validUntil: end === undefined ? undefined : instant(end) });
-  return status === "pending-review" ? value : svc.reviewEvidence(ws, value.id, status, "reviewer", undefined, evidenceReviewScope(value));
+  return status === "pending-review" ? value : svc.reviewEvidence(ws, value.id, status, "reviewer", status === "rejected" ? "Artifact did not meet the requested scope" : undefined, evidenceReviewScope(value));
 }
 
 describe(`evidence renewal (${db.dialect})`, () => {

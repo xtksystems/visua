@@ -67,7 +67,7 @@ async function state(ws: string, nodeId: string, patch: Partial<RequirementState
 }
 async function artifact(ws: string, ids: string[], options: { end?: string; start?: string; status?: "accepted" | "rejected" | "pending-review" } = {}): Promise<Evidence> {
   const value = await svc.createEvidence(ws, { title: `Artifact ${++sequence}`, content: "Observed configuration", requirementIds: ids, collectedAt: options.start ?? "2026-10-01T00:00:00Z", validUntil: options.end });
-  return options.status === "pending-review" ? value : svc.reviewEvidence(ws, value.id, options.status ?? "accepted", "reviewer", undefined, evidenceReviewScope(value));
+  return options.status === "pending-review" ? value : svc.reviewEvidence(ws, value.id, options.status ?? "accepted", "reviewer", options.status === "rejected" ? "Artifact did not meet the requested scope" : undefined, evidenceReviewScope(value));
 }
 async function normalBundle(ws: Awaited<ReturnType<typeof fixture>>, id = CSF) {
   const bundle = await frameworkState(svc, ws, id);

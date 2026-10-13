@@ -7,6 +7,8 @@ import {
   CrosswalkIndex,
   codeOf,
   frameworkOf,
+  effectiveEvidenceState,
+  evidenceFreshness,
   isEvidenceValid,
   levelLabel,
   newId,
@@ -547,15 +549,26 @@ const evidenceCollector: Playbook = async (host, _goal, input) => {
   } else lines.push("No active connectors — add a Web Posture or Repository connector to automate evidence.");
 
   const scope = Array.isArray(input["nodeIds"]) ? scopeNodes(host, input) : undefined;
-  const now = Date.now();
-  const expiring = host.evidence().filter((e) => e.status === "accepted" && e.validUntil && new Date(e.validUntil).getTime() - now < 30 * 86_400_000);
+  const now = new Date();
+  const evidence = host.evidence();
+  const expiring = evidence.flatMap((e) => {
+    const freshness = evidenceFreshness(e, now);
+    if (e.status !== "accepted" || !e.validUntil || !["expiring", "expired"].includes(freshness)) return [];
+    const requirementIds = e.requirementIds.filter((id) => {
+      const node = host.registry.node(id);
+      return node?.assessable && frameworkEnabled(host, node.frameworkId) && host.state(id)?.applicable
+        && (!scope || scope.some((n) => n.id === id))
+        && !effectiveEvidenceState(e, evidence, now, id).supersededByIds.length;
+    });
+    return requirementIds.length ? [{ evidence: e, requirementIds, freshness }] : [];
+  });
   const missing: RequirementNode[] = [];
   for (const fw of enabledFrameworks(host)) {
     for (const n of host.registry.framework(fw)!.assessable) {
       if (scope && !scope.some((x) => x.id === n.id)) continue;
       const s = host.state(n.id);
       if (!s?.applicable || s.current < 2) continue;
-      if (!host.evidence().some((e) => e.requirementIds.includes(n.id) && isEvidenceValid(e))) missing.push(n);
+      if (!evidence.some((e) => e.requirementIds.includes(n.id) && isEvidenceValid(e, now))) missing.push(n);
     }
   }
   const openEvidenceTasks = new Set(host.tasks().filter((t) => t.kind === "evidence" && t.status !== "done").flatMap((t) => t.requirementIds));
@@ -571,19 +584,28 @@ const evidenceCollector: Playbook = async (host, _goal, input) => {
       checklist: ["Identify the system of record", "Export or screenshot the configuration / record", "Upload and link the evidence", "Request review"],
     });
     created++;
+    openEvidenceTasks.add(n.id);
   }
-  for (const e of expiring.slice(0, 4)) {
+  let renewals = 0;
+  for (const { evidence: e, requirementIds: affected, freshness } of expiring) {
+    const requirementIds = affected.filter((id) => !openEvidenceTasks.has(id));
+    if (!requirementIds.length || renewals >= 4) continue;
+    // Titles can retain licensed source text after relinking. A new task carries
+    // only its own links, so reference the artifact instead of copying that text.
+    const requirements = requirementIds.slice(0, 3).map((id) => codeOf(id)).join(", ");
     await proposeTask.run(host, {
-      title: `Refresh evidence: ${shortStatement(e.title, 80)}`,
-      description: `Evidence “${e.title}” expires on ${e.validUntil?.slice(0, 10)}. Collect a current version before it lapses.`,
+      title: `Refresh evidence for ${requirements}`,
+      description: `Evidence artifact ${e.id} ${freshness === "expired" ? "expired" : "expires"} on ${e.validUntil?.slice(0, 10)}. Inspect the original artifact and collect a current version for the linked requirements.`,
       kind: "evidence",
       priority: "high",
-      requirementIds: e.requirementIds,
+      requirementIds,
       dueDate: e.validUntil?.slice(0, 10),
     });
+    requirementIds.forEach((id) => openEvidenceTasks.add(id));
+    renewals++;
   }
   lines.push("");
-  lines.push(`${missing.length} implemented requirement(s) lack valid evidence; proposed ${created} collection task(s). ${expiring.length} accepted item(s) expire within 30 days.`);
+  lines.push(`${missing.length} implemented requirement(s) lack valid evidence; proposed ${created} collection task(s). ${expiring.length} accepted item(s) are expired or expire within 30 days without a covering replacement; proposed ${renewals} renewal task(s).`);
   if (missing.length) await focus.run(host, { nodeIds: missing.slice(0, 20).map((n) => n.id), lens: "evidence", note: "Requirements missing evidence" });
   return lines.join("\n");
 };

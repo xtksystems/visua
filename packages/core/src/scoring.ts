@@ -7,6 +7,7 @@ export const PRIORITY_WEIGHT: Record<Priority, number> = { critical: 4, high: 3,
 
 export interface WorkspaceSnapshot {
   states: Map<string, RequirementState>;
+  allEvidence?: Evidence[];
   evidenceByNode: Map<string, Evidence[]>;
   tasksByNode: Map<string, Task[]>;
   checksByNode: Map<string, CheckResult[]>;
@@ -142,7 +143,7 @@ export function scoreFramework(index: FrameworkIndex, snapshot: WorkspaceSnapsho
       const evidence = snapshot.evidenceByNode.get(node.id) ?? [];
       const status = deriveStatus({
         state,
-        evidence,
+        evidence, allEvidence: snapshot.allEvidence,
         tasks: snapshot.tasksByNode.get(node.id) ?? [],
         checks: snapshot.checksByNode.get(node.id) ?? [],
         now,
@@ -188,16 +189,16 @@ export function buildSnapshot(input: {
   for (const e of input.evidence) for (const id of e.requirementIds) push(evidenceByNode, id, e);
   const tasksByNode = new Map<string, Task[]>();
   for (const t of input.tasks) for (const id of t.requirementIds) push(tasksByNode, id, t);
-  // Only the latest result per (connector, check, requirement) counts.
+  // Only the latest result per recorded source target, connector, check and requirement counts.
   const latest = new Map<string, CheckResult>();
   for (const c of input.checks) {
     for (const id of c.requirementIds) {
-      const key = `${c.connectorId}|${c.checkId}|${id}`;
+      const key = JSON.stringify([c.connectorId, c.checkId, id, c.source?.configHash ?? null]);
       const prev = latest.get(key);
       if (!prev || prev.observedAt < c.observedAt) latest.set(key, c);
     }
   }
   const checksByNode = new Map<string, CheckResult[]>();
-  for (const [key, c] of latest) push(checksByNode, key.split("|")[2]!, c);
-  return { states, evidenceByNode, tasksByNode, checksByNode };
+  for (const [key, c] of latest) push(checksByNode, (JSON.parse(key) as string[])[2]!, c);
+  return { states, evidenceByNode, tasksByNode, checksByNode, allEvidence: input.evidence };
 }

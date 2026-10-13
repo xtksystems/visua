@@ -1,0 +1,69 @@
+{
+  "version": 2,
+  "status": "final",
+  "types": {
+    "EvidenceAssurance": {
+      "kind": "design | operating | attestation | unspecified",
+      "scope": "string, trimmed, <= 2000 characters; empty permitted only for unspecified",
+      "observationStart": "optional normalized ISO date/time",
+      "observationEnd": "optional normalized ISO date/time; must be >= start"
+    },
+    "EvidenceProvenance": {
+      "origin": "upload | manual | connector-check | agent-proposal | approved-policy",
+      "recordedBy": "string",
+      "recordedAt": "ISO timestamp",
+      "originalRequirementIds": "string[] immutable",
+      "sourceDocumentIds": "string[] immutable original source citation IDs",
+      "restrictedContent": "boolean immutable original licensed-source classification",
+      "seriesKey": "optional server-computed stable source-series hash",
+      "check": "optional {resultId, connectorId, connectorKind, connectorName, checkId, observedAt, sourceConfigHash}",
+      "agent": "optional {runId, proposalId}",
+      "policy": "optional {id, version, sha256, approvedBy?, approvedAt?}"
+    },
+    "Evidence": {
+      "assurance": "EvidenceAssurance? (missing legacy => unspecified / not recorded)",
+      "provenance": "EvidenceProvenance? (missing legacy => not recorded)",
+      "contentRequirementIds": "string[]? server-owned monotone union",
+      "contentSourceDocumentIds": "string[]? server-owned monotone union",
+      "restrictedContent": "boolean? server-owned monotone licensed classification",
+      "supersedesId": "string? immutable same-workspace explicit prior artifact",
+      "status": "pending-review | accepted | rejected | expired | withdrawn"
+    },
+    "EvidenceReviewScope": "existing fields + optional assurance, provenance, supersedesId, all bound by evidenceReviewScope helper",
+    "EvidenceReview": "existing shape; decision adds withdrawn; note is required for rejected/withdrawn",
+    "EffectiveEvidenceState": {
+      "status": "valid | pending-review | rejected | withdrawn | expired | not-yet-valid | invalid | superseded",
+      "validity": "current | not-yet-valid | expired | invalid",
+      "currentlyValid": "boolean (valid even if superseded accepted artifact remains valid)",
+      "acceptanceBound": "boolean",
+      "reasons": "string[]",
+      "supersededByIds": "string[]"
+    },
+    "RequirementEvidenceLineage": {
+      "workspaceId": "string",
+      "requirementId": "string",
+      "asOf": "ISO timestamp",
+      "status": "core Status",
+      "reasons": "string[]",
+      "items": "Array<{ evidence: Evidence (metadata only), effective: EffectiveEvidenceState, unknowns: string[] }>"
+    }
+  },
+  "http": {
+    "create": "POST /api/workspaces/:ws/evidence and files metadata accept assurance?: EvidenceAssurance and supersedesId?: string; server rejects automated-check upload kind",
+    "update": "PATCH /api/workspaces/:ws/evidence/:id accepts assurance?: EvidenceAssurance and optional expectedScope guard from inspected evidence; supersedesId/provenance remain immutable",
+    "review": "same PATCH {decision: accepted | rejected | withdrawn, note?: string, expectedScope: evidenceReviewScope(inspectedEvidence), expectedReviewId: string | null}; rejected/withdrawn note required; work.approve capability. Send last viewed reviewHistory ID or null. HTTP omission safely defaults to null (only first-ever review); service rejects if stored latest review differs.",
+    "lineage": "GET /api/workspaces/:ws/evidence/lineage?requirementId=...&at=optional ISO timestamp; metadata only"
+  },
+  "core_helpers": "effectiveEvidenceState(evidence, allEvidence, at?, requirementId?); compatibleEvidenceSeries(previous,next); evidenceReviewScope; isEvidenceValid remain exported",
+  "semantics": [
+    "Missing provenance remains not recorded, never inferred from current links.",
+    "Explicit replacement must match assurance kind/scope and source category; observation period may advance.",
+    "Only accepted currently valid successor linked to selected requirement suppresses expired predecessor risk.",
+    "Automatic series matches immutable check source configuration identity or policy ID; agent narrative cannot claim automated-check or attestation.",
+    "Lineage at= evaluates current recorded metadata at that instant; it is not a reconstructed historical revision.",
+    "Supersession only activates at or after the successor matching accepted review time.",
+    "Recorded approved-policy content/data/collection are immutable; approve a new policy version for a new artifact.",
+    "Review identity is a separate optimistic precondition, never included in the artifact scope or hash.",
+    "Validity and freshness begin no earlier than the latest current accepted review time; renewal coverage begins at max(collection, acceptance). Earlier review decisions are not reconstructed."
+  ]
+}

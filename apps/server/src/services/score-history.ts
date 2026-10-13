@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { buildSnapshot, isEvidenceValid, newId, obligationTiming, PRIORITY_WEIGHT, type FrameworkIndex, type FrameworkScoreObservation, type Priority, type ScoreObservation } from "@visua/core";
 import type { VisuaService } from "./visua.ts";
 
-export const SCORE_FORMULA_VERSION = "implementation-evidence-risk-v1";
+export const SCORE_FORMULA_VERSION = "implementation-evidence-risk-v2";
 export const SCORE_CAPTURE_INTERVAL = 24 * 60 * 60_000;
 const catalogs = new WeakMap<FrameworkIndex, string>();
 const canonical = (value: unknown): unknown => Array.isArray(value) ? value.map(canonical)

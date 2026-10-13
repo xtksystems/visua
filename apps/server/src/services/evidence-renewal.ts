@@ -1,5 +1,5 @@
 import {
-  evidenceCoverageTimeline, evidenceRenewalDates, hasCurrentEvidenceReview, isEvidenceValid, obligationTiming,
+  effectiveEvidenceState, evidenceCoverageTimeline, evidenceRenewalDates, hasCurrentEvidenceReview, isEvidenceValid, obligationTiming,
   type Evidence, type EvidenceRenewalBucket, type EvidenceRenewalCoverage, type EvidenceRenewalItem,
   type EvidenceRenewalRequirement, type EvidenceRenewalWindow, type Workspace, type WorkspaceEvidenceRenewal,
 } from "@visua/core";
@@ -67,6 +67,7 @@ export async function workspaceEvidenceRenewal(svc: VisuaService, ws: Workspace,
     const covered = direct.filter((ref) => coverageById.get(ref.id)!.coveredNow);
     return {
       id: artifact.id, title: artifact.title, kind: artifact.kind, source: artifact.source, status: artifact.status,
+      effective: effectiveEvidenceState(artifact, evidence, at),
       acceptanceBound: hasCurrentEvidenceReview(artifact), currentlyValid: isEvidenceValid(artifact, at),
       validity: dates.validity, collectedAt: artifact.collectedAt, validUntil: artifact.validUntil,
       startsAt: dates.startsAt, expiresAt: dates.expiresAt, requirements,

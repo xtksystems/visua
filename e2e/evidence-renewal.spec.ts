@@ -38,7 +38,7 @@ async function evidence(page: Page, ws: Workspace, title: string, days: number |
     collectedAt: new Date(ws.now - 60 * DAY).toISOString(),
     ...(days === undefined ? {} : { validUntil: new Date(ws.now + days * DAY).toISOString() }),
   });
-  return decision ? write<Evidence>(page.request, "patch", `/workspaces/${ws.id}/evidence/${item.id}`, ws.csrf, { decision, expectedScope: evidenceReviewScope(item) }) : item;
+  return decision ? write<Evidence>(page.request, "patch", `/workspaces/${ws.id}/evidence/${item.id}`, ws.csrf, { decision, ...(decision === "rejected" ? { note: "Observation does not cover the requested scope" } : {}), expectedScope: evidenceReviewScope(item), expectedReviewId: item.reviewHistory?.at(-1)?.id ?? null }) : item;
 }
 const region = (page: Page) => page.getByRole("region", { name: "Evidence renewal", exact: true });
 const itemRow = (page: Page, item: Evidence) => region(page).locator(`[data-evidence-id="${item.id}"]`);
@@ -179,7 +179,7 @@ test("a viewer can inspect pending expired evidence and follow requirement links
   const dialog = page.getByRole("dialog", { name: expired.title, exact: true });
   await expect(dialog).toContainText(`Observed configuration: ${expired.title}`);
   await expect(dialog.getByRole("button", { name: /^(Accept|Reject)$/ })).toHaveCount(0);
-  await dialog.getByRole("link", { name: "PR.AA-01", exact: true }).click();
+  await dialog.getByRole("region", { name: "Collection and assurance", exact: true }).getByRole("link", { name: "PR.AA-01", exact: true }).click();
   await expect(page).toHaveURL(/observatory\/nist-csf-2.0\?select=nist-csf-2.0%3APR.AA-01/);
   expect(writes).toEqual([]);
 });

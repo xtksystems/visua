@@ -7,6 +7,7 @@
 import {
   assessTiers,
   evidenceReviewScope,
+  compatibleEvidenceSeries,
   normalizeEvidenceDate,
   sameEvidenceReviewScope,
   buildSnapshot,
@@ -33,6 +34,7 @@ import {
   type Connector,
   type Evidence,
   type EvidenceReviewScope,
+  type EvidenceProvenance,
   type FrameworkIndex,
   type FrameworkOverlay,
   type FrameworkScore,
@@ -1108,8 +1110,11 @@ export class VisuaService {
     catch (err) { throw new ValidationError((err as Error).message); }
   }
 
-  private evidenceDecision(e: Evidence, decision: "accepted" | "rejected", actor: string, at: string, note?: string): Evidence {
+  private evidenceDecision(e: Evidence, decision: "accepted" | "rejected" | "withdrawn", actor: string, at: string, note?: string): Evidence {
     const scope = this.evidenceScope(e);
+    if (decision !== "accepted" && !note?.trim()) throw new ValidationError("Rejection and withdrawal require a reason");
+    if (note && note.trim().length > 2000) throw new ValidationError("Review reason must be at most 2000 characters");
+    note = note?.trim();
     if (decision === "accepted" && !scope.sha256) throw new ValidationError("Acceptance requires an artifact with a server-computed hash");
     let reviewedAt: string;
     try { reviewedAt = normalizeEvidenceDate(at); }
@@ -1120,7 +1125,53 @@ export class VisuaService {
     };
   }
 
-  async createEvidence(workspaceId: string, input: Partial<Evidence> & Pick<Evidence, "title">, actor = "user"): Promise<Evidence> {
+  private contentSources(requirementIds: string[]): { sourceDocumentIds: string[]; restrictedContent: boolean } {
+    const nodes = requirementIds.map((id) => this.registry.node(id));
+    return {
+      sourceDocumentIds: [...new Set(nodes.flatMap((node) => node?.citation.documentId ? [node.citation.documentId] : []))].sort(),
+      restrictedContent: nodes.some((node) => node?.attributes?.["licensed"] === true),
+    };
+  }
+
+  private collectionProvenance(e: Pick<Evidence, "source" | "requirementIds">, actor: string, at: string, refs?: { check?: CheckResult; policy?: Policy; agent?: { runId: string; proposalId: string } }): EvidenceProvenance {
+    const provenance: EvidenceProvenance = {
+      origin: e.source === "upload" ? "upload" : "manual", recordedBy: principalContext.getStore()?.id ?? actor, recordedAt: at,
+      originalRequirementIds: [...e.requirementIds], ...this.contentSources(e.requirementIds),
+    };
+    if (refs?.check) {
+      const c = refs.check;
+      provenance.origin = "connector-check";
+      provenance.check = { resultId: c.id, connectorId: c.connectorId, connectorKind: c.source?.connectorKind ?? "not recorded", connectorName: c.source?.connectorName ?? "not recorded", checkId: c.checkId, observedAt: c.observedAt, ...(c.source ? { sourceConfigHash: c.source.configHash } : {}) };
+      // Legacy observations have no durable target identity; never infer it from current configuration.
+      if (c.source) provenance.seriesKey = createHash("sha256").update(canonical({ connectorId: c.connectorId, checkId: c.checkId, source: c.source.configHash })).digest("hex");
+    }
+    if (refs?.policy) {
+      const p = refs.policy;
+      provenance.origin = "approved-policy";
+      provenance.policy = { id: p.id, version: p.version, sha256: createHash("sha256").update(p.body).digest("hex"), approvedBy: p.approvedBy, approvedAt: p.approvedAt };
+      provenance.seriesKey = `policy:${p.id}`;
+    }
+    if (refs?.agent) { provenance.agent = { ...refs.agent }; if (!refs.check && !refs.policy) provenance.origin = "agent-proposal"; }
+    return provenance;
+  }
+
+  private async validateReplacement(evidence: Evidence): Promise<void> {
+    if (!evidence.supersedesId) return;
+    const previous = await this.store.evidence.metadataGet(evidence.supersedesId);
+    if (!previous || previous.workspaceId !== evidence.workspaceId) throw new NotFoundError("Replacement evidence not found in this workspace");
+    if (!compatibleEvidenceSeries(previous, evidence)) throw new ValidationError("Replacement must retain the assurance kind, scope and source series");
+    const seen = new Set([evidence.id]);
+    let item: Evidence | undefined = previous;
+    while (item) {
+      if (seen.has(item.id)) throw new ValidationError("Evidence replacement chain contains a cycle");
+      seen.add(item.id);
+      item = item.supersedesId ? await this.store.evidence.metadataGet(item.supersedesId) : undefined;
+      if (item && item.workspaceId !== evidence.workspaceId) throw new ValidationError("Replacement chain leaves this workspace");
+    }
+  }
+
+  /** Direct service callers are trusted fixtures; HTTP and proposals provide allowlisted fields only. */
+  async createEvidence(workspaceId: string, input: Partial<Evidence> & Pick<Evidence, "title">, actor = "user", refs?: { check?: CheckResult; policy?: Policy; agent?: { runId: string; proposalId: string } }): Promise<Evidence> {
     if (input.artifact !== undefined) throw new ValidationError("File references are server-owned; upload file bytes to create file evidence");
     return this.mutate(workspaceId, async (ws) => {
       const ts = now();
@@ -1131,12 +1182,19 @@ export class VisuaService {
         connectorId: input.connectorId, requirementIds, status: "pending-review",
         collectedAt: input.collectedAt ?? ts, validUntil: input.validUntil,
         content: input.content, data: input.data, fileName: input.fileName, createdAt: ts, reviewHistory: [],
+        assurance: input.assurance ?? { kind: "unspecified", scope: "" }, supersedesId: input.supersedesId,
+        contentRequirementIds: [...requirementIds],
       };
+      evidence.provenance = this.collectionProvenance(evidence, actor, ts, refs);
+      evidence.contentSourceDocumentIds = [...evidence.provenance.sourceDocumentIds];
+      evidence.restrictedContent = evidence.provenance.restrictedContent;
       const scope = this.evidenceScope(evidence);
+      evidence.assurance = scope.assurance;
+      await this.validateReplacement(evidence);
       evidence = { ...evidence, collectedAt: scope.collectedAt, validUntil: scope.validUntil };
       evidence.sha256 = artifactHash(evidence);
       if (input.status === "accepted" || input.status === "rejected") {
-        evidence = this.evidenceDecision(evidence, input.status, input.reviewedBy ?? actor, input.reviewedAt ?? ts);
+        evidence = this.evidenceDecision(evidence, input.status, input.reviewedBy ?? actor, input.reviewedAt ?? ts, input.status === "rejected" ? "Rejected at collection by trusted service caller" : undefined);
       }
       await this.store.evidence.put(evidence);
       this.emit(ws.id, "evidence.created", evidenceMetadata(evidence));
@@ -1167,11 +1225,11 @@ export class VisuaService {
   }
 
   private fileInput(ws: Workspace, input: FileEvidenceInput, ts: string): Omit<Evidence, "id" | "artifact" | "sha256"> {
-    const allowed = new Set(["title", "description", "kind", "requirementIds", "collectedAt", "validUntil", "fileName", "mediaType"]);
+    const allowed = new Set(["title", "description", "kind", "requirementIds", "collectedAt", "validUntil", "fileName", "mediaType", "assurance", "supersedesId"]);
     if (Object.keys(input).some((key) => !allowed.has(key))) throw new ValidationError("File evidence metadata contains a server-owned or unsupported field");
     if (typeof input.title !== "string" || !input.title.trim() || input.title.trim().length > 300) throw new ValidationError("Evidence title must contain between 1 and 300 characters");
     if (input.description !== undefined && (typeof input.description !== "string" || input.description.length > 10_000)) throw new ValidationError("Evidence description must be at most 10000 characters");
-    const kinds = new Set(["document", "screenshot", "configuration", "log", "attestation", "automated-check", "policy", "report"]);
+    const kinds = new Set(["document", "screenshot", "configuration", "log", "attestation", "policy", "report"]);
     if (input.kind !== undefined && !kinds.has(input.kind)) throw new ValidationError("Invalid evidence kind");
     if (typeof input.fileName !== "string" || !input.fileName.trim() || input.fileName.length > 300 || /[\x00-\x1f\x7f/\\]/.test(input.fileName) || [".", ".."].includes(input.fileName.trim())) throw new ValidationError("File name must be a display label without paths or control characters");
     if (typeof input.mediaType !== "string" || input.mediaType.length > 127 || !/^[a-zA-Z0-9!#$&^_.+-]+\/[a-zA-Z0-9!#$&^_.+-]+$/.test(input.mediaType)) throw new ValidationError("A valid file media type is required");
@@ -1182,9 +1240,11 @@ export class VisuaService {
       kind: input.kind ?? "document", source: "upload", requirementIds,
       status: "pending-review", collectedAt: input.collectedAt ?? ts, validUntil: input.validUntil,
       fileName: Buffer.from(input.fileName.trim(), "utf8").toString("utf8"), reviewHistory: [], createdAt: ts,
+      assurance: input.assurance ?? { kind: "unspecified", scope: "" }, supersedesId: input.supersedesId,
+      contentRequirementIds: [...requirementIds],
     };
     const normalized = this.evidenceScope({ ...evidence, id: "preflight" });
-    return { ...evidence, collectedAt: normalized.collectedAt, validUntil: normalized.validUntil };
+    return { ...evidence, collectedAt: normalized.collectedAt, validUntil: normalized.validUntil, assurance: normalized.assurance };
   }
 
   /** Persist and verify bytes before opening the metadata/audit transaction. */
@@ -1206,6 +1266,10 @@ export class VisuaService {
         const current = await this.workspace(ws.id);
         if (current.tenantId !== scope.tenantId) throw new ValidationError("Workspace organization changed during file storage");
         this.taskRequirements(current, evidence.requirementIds);
+        evidence.provenance = this.collectionProvenance(evidence, actor, now());
+        evidence.contentSourceDocumentIds = [...evidence.provenance.sourceDocumentIds];
+        evidence.restrictedContent = evidence.provenance.restrictedContent;
+        await this.validateReplacement(evidence);
         await authorize?.();
         // COMMIT can succeed even when its acknowledgement is lost. Once a
         // metadata write begins, retain bytes for reconciliation rather than
@@ -1242,12 +1306,12 @@ export class VisuaService {
     });
   }
 
-  async reviewEvidence(workspaceId: string, evidenceId: string, decision: "accepted" | "rejected", actor = "user", note?: string, expectedScope?: EvidenceReviewScope, authorize?: () => Promise<void>): Promise<Evidence> {
+  async reviewEvidence(workspaceId: string, evidenceId: string, decision: "accepted" | "rejected" | "withdrawn", actor = "user", note?: string, expectedScope?: EvidenceReviewScope, authorize?: () => Promise<void>, expectedReviewId?: string | null): Promise<Evidence> {
     const foundWorkspace = await this.workspace(workspaceId);
     const inspected = await this.store.evidence.metadataGet(evidenceId);
     if (!inspected || inspected.workspaceId !== foundWorkspace.id) throw new NotFoundError(`Evidence '${evidenceId}' not found`);
     const fileScope = inspected.artifact ? this.fileScope(foundWorkspace) : undefined;
-    if (fileScope) {
+    if (fileScope && decision !== "withdrawn") {
       if (this.store.inTransaction) throw new ValidationError("File evidence must be reviewed directly; proposal approval cannot read files inside a database transaction");
       if (!expectedScope || !sameEvidenceReviewScope(expectedScope, this.evidenceScope(inspected))) throw new ValidationError("Evidence changed since it was inspected; reload it before reviewing");
       await this.verifiedFile(fileScope, inspected);
@@ -1255,6 +1319,7 @@ export class VisuaService {
     return this.mutate(workspaceId, async (ws) => {
       const prev = await this.store.evidence.get(evidenceId);
       if (!prev || prev.workspaceId !== ws.id) throw new NotFoundError(`Evidence '${evidenceId}' not found`);
+      if (expectedReviewId !== undefined && (prev.reviewHistory?.at(-1)?.id ?? null) !== expectedReviewId) throw new ValidationError("Evidence review changed since inspection; reload it before reviewing");
       if (canonical(prev.artifact) !== canonical(inspected.artifact)) throw new ValidationError("Evidence changed since its artifact was inspected; reload it before reviewing");
       if (!expectedScope || !sameEvidenceReviewScope(expectedScope, this.evidenceScope(prev))) throw new ValidationError("Evidence changed since it was inspected; reload it before reviewing");
       if (fileScope && (ws.tenantId !== fileScope.tenantId || canonical(prev.artifact) !== canonical(inspected.artifact))) throw new ValidationError("Evidence changed since its file was inspected; reload it before reviewing");
@@ -1273,19 +1338,26 @@ export class VisuaService {
     return this.mutate(workspaceId, async (ws) => {
       const prev = await this.store.evidence.get(evidenceId);
       if (!prev || prev.workspaceId !== ws.id) throw new NotFoundError(`Evidence '${evidenceId}' not found`);
-      const allowed = new Set(["title", "description", "content", "data", "fileName", "requirementIds", "collectedAt", "validUntil"]);
-      const changes = Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined));
+      if (patch.expectedScope && !sameEvidenceReviewScope(patch.expectedScope, this.evidenceScope(prev))) throw new ValidationError("Evidence changed since inspection; reload before editing");
+      const allowed = new Set(["title", "description", "content", "data", "fileName", "requirementIds", "collectedAt", "validUntil", "assurance"]);
+      const { expectedScope: _expectedScope, ...fields } = patch;
+      const changes = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined));
       if (Object.keys(changes).some((key) => !allowed.has(key))) throw new ValidationError("Evidence identity and review history cannot be edited");
       if (prev.artifact && (Object.hasOwn(patch, "content") || Object.hasOwn(patch, "data"))) throw new ValidationError("File artifacts are immutable; upload a new evidence item to replace file bytes");
       if (prev.source === "connector" && ["content", "data", "collectedAt"].some((key) => key in changes && canonical(changes[key]) !== canonical(prev[key as keyof Evidence]))) throw new ValidationError("Connector observations are immutable; run a new check to collect a new artifact");
+      if (prev.provenance?.origin === "approved-policy" && ["content", "data", "collectedAt"].some((key) => key in changes && canonical(changes[key]) !== canonical(prev[key as keyof Evidence]))) throw new ValidationError("Approved policy artifacts are immutable; approve a new policy version to collect a new artifact");
       if (changes["requirementIds"] !== undefined) changes["requirementIds"] = prev.artifact ? this.taskRequirements(ws, changes["requirementIds"] as string[]) : this.linkedRequirements(changes["requirementIds"] as string[]);
       let next: Evidence = { ...prev, ...changes, validUntil: changes["validUntil"] === null ? undefined : changes["validUntil"] as string | undefined ?? prev.validUntil };
+      next.contentRequirementIds = [...new Set([...(prev.contentRequirementIds ?? []), ...prev.requirementIds, ...next.requirementIds])];
+      const sources = this.contentSources(next.contentRequirementIds);
+      next.contentSourceDocumentIds = [...new Set([...(prev.contentSourceDocumentIds ?? prev.provenance?.sourceDocumentIds ?? []), ...sources.sourceDocumentIds])].sort();
+      next.restrictedContent = prev.restrictedContent === true || prev.provenance?.restrictedContent === true || sources.restrictedContent;
       if (prev.artifact) {
-        const metadata = this.fileInput(ws, { title: next.title, description: next.description, kind: next.kind, requirementIds: next.requirementIds, collectedAt: next.collectedAt, validUntil: next.validUntil, fileName: next.fileName!, mediaType: prev.artifact.mediaType }, next.createdAt);
+        const metadata = this.fileInput(ws, { title: next.title, description: next.description, kind: next.kind, requirementIds: next.requirementIds, collectedAt: next.collectedAt, validUntil: next.validUntil, assurance: next.assurance, supersedesId: next.supersedesId, fileName: next.fileName!, mediaType: prev.artifact.mediaType }, next.createdAt);
         next = { ...next, title: metadata.title, fileName: metadata.fileName };
       }
       const scope = this.evidenceScope(next);
-      next = { ...next, collectedAt: scope.collectedAt, validUntil: scope.validUntil, sha256: artifactHash(next) };
+      next = { ...next, collectedAt: scope.collectedAt, validUntil: scope.validUntil, assurance: scope.assurance, sha256: artifactHash(next) };
       let previousScope: EvidenceReviewScope | undefined;
       try { previousScope = evidenceReviewScope(prev); } catch { /* Legacy malformed dates require repair and renewed review. */ }
       if (!previousScope || !sameEvidenceReviewScope(previousScope, this.evidenceScope(next))) {
@@ -1346,7 +1418,8 @@ export class VisuaService {
         updatedAt: now(),
       };
       if (bodyChanged && (prev.status === "approved" || prev.status === "published") && !patch.status) next.status = "in-review";
-      if (patch.status === "approved" && prev.status !== "approved") {
+      if (patch.status === "published" && (bodyChanged || !["approved", "published"].includes(prev.status) || !prev.approvedAt)) throw new ValidationError("Publishing requires approval of the current policy version");
+      if (patch.status === "approved") {
         next.approvedBy = actor;
         next.approvedAt = now();
       }
@@ -1355,7 +1428,7 @@ export class VisuaService {
       await this.log(ws.id, actor, patch.status ?? "updated", "policy", next.id, `Policy “${next.title}” v${next.version} ${patch.status ?? "updated"}`);
       if (patch.status === "approved" || patch.status === "published") {
         // An approved policy is evidence for the requirements it governs.
-        const exists = (await this.store.evidence.list(ws.id)).some((e) => e.kind === "policy" && e.data?.["policyId"] === next.id && e.data?.["version"] === next.version);
+        const exists = (await this.store.evidence.metadataList(ws.id)).some((e) => e.provenance?.origin === "approved-policy" && e.provenance.policy?.id === next.id && e.provenance.policy.version === next.version);
         if (!exists && next.requirementIds.length) {
           await this.createEvidence(
             ws.id,
@@ -1370,8 +1443,10 @@ export class VisuaService {
               validUntil: new Date(Date.now() + next.reviewCadenceDays * 86_400_000).toISOString(),
               data: { policyId: next.id, version: next.version },
               content: next.body,
+              assurance: { kind: "design", scope: `Approved policy ${next.id}` },
             },
             actor,
+            { policy: next },
           );
         }
       }
@@ -1485,6 +1560,7 @@ export class VisuaService {
         requirementIds: this.resolveRefs(ws, o.requirements),
         observed: o.observed,
         observedAt,
+        source: { connectorKind: connector.kind, connectorName: connector.name, configHash: createHash("sha256").update(canonical({ kind: connector.kind, config: connector.config })).digest("hex") },
       }));
       for (const r of results) await this.store.checks.put(r, observedAt);
       // Passing checks are machine-verified evidence, valid for 30 days.
@@ -1501,11 +1577,11 @@ export class VisuaService {
    * its title, detail, requirements and observation, hashed. Nobody (and no agent) can
    * change what a check observed on its way into the evidence locker.
    */
-  private async evidenceFromCheck(workspaceId: string, connector: Connector, check: CheckResult, reviewer: string): Promise<Evidence> {
+  private async evidenceFromCheck(workspaceId: string, connector: Connector, check: CheckResult, reviewer: string, agent?: { runId: string; proposalId: string }): Promise<Evidence> {
     const ev = await this.createEvidence(
       workspaceId,
       {
-        title: `${connector.name}: ${check.title}`,
+        title: `${check.source?.connectorName ?? "Recorded check"}: ${check.title}`,
         kind: "automated-check",
         source: "connector",
         connectorId: connector.id,
@@ -1517,8 +1593,10 @@ export class VisuaService {
         validUntil: new Date(new Date(check.observedAt).getTime() + 30 * 86_400_000).toISOString(),
         content: check.detail,
         data: { checkId: check.checkId, observed: check.observed, automation: "api-automated" },
+        assurance: { kind: "operating", scope: `Recorded check ${check.checkId}`, observationStart: check.observedAt, observationEnd: check.observedAt },
       },
-      `connector:${connector.kind}`,
+      `connector:${check.source?.connectorKind ?? "recorded"}`,
+      { check, agent },
     );
     check.evidenceId = ev.id;
     await this.store.checks.put(check, check.observedAt);
@@ -1761,6 +1839,7 @@ export class VisuaService {
           await this.passingCheck(ws.id, payload["checkResultId"]);
           return;
         }
+        if (!["document", "screenshot", "configuration", "log", "report"].includes(String(payload["kind"] ?? "document"))) throw new ValidationError("Agent narrative cannot claim automated-check, attestation or approved-policy evidence");
         this.linkedRequirements(payload["requirementIds"] as string[] | undefined);
         if (payload["validDays"] !== undefined && (!Number.isInteger(payload["validDays"]) || Number(payload["validDays"]) < 1 || Number(payload["validDays"]) > 730)) throw new ValidationError("Evidence validity must be between 1 and 730 whole days");
         return;
@@ -1805,6 +1884,7 @@ export class VisuaService {
   async createProposal(workspaceId: string, runId: string, input: ProposalInput, recorder?: RunRecorder): Promise<Proposal> {
     return this.mutate(workspaceId, async (ws) => {
       await this.checkProposal(ws, input);
+      const reviewedEvidence = input.type === "review-evidence" ? await this.store.evidence.get(String(input.payload["evidenceId"])) : undefined;
       const proposal: Proposal = {
         id: newId("prop"),
         runId,
@@ -1813,7 +1893,7 @@ export class VisuaService {
         title: input.title,
         rationale: input.rationale,
         payload: input.type === "review-evidence"
-          ? { ...input.payload, expectedScope: this.evidenceScope((await this.store.evidence.get(String(input.payload["evidenceId"])))!) }
+          ? { ...input.payload, expectedScope: this.evidenceScope(reviewedEvidence!), expectedReviewId: reviewedEvidence!.reviewHistory?.at(-1)?.id ?? null }
           : { ...input.payload },
         citations: input.citations,
         confidence: input.confidence,
@@ -1912,7 +1992,7 @@ export class VisuaService {
           // A savepoint: a change that fails half-way leaves nothing behind.
           await this.store.transaction(async () => {
             if (prev.type === "create-evidence" && typeof prev.payload["checkResultId"] === "string" && next.payload["checkResultId"] !== prev.payload["checkResultId"]) throw new ValidationError("A connector evidence proposal must retain its original check reference");
-            if (prev.type === "review-evidence" && (next.payload["evidenceId"] !== prev.payload["evidenceId"] || canonical(next.payload["expectedScope"]) !== canonical(prev.payload["expectedScope"]))) throw new ValidationError("A review proposal must retain its original evidence and inspected scope");
+            if (prev.type === "review-evidence" && (next.payload["evidenceId"] !== prev.payload["evidenceId"] || canonical(next.payload["expectedScope"]) !== canonical(prev.payload["expectedScope"]) || next.payload["expectedReviewId"] !== prev.payload["expectedReviewId"])) throw new ValidationError("A review proposal must retain its original evidence, inspected scope and review decision");
             await this.checkProposal(ws, { ...next, payload: next.payload });
             await this.applyProposal(next, actor);
           });
@@ -1987,7 +2067,7 @@ export class VisuaService {
       case "create-evidence":
         if (typeof payload["checkResultId"] === "string") {
           const { check, connector } = await this.passingCheck(p.workspaceId, payload["checkResultId"]);
-          await this.evidenceFromCheck(p.workspaceId, connector, check, actor);
+          await this.evidenceFromCheck(p.workspaceId, connector, check, actor, { runId: p.runId, proposalId: p.id });
           return;
         }
         await this.createEvidence(
@@ -2004,10 +2084,11 @@ export class VisuaService {
             validUntil: payload["validDays"] ? new Date(Date.now() + Number(payload["validDays"]) * 86_400_000).toISOString() : undefined,
           },
           by,
+          { agent: { runId: p.runId, proposalId: p.id } },
         );
         return;
       case "review-evidence":
-        await this.reviewEvidence(p.workspaceId, String(payload["evidenceId"]), payload["decision"] === "rejected" ? "rejected" : "accepted", by, typeof payload["note"] === "string" ? payload["note"] : undefined, payload["expectedScope"] as EvidenceReviewScope);
+        await this.reviewEvidence(p.workspaceId, String(payload["evidenceId"]), payload["decision"] === "rejected" ? "rejected" : "accepted", by, typeof payload["note"] === "string" ? payload["note"] : undefined, payload["expectedScope"] as EvidenceReviewScope, undefined, payload["expectedReviewId"] as string | null ?? null);
         return;
       case "create-policy":
         await this.createPolicy(

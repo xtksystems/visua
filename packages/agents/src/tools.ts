@@ -12,6 +12,7 @@ import {
   levelLabel,
   obligationTiming,
   type Citation,
+  type Evidence,
   type FrameworkFamily,
   type RequirementNode,
   type Task,
@@ -262,6 +263,21 @@ export function modelTask<T extends Pick<Task, "title" | "description" | "checkl
   return { ...task, title: clean(task.title), description: clean(task.description), checklist: task.checklist.map((c) => ({ ...c, text: clean(c.text) })) };
 }
 
+/** Keep collection-time restrictions when an artifact is relinked or its source is unavailable. */
+export function modelEvidenceTitle(host: AgentHost, evidence: Evidence): string {
+  if (licensedTextToModel()) return evidence.title;
+  const source = evidence.provenance;
+  const requirements = new Set([...evidence.requirementIds, ...(evidence.contentRequirementIds ?? []), ...(source?.originalRequirementIds ?? [])]);
+  const documents = new Set([...(evidence.contentSourceDocumentIds ?? []), ...(source?.sourceDocumentIds ?? [])]);
+  const restricted = evidence.restrictedContent === true || source?.restrictedContent === true
+    || [...requirements].some(id => host.registry.node(id)?.attributes?.["licensed"] === true)
+    || (evidence.restrictedContent === undefined && source?.restrictedContent === undefined
+      && [...documents].some(id => host.registry.documents?.get(id)?.framework === "aicpa-soc2"));
+  // The original artifact may outlive its licensed overlay. Metadata remains useful
+  // without guessing which title fragments came from an unavailable source.
+  return restricted ? "[Restricted-source evidence title withheld]" : evidence.title;
+}
+
 /** Whether a corpus document's passages may be sent to the model. */
 function passageAllowed(host: AgentHost, documentId: string): boolean {
   if (licensedTextToModel()) return true;
@@ -356,7 +372,7 @@ export const getRequirement = defineTool({
         const t = modelTask(host, task);
         return { id: t.id, title: t.title, status: t.status, dueDate: t.dueDate, kind: t.kind };
       }),
-      evidence: evidence.map((e) => ({ id: e.id, title: e.title, status: e.status, kind: e.kind, validUntil: e.validUntil })),
+      evidence: evidence.map((e) => ({ id: e.id, title: modelEvidenceTitle(host, e), status: e.status, kind: e.kind, validUntil: e.validUntil })),
       mappings,
     };
   },
@@ -586,12 +602,12 @@ export const proposePolicy = defineTool({
 export const proposeEvidence = defineTool({
   name: "propose_evidence",
   description:
-    "Propose an evidence record for an artifact that demonstrates an implemented control — a configuration export, log extract, system record or signed attestation — linked to requirements. Never use it for plans, drafts, guides or anything that describes intended work: evidence must show what is actually in place.",
+    "Propose a narrative record describing an existing artifact, linked to requirements and explicitly identified as agent-generated. Never use it for plans, drafts, guides or intended work. Automated checks must come from run_checks; use propose_policy for policy drafts. An agent cannot issue a human attestation or invent an observed check.",
   writes: true,
   schema: z.object({
     title: z.string().min(4),
     requirementIds: z.array(z.string()).min(1),
-    kind: z.enum(["document", "screenshot", "configuration", "log", "attestation", "automated-check", "policy", "report"]),
+    kind: z.enum(["document", "screenshot", "configuration", "log", "report"]),
     content: z.string().min(20),
     validDays: z.number().int().min(1).max(730).optional(),
   }),
@@ -675,7 +691,7 @@ export const listEvidence = defineTool({
   description: "List evidence records, optionally filtered by requirement or status.",
   schema: z.object({
     requirementId: z.string().optional(),
-    status: z.array(z.enum(["pending-review", "accepted", "rejected", "expired"])).optional(),
+    status: z.array(z.enum(["pending-review", "accepted", "rejected", "expired", "withdrawn"])).optional(),
   }),
   async run(host, input) {
     const req = input.requirementId ? resolveNode(host, input.requirementId)?.id : undefined;
@@ -684,7 +700,7 @@ export const listEvidence = defineTool({
         .evidence()
         .filter((e) => (!req || e.requirementIds.includes(req)) && (!input.status || input.status.includes(e.status)))
         .slice(0, 60)
-        .map((e) => ({ id: e.id, title: e.title, kind: e.kind, status: e.status, source: e.source, collectedAt: e.collectedAt, validUntil: e.validUntil, requirements: e.requirementIds.map(codeOf) })),
+        .map((e) => ({ id: e.id, title: modelEvidenceTitle(host, e), kind: e.kind, status: e.status, source: e.source, collectedAt: e.collectedAt, validUntil: e.validUntil, requirements: e.requirementIds.map(codeOf) })),
     };
   },
 });

@@ -1,7 +1,7 @@
 /** Evidence & monitoring: provenance-first evidence ledger, connectors and checks. */
-import { evidenceRenewalDates, evidenceReviewScope, isEvidenceValid } from "@visua/core";
-import { Check, Download, Plug, Play, Plus, ShieldCheck, Upload, X } from "lucide-react";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { effectiveEvidenceState, evidenceRenewalDates, isEvidenceValid } from "@visua/core";
+import { Plug, Play, Plus, ShieldCheck, Upload } from "lucide-react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { useRunAgent } from "../components/inspector/Inspector.tsx";
@@ -9,10 +9,12 @@ import { CodeTag, Dialog, Empty, Metric, Segmented, TabPanel, Tabs, toast } from
 import { useWorkspaceId } from "../lib/workspace.ts";
 import { api } from "../lib/api.ts";
 import { useCan } from "../lib/auth.ts";
-import { relativeTime, shortDate, truncate } from "../lib/format.ts";
+import { relativeTime, truncate } from "../lib/format.ts";
 import { useChecks, useConnectors, useEvidence, useMeta, useWsMutation } from "../lib/queries.ts";
 import type { CheckResult, Evidence } from "../lib/types.ts";
 import { split } from "../lib/media.ts";
+import { EvidenceDialog } from "../components/work/EvidenceDialog.tsx";
+import { ASSURANCE_LABELS, provenance } from "../components/work/evidence-labels.ts";
 import { UploadEvidence } from "../components/work/UploadEvidence.tsx";
 import { QueryError } from "../components/ui/QueryError.tsx";
 import { EvidenceRenewal, EvidenceReviewValidity, type RenewalWindow } from "../components/work/EvidenceRenewal.tsx";
@@ -23,13 +25,6 @@ const OUTCOME_COLOR: Record<CheckResult["outcome"], string> = {
   fail: "var(--color-status-at-risk)",
   error: "var(--color-status-at-risk)",
 };
-
-function provenance(e: Evidence): { label: string; title: string } {
-  if (e.source === "connector") return { label: "API-automated", title: "Collected by a monitoring connector; the raw observation and its SHA-256 hash are stored." };
-  if (e.source === "agent") return { label: "Agent-assisted", title: "Proposed by an agent and approved by a person." };
-  if (e.source === "upload") return { label: "Uploaded", title: "Uploaded by a person; content hash recorded." };
-  return { label: "Manual", title: "Recorded manually." };
-}
 
 function AddConnector({ onClose }: { onClose: () => void }) {
   const ws = useWorkspaceId();
@@ -84,93 +79,6 @@ function AddConnector({ onClose }: { onClose: () => void }) {
   );
 }
 
-function EvidenceDialog({ initial, onClose }: { initial: Evidence; onClose: () => void }) {
-  const ws = useWorkspaceId();
-  const canReview = useCan("work.approve");
-  const [viewing, setViewing] = useState<Evidence>();
-  const [error, setError] = useState<string>();
-  const [attempt, setAttempt] = useState(0);
-  const [downloading, setDownloading] = useState(false);
-  const active = useRef(false);
-  useEffect(() => {
-    active.current = true;
-    const controller = new AbortController();
-    api.get<Evidence>(`/workspaces/${encodeURIComponent(ws)}/evidence/${encodeURIComponent(initial.id)}`, controller.signal)
-      .then(item => { if (!controller.signal.aborted) setViewing(item); })
-      .catch(failure => { if (!controller.signal.aborted) setError((failure as Error).message); });
-    return () => { active.current = false; controller.abort(); };
-  }, [ws, initial.id, attempt]);
-  // This detached detail snapshot is the content the person inspected, even if live metadata refreshes.
-  const review = useWsMutation(ws, async (v: { evidence: Evidence; decision: "accepted" | "rejected" }) => api.patch<Evidence>(`/workspaces/${encodeURIComponent(ws)}/evidence/${v.evidence.id}`, { decision: v.decision, expectedScope: evidenceReviewScope(v.evidence) }), { onError: failure => { if (active.current) setError(failure.message); } });
-  const download = async (item: Evidence) => {
-    if (downloading) return;
-    setDownloading(true); setError(undefined);
-    try {
-      const blob = await api.download(`/workspaces/${encodeURIComponent(ws)}/evidence/${encodeURIComponent(item.id)}/file`);
-      if (!active.current) return;
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a"); link.href = url; link.download = item.fileName ?? "evidence";
-      document.body.append(link); link.click(); link.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
-    } catch (failure) { if (active.current) setError((failure as Error).message); }
-    finally { if (active.current) setDownloading(false); }
-  };
-  return (
-        <Dialog wide title={viewing?.title ?? initial.title} onClose={onClose} footer={viewing && viewing.status === "pending-review" && canReview ? (
-          <>
-            <button className="btn" disabled={review.isPending} onClick={() => review.mutate({ evidence: viewing, decision: "rejected" }, { onSuccess: (next) => { if (active.current) { setViewing(next); toast("Evidence rejected"); } } })}><X size={13} /> Reject</button>
-            <button className="btn btn--primary" disabled={review.isPending} onClick={() => review.mutate({ evidence: viewing, decision: "accepted" }, { onSuccess: (next) => { if (active.current) { setViewing(next); toast("Evidence accepted"); } } })}><Check size={13} /> Accept</button>
-          </>
-        ) : undefined}>
-          {error && <div role="alert"><p>{error}</p><button className="btn btn--sm" disabled={review.isPending || downloading} onClick={() => { setError(undefined); setViewing(undefined); setAttempt(value => value + 1); }}>Reload evidence</button></div>}
-          {!viewing && !error && <p role="status">Loading evidence details…</p>}
-          {viewing && <>
-          <dl className="kv" style={{ marginBottom: 12 }}>
-            <dt>Provenance</dt>
-            <dd>
-              {provenance(viewing).label} · {viewing.source}
-              {viewing.connectorId ? ` · connector ${viewing.connectorId}` : ""}
-            </dd>
-            <dt>Status</dt>
-            <dd>
-              {viewing.status}
-              {viewing.reviewedBy ? ` by ${viewing.reviewedBy} ${relativeTime(viewing.reviewedAt)}` : ""}
-            </dd>
-            <dt>Requirements</dt>
-            <dd>{viewing.requirementIds.map((id) => <CodeTag key={id} id={id} />)}</dd>
-            <dt>Collected</dt>
-            <dd>{new Date(viewing.collectedAt).toLocaleString()}</dd>
-            <dt>Valid until</dt>
-            <dd>{viewing.validUntil ? new Date(viewing.validUntil).toLocaleString() : "—"}</dd>
-            <dt>SHA-256</dt>
-            <dd className="mono" style={{ wordBreak: "break-all", fontSize: 12 }}>
-              {viewing.sha256 ?? "—"}
-            </dd>
-          </dl>
-          {viewing.artifact && <section className="panel stack" style={{ gap: 8 }} aria-label="Evidence file">
-            <div>{viewing.fileName} · {viewing.artifact.size.toLocaleString()} bytes · {viewing.artifact.mediaType}</div>
-            <button className="btn" disabled={downloading} onClick={() => void download(viewing)}><Download size={14} /> {downloading ? "Verifying download…" : "Download file"}</button>
-          </section>}
-          {!!viewing.reviewHistory?.length && (
-            <section className="stack" style={{ gap: 8, marginBottom: 12 }} aria-label="Review history">
-              <h3>Review history</h3>
-              {viewing.reviewHistory.map((r) => (
-                <div key={r.id} className="panel" style={{ fontSize: 12 }}>
-                  <div>{r.decision} by {r.reviewedBy} · {shortDate(r.reviewedAt)}{r.legacy ? " · legacy decision; renewed review required" : ""}</div>
-                  {r.scope && <div className="muted">{r.scope.requirementIds.map((id) => <CodeTag key={id} id={id} />)} · collected {shortDate(r.scope.collectedAt)} · {r.scope.validUntil ? `valid through ${shortDate(r.scope.validUntil)}` : "no expiry"}</div>}
-                  {r.scope?.sha256 && <div className="mono muted wrap-anywhere">Artifact SHA-256: {r.scope.sha256}</div>}
-                  {r.note && <p>{r.note}</p>}
-                </div>
-              ))}
-            </section>
-          )}
-          {viewing.content && <pre className="panel mono" style={{ whiteSpace: "pre-wrap", fontSize: 12, maxHeight: 320, overflow: "auto" }}>{viewing.content}</pre>}
-          {viewing.data && <pre className="panel mono" style={{ whiteSpace: "pre-wrap", fontSize: 11.5, maxHeight: 260, overflow: "auto", marginTop: 8 }}>{JSON.stringify(viewing.data, null, 2)}</pre>}
-          </>}
-        </Dialog>
-  );
-}
-
 function CheckDialog({ id, onClose }: { id: string; onClose: () => void }) {
   const ws = useWorkspaceId();
   const observation = useQuery({ queryKey: ["ws", ws, "check", id], queryFn: ({ signal }) => api.get<CheckResult>(`/workspaces/${encodeURIComponent(ws)}/checks/${encodeURIComponent(id)}`, signal) });
@@ -221,7 +129,11 @@ function EvidenceWorkspace() {
   };
   const evidenceId = searchParams.get("evidence");
   const checkId = searchParams.get("check");
-  const selectedEvidence = viewing ?? evidence.find(e => e.id === evidenceId);
+  const selectedEvidence = evidenceId ? (viewing?.id === evidenceId ? viewing : evidence.find(e => e.id === evidenceId)) : undefined;
+  const inspectEvidence = (item: Evidence) => {
+    setViewing(item);
+    setSearchParams(params => { params.set("evidence", item.id); params.delete("check"); return params; });
+  };
   const closeLinked = () => {
     setViewing(null);
     setSearchParams(params => { params.delete("evidence"); params.delete("check"); return params; }, { replace: true });
@@ -236,7 +148,7 @@ function EvidenceWorkspace() {
     return evidence
       .filter((e) => {
         if (filter === "pending") return e.status === "pending-review";
-        if (filter === "connector") return e.source === "connector";
+        if (filter === "connector") return e.provenance?.origin === "connector-check";
         if (filter === "expiring") return evidenceRenewalDates(e, now).buckets.length > 0;
         return true;
       })
@@ -261,7 +173,7 @@ function EvidenceWorkspace() {
         <div>
           <div className="eyebrow">Evidence & monitoring</div>
           <h1>Evidence ledger</h1>
-          <p>Evidence must show what is actually in place. Every item records where it came from, when, who reviewed it, and a content hash. Agents cannot file plans or drafts as evidence.</p>
+          <p>Inspect artifact origins, assurance scope, reviews and replacement history. Legacy collection details are explicitly unrecorded. Generated narratives and requirement mappings do not prove observed operation.</p>
         </div>
         <div className="page__actions">
           <button className="btn btn--primary" disabled={!canWrite} onClick={() => setUploading(true)}><Upload size={14} /> Upload evidence</button>
@@ -301,7 +213,7 @@ function EvidenceWorkspace() {
               ]}
             />
           </div>
-          <div style={{ overflow: "auto", maxHeight: "calc(100vh - 360px)" }}>
+          <div className="evidence-ledger__scroll" role="region" aria-label="Evidence ledger details" tabIndex={0} style={{ overflow: "auto", maxHeight: "calc(100vh - 360px)" }}>
             <table className="table table--evidence">
               <thead>
                 <tr>
@@ -315,14 +227,16 @@ function EvidenceWorkspace() {
               <tbody>
                 {list.map((e) => {
                   const p = provenance(e);
+                  const effective = effectiveEvidenceState(e, evidence, asOf);
                   return (
                     <tr key={e.id}>
                       <td style={{ maxWidth: 320 }}>
-                        <button className="btn btn--quiet btn--sm" style={{ padding: 0, height: "auto", color: "var(--color-on-surface)", textAlign: "left", whiteSpace: "normal" }} onClick={() => setViewing(e)}>
+                        <button className="btn btn--quiet btn--sm" style={{ padding: 0, height: "auto", color: "var(--color-on-surface)", textAlign: "left", whiteSpace: "normal" }} onClick={() => inspectEvidence(e)}>
                           {truncate(e.title, 90)}
                         </button>
                         <div className="muted" style={{ fontSize: 11.5 }}>
                           {e.kind} · collected {relativeTime(e.collectedAt)}
+                          <div>{e.assurance ? `${ASSURANCE_LABELS[e.assurance.kind]} assurance` : "Assurance not recorded"}{e.supersedesId ? " · replacement" : ""}</div>
                         </div>
                       </td>
                       <td>
@@ -343,10 +257,10 @@ function EvidenceWorkspace() {
                           {e.requirementIds.length > 4 ? <span className="muted">+{e.requirementIds.length - 4}</span> : null}
                         </div>
                       </td>
-                      <td><EvidenceReviewValidity evidence={e} /></td>
+                      <td><EvidenceReviewValidity evidence={e} />{!!effective.supersededByIds.length && <div className="field__hint">Superseded by valid accepted replacement</div>}</td>
                       <td style={{ whiteSpace: "nowrap" }}>
                         {e.status === "pending-review" && canReview && (
-                          <button className="btn btn--sm" onClick={() => setViewing(e)}>Review</button>
+                          <button className="btn btn--sm" onClick={() => inspectEvidence(e)}>Review</button>
                         )}
                       </td>
                     </tr>
@@ -417,10 +331,10 @@ function EvidenceWorkspace() {
       </>}
       </TabPanel>
       {adding && canConfigure && <AddConnector onClose={() => setAdding(false)} />}
-      {selectedEvidence && <EvidenceDialog key={`${ws}:${selectedEvidence.id}`} initial={selectedEvidence} onClose={closeLinked} />}
+      {selectedEvidence && <EvidenceDialog key={`${ws}:${selectedEvidence.id}`} initial={selectedEvidence} onClose={closeLinked} onSelect={inspectEvidence} />}
       {evidenceId && !selectedEvidence && !evidenceQuery.isPending && <Dialog title="Evidence unavailable" onClose={closeLinked}><p role="alert">This evidence is no longer available in this workspace.</p><button className="btn" onClick={() => void evidenceQuery.refetch()}>Retry evidence</button></Dialog>}
-      {checkId && !evidenceId && !viewing && <CheckDialog key={`${ws}:${checkId}`} id={checkId} onClose={closeLinked} />}
-      {uploading && canWrite && <UploadEvidence key={ws} onClose={() => setUploading(false)} onUploaded={item => { setUploading(false); setViewing(item); }} />}
+      {checkId && !evidenceId && <CheckDialog key={`${ws}:${checkId}`} id={checkId} onClose={closeLinked} />}
+      {uploading && canWrite && <UploadEvidence key={ws} onClose={() => setUploading(false)} onUploaded={item => { setUploading(false); inspectEvidence(item); }} />}
     </div>
   );
 }

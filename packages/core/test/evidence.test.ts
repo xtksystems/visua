@@ -277,3 +277,16 @@ describe("approval-dependent status and scores", () => {
     expect(deriveStatus({ ...signals, state: { ...assessed, statusOverride: "implemented" } }).status).toBe("implemented");
   });
 });
+
+describe("acceptance time boundary", () => {
+  it("does not make an artifact valid or fresh before its recorded acceptance", () => {
+    const e = reviewedEvidence({ reviewedAt: "2026-05-15T12:00:00.000Z" });
+    const before = new Date("2026-05-15T11:59:59.999Z");
+    const acceptedAt = new Date("2026-05-15T12:00:00.000Z");
+    expect(isEvidenceValid(e, before)).toBe(false);
+    expect(evidenceFreshness(e, before)).toBe("none");
+    expect(isEvidenceValid(e, acceptedAt)).toBe(true);
+    expect(isEvidenceValid(e, new Date("2026-06-01"))).toBe(true);
+    expect(isEvidenceValid(e, new Date("2028-01-01"))).toBe(false);
+  });
+});

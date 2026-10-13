@@ -1,3 +1,4 @@
+import type { RequirementEvidenceLineage } from "@visua/core";
 /** React Query hooks — server state. SSE events invalidate these keys (see events.ts). */
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUi } from "../state/ui.ts";
@@ -37,6 +38,7 @@ export const keys = {
   tasks: (ws: string) => ["ws", ws, "tasks"] as const,
   members: (ws: string) => ["ws", ws, "members"] as const,
   myWork: (ws: string, principal?: string) => principal ? ["ws", ws, "my-work", principal] as const : ["ws", ws, "my-work"] as const,
+  lineage: (ws: string, requirementId: string, at?: string) => ["ws", ws, "evidence-lineage", requirementId, at ?? "now"] as const,
   evidence: (ws: string) => ["ws", ws, "evidence"] as const,
   policies: (ws: string) => ["ws", ws, "policies"] as const,
   risks: (ws: string) => ["ws", ws, "risks"] as const,
@@ -128,6 +130,17 @@ export const useEvidence = (ws: string | undefined) => {
   ws = useResolvedWorkspaceId(ws);
   return useQuery({ queryKey: keys.evidence(ws ?? ""), queryFn: () => api.get<Evidence[]>(`/workspaces/${enc(ws!)}/evidence`), enabled: !!ws });
 };
+/** Metadata-only lineage; clock changes and workspace selection own distinct cache entries. */
+export function useEvidenceLineage(ws: string, requirementId: string, at?: string) {
+  ws = useResolvedWorkspaceId(ws) ?? "";
+  const params = new URLSearchParams({ requirementId, ...(at ? { at } : {}) });
+  return useQuery({
+    queryKey: keys.lineage(ws, requirementId, at),
+    queryFn: ({ signal }) => api.get<RequirementEvidenceLineage>(`/workspaces/${enc(ws)}/evidence/lineage?${params}`, signal),
+    enabled: !!ws && !!requirementId,
+    refetchInterval: at ? false : 60_000,
+  });
+}
 export const usePolicies = (ws: string | undefined) => {
   ws = useResolvedWorkspaceId(ws);
   return useQuery({ queryKey: keys.policies(ws ?? ""), queryFn: () => api.get<Policy[]>(`/workspaces/${enc(ws!)}/policies`), enabled: !!ws });

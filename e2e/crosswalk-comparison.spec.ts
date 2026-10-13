@@ -73,7 +73,7 @@ test.describe("touch phone comparison", () => {
     await expect(page.getByRole("combobox", { name: "Evidence artifact", exact: true })).toHaveValue(artifact.id);
     await expect(page.getByText(/Pending review/, { exact: false }).first()).toBeVisible();
     await expect(page.getByText(/group.*child|children.*group|group.*cover/i).first()).toBeVisible();
-    await write(page.request, ws, "patch", `/evidence/${artifact.id}`, { decision: "accepted", expectedScope: evidenceReviewScope(artifact) });
+    await write(page.request, ws, "patch", `/evidence/${artifact.id}`, { decision: "accepted", expectedScope: evidenceReviewScope(artifact), expectedReviewId: artifact.reviewHistory?.at(-1)?.id ?? null });
     await expect(page.getByText(/Accepted/, { exact: false }).first()).toBeVisible();
     const writes: string[] = [];
     await signIn(page.request, VIEWER);

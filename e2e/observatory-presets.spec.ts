@@ -46,7 +46,7 @@ async function evidence(page: Page, ws: Fixture, ids: string[]) {
     title: "Current observed configuration", requirementIds: ids, content: "Illustrative observation for browser verification.",
     collectedAt: new Date(Date.now() - 86_400_000).toISOString(),
   });
-  return write<Evidence>(page.request, "patch", `/workspaces/${ws.id}/evidence/${item.id}`, ws.csrf, { decision: "accepted", expectedScope: evidenceReviewScope(item) });
+  return write<Evidence>(page.request, "patch", `/workspaces/${ws.id}/evidence/${item.id}`, ws.csrf, { decision: "accepted", expectedScope: evidenceReviewScope(item), expectedReviewId: item.reviewHistory?.at(-1)?.id ?? null });
 }
 
 test("presets use current scope and stable member identity, with URL roundtrip", async ({ page, observatory: ws }) => {

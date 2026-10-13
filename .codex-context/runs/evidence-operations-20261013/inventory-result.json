@@ -1,0 +1,33 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "inventory",
+  "input_sha256": "3e6332de9a78df281d8ad93b8032e8f87564f147adadbc3f0cd8bdaa29f79fb8",
+  "status": "complete",
+  "summary": "Completed bounded source inventory: 18 evidence-backed requirement rows and 14 coherent implementation packages. Major remaining work is lifecycle/provenance, durable run fencing, stream authorization/bounds, OIDC cache generations, strict proposal/citation support, public target identity, diagnostics, frozen auditor bundle/checkpoint verification and restore workflow.",
+  "evidence": [
+    {
+      "path": ".codex-context/runs/evidence-operations-20261013/remaining-inventory.json",
+      "rows": 18,
+      "packages": 14,
+      "baseline_commit": "b34cf1fe846920c98aa71df3121712284880dc1a",
+      "test_execution": "not run"
+    },
+    {
+      "already_implemented": "Immutable file references and bound review history; narrative hashing; exact proposal preview approval and check-reference retention; browser reconnect invalidation; private connector-aware monitoring/scoring; role-gated exports; transactional score snapshots and hash-chained audit."
+    },
+    {
+      "external_prerequisites": "Hosted deployment/IdP/operator configuration, actual pilot baseline, retention/checkpoint trust ownership and licensed entitlement. These do not block local source implementation with fixtures and skeleton content."
+    },
+    {
+      "correction": "Verified metadata/body separation belongs to apps/server/src/storage/store.ts: EvidenceCollection (line 114); corrected the inventory pointer from storage/repo.ts. Nearby source filenames in the first three rows exist. No additional sweep or tests performed."
+    }
+  ],
+  "limitations": [
+    "Read-only source inventory at baseline b34cf1fe846920c98aa71df3121712284880dc1a; no tests, services, database access or runtime verification were performed.",
+    "Existing test names demonstrate checked-in coverage only and are not represented as current passes.",
+    "Negative findings are bounded to inspected application/core/agent source, relevant test files, scripts and file searches; historical deployment artifacts were not treated as implemented source capabilities.",
+    "No broad internet research or official-schema validation was performed; official OSCAL validity remains unverified.",
+    "The root task may concurrently modify application files after this baseline inventory; reconcile findings against subsequent patches.",
+    "Deferred SAML/SCIM, framework expansion, broad providers and 3D additions are excluded. The GitHub API connector remains a separate optional extension after the M3 gate."
+  ]
+}

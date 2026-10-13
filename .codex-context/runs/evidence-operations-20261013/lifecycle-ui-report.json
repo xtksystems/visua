@@ -1,0 +1,63 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "lifecycle-ui",
+  "status": "complete",
+  "changed_paths": [
+    "apps/web/src/components/crosswalk/ComparisonMatrix.tsx",
+    "apps/web/src/components/inspector/Inspector.tsx",
+    "apps/web/src/components/work/EvidenceRenewal.tsx",
+    "apps/web/src/components/work/UploadEvidence.tsx",
+    "apps/web/src/lib/queries.ts",
+    "apps/web/src/pages/EvidencePage.tsx",
+    "e2e/crosswalk-comparison.spec.ts",
+    "e2e/evidence-renewal.spec.ts",
+    "e2e/observatory-presets.spec.ts",
+    "apps/web/src/components/work/EditEvidenceScope.tsx",
+    "apps/web/src/components/work/EvidenceAssuranceFields.tsx",
+    "apps/web/src/components/work/EvidenceCollectionDetails.tsx",
+    "apps/web/src/components/work/EvidenceDialog.tsx",
+    "apps/web/src/components/work/EvidenceLineage.tsx",
+    "apps/web/src/components/work/evidence-labels.ts",
+    "apps/web/src/components/work/evidence-lifecycle.css",
+    "apps/web/test/evidence-labels.test.ts",
+    "e2e/evidence-lifecycle.spec.ts"
+  ],
+  "implemented": [
+    "Recorded provenance labels and source check/run/policy references; explicit unknown legacy provenance and assurance; generated narrative and attestation limitations.",
+    "Detached lazy-loaded review dialog; required rejection and withdrawal reasons; append-only history presentation; expectedScope and expectedReviewId review preconditions.",
+    "Snapshot-bound assurance and requirement-link editing; renewed review notice; contributor controls; immutable same-series replacement upload with inherited links and scope.",
+    "Requirement Evidence tab presents metadata-only lineage, effective status/reasons, reviewer, source identity, replacement chain, unknowns and explicit UTC evaluation clock semantics.",
+    "Artifact and source deep links, separate review/validity, ledger and renewal supersession labels, nested-dialog focus, workspace-keyed lineage query, and phone layout tokens.",
+    "Eight browser cases covering CSF and SOC2 journeys, metadata-only/error/phone/focus, capability controls, stale scope and withdrawal review races, and A-to-B in-flight isolation. Desktop lineage and phone dialog screenshots retained by those tests."
+  ],
+  "verification": [
+    {
+      "command": "pnpm exec vitest run apps/web/test/evidence-labels.test.ts",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "result": "4 tests passed; repeated after UI/API review precondition changes"
+    },
+    {
+      "command": "git diff --check -- apps/web e2e",
+      "cwd": "/Users/artem/visua",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm exec playwright test e2e/evidence-lifecycle.spec.ts --list",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "result": "Final 8 cases discovered without starting a browser server"
+    },
+    {
+      "command": "Lead-owned integrated browser execution",
+      "status": "pending",
+      "result": "Initial CSF journey Save owner disabled-button assertion timed out. Trace confirms 200 PATCH, correct saved owner, no console error, only two assertion polls in 20 seconds. Test now asserts PATCH response identity before retaining disabled-button gate; lead rerun required. SOC2 passed assignment and level change before timing out on exact assurance select label; added explicit aria-label. Obsolete run stopped by lead before final sequential rerun."
+    }
+  ],
+  "limitations": [
+    "Full typecheck, browser execution, screenshot inspection, full tests/build and local delivery remain lead-owned and were not run by this lane.",
+    "Selected lineage time evaluates current recorded metadata; UI explicitly states it does not reconstruct historical revisions.",
+    "Legacy unknown metadata browser case uses a metadata-response fixture; real legacy storage semantics are backend-tested.",
+    "No new browser gate is reported passing until the lead completes the final integrated rerun."
+  ]
+}

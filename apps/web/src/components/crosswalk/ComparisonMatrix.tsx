@@ -66,7 +66,7 @@ export function ComparisonMatrix() {
   const selectedScope = sourceGroup || targetGroup ? `${sourceGroup?.code ?? "All source groups"} → ${targetGroup?.code ?? "All target groups"}` : "All groups in this pair";
   const cellCounts = new Map(data.cells.map(c => [JSON.stringify([c.sourceGroup, c.targetGroup]), c.count]));
   const evidence = data.selectedEvidence;
-  const review = evidence?.status === "accepted" ? (evidence.acceptanceBound ? "Accepted for the current artifact and links" : "Renewed review required") : evidence?.status === "pending-review" ? "Pending review" : evidence?.status === "rejected" ? "Rejected" : "Marked expired";
+  const review = evidence?.status === "accepted" ? (evidence.acceptanceBound ? "Accepted for the current artifact and links" : "Renewed review required") : evidence?.status === "pending-review" ? "Pending review" : evidence?.status === "rejected" ? "Rejected" : evidence?.status === "withdrawn" ? "Withdrawn" : "Marked expired";
   return <main className="page comparison" data-testid="crosswalk-matrix">
     <header className="comparison__head">
       <div><div className="eyebrow">Crosswalk</div><h1>Compare requirement mappings</h1><p className="muted">Trace published relationships between frameworks and inspect the evidence linked directly to requirements.</p></div>

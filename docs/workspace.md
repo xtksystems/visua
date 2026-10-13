@@ -187,7 +187,11 @@ Contributors and above can add a file from **Evidence**. To upload an artifact:
 2. Enter the title, optional description, kind, and collection date. Set
    **Valid until** if the artifact expires, or leave it blank for no expiry.
 3. Link at least one requirement from an enabled framework.
-4. Choose **Upload for review**. Visua verifies storage before adding the item
+4. Select **Assurance type** and describe **Assurance scope**. Design evidence
+   documents a control's intended design; operating evidence records activity;
+   an attestation records an assertion. Use **Unspecified** when the scope is
+   unknown. Enter both ends of an observation period if one is recorded.
+5. Choose **Upload for review**. Visua verifies storage before adding the item
    as **Pending review** and opening its detail dialog. A failed upload keeps
    your draft and displays an error.
 
@@ -196,20 +200,35 @@ requirements, collection date, expiry, and review history. For an uploaded file,
 the dialog shows its name, byte size, media type, and SHA-256. Choose
 **Download file** to inspect it locally. Downloads check the stored size and
 hash and require current workspace access. Files download as attachments.
-An approver can accept or reject pending evidence from the detail dialog. If
-the artifact or its assurance scope changes while you review it, reload the
-item before making the decision. Use **Reload evidence** after a stale-detail
-error. Missing or corrupt
-file bytes block both download and review; the server verifies size and hash
-again before recording a file decision.
+An approver can accept or reject pending evidence from the detail dialog.
+Rejection requires a reason. **Withdraw evidence** removes an artifact from
+accepted coverage and also requires a reason. Both decisions remain in history.
+If the artifact, its assurance scope, or another person's review changes while
+you inspect it, use **Reload evidence** before deciding. Missing or corrupt
+file bytes block download, acceptance, and rejection; withdrawal remains
+available so an unusable artifact can be removed from coverage.
 
-Acceptance covers a specific artifact hash, requirement list, and validity
-window. Changing content, structured data, requirement links, collection date,
-or expiry returns the item to **Pending review** and keeps earlier decisions.
+Acceptance covers a specific artifact hash, requirement list, validity window,
+assurance claim, collection provenance, and replacement reference. Choose
+**Edit assurance and links** to amend the claim. Changing content, structured
+data, requirement links, assurance, collection date, or expiry returns the item
+to **Pending review** and keeps earlier decisions.
 Changing its title, description, or file name preserves approval. Uploaded file
 bytes and storage references are immutable; upload a new item to replace a
-file. A connector's raw observation cannot be edited; run the connector again
-to collect a new one.
+file. A connector's raw observation and an approved policy artifact cannot be
+edited; run the connector or approve a new policy version to collect another.
+
+Collection details distinguish uploads, manual records, connector observations,
+agent proposals, and approved policy versions. Recorded source references do
+not follow later connector or policy edits. Older artifacts show **Not recorded**
+where collection details are absent. Assurance labels describe the recorded
+claim; acceptance does not certify audit sufficiency.
+
+For a manual or uploaded artifact, choose **Upload replacement** to retain its
+assurance scope and link the new file to its predecessor. A replacement only
+suppresses an expired artifact's risk after acceptance, while valid, and for
+the requirements it covers. Pending or withdrawn replacements do not clear
+that risk. Independent failing monitoring checks still make work at risk.
 
 The ledger counts accepted evidence only while its bound approval and dates are
 currently valid. Expired evidence keeps its review history. An upgrade returns
@@ -217,6 +236,12 @@ legacy approvals to review because their original assurance scope was not
 recorded. Legacy decisions remain visible in the item's history. The later
 metadata/body storage migration preserves existing review decisions and audit
 history.
+
+In the Observatory requirement inspector, open **Evidence** to trace artifacts,
+source observations, policy versions, reviews, and replacement history without
+loading artifact bodies. **Evaluate a different time** applies the current
+recorded metadata to a selected UTC time. It does not reconstruct earlier edits
+or decisions. Open an artifact to inspect its body or download its file.
 
 ## Plan evidence renewal
 

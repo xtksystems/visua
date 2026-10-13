@@ -21,8 +21,11 @@ The [member work task](../.codex-context/tasks/member-work-20261003.md) records
 member assignment, calendar dates, editable task links, and My work. The
 [evidence file task](../.codex-context/tasks/evidence-files-20261004.md) records
 metadata/body separation, private local and S3-compatible storage adapters,
-verified uploads and downloads, and file-bound reviews. Later packages remain
-planned work.
+verified uploads and downloads, and file-bound reviews. The remaining milestone 2
+packages are now implemented and verified: collection provenance, assurance,
+reasoned review and withdrawal, compatible supersession, and requirement lineage.
+The [evidence operations task](../.codex-context/tasks/evidence-operations-20261013.md)
+tracks these packages and the continuing automation and auditor work.
 The [existing roadmap](roadmap.md) retains the broader backlog.
 
 ## Outcome and scope
@@ -52,7 +55,7 @@ its claims.
 
 | Direction | Decision and basis |
 | --- | --- |
-| Evidence and team workflow | Lead this phase. Approval binding, owned work, and file storage are implemented; explicit evidence lifecycle and auditor packaging remain incomplete. |
+| Evidence and team workflow | Lead this phase. Owned work, file storage, provenance, bound reviews, supersession, and lineage are implemented; auditor packaging remains incomplete. |
 | Safe hosting and reliable agents | Required pilot foundations. Startup, egress, stream revocation, cancellation, and multi-instance SSO cache issues directly affect the hosted workflow. |
 | More connectors | Prove one API connector after evidence, provenance, egress, and credential contracts work. Avoid simultaneous provider expansion. |
 | SAML and SCIM | Schedule after a concrete buyer requirement. OIDC already supports the pilot; protocol breadth does not fix current evidence defects. |
@@ -225,32 +228,31 @@ completion-rate measurement exists yet.
 
 ## Next action
 
-Implement milestone 2's third package: represent collection origin, immutable
-artifact/check reference, assurance scope, validity, review history, and explicit
-supersession. Preserve source and licensing classification when relinking.
-The full milestone acceptance gate remains open.
+Continue milestone 3: durable run ownership and cancellation, current stream
+and OIDC authorization, strict proposal payloads and safe autonomy, corpus-backed
+citations and projections, monitoring identity, and bounded operations. The
+[evidence operations task](../.codex-context/tasks/evidence-operations-20261013.md)
+records the dependency order; the first automation packages are under development
+in an isolated checkout. Milestone 4 follows the automation gate.
 
-All five milestone 1 packages and milestone 2's first two packages are complete.
-The [file task](../.codex-context/tasks/evidence-files-20261004.md) adds a
-metadata-only ledger and scoring path, explicit inline-content detail reads,
-tenant/workspace-scoped file storage, verified 10 MiB uploads and downloads,
-and review of a fixed artifact snapshot. Migration 6 moves existing inline
-bodies without changing artifact hashes, decisions, workspace revisions, or
-audit history. Local storage persists in the existing Docker data volume;
-the S3-compatible adapter is configured by the operator and tested with actual
-SDK-signed requests against a mock service.
+All milestone 1 and milestone 2 packages are implemented and verified.
+[Lifecycle verification](../.codex-context/runs/evidence-operations-20261013/source-verification.json)
+records 650 SQLite passes (two PostgreSQL-only skips), 652 PostgreSQL passes,
+and 146 verified browser cases, including the complete CSF and SOC 2 lifecycle
+journeys. Browser evidence combines the full lane with final affected reruns;
+no single final full-check command passed. Independent review corrections cover
+stale review decisions and validity before acceptance. Additional regressions
+cover agent proposals overriding withdrawal, licensed title propagation, and
+keyboard focus inside collapsed details.
 
-[Final verification](../.codex-context/runs/evidence-files-20261004/source-verification.json)
-passes all applicable lanes: 474 SQLite tests (two PostgreSQL-only skips),
-476 PostgreSQL tests, and 98 unique browser cases. Browser evidence combines
-79 unchanged full-lane passes with 19 final affected reruns; earlier failures
-and their recovery remain recorded. No single final full-check command passed.
+Evidence source references and original licensing survive relinking. Compatible
+accepted replacements suppress expired history only for requirements they cover;
+independent failed checks remain visible. Rejection and withdrawal retain reasons.
+The lineage view reads metadata and evaluates it at a stated time. It does not
+reconstruct earlier edits or decisions. Legacy origin and assurance stay visibly
+unknown. This package adds no database migration or inferred approval.
 
-Source was committed and pushed as `7806309`, and local Docker was upgraded on
-October 4, 2026 UTC. The [delivery record](../.codex-context/runs/evidence-files-20261004/delivery-result.json)
-records the verified backup, unchanged historical data and hydrated evidence,
-matching image/source hashes, healthy readiness, and live upload/accept/exact
-download before and after restart. The synthetic workspace and blob were
-removed. Migration 5 retains the decisions on 18 legacy approvals as history
-with pending current review; migration 6 preserves those decisions. Other phase
-packages and the full milestone 2 gate remain open.
+Local delivery retains the existing Docker volume and verifies original rows
+against a consistent backup. The task record tracks commit and deployment state.
+A hosted pilot, operating baseline, and retention ownership still need a selected
+operator and pilot team; local fixtures do not establish those outcomes.

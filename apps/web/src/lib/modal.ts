@@ -8,9 +8,20 @@ interface ModalEntry {
 const modals: ModalEntry[] = [];
 const tabbableSelector = "a[href], area[href], button, input:not([type='hidden']), select, textarea, iframe, summary, [tabindex], [contenteditable='true']";
 
+function insideClosedDetails(candidate: HTMLElement): boolean {
+  for (let parent = candidate.parentElement; parent; parent = parent.parentElement) {
+    if (parent instanceof HTMLDetailsElement && !parent.open) {
+      const summary = parent.querySelector(":scope > summary");
+      if (!summary?.contains(candidate)) return true;
+    }
+  }
+  return false;
+}
+
 function tabbable(element: HTMLElement): HTMLElement[] {
   return Array.from(element.querySelectorAll<HTMLElement>(tabbableSelector)).filter((candidate) =>
     candidate.tabIndex >= 0 && !candidate.matches(":disabled") && !candidate.closest("[hidden], [inert]") &&
+    !insideClosedDetails(candidate) &&
     candidate.getClientRects().length > 0 && getComputedStyle(candidate).visibility !== "hidden",
   );
 }

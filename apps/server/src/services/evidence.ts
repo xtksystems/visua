@@ -23,6 +23,8 @@ export function evidenceAuditSnapshot(e: Evidence): Record<string, unknown> {
     title: e.title, description: e.description, fileName: e.fileName, artifact: e.artifact,
     sha256: e.sha256, requirementIds: e.requirementIds, collectedAt: e.collectedAt,
     validUntil: e.validUntil, status: e.status, reviewedBy: e.reviewedBy,
+    assurance: e.assurance, provenance: e.provenance, supersedesId: e.supersedesId,
+    contentRequirementIds: e.contentRequirementIds, contentSourceDocumentIds: e.contentSourceDocumentIds, restrictedContent: e.restrictedContent,
     reviewedAt: e.reviewedAt, reviewCount: e.reviewHistory?.length ?? 0,
   };
 }
@@ -33,6 +35,6 @@ export function evidenceMetadata(e: Evidence): Evidence {
   return metadata;
 }
 
-export type FileEvidenceInput = Pick<Evidence, "title"> & Partial<Pick<Evidence, "description" | "kind" | "requirementIds" | "collectedAt" | "validUntil">> & { fileName: string; mediaType: string };
+export type FileEvidenceInput = Pick<Evidence, "title"> & Partial<Pick<Evidence, "description" | "kind" | "requirementIds" | "collectedAt" | "validUntil" | "assurance" | "supersedesId">> & { fileName: string; mediaType: string };
 
-export type EvidencePatch = Partial<Pick<Evidence, "title" | "description" | "content" | "data" | "fileName" | "requirementIds" | "collectedAt">> & { validUntil?: string | null };
+export type EvidencePatch = Partial<Pick<Evidence, "title" | "description" | "content" | "data" | "fileName" | "requirementIds" | "collectedAt" | "assurance">> & { validUntil?: string | null; expectedScope?: import("@visua/core").EvidenceReviewScope };

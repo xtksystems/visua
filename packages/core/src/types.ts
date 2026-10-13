@@ -472,7 +472,28 @@ export type EvidenceKind =
   | "policy"
   | "report";
 
-export type EvidenceStatus = "pending-review" | "accepted" | "rejected" | "expired";
+export type EvidenceStatus = "pending-review" | "accepted" | "rejected" | "expired" | "withdrawn";
+
+export interface EvidenceAssurance {
+  kind: "design" | "operating" | "attestation" | "unspecified";
+  scope: string;
+  observationStart?: string;
+  observationEnd?: string;
+}
+
+/** Recorded by the collection service, never reconstructed from mutable links. */
+export interface EvidenceProvenance {
+  origin: "upload" | "manual" | "connector-check" | "agent-proposal" | "approved-policy";
+  recordedBy: string;
+  recordedAt: string;
+  originalRequirementIds: string[];
+  sourceDocumentIds: string[];
+  restrictedContent: boolean;
+  seriesKey?: string;
+  check?: { resultId: string; connectorId: string; connectorKind: string; connectorName: string; checkId: string; observedAt: string; sourceConfigHash?: string };
+  agent?: { runId: string; proposalId: string };
+  policy?: { id: string; version: number; sha256: string; approvedBy?: string; approvedAt?: string };
+}
 
 /** The artifact and applicability window a person inspected when deciding. */
 export interface EvidenceReviewScope {
@@ -480,11 +501,14 @@ export interface EvidenceReviewScope {
   requirementIds: string[];
   collectedAt: string;
   validUntil?: string;
+  assurance?: EvidenceAssurance;
+  provenance?: EvidenceProvenance;
+  supersedesId?: string;
 }
 
 export interface EvidenceReview {
   id: string;
-  decision: "accepted" | "rejected";
+  decision: "accepted" | "rejected" | "withdrawn";
   reviewedBy: string;
   reviewedAt: string;
   /** Missing scope archives a legacy decision; it never grants current approval. */
@@ -513,6 +537,13 @@ export interface Evidence {
   sha256?: string;
   reviewedBy?: string;
   reviewedAt?: string;
+  assurance?: EvidenceAssurance;
+  provenance?: EvidenceProvenance;
+  /** Monotone content provenance survives relinking and local corpus removal. */
+  contentRequirementIds?: string[];
+  contentSourceDocumentIds?: string[];
+  restrictedContent?: boolean;
+  supersedesId?: string;
   /** Server-owned, append-only decisions with immutable scope snapshots. */
   reviewHistory?: EvidenceReview[];
   createdAt: string;
@@ -572,6 +603,8 @@ export interface CheckResult {
   observed: Record<string, unknown>;
   observedAt: string;
   evidenceId?: string;
+  /** Source identity captured at observation time, independent of later connector edits. */
+  source?: { connectorKind: string; connectorName: string; configHash: string };
 }
 
 export interface Connector {

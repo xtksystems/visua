@@ -1,4 +1,4 @@
-import type { Evidence, EvidenceReviewScope } from "./types.ts";
+import type { Evidence, EvidenceAssurance, EvidenceReviewScope } from "./types.ts";
 
 const DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const TIMESTAMP = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?(Z|([+-])(\d{2})(?::?(\d{2}))?)$/;
@@ -39,8 +39,25 @@ export function normalizeEvidenceDate(value: string, endOfDay = false): string {
   return parsed.toISOString();
 }
 
+/** Validate assurance without claiming independent verification. */
+export function normalizeEvidenceAssurance(value: EvidenceAssurance): EvidenceAssurance {
+  if (!value || !["design", "operating", "attestation", "unspecified"].includes(value.kind)) throw new TypeError("Invalid assurance kind");
+  if (typeof value.scope !== "string" || value.scope.trim().length > 2000 || (value.kind !== "unspecified" && !value.scope.trim())) throw new TypeError("Assurance scope must contain between 1 and 2000 characters");
+  const observationStart = value.observationStart === undefined ? undefined : normalizeEvidenceDate(value.observationStart);
+  const observationEnd = value.observationEnd === undefined ? undefined : normalizeEvidenceDate(value.observationEnd, true);
+  if ((observationStart === undefined) !== (observationEnd === undefined)) throw new RangeError("Observation period requires both start and end");
+  if (observationStart && observationEnd && observationStart > observationEnd) throw new RangeError("Observation period end cannot precede its start");
+  return { kind: value.kind, scope: value.scope.trim(), ...(observationStart ? { observationStart, observationEnd } : {}) };
+}
+
+function stable(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stable).join(",")}]`;
+  if (value && typeof value === "object") return `{${Object.entries(value).filter(([, v]) => v !== undefined).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${JSON.stringify(k)}:${stable(v)}`).join(",")}}`;
+  return JSON.stringify(value);
+}
+
 /** Make a detached, canonical snapshot of the protected evidence fields. */
-export function evidenceReviewScope(e: Pick<Evidence, "sha256" | "requirementIds" | "collectedAt" | "validUntil">): EvidenceReviewScope {
+export function evidenceReviewScope(e: Pick<Evidence, "sha256" | "requirementIds" | "collectedAt" | "validUntil" | "assurance" | "provenance" | "supersedesId">): EvidenceReviewScope {
   if (!Array.isArray(e.requirementIds) || e.requirementIds.some((id) => typeof id !== "string")) {
     throw new TypeError("Evidence requirement links must be strings");
   }
@@ -54,6 +71,9 @@ export function evidenceReviewScope(e: Pick<Evidence, "sha256" | "requirementIds
     requirementIds: [...new Set(e.requirementIds)].sort(),
     collectedAt,
     ...(validUntil === undefined ? {} : { validUntil }),
+    ...(e.assurance === undefined ? {} : { assurance: normalizeEvidenceAssurance(e.assurance) }),
+    ...(e.provenance === undefined ? {} : { provenance: JSON.parse(stable(e.provenance)) as Evidence["provenance"] }),
+    ...(e.supersedesId === undefined ? {} : { supersedesId: e.supersedesId }),
   };
 }
 
@@ -65,6 +85,9 @@ export function sameEvidenceReviewScope(a: EvidenceReviewScope, b: EvidenceRevie
     return left.sha256 === right.sha256
       && left.collectedAt === right.collectedAt
       && left.validUntil === right.validUntil
+      && stable(left.assurance) === stable(right.assurance)
+      && stable(left.provenance) === stable(right.provenance)
+      && left.supersedesId === right.supersedesId
       && left.requirementIds.length === right.requirementIds.length
       && left.requirementIds.every((id, i) => id === right.requirementIds[i]);
   } catch {

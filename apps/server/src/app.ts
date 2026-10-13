@@ -1,3 +1,4 @@
+import { requirementEvidenceLineage } from "./services/evidence-lineage.ts";
 /**
  * Visua HTTP API (Hono). JSON everywhere, SSE for live events, strict input
  * validation with Zod, and a local file route that serves the official
@@ -68,6 +69,20 @@ const Assignee = z.discriminatedUnion("type", [
   z.object({ type: z.literal("agent"), id: z.string().min(1), name: z.string().trim().min(1).max(200) }),
   z.object({ type: z.literal("external"), id: z.literal("external"), name: z.string().trim().min(1).max(200) }),
 ]);
+
+const EvidenceAssuranceSchema = z.object({
+  kind: z.enum(["design", "operating", "attestation", "unspecified"]), scope: z.string().max(2000),
+  observationStart: z.string().optional(), observationEnd: z.string().optional(),
+}).strict();
+const EvidenceProvenanceSchema = z.object({
+  origin: z.enum(["upload", "manual", "connector-check", "agent-proposal", "approved-policy"]),
+  recordedBy: z.string(), recordedAt: z.string(), originalRequirementIds: z.array(z.string()),
+  sourceDocumentIds: z.array(z.string()), restrictedContent: z.boolean(), seriesKey: z.string().optional(),
+  check: z.object({ resultId: z.string(), connectorId: z.string(), connectorKind: z.string(), connectorName: z.string(), checkId: z.string(), observedAt: z.string(), sourceConfigHash: z.string().optional() }).strict().optional(),
+  agent: z.object({ runId: z.string(), proposalId: z.string() }).strict().optional(),
+  policy: z.object({ id: z.string(), version: z.number(), sha256: z.string(), approvedBy: z.string().optional(), approvedAt: z.string().optional() }).strict().optional(),
+}).strict();
+const EvidenceReviewScopeSchema = z.object({ sha256: z.string().regex(/^[a-f0-9]{64}$/).optional(), requirementIds: z.array(z.string()), collectedAt: z.string(), validUntil: z.string().optional(), assurance: EvidenceAssuranceSchema.optional(), provenance: EvidenceProvenanceSchema.optional(), supersedesId: z.string().optional() }).strict();
 
 const ProfileSchema = z.object({
   industry: z.enum(PROFILE_INDUSTRIES),
@@ -178,18 +193,21 @@ const Schemas = {
   createEvidence: z.object({
     title: z.string().min(1).max(300),
     description: z.string().max(10_000).optional(),
-    kind: z.enum(["document", "screenshot", "configuration", "log", "attestation", "automated-check", "policy", "report"]).optional(),
+    kind: z.enum(["document", "screenshot", "configuration", "log", "attestation", "policy", "report"]).optional(),
     requirementIds: z.array(z.string()).min(1),
     content: z.string().max(2_000_000).optional(),
     data: z.record(z.string(), z.unknown()).optional(),
     collectedAt: z.string().optional(),
     fileName: z.string().max(300).optional(),
     validUntil: z.string().optional(),
+    assurance: EvidenceAssuranceSchema.optional(), supersedesId: z.string().min(1).optional(),
   }).strict(),
   updateEvidence: z.object({
-    decision: z.enum(["accepted", "rejected"]).optional(),
+    decision: z.enum(["accepted", "rejected", "withdrawn"]).optional(),
     note: z.string().max(2000).optional(),
-    expectedScope: z.object({ sha256: z.string().regex(/^[a-f0-9]{64}$/).optional(), requirementIds: z.array(z.string()), collectedAt: z.string(), validUntil: z.string().optional() }).strict().optional(),
+    expectedScope: EvidenceReviewScopeSchema.optional(),
+    expectedReviewId: z.string().min(1).nullable().optional(),
+    assurance: EvidenceAssuranceSchema.optional(),
     title: z.string().min(1).max(300).optional(),
     description: z.string().max(10_000).optional(),
     content: z.string().max(2_000_000).optional(),
@@ -595,6 +613,10 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
     c.header("Cache-Control", "private, no-store");
     return c.json(await workspaceEvidenceRenewal(svc, wsOf(c)));
   });
+  app.get("/api/workspaces/:ws/evidence/lineage", async (c) => {
+    c.header("Cache-Control", "private, no-store");
+    return c.json(await requirementEvidenceLineage(svc, wsOf(c), c.req.query("requirementId") ?? "", c.req.query("at")));
+  });
   app.get("/api/workspaces/:ws/evidence/:id", async (c) => {
     const evidence = await svc.store.evidence.get(c.req.param("id"));
     if (!evidence || evidence.workspaceId !== wsId(c)) throw new NotFoundError("Evidence not found");
@@ -629,13 +651,13 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
     if (input.decision) {
       // Accepting or rejecting evidence is a review decision.
       requireCapability(c, "work.approve");
-      if (Object.keys(input).some((key) => !["decision", "note", "expectedScope"].includes(key))) throw new ValidationError("Review and evidence edits must be separate requests");
-      return c.json(await svc.reviewEvidence(wsId(c), c.req.param("id"), input.decision, actorOf(c), input.note, input.expectedScope, evidenceAccess(c, "work.approve")));
+      if (Object.keys(input).some((key) => !["decision", "note", "expectedScope", "expectedReviewId"].includes(key))) throw new ValidationError("Review and evidence edits must be separate requests");
+      return c.json(await svc.reviewEvidence(wsId(c), c.req.param("id"), input.decision, actorOf(c), input.note, input.expectedScope, evidenceAccess(c, "work.approve"), input.expectedReviewId ?? null));
     }
-    const { decision: _decision, note, expectedScope, ...patch } = input;
-    if (note !== undefined || expectedScope !== undefined) throw new ValidationError("Review notes and scope require a review decision");
+    const { decision: _decision, note, expectedScope, expectedReviewId, ...patch } = input;
+    if (note !== undefined || expectedReviewId !== undefined) throw new ValidationError("Review notes and review identity require a review decision");
     void _decision;
-    return c.json(await svc.updateEvidence(wsId(c), c.req.param("id"), patch, actorOf(c)));
+    return c.json(await svc.updateEvidence(wsId(c), c.req.param("id"), { ...patch, expectedScope }, actorOf(c)));
   });
 
   // ---------------------------------------------------------------- policies & risks

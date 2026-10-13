@@ -54,7 +54,7 @@ describe(`evidence approval binding (${db.dialect})`, () => {
     expect((await client.request("PATCH", path, { decision: "accepted" })).status).toBe(400);
     const reviewed = await client.request<Evidence>("PATCH", path, { decision: "accepted", expectedScope: evidenceReviewScope(e), note: "Verified against configuration" });
     expect(reviewed.status).toBe(200);
-    expect(isEvidenceValid(reviewed.json, new Date("2026-10-03"))).toBe(true);
+    expect(isEvidenceValid(reviewed.json, new Date(reviewed.json.reviewedAt!))).toBe(true);
     expect(reviewed.json.reviewHistory).toHaveLength(1);
     expect(reviewed.json.reviewHistory![0]).toMatchObject({ scope: evidenceReviewScope(e), note: "Verified against configuration" });
     const log = await svc.store.activity.head(ws);

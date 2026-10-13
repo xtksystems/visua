@@ -25,6 +25,7 @@ function utc(value: string): string { return value.replace("T", " ").replace(/Z$
 function reviewLabel(status: Evidence["status"], bound: boolean): string {
   if (status === "pending-review") return "Pending review";
   if (status === "rejected") return "Rejected";
+  if (status === "withdrawn") return "Withdrawn";
   if (status === "expired") return "Marked expired; no current acceptance";
   return bound ? "Accepted" : "Renewed review required";
 }
@@ -36,8 +37,8 @@ function validityLabel(dates: Pick<EvidenceRenewalDates, "validity" | "startsAt"
 }
 
 /** Ledger presentation shares domain date rules but never changes the review snapshot. */
-export function EvidenceReviewValidity({ evidence }: { evidence: Evidence }) {
-  const dates = evidenceRenewalDates(evidence, new Date());
+export function EvidenceReviewValidity({ evidence, at = new Date() }: { evidence: Evidence; at?: Date }) {
+  const dates = evidenceRenewalDates(evidence, at);
   return <div className="evidence-review-validity">
     <span>Review: {reviewLabel(evidence.status, hasCurrentEvidenceReview(evidence))}</span>
     <span className={dates.validity === "expired" ? "evidence-renewal__validity--expired" : undefined}>Validity: {validityLabel(dates)}</span>
@@ -90,6 +91,7 @@ function RenewalItem({ item, data, onInspect }: { item: EvidenceRenewalItem; dat
         <p>{otherCovered.length} linked {otherCovered.length === 1 ? "requirement has" : "requirements have"} valid accepted evidence now. This item does not end their first uninterrupted coverage period.</p>
         <RequirementLinks ids={otherCovered} />
       </div>}
+      {!!item.effective?.supersededByIds.length && <p className="muted">Superseded by valid accepted replacement evidence for all linked requirements. The expired artifact remains in history.</p>}
       {!item.currentlyValid && <p className="muted">This item contributes no valid evidence coverage now.</p>}
       {!item.requirements.length && !item.context.unknown && <p className="muted">Workspace evidence · no requirements linked.</p>}
       {!!context.length && <div>

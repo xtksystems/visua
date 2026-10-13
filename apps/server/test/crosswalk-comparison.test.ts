@@ -34,7 +34,7 @@ const profile: OrganizationProfile = { industry: "saas", size: "11-50", dataType
 const ws = await svc.createWorkspace({ name: "Comparison", tenantId: tenant.id, profile, frameworks: [CSF, SP] });
 const pair = { source: CSF, target: SP };
 const compare = (opts: Record<string, string | undefined> = {}) => crosswalkComparison(svc, ws, { ...pair, ...opts });
-afterEach(() => { vi.restoreAllMocks(); });
+afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
 afterAll(async () => { await svc.store.close(); await db.cleanup(); });
 
 describe(`crosswalk comparison (${db.dialect})`, () => {
@@ -92,6 +92,7 @@ describe(`crosswalk comparison (${db.dialect})`, () => {
 
   it("projects only direct evidence links from metadata, with bound review and date validity independent", async () => {
     const now = new Date("2026-10-12T12:00:00Z");
+    vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(now);
     const artifact = await svc.createEvidence(ws.id, { title: "Observed configuration", content: "Do not read this artifact body", requirementIds: [A, G, C], collectedAt: "2026-10-01", validUntil: "2026-10-31" });
     const get = vi.spyOn(svc.store.evidence, "get").mockRejectedValue(new Error("Body access forbidden"));
     const list = vi.spyOn(svc.store.evidence, "list").mockRejectedValue(new Error("Body list forbidden"));

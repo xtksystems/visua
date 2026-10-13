@@ -425,11 +425,13 @@ resource close; a timeout forces remaining sockets closed and exits with code
   canonical JSON envelope containing content and/or structured data, or the
   immutable connector observation. A file's hash identifies its verified raw
   bytes. Every decision appends a server-owned history entry with the hash,
-  requirement set, collection date, and expiry. Current acceptance requires the
+  requirement set, collection date, expiry, assurance, collection provenance,
+  and replacement reference. Current acceptance requires the
   latest decision to match those fields and the active reviewer/time.
   Protected edits clear active review
   metadata and return the item to review; descriptive edits preserve approval.
-  Connector content, raw data, and observation time cannot be amended.
+  Connector and recorded approved-policy content, raw data, and collection time
+  cannot be amended.
   Mutations audit before/after metadata and hashes without duplicating raw
   artifacts. All writes, decisions, revisions, and events share the transaction.
   Migration 5 recomputes current artifact digests, archives legacy decisions
@@ -439,14 +441,35 @@ resource close; a timeout forces remaining sockets closed and exits with code
   Dates must be real `YYYY-MM-DD` calendar dates or timezone-qualified ISO
   timestamps. Date-only collection begins at midnight UTC and date-only expiry
   ends at `23:59:59.999` UTC; expiry cannot precede collection. Malformed, future,
-  expired, or unbound records cannot satisfy current verification.
+  expired, unbound, or not-yet-reviewed records cannot satisfy verification at
+  the evaluation time.
   `PATCH /api/workspaces/:ws/evidence/:id` takes either metadata/artifact edits
-  or a decision plus `expectedScope` copied from the inspected record's
-  `sha256`, `requirementIds`, `collectedAt`, and optional `validUntil`. Stale
+  or a decision plus `expectedScope` from `evidenceReviewScope()` and
+  `expectedReviewId` (the latest inspected review id, or `null`). Stale
   decisions and mixed edit/review requests return `400`. The detail dialog keeps
   its inspected snapshot even when live queries refresh the underlying row. Use `validUntil: null`
-  to remove expiry. Agent review proposals capture the inspected scope when
-  created; approval edits cannot replace it or a connector proposal's check id.
+  to remove expiry. Agent review proposals capture the inspected scope and latest
+  review id when created. Approval edits cannot replace either precondition or
+  a connector proposal's check id; an intervening withdrawal requires a new
+  proposal. Legacy proposals without a review id cannot override a prior review.
+- **Evidence lifecycle.** Optional provenance records collection origin,
+  recorder/time, original requirements and source documents, and immutable
+  check, agent proposal, or approved-policy references. Legacy absence remains
+  unknown; no backfill certifies old origins. Content licensing classification
+  grows through relinking and survives removal of a licensed overlay. Assurance
+  records a kind, scope, and optional complete observation interval.
+  `supersedesId` links compatible artifacts in the same workspace. Stored check
+  series include the connector configuration hash captured at observation;
+  policy series retain the approved version and body hash. Shared
+  `effectiveEvidenceState()` suppresses expiry risk only when a valid accepted
+  successor covers the affected requirement. Monitoring grouping includes
+  connector, target configuration, and check identity, so a passing independent
+  target cannot erase a failure. Score snapshot formula version changes at this
+  boundary instead of connecting incompatible historical values.
+  `GET /api/workspaces/:ws/evidence/lineage?requirementId=...&at=...` reads
+  metadata only and evaluates current records at the requested time. It is not
+  historical reconstruction. Rejection and withdrawal require reasons;
+  withdrawal does not require a readable blob.
 - **File evidence** (`src/blobs/`). Uploads create an immutable, server-owned
   `artifact` reference with an ID, SHA-256, byte size, and media type. The
   canonical tenant and workspace scope every storage operation; `fileName`

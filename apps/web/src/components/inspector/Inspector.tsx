@@ -2,10 +2,10 @@
  * Inspector: details and actions for the current selection (DESIGN.md › Inspector).
  * Header (code, title, status), tabbed body, sticky footer with the primary action.
  */
-import { Bot, ExternalLink, FileText, ListChecks, Plus, Sparkles, X } from "lucide-react";
+import { Bot, ExternalLink, ListChecks, Plus, Sparkles, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { levelLabel, type FrameworkFamily, type ProfileAction } from "@visua/core";
 import { api, corpusFileUrl } from "../../lib/api.ts";
 import { useCan } from "../../lib/auth.ts";
@@ -15,6 +15,9 @@ import { keys, useGraph, useMeta, useNodeDetail, useWsMutation } from "../../lib
 import type { NodeDetail, RequirementState } from "../../lib/types.ts";
 import { useWorkspaceId } from "../../lib/workspace.ts";
 import { AgentBadge, CodeTag, Dialog, Empty, FrameworkBadge, LevelPips, SheetGrabber, StatusBar, StatusChip, TabPanel, Tabs, toast } from "../ui/index.tsx";
+import { EvidenceLineage } from "../work/EvidenceLineage.tsx";
+import { EvidenceAssuranceFields } from "../work/EvidenceAssuranceFields.tsx";
+import { assuranceDraft, assuranceError } from "../work/evidence-labels.ts";
 import { MemberPicker, type MemberAssignment } from "../work/MemberPicker.tsx";
 import { OverlaySections } from "./Overlays.tsx";
 import { ThreatInspector, ThreatsAddressed } from "./Threats.tsx";
@@ -30,7 +33,8 @@ export function Inspector({ nodeId, onClose, navigation }: { nodeId: string; onC
 
 function InspectorSelection({ ws, nodeId, onClose, navigation }: { ws: string; nodeId: string; onClose: () => void; navigation?: ReactNode }) {
   const { data, isLoading, error, refetch, isFetching } = useNodeDetail(ws, nodeId);
-  const [tab, setTab] = useState<Tab>("overview");
+  const [params] = useSearchParams();
+  const [tab, setTab] = useState<Tab>(() => params.get("detail") === "evidence" ? "evidence" : "overview");
   const tabsId = useId();
   if (!data && error) {
     return (
@@ -570,37 +574,21 @@ function EvidenceTab({ data }: { data: NodeDetail }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [kind, setKind] = useState("document");
+  const [assurance, setAssurance] = useState(() => assuranceDraft());
+  const invalidAssurance = assuranceError(assurance);
   const onError = useSelectionError();
-  const add = useWsMutation(ws, () => api.post(`/workspaces/${encodeURIComponent(ws)}/evidence`, { title, content, kind, requirementIds: [data.node.id] }), { onError });
+  const add = useWsMutation(ws, () => api.post(`/workspaces/${encodeURIComponent(ws)}/evidence`, { title, content, kind, assurance, requirementIds: [data.node.id] }), { onError });
   const close = () => {
     if (add.isPending) return;
     setOpen(false);
     setTitle("");
     setContent("");
     setKind("document");
+    setAssurance(assuranceDraft());
   };
   return (
     <div className="stack" style={{ gap: 10 }}>
-      {data.evidence.length === 0 && <Empty title="No evidence yet">Evidence must show what is actually in place — configuration exports, logs, records or signed attestations.</Empty>}
-      {data.evidence.map((e) => (
-        <div key={e.id} className="panel panel--raised" style={{ padding: 12 }}>
-          <div className="row" style={{ alignItems: "flex-start" }}>
-            <FileText size={15} style={{ marginTop: 2, color: "var(--color-on-surface-muted)" }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 500 }}>{e.title}</div>
-              <div className="muted" style={{ fontSize: 12 }}>
-                {e.kind} · {e.source === "connector" ? "API-automated" : e.source === "agent" ? "agent-assisted" : "manual"} · {e.status}
-                {e.validUntil ? ` · valid until ${shortDate(e.validUntil)}` : ""}
-              </div>
-              {e.sha256 && (
-                <div className="mono muted" style={{ fontSize: 11, marginTop: 4 }} title="SHA-256 content hash (provenance)">
-                  sha256 {e.sha256.slice(0, 16)}…
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      ))}
+      <EvidenceLineage ws={ws} requirementId={data.node.id} />
       {canWrite && <button className="btn" onClick={() => setOpen(true)}>
         <Plus size={14} /> Add evidence
       </button>}
@@ -613,7 +601,7 @@ function EvidenceTab({ data }: { data: NodeDetail }) {
               <button className="btn" disabled={add.isPending} onClick={close}>
                 Cancel
               </button>
-              <button className="btn btn--primary" disabled={!title.trim() || add.isPending} onClick={() => add.mutate(undefined, { onSuccess: () => { setOpen(false); setTitle(""); setContent(""); setKind("document"); toast("Evidence added — it awaits review"); } })}>
+              <button className="btn btn--primary" disabled={!title.trim() || !!invalidAssurance || add.isPending} onClick={() => add.mutate(undefined, { onSuccess: () => { setOpen(false); setTitle(""); setContent(""); setKind("document"); setAssurance(assuranceDraft()); toast("Evidence added — it awaits review"); } })}>
                 Add for review
               </button>
             </>
@@ -636,6 +624,8 @@ function EvidenceTab({ data }: { data: NodeDetail }) {
               <label htmlFor="inspector-evidence-content">Content or reference</label>
               <textarea id="inspector-evidence-content" className="textarea" value={content} disabled={add.isPending} onChange={(e) => setContent(e.target.value)} placeholder="Paste the export, link the system of record, or describe the artifact. Visua stores a SHA-256 hash for provenance." />
             </div>
+            <EvidenceAssuranceFields value={assurance} onChange={setAssurance} disabled={add.isPending} />
+            {invalidAssurance && <p className="field__hint">{invalidAssurance}</p>}
           </div>
         </Dialog>
       )}

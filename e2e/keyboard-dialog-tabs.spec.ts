@@ -301,11 +301,13 @@ for (const email of READERS) {
     await trigger.press("Enter");
     const dialog = page.getByRole("dialog", { name: EVIDENCE, exact: true });
     const close = dialog.getByRole("button", { name: "Close", exact: true });
-    const control = dialog.getByRole("link", { name: "AC-2", exact: true });
+    const control = dialog.locator(".evidence-lifecycle > dl.evidence-lifecycle__meta").getByRole("link", { name: "AC-2", exact: true });
     await expect(close).toBeFocused();
     await expect(dialog.getByRole("button", { name: /^(Accept|Reject)$/ })).toHaveCount(0);
     await expect(control).toBeVisible();
     await close.press("Shift+Tab");
+    await expect(dialog.locator("summary").filter({ hasText: "Trace requirement lineage" })).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
     await expect(control).toBeFocused();
     await control.press("Escape");
     await expect(dialog).toHaveCount(0);

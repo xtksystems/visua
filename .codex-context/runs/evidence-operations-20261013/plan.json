@@ -1,0 +1,222 @@
+{
+  "version": 1,
+  "run_id": "evidence-operations-20261013",
+  "base_head": "b34cf1fe846920c98aa71df3121712284880dc1a",
+  "scope": {
+    "root": "/Users/artem/visua",
+    "files": {
+      "docs/development-phase-2.md": "d0dafd306e416139555d848669059ce11504fc6ae3e45bf6914b533b5b23f996",
+      "docs/roadmap.md": "11cb4930ae3f40c25532fcaf468ae72c2df7092de2a58d125ceb85ef51b165e9",
+      "packages/core/src/types.ts": "af6ea46636e5a6c9c8890e8f20a87e0866bcc08a09ae0a7435eae940fa08015a",
+      "packages/core/src/evidence.ts": "4070e3e368e4820df5164aaf801e9468037b25ce68bc262e73fe679dbea65979",
+      "apps/server/src/app.ts": "88e99a45401103ad1329c45354ab937c5f33dcc6697749c1be1f6455f42f71e0",
+      "apps/server/src/services/visua.ts": "5c0141c5aa4ebd4b3d6e5f06506f23adfea4974555348647135b792aee9eeb57"
+    }
+  },
+  "nodes": [
+    {
+      "id": "inventory",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "input": "inventory-brief.txt",
+      "input_sha256": "3e6332de9a78df281d8ad93b8032e8f87564f147adadbc3f0cd8bdaa29f79fb8",
+      "result": "inventory-result.json",
+      "worker": "/root/remaining_inventory",
+      "result_sha256": "4f605ce78449bd569a6ef8a3b4d3bd271dff2a90f6c810f358980ab94a7faf60"
+    },
+    {
+      "id": "lifecycle-backend",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "input": "lifecycle-backend-brief.txt",
+      "input_sha256": "8658d8a1dc6664a955d33233a454d470df20668cc7fb732d538ed0a239be0285",
+      "result": "lifecycle-backend-result.json",
+      "worker": "/root/lifecycle_backend",
+      "attempts": [
+        {
+          "status": "interrupted",
+          "reason": "worker usage limit; implementation remains on disk"
+        },
+        {
+          "status": "complete",
+          "reason": "user resumed; finish existing bounded tests and result"
+        }
+      ],
+      "result_sha256": "e4ddd2121a145431a9b34eeda0ab077661c004fcd789f35b86720d2ce1360030",
+      "integration": "Accepted through final650 SQLite/652 PG and146 unique browser cases; see source-verification.json"
+    },
+    {
+      "id": "lifecycle-ui",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "input": "lifecycle-ui-brief.txt",
+      "input_sha256": "efc5901ec5178f0e778cc57e21c796518c2830527a09a763f2895ca4a082800b",
+      "result": "lifecycle-ui-result.json",
+      "worker": "/root/lifecycle_ui",
+      "attempts": [
+        {
+          "status": "interrupted",
+          "reason": "worker usage limit; implementation remains on disk"
+        },
+        {
+          "status": "complete",
+          "reason": "user resumed; finish existing bounded tests and result"
+        }
+      ],
+      "result_sha256": "a983c5891d958c5cd35af340c451163ce45614f260310f34a75671f7c445b07d",
+      "integration": "Accepted through final650 SQLite/652 PG and146 unique browser cases; see source-verification.json"
+    },
+    {
+      "id": "lifecycle-review",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "input": "lifecycle-review-brief.txt",
+      "input_sha256": "09068f32e6a8873c29a641903634e4e35a3d0f5ce10a16e44b94b7ba29db09e5",
+      "result": "lifecycle-review.json",
+      "worker": "/root/lifecycle_review",
+      "fresh_context": true,
+      "verdict": "findings",
+      "result_sha256": "57f7f58d956c60d2312a523a318a9635337e4e2a2ad8de3ab0d97cb9effc9392",
+      "resolution": "Both independent findings corrected and covered by final full database lanes; additional lead regressions resolved. See source-verification.json."
+    },
+    {
+      "id": "agent-lifecycle",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "worker": "/root",
+      "result": "agent-lifecycle-result.json",
+      "result_sha256": "9dc3aa3259d33b3e66727b1a223b6dacedc6d031863b6914a32ce6fb9b8a1776"
+    },
+    {
+      "id": "run-reliability",
+      "depends_on": [
+        "lifecycle-backend",
+        "lifecycle-ui",
+        "agent-lifecycle"
+      ],
+      "status": "complete",
+      "accepted": false,
+      "input": "run-reliability-brief.txt",
+      "input_sha256": "e0e4cca6db283e576df8147c2188e431bcf4d5962c792e10dae964399628702c",
+      "result": "run-reliability-result.json",
+      "worker": "/root/lifecycle_backend",
+      "worktree": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "source_baseline": "automation-worktree-baseline.json",
+      "prerequisite": "M2 source contract available; isolated implementation permitted; integration waits for M2 gate",
+      "result_sha256": "9faf05a4c3d8fb9feb2aa354d6eab96d5f27e1b031c99cc42f725146a69fae53",
+      "integration": "Worker30 unique focused cases passed; source handoff complete. Lead now edits isolated visua.ts for strict-proposals. Combined review/PG/browser gate pending."
+    },
+    {
+      "id": "stream-auth",
+      "depends_on": [
+        "lifecycle-backend",
+        "lifecycle-ui"
+      ],
+      "status": "complete",
+      "accepted": false,
+      "input": "stream-auth-brief.txt",
+      "input_sha256": "b314deea2d1f496bd0117f3a5512718a0ae932d5fc886e17b617b41e3dbd64ff",
+      "result": "stream-auth-result.json",
+      "worker": "/root/stream_auth",
+      "worktree": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "source_baseline": "automation-worktree-baseline.json",
+      "prerequisite": "M2 source contract available; isolated implementation permitted; integration waits for M2 gate",
+      "fresh_context": true,
+      "result_sha256": "bf99a565201e8ebdafd76d544bf3bc7c13c1fa70d6a904a9c0dc9114cdd77649",
+      "integration": "Worker pass returned; lead source review and combined PostgreSQL/browser gate pending"
+    },
+    {
+      "id": "corpus-claims",
+      "depends_on": [
+        "agent-lifecycle"
+      ],
+      "status": "running",
+      "accepted": false,
+      "input": "corpus-claims-brief.txt",
+      "input_sha256": "45e683d0993da6cd5464129130de7fe9b4895ff5f959660b7f7a6c314dab5240",
+      "result": "corpus-claims-result.json",
+      "worker": "/root/lifecycle_ui",
+      "worktree": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "source_baseline": "automation-worktree-baseline.json",
+      "prerequisite": "Isolated implementation only; strict-proposal service integration waits for durable-run contract"
+    },
+    {
+      "id": "strict-proposals",
+      "depends_on": [
+        "run-reliability",
+        "corpus-claims"
+      ],
+      "status": "running",
+      "accepted": false,
+      "worker": "/root",
+      "worktree": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "owned_paths": [
+        "apps/server/src/services/proposal-validation.ts",
+        "apps/server/test/proposal-validation.test.ts"
+      ],
+      "integration": "Pure5 tests pass; service payload/autonomy integration started. Citation/projection handling and Settings UI still pending; no integrated tests yet."
+    },
+    {
+      "id": "automation-boundary-review",
+      "depends_on": [
+        "run-reliability",
+        "stream-auth"
+      ],
+      "status": "running",
+      "accepted": false,
+      "input": "automation-boundary-review-brief.txt",
+      "input_sha256": "bb0b49071718962204f8ab46895e666f8c118707ef5273dd9b32c8bf6725e490",
+      "result": "automation-boundary-review.json",
+      "worker": "/root/automation_boundary_review",
+      "fresh_context": true,
+      "worktree": "/Users/artem/visua/.check/evidence-automation-20261013"
+    }
+  ],
+  "integration": {
+    "status": "running",
+    "evidence": [
+      {
+        "command": "pnpm exec vitest run packages/agents/test/evidence-provenance.test.ts packages/agents/test/licensing.test.ts",
+        "outcome": "passed 18 tests; before backend/UI finalization",
+        "log": "agent-provenance-tests.log"
+      },
+      {
+        "command": "pnpm typecheck",
+        "outcome": "failed: evidence-lifecycle test confidence numeric; backend owner correcting",
+        "log": "typecheck.log"
+      },
+      {
+        "command": "pnpm check --no-e2e",
+        "outcome": "failed: SQLite 644 pass/2 skips; Postgres 644 pass/2 fixture failures after acceptance-time fix; licensing/typecheck/corpus/design pass. Browser lane omitted, no full gate claimed.",
+        "log": "check-no-e2e.log"
+      },
+      {
+        "command": "pnpm exec playwright test e2e/evidence-lifecycle.spec.ts",
+        "outcome": "interrupted after two initial failures; obsolete contract with concurrent source changes and test load. Owner assignment response succeeded; fixture synchronization under diagnosis.",
+        "log": "lifecycle-browser.log"
+      },
+      {
+        "command": "pnpm check",
+        "session_id": 74154,
+        "outcome": "running; licensing/typecheck pass, SQLite 648+2 skips, PG650 pass; full browser pending",
+        "log": "check-final.log",
+        "source": "lifecycle-verification-source.json"
+      },
+      {
+        "command": "pnpm exec vitest run apps/server/test/evidence-lifecycle.test.ts apps/server/test/evidence-binding.test.ts apps/server/test/proposal-review.test.ts",
+        "outcome": "51 passed after lead reproduced/fixed stale agent review proposal overriding later withdrawal",
+        "log": "proposal-withdrawal-after.log"
+      },
+      {
+        "command": "final M2 database and browser integration",
+        "outcome": "passed",
+        "result": "source-verification.json"
+      }
+    ]
+  }
+}

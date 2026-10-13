@@ -62,6 +62,15 @@ describe("uninterrupted accepted evidence coverage", () => {
     expect(evidenceCoverageTimeline([a, gap], NOW).coveredThrough).toBe(instant(3));
   });
 
+  it("does not bridge a gap using collection dates before the recorded acceptance", () => {
+    const current = accepted("current", -1, 3), later = accepted("later", 2, 10);
+    later.reviewedAt = instant(5);
+    later.reviewHistory = later.reviewHistory!.map((review) => ({ ...review, reviewedAt: later.reviewedAt! }));
+    expect(evidenceCoverageTimeline([current, later], NOW)).toMatchObject({ currentEvidenceIds: ["current"], coveredThrough: instant(3) });
+    expect(evidenceCoverageTimeline([later], new Date(instant(4))).coveredNow).toBe(false);
+    expect(evidenceCoverageTimeline([later], new Date(instant(5))).coveredNow).toBe(true);
+  });
+
   it("never bridges with pending, rejected, legacy, stale, or malformed acceptance", () => {
     const a = accepted("a", -1, 3), b = accepted("b", 2, 10);
     for (const candidate of [

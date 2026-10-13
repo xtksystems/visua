@@ -113,7 +113,7 @@ framework state read metadata; inspection explicitly loads inline detail.
 [Final checks](runs/evidence-files-20261004/source-verification.json) pass 474
 SQLite and 476 PostgreSQL tests; 98 unique browser cases combine 79 unchanged
 full-lane passes and 19 final affected reruns. No single final full-check command
-passed. Collection origin, assurance scope, and supersession remain on the development roadmap.
+passed. Collection origin, assurance scope, and supersession were subsequently implemented; see the lifecycle record below.
 Other reviewed defects and phase packages remain open. Local Docker now includes the visual-review packages at `783ed28`.
 
 The approved [decision workspace package](tasks/decision-workspace-20261004.md)
@@ -138,7 +138,7 @@ using accepted alternatives through the first coverage gap.
 passes and two targeted reruns. A viewer test had a transient route-fetch reset;
 an existing review test needed the new label text. All seven renewal browser
 cases passed in the full lane. Independent review and desktop/mobile captures
-also passed. Provenance/supersession remain on the broader development roadmap;
+also passed. Provenance/supersession are covered by the subsequent lifecycle package;
 subsequent snapshot-backed history is recorded below.
 
 The next visual-review package, [Observatory presets](tasks/observatory-20261013.md),
@@ -172,5 +172,18 @@ live smoke cleanup, the original workspace, 1,487 requirement states, 18 tasks,
 18 evidence items and their content/reviews, two tenants, and nine memberships
 still match. The first scheduled score observation is recorded; the audit chain
 is valid. Manual capture, exact batch approval, and desktop/phone checks passed.
-Two temporary smoke workspaces were removed. Broader evidence provenance,
-supersession, hosted operations, and connector expansion remain on the roadmap.
+Two temporary smoke workspaces were removed. Hosted operations, reliable automation, auditor handoff, and connector expansion
+remain on the roadmap.
+
+The [evidence lifecycle package](tasks/evidence-operations-20261013.md) completes
+milestone 2: immutable collection/check/policy provenance, assurance scope,
+reasoned rejection and withdrawal, review identity binding, compatible accepted
+supersession, and metadata-only requirement lineage. Legacy origins stay unknown;
+no migration/backfill occurs. Lineage evaluates current records at a stated time,
+without replaying earlier edits. Original licensing also governs derived renewal
+work. [Final verification](runs/evidence-operations-20261013/source-verification.json)
+passes 650 SQLite and 652 PostgreSQL tests and verifies 146 unique browser cases
+through full-lane plus targeted reruns. No single final full-check command passed.
+Independent review findings and the collapsed-details keyboard defect are fixed.
+Source is verified; commit/push and local deployment are pending at this checkpoint.
+Milestone 3 is under implementation in an isolated checkout; milestone 4 follows.

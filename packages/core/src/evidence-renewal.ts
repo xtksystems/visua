@@ -1,4 +1,5 @@
 import { hasCurrentEvidenceReview, normalizeEvidenceDate } from "./evidence.ts";
+import type { EffectiveEvidenceState } from "./status.ts";
 import type { Evidence, EvidenceKind, EvidenceStatus } from "./types.ts";
 
 export const EVIDENCE_RENEWAL_DAY = 86_400_000;
@@ -22,6 +23,7 @@ export interface EvidenceRenewalItem {
   kind: EvidenceKind;
   source: Evidence["source"];
   status: EvidenceStatus;
+  effective?: EffectiveEvidenceState;
   acceptanceBound: boolean;
   currentlyValid: boolean;
   validity: EvidenceRenewalValidity;
@@ -112,7 +114,9 @@ export function evidenceCoverageTimeline(evidence: readonly Evidence[], at: Date
     if (e.status !== "accepted" || !hasCurrentEvidenceReview(e)) return [];
     const dates = evidenceRenewalDates(e, at);
     if (dates.validity === "invalid") return [];
-    return [{ id: e.id, start: new Date(dates.startsAt!).getTime(), end: dates.expiresAt === undefined ? Infinity : new Date(dates.expiresAt).getTime() }];
+    const start = Math.max(new Date(dates.startsAt!).getTime(), new Date(e.reviewHistory!.at(-1)!.reviewedAt).getTime());
+    const end = dates.expiresAt === undefined ? Infinity : new Date(dates.expiresAt).getTime();
+    return start > end ? [] : [{ id: e.id, start, end }];
   }).sort((a, b) => a.start - b.start || a.end - b.end || a.id.localeCompare(b.id));
   const current = intervals.filter((interval) => interval.start <= now && now <= interval.end);
   const currentEvidenceIds = [...new Set(current.map((interval) => interval.id))].sort();
