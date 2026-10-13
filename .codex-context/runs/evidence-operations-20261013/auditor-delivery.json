@@ -1,0 +1,68 @@
+{
+  "status": "passed",
+  "at": "2026-10-13T10:48:23.691083+00:00",
+  "commit": "e9ad8c24f68c172e0ee2c92f549027b209b9d193",
+  "pushed": true,
+  "url": "http://localhost:8787",
+  "container": "visua-visua-1",
+  "volume": "visua_visua-data",
+  "image_id": "sha256:fc61a95e9dcd0358971450ee9deab82020d0f800c176cc115cfbd513f4fe3f9c",
+  "compose_image_digest": "sha256:6a394cdf62dd271ec3c113c3f0f2b1836a71af35dd4b91eac4e118cd9cff89a2",
+  "health": "healthy",
+  "readiness": {
+    "ok": true
+  },
+  "source": {
+    "status": "passed",
+    "checked": 202,
+    "changed": []
+  },
+  "source_verification": "auditor-source-verification.json",
+  "backup": {
+    "captured_at": "2026-10-13T10:40:06.470Z",
+    "path": "/app/data/evidence-auditor-20261013-backup",
+    "host_copy": "data/deployment-backups/evidence-auditor-20261013-backup",
+    "host_copy_private": true,
+    "database_sha256": "f35472d1f8fdbff4009510c018848eed8dca8cb129f67c170d4cc9c095c98a6d",
+    "database_bytes": 1142784,
+    "manifest_sha256": "a05f6034cc66b4f05607baef28788f0e13e437a1b3a6ede16222dab287678586",
+    "referenced_files": 0,
+    "basis": "All writers stopped before backup; SQL snapshot and every currently referenced local artifact verified. Original 18 artifacts are inline, so no binary file references exist in this live backup.",
+    "create_log": "auditor-backup.log",
+    "verify_log": "auditor-backup-verify.log",
+    "restore": {
+      "result": "auditor-host-restore.json",
+      "status": "passed",
+      "database": "data/recovery-drills/auditor-20261013/restored.sqlite",
+      "blobs": "data/recovery-drills/auditor-20261013/blobs",
+      "scope": "Actual isolated host restoration of the live SQL backup. Reviewed binary recovery and re-export were separately exercised by the final local-backup.test.ts fixture."
+    }
+  },
+  "preservation_before": "auditor-preservation.json",
+  "preservation_after": "auditor-preservation-after.json",
+  "migration": "Migration 8 adds workspace access records; all seven prior migration rows and original assessment rows preserved.",
+  "smoke_effects": [
+    "Two new developer sign-in sessions and updatedAt/lastLoginAt timestamps; all other original user fields and sessions preserved.",
+    "One synthetic workspace deletion event; original assessment and audit rows preserved.",
+    "Synthetic workspace/access records and owned blob removed; auditor-smoke-cleanup.json confirms blob cleanup."
+  ],
+  "live": {
+    "result": "live-auditor-result.json",
+    "status": "passed",
+    "scope": "Auditor write refusal; scope/date preview; browser ZIP containing exact binary bytes; trusted offline verification against separately retained manifest/checkpoint pins; exact file download; separate access records; assessment chain unchanged; no browser errors."
+  },
+  "visual": {
+    "status": "passed",
+    "captures": [
+      ".screens/auditor-delivery-20261013/auditor-desktop.png",
+      ".screens/auditor-delivery-20261013/auditor-phone.png"
+    ],
+    "inspection": "Desktop scope/receipt controls and phone table inspected. Page overflow checks passed at 1440px and 390px; keyboard table scrolling passed in auditor-handoff.spec.ts."
+  },
+  "limitations": [
+    "Local developer sign-in/offline agents only; hosted deployment, identity configuration, object-store recovery, capacity, retention ownership, and pilot-team acceptance remain unverified.",
+    "Reports evaluate captured current records at asOf; no historical replay or continuous-period assurance.",
+    "Unsigned bundle hashes establish internal consistency. Rewrite detection requires separately trusted retained pins and a trusted verifier.",
+    "152 unique browser cases verified by 151 full-run passes and two final targeted passes after a fixture teardown correction; no single final full command passed."
+  ]
+}

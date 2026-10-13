@@ -25,7 +25,9 @@ verified uploads and downloads, and file-bound reviews. The remaining milestone 
 packages are now implemented and verified: collection provenance, assurance,
 reasoned review and withdrawal, compatible supersession, and requirement lineage.
 The [evidence operations task](../.codex-context/tasks/evidence-operations-20261013.md)
-tracks these packages and the continuing automation and auditor work.
+records delivery of these packages, reliable automation, and auditor handoff.
+All required software packages and local engineering gates are complete. The
+hosted pilot and acceptance measurements remain outstanding.
 The [existing roadmap](roadmap.md) retains the broader backlog.
 
 ## Outcome and scope
@@ -55,7 +57,7 @@ its claims.
 
 | Direction | Decision and basis |
 | --- | --- |
-| Evidence and team workflow | Lead this phase. Owned work, file storage, provenance, bound reviews, supersession, and lineage are implemented; auditor packaging is implemented and awaiting its final integration gate. |
+| Evidence and team workflow | Lead this phase. Owned work, file storage, provenance, bound reviews, supersession, lineage, and auditor packaging are implemented, verified, and locally deployed. |
 | Safe hosting and reliable agents | Required pilot foundations. Startup, egress, stream revocation, cancellation, and multi-instance SSO cache issues directly affect the hosted workflow. |
 | More connectors | Prove one API connector after evidence, provenance, egress, and credential contracts work. Avoid simultaneous provider expansion. |
 | SAML and SCIM | Schedule after a concrete buyer requirement. OIDC already supports the pilot; protocol breadth does not fix current evidence defects. |
@@ -179,10 +181,16 @@ All five packages are implemented and verified. The final database gate passes
 lane. All 152 browser cases are verified through 151 full-run passes and two
 final targeted passes after a test-teardown correction; no single final full-check
 command passed. Six independent review findings were corrected, and the operations
-guide review found no supported errors. Local delivery is underway. See
+guide review found no supported errors. Source `e9ad8c2` is pushed and deployed
+locally, with all 202 runtime source hashes matching. The live auditor journey
+verified actual binary evidence, a downloaded ZIP, independently retained receipt
+pins, read-only access, and desktop/phone behavior. A quiesced backup was verified
+and restored to a separate location; original assessment data remains intact.
+The live backup contains 18 inline artifacts and no file references; the recovery
+test fixture separately verifies restoration of reviewed binary artifacts. See
 [verification](../.codex-context/runs/evidence-operations-20261013/auditor-source-verification.json)
-and [operations](operations.md) for recovery boundaries and hosted prerequisites.
-
+and [delivery](../.codex-context/runs/evidence-operations-20261013/auditor-delivery.json),
+plus [operations](operations.md) for recovery boundaries and hosted prerequisites.
 
 Deliver a frozen package for a chosen scope and period, with a read-only
 auditor presentation. Start from the existing export capability instead of
@@ -245,12 +253,23 @@ completion-rate measurement exists yet.
 
 ## Next action
 
-Milestone 3 is delivered. Finish milestone 4 local deployment and its live
-package/receipt verification. All required software packages are implemented;
-pilot-team acceptance and hosted operations remain external prerequisites. The
+All required software packages are delivered locally. Continue with hosted pilot
+preparation once an operator and pilot team are available. The
 [evidence operations task](../.codex-context/tasks/evidence-operations-20261013.md)
-records verification and remaining dependencies. A hosted pilot still needs a
-selected operator target, identity configuration, retention policy, and users.
+records verification and remaining dependencies. Complete these steps in order:
+
+1. Select the deployment target, PostgreSQL service, object store, public origin,
+   and identity provider. Assign service, recovery, and review owners.
+2. Agree on retention durations, deletion rights, and independent checkpoint and
+   key custody before applying provider lifecycle settings.
+3. Configure the selected environment and run the authentication, artifact,
+   recovery, and multi-user capacity drills in [operations](operations.md).
+4. Have the pilot team complete the end-to-end workflow. Record the operational
+   baselines and acceptance measurements described above.
+
+These are external prerequisites and validation work, not completed local gates.
+The optional GitHub connector and explicitly deferred roadmap expansions remain
+separate follow-up work.
 
 All milestone 1 and milestone 2 packages are implemented and verified.
 [Lifecycle verification](../.codex-context/runs/evidence-operations-20261013/source-verification.json)

@@ -73,9 +73,10 @@ only the local adapter was deployed.
 
 ## Unknowns
 
-No public deployment, production operational runbook, or ownership registry was
-verified. Local render-work profiles are recorded in the visualization run;
-they do not establish production performance.
+No public deployment or operator ownership registry was verified. The
+[operations guide](../docs/operations.md) documents local recovery and hosted
+prerequisites; hosted recovery and capacity remain unmeasured. Local render-work
+profiles do not establish production performance.
 
 The [full app review](../docs/reviews/full-app-review-2026-10-02.md) records
 confirmed evidence, startup, connector, and workflow defects. The
@@ -114,7 +115,8 @@ framework state read metadata; inspection explicitly loads inline detail.
 SQLite and 476 PostgreSQL tests; 98 unique browser cases combine 79 unchanged
 full-lane passes and 19 final affected reruns. No single final full-check command
 passed. Collection origin, assurance scope, and supersession were subsequently implemented; see the lifecycle record below.
-Other reviewed defects and phase packages remain open. Local Docker now includes the visual-review packages at `783ed28`.
+Subsequent records below cover delivery of the remaining required software
+packages. The local Docker image now includes them at `e9ad8c2`.
 
 The approved [decision workspace package](tasks/decision-workspace-20261004.md)
 adds scoped implementation/evidence/risk metrics, attention across enabled
@@ -172,8 +174,9 @@ live smoke cleanup, the original workspace, 1,487 requirement states, 18 tasks,
 18 evidence items and their content/reviews, two tenants, and nine memberships
 still match. The first scheduled score observation is recorded; the audit chain
 is valid. Manual capture, exact batch approval, and desktop/phone checks passed.
-Two temporary smoke workspaces were removed. Hosted operations, reliable automation, auditor handoff, and connector expansion
-remain on the roadmap.
+Two temporary smoke workspaces were removed. Later records below cover reliable
+automation and auditor handoff. Hosted operations and connector expansion remain
+separate follow-up work.
 
 The [evidence lifecycle package](tasks/evidence-operations-20261013.md) completes
 milestone 2: immutable collection/check/policy provenance, assurance scope,
@@ -200,7 +203,8 @@ withdrawal, download, lineage, and desktop/phone smoke passed and cleaned up.
 See [delivery evidence](runs/evidence-operations-20261013/lifecycle-delivery.json).
 
 
-Milestone 4's auditor handoff is implemented and verified, pending local delivery.
+Milestone 4's auditor handoff is implemented, verified, pushed, and locally
+deployed at `e9ad8c2`.
 One detached SQL capture drives scope/date-aware exports and the read-only auditor
 view; the ZIP contains original artifacts, reviews, sources, entity digests, and
 an audit checkpoint. A trusted offline verifier supports separately retained pins.
@@ -210,5 +214,13 @@ chain. See [operations](../docs/operations.md) and
 [verification](runs/evidence-operations-20261013/auditor-source-verification.json):
 883 SQLite passes plus nine PostgreSQL-only skips, 892 PostgreSQL-lane passes,
 and 152 browser cases through a full run plus targeted teardown correction.
-Six independent review findings are corrected. Hosted configuration, retention
-ownership, capacity and pilot measurements remain unverified prerequisites.
+Six independent review findings are corrected. The
+[delivery record](runs/evidence-operations-20261013/auditor-delivery.json) confirms
+202 matching runtime source hashes, preserved original assessment rows, and a
+live read-only auditor journey with actual binary evidence, ZIP download, and
+trusted offline verification against retained receipt pins. The quiesced backup
+was verified and restored separately. Its 18 artifacts are inline; reviewed
+binary recovery is covered by the test fixture. Desktop/phone checks passed and
+the synthetic workspace/blob were removed. All approved local software work is
+complete. Hosted configuration, retention ownership, capacity, and pilot
+measurements remain unverified prerequisites.

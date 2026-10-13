@@ -109,8 +109,9 @@
       "source_baseline": "automation-worktree-baseline.json",
       "prerequisite": "M2 source contract available; isolated implementation permitted; integration waits for M2 gate",
       "result_sha256": "9faf05a4c3d8fb9feb2aa354d6eab96d5f27e1b031c99cc42f725146a69fae53",
-      "integration": "Worker30 unique focused cases passed; source handoff complete. Lead now edits isolated visua.ts for strict-proposals. Combined review/PG/browser gate pending.",
-      "acceptance_evidence": "automation-source-verification.json; automation-delivery.json; final root corrections supersede prior worker source pins"
+      "acceptance_evidence": "automation-source-verification.json; automation-delivery.json; final root corrections supersede prior worker source pins",
+      "worker_integration_note": "Worker30 unique focused cases passed; source handoff complete. Lead now edits isolated visua.ts for strict-proposals. Combined review/PG/browser gate pending.",
+      "integration": "Accepted and integrated; final root database/browser gates and live delivery passed. See automation-source-verification.json and automation-delivery.json."
     },
     {
       "id": "stream-auth",
@@ -129,8 +130,9 @@
       "prerequisite": "M2 source contract available; isolated implementation permitted; integration waits for M2 gate",
       "fresh_context": true,
       "result_sha256": "bf99a565201e8ebdafd76d544bf3bc7c13c1fa70d6a904a9c0dc9114cdd77649",
-      "integration": "Worker pass returned; lead source review and combined PostgreSQL/browser gate pending",
-      "acceptance_evidence": "automation-source-verification.json; automation-delivery.json; final root corrections supersede prior worker source pins"
+      "acceptance_evidence": "automation-source-verification.json; automation-delivery.json; final root corrections supersede prior worker source pins",
+      "worker_integration_note": "Worker pass returned; lead source review and combined PostgreSQL/browser gate pending",
+      "integration": "Accepted and integrated; final root database/browser gates and live delivery passed. See automation-source-verification.json and automation-delivery.json."
     },
     {
       "id": "corpus-claims",
@@ -147,8 +149,9 @@
       "source_baseline": "automation-worktree-baseline.json",
       "prerequisite": "Isolated implementation only; strict-proposal service integration waits for durable-run contract",
       "result_sha256": "138be78b2176b11a030ade208caa0cf840255b4450125b30655c7fd012d4832e",
-      "integration": "Returned98 focused tests/3 typechecks; lead review/integration pending",
-      "acceptance_evidence": "automation-source-verification.json; automation-delivery.json; final root corrections supersede prior worker source pins"
+      "acceptance_evidence": "automation-source-verification.json; automation-delivery.json; final root corrections supersede prior worker source pins",
+      "worker_integration_note": "Returned98 focused tests/3 typechecks; lead review/integration pending",
+      "integration": "Accepted and integrated; final root database/browser gates and live delivery passed. See automation-source-verification.json and automation-delivery.json."
     },
     {
       "id": "strict-proposals",
@@ -173,10 +176,11 @@
         "apps/web/src/pages/SettingsPage.tsx",
         "e2e/automation-claims.spec.ts"
       ],
-      "integration": "Strict90 focused then29 regression checks passed; fresh claims review and combined gate pending",
       "result": "strict-proposals-result.json",
       "result_sha256": "a21285343bc02171ca882e3be8a9d2be7c0af7de03cbe54b8dd78c5ebb120560",
-      "acceptance_evidence": "automation-source-verification.json; automation-delivery.json; final root corrections supersede prior worker source pins"
+      "acceptance_evidence": "automation-source-verification.json; automation-delivery.json; final root corrections supersede prior worker source pins",
+      "worker_integration_note": "Strict90 focused then29 regression checks passed; fresh claims review and combined gate pending",
+      "integration": "Accepted and integrated; final root database/browser gates and live delivery passed. See automation-source-verification.json and automation-delivery.json."
     },
     {
       "id": "automation-boundary-review",
@@ -193,7 +197,7 @@
       "fresh_context": true,
       "worktree": "/Users/artem/visua/.check/evidence-automation-20261013",
       "verdict": "findings",
-      "resolution": "Scheduler correction lead-owned; relay-recovery worker dispatched. Not yet resolved."
+      "resolution": "Scheduler fairness and relay recovery corrected; final two-instance PostgreSQL and browser gates passed. See automation-source-verification.json."
     },
     {
       "id": "public-measures",
@@ -209,8 +213,9 @@
       "result": "public-measures-result.json",
       "worktree": "/Users/artem/visua/.check/evidence-automation-20261013",
       "result_sha256": "1859f98dd723d858e972088e1042b5629f3ab918452edc15042fef5bea4e5831",
-      "integration": "Worker10 focused cases plus typechecks returned; combined/browser integration pending",
-      "acceptance_evidence": "automation-source-verification.json; automation-delivery.json; final root corrections supersede prior worker source pins"
+      "acceptance_evidence": "automation-source-verification.json; automation-delivery.json; final root corrections supersede prior worker source pins",
+      "worker_integration_note": "Worker10 focused cases plus typechecks returned; combined/browser integration pending",
+      "integration": "Accepted and integrated; final root database/browser gates and live delivery passed. See automation-source-verification.json and automation-delivery.json."
     },
     {
       "id": "relay-recovery",
@@ -226,8 +231,9 @@
       "worker": "/root/stream_auth",
       "worktree": "/Users/artem/visua/.check/evidence-automation-20261013",
       "result_sha256": "b3720f9855eb0550a78fd7a15b5e9d2f4726a640558d565868a5379d5bf9681e",
-      "integration": "Focused worker checks returned; combined integration/PG gate pending",
-      "acceptance_evidence": "automation-source-verification.json; automation-delivery.json; final root corrections supersede prior worker source pins"
+      "acceptance_evidence": "automation-source-verification.json; automation-delivery.json; final root corrections supersede prior worker source pins",
+      "worker_integration_note": "Focused worker checks returned; combined integration/PG gate pending",
+      "integration": "Accepted and integrated; final root database/browser gates and live delivery passed. See automation-source-verification.json and automation-delivery.json."
     },
     {
       "id": "scheduler-fairness",
@@ -243,8 +249,9 @@
       "worker": "/root/automation_boundary_review",
       "worktree": "/Users/artem/visua/.check/evidence-automation-20261013",
       "result_sha256": "5e57b2d7b2fa6efe2c8a87215af759f6596a99dca2fe90a75562ae456a91c916",
-      "integration": "Focused worker checks returned; combined integration/PG gate pending",
-      "acceptance_evidence": "automation-source-verification.json; automation-delivery.json; final root corrections supersede prior worker source pins"
+      "acceptance_evidence": "automation-source-verification.json; automation-delivery.json; final root corrections supersede prior worker source pins",
+      "worker_integration_note": "Focused worker checks returned; combined integration/PG gate pending",
+      "integration": "Accepted and integrated; final root database/browser gates and live delivery passed. See automation-source-verification.json and automation-delivery.json."
     },
     {
       "id": "request-controls",
@@ -260,8 +267,9 @@
       "worktree": "/Users/artem/visua/.check/evidence-automation-20261013",
       "worker": "/root/stream_auth",
       "result_sha256": "8a8a6317cd4261b8f6af0dd3e1b1379066b35070a881c2bc9bcf625987df7782",
-      "integration": "54 M3 source paths integrated into root; full gate running",
-      "acceptance_evidence": "automation-source-verification.json; automation-delivery.json; final root corrections supersede prior worker source pins"
+      "acceptance_evidence": "automation-source-verification.json; automation-delivery.json; final root corrections supersede prior worker source pins",
+      "worker_integration_note": "54 M3 source paths integrated into root; full gate running",
+      "integration": "Accepted and integrated; final root database/browser gates and live delivery passed. See automation-source-verification.json and automation-delivery.json."
     },
     {
       "id": "two-instance-gate",
@@ -277,8 +285,9 @@
       "worker": "/root/automation_boundary_review",
       "worktree": "/Users/artem/visua/.check/evidence-automation-20261013",
       "result_sha256": "854171f766114d87c322ba7d89d18904a902b7cc96286aff575bb1f12621e1be",
-      "integration": "Four PG-only HTTP cases authored; actualPG gate pending",
-      "acceptance_evidence": "automation-source-verification.json; automation-delivery.json; final root corrections supersede prior worker source pins"
+      "acceptance_evidence": "automation-source-verification.json; automation-delivery.json; final root corrections supersede prior worker source pins",
+      "worker_integration_note": "Four PG-only HTTP cases authored; actualPG gate pending",
+      "integration": "Accepted and integrated; final root database/browser gates and live delivery passed. See automation-source-verification.json and automation-delivery.json."
     },
     {
       "id": "claims-review",
@@ -296,7 +305,7 @@
       "worker": "/root/claims_review",
       "verdict": "findings",
       "result_sha256": "39081de4e8127caabc729c9d93559ddac361032e8316eee1533bcbd22dc1e6ba",
-      "resolution": "Provider crosswalk bypass corrected with deterministic tool plus service/legacy approval enforcement;107 focused tests pass; combined gate pending"
+      "resolution": "Provider crosswalk bypass corrected with deterministic tool and service/legacy approval enforcement; final combined gates passed. See automation-source-verification.json."
     },
     {
       "id": "oscal-schema-preparation",
@@ -323,7 +332,9 @@
       "worker": "/root/lifecycle_ui",
       "worktree": "/Users/artem/visua/.check/evidence-auditor-20261013",
       "prerequisite": "Isolated implementation only; integration after M3 gate/delivery",
-      "result_sha256": "019c91fbe9baee47c89ac415eccbe8b0059c67db289a1151d9d69348fc7a3726"
+      "result_sha256": "019c91fbe9baee47c89ac415eccbe8b0059c67db289a1151d9d69348fc7a3726",
+      "acceptance_evidence": "auditor-source-verification.json; auditor-delivery.json",
+      "integration": "Accepted; final root source supersedes isolated worker pins. All applicable database/browser checks and local delivery completed."
     },
     {
       "id": "auditor-access",
@@ -334,7 +345,9 @@
       "input_sha256": "e516b82b5f62088f19a4a51691db84fcfd0fbc4f7763bd7ec6cd0471d04d8212",
       "result": "auditor-access-result.json",
       "worker": "/root/stream_auth",
-      "result_sha256": "e7e6e7ad38e8baa18677d5981e2fec2a36ad41b36f128607180b27ce22dc8a42"
+      "result_sha256": "e7e6e7ad38e8baa18677d5981e2fec2a36ad41b36f128607180b27ce22dc8a42",
+      "acceptance_evidence": "auditor-source-verification.json; auditor-delivery.json",
+      "integration": "Accepted; final root source supersedes isolated worker pins. All applicable database/browser checks and local delivery completed."
     },
     {
       "id": "request-boundary-review",
@@ -363,7 +376,9 @@
       "requested_model": "gpt-6-astra",
       "requested_effort": "high",
       "dispatch_rationale": "Implement offline integrity/manifest/checkpoint contract across mutable source snapshot and immutable artifacts, with careful authenticity boundary; not review.",
-      "result_sha256": "3de09e0ecb28c049b850becca64865c34d5db7ec8f4711fe740e6ab6171f3ff9"
+      "result_sha256": "3de09e0ecb28c049b850becca64865c34d5db7ec8f4711fe740e6ab6171f3ff9",
+      "acceptance_evidence": "auditor-source-verification.json; auditor-delivery.json",
+      "integration": "Accepted; final root source supersedes isolated worker pins. All applicable database/browser checks and local delivery completed."
     },
     {
       "id": "auditor-ui",
@@ -379,7 +394,9 @@
       "result": "auditor-ui-result.json",
       "worker": "/root/stream_auth",
       "worktree": "/Users/artem/visua/.check/evidence-auditor-20261013",
-      "result_sha256": "d6c3352d80b5ee5ea9b36eb780ec37679d9e3981f1817eef4786dc50abe067f8"
+      "result_sha256": "d6c3352d80b5ee5ea9b36eb780ec37679d9e3981f1817eef4786dc50abe067f8",
+      "acceptance_evidence": "auditor-source-verification.json; auditor-delivery.json",
+      "integration": "Accepted; final root source supersedes isolated worker pins. All applicable database/browser checks and local delivery completed."
     },
     {
       "id": "auditor-snapshot-review",
@@ -394,7 +411,9 @@
       "result": "auditor-snapshot-review.json",
       "worker": "/root/auditor_snapshot_review",
       "result_sha256": "5ca6a0d9a3e51118a7703c71bfd260634089febf38d8890529a527e1039bbb93",
-      "resolution": "Two supported findings assigned to export corrections"
+      "resolution": "Future verification and configured-baseline findings corrected; official schemas and final combined gates passed. See auditor-export-corrections.json and auditor-source-verification.json.",
+      "acceptance_evidence": "auditor-source-verification.json; auditor-delivery.json",
+      "integration": "Accepted; final root source supersedes isolated worker pins. All applicable database/browser checks and local delivery completed."
     },
     {
       "id": "auditor-integrity-review",
@@ -408,7 +427,10 @@
       "input_sha256": "bf3a0cc23a6d742d8d5c32c5a6d919b52db5cd67bfdc16e0b8a63e798d5eb996",
       "result": "auditor-integrity-review.json",
       "worker": "/root/auditor_integrity_review",
-      "result_sha256": "1a5c52f474c635b0eb3cb2def26a600d3a6107535b711c25e91a79f4a1bade26"
+      "result_sha256": "1a5c52f474c635b0eb3cb2def26a600d3a6107535b711c25e91a79f4a1bade26",
+      "acceptance_evidence": "auditor-source-verification.json; auditor-delivery.json",
+      "integration": "Accepted; final root source supersedes isolated worker pins. All applicable database/browser checks and local delivery completed.",
+      "resolution": "SQLite sidecar replay and FIFO hang corrected; genuine WAL and FIFO regression tests passed. See auditor-integrity-corrections.json."
     },
     {
       "id": "auditor-export-corrections",
@@ -423,7 +445,9 @@
         "apps/server/src/services/exports.ts",
         "apps/server/test/exports.test.ts"
       ],
-      "result_sha256": "1f17af287ac1524de770c0ff5636d0ea39c2fd14b2c333ec825b8fd88d23f93d"
+      "result_sha256": "1f17af287ac1524de770c0ff5636d0ea39c2fd14b2c333ec825b8fd88d23f93d",
+      "acceptance_evidence": "auditor-source-verification.json; auditor-delivery.json",
+      "integration": "Accepted; final root source supersedes isolated worker pins. All applicable database/browser checks and local delivery completed."
     },
     {
       "id": "auditor-access-review",
@@ -435,7 +459,10 @@
       "fresh_context": true,
       "worker": "/root/auditor_access_review",
       "result": "auditor-access-review.json",
-      "result_sha256": "059f106c6d817b812f894c08248eb568dd21de963a84249612faaf41391c8779"
+      "result_sha256": "059f106c6d817b812f894c08248eb568dd21de963a84249612faaf41391c8779",
+      "acceptance_evidence": "auditor-source-verification.json; auditor-delivery.json",
+      "integration": "Accepted; final root source supersedes isolated worker pins. All applicable database/browser checks and local delivery completed.",
+      "resolution": "Authorization rechecked after workspace lock and blob I/O; stale framework selection cleared. SQLite/PostgreSQL and live-scope browser regressions passed. See auditor-access-corrections.json and auditor-source-verification.json."
     },
     {
       "id": "auditor-access-corrections",
@@ -447,7 +474,8 @@
       "worker": "/root/stream_auth",
       "result": "auditor-access-corrections.json",
       "result_sha256": "5156cf60228111fd34a1182b31240d986068ced61dca61144f34100fa1ec1430",
-      "acceptance_evidence": "auditor-check-final.log; auditor-browser.log firstfourjourneys passed"
+      "acceptance_evidence": "auditor-source-verification.json; auditor-delivery.json",
+      "integration": "Accepted; final root source supersedes isolated worker pins. All applicable database/browser checks and local delivery completed."
     },
     {
       "id": "auditor-integrity-corrections",
@@ -458,7 +486,9 @@
       "accepted": true,
       "worker": "/root/auditor_integrity_corrections",
       "result": "auditor-integrity-corrections.json",
-      "result_sha256": "44371b7e29dbc88054d84a7da9e669ef9a512db2a99277199a03a987e7d786d0"
+      "result_sha256": "44371b7e29dbc88054d84a7da9e669ef9a512db2a99277199a03a987e7d786d0",
+      "acceptance_evidence": "auditor-source-verification.json; auditor-delivery.json",
+      "integration": "Accepted; final root source supersedes isolated worker pins. All applicable database/browser checks and local delivery completed."
     },
     {
       "id": "auditor-local-recovery",
@@ -470,7 +500,9 @@
       "worker": "lead",
       "result": "auditor-integrity-corrections.json",
       "evidence": "local-backup-tests.log",
-      "result_sha256": "44371b7e29dbc88054d84a7da9e669ef9a512db2a99277199a03a987e7d786d0"
+      "result_sha256": "44371b7e29dbc88054d84a7da9e669ef9a512db2a99277199a03a987e7d786d0",
+      "acceptance_evidence": "auditor-source-verification.json; auditor-delivery.json",
+      "integration": "Accepted; final root source supersedes isolated worker pins. All applicable database/browser checks and local delivery completed."
     },
     {
       "id": "operations-doc-review",
@@ -482,11 +514,13 @@
       "worker": "/root/operations_doc_review",
       "result": "operations-doc-review.json",
       "ownership": "read-only docs/operations.md and relevant source",
-      "result_sha256": "0278fea1deee1509e1cfe4b67dc521e57ef977a7c9e1b19d030f8738c7ccfe13"
+      "result_sha256": "0278fea1deee1509e1cfe4b67dc521e57ef977a7c9e1b19d030f8738c7ccfe13",
+      "acceptance_evidence": "auditor-source-verification.json; auditor-delivery.json",
+      "integration": "Accepted; final root source supersedes isolated worker pins. All applicable database/browser checks and local delivery completed."
     }
   ],
   "integration": {
-    "status": "running",
+    "status": "complete",
     "evidence": [
       {
         "command": "pnpm exec vitest run packages/agents/test/evidence-provenance.test.ts packages/agents/test/licensing.test.ts",
@@ -511,9 +545,10 @@
       {
         "command": "pnpm check",
         "session_id": 74154,
-        "outcome": "running; licensing/typecheck pass, SQLite 648+2 skips, PG650 pass; full browser pending",
+        "outcome": "Superseded by final M2 database/browser verification in source-verification.json; historical intermediate checkpoint retained.",
         "log": "check-final.log",
-        "source": "lifecycle-verification-source.json"
+        "source": "lifecycle-verification-source.json",
+        "checkpoint_outcome": "running; licensing/typecheck pass, SQLite 648+2 skips, PG650 pass; full browser pending"
       },
       {
         "command": "pnpm exec vitest run apps/server/test/evidence-lifecycle.test.ts apps/server/test/evidence-binding.test.ts apps/server/test/proposal-review.test.ts",
@@ -524,6 +559,18 @@
         "command": "final M2 database and browser integration",
         "outcome": "passed",
         "result": "source-verification.json"
+      },
+      {
+        "command": "final M3 database/browser integration and local delivery",
+        "outcome": "passed",
+        "result": "automation-source-verification.json",
+        "delivery": "automation-delivery.json"
+      },
+      {
+        "command": "final M4 database/browser integration and local delivery",
+        "outcome": "passed",
+        "result": "auditor-source-verification.json",
+        "delivery": "auditor-delivery.json"
       }
     ]
   },
@@ -540,7 +587,7 @@
     "status": "passed",
     "initial_sqlite": "795 passed,7 skipped,1 obsolete autonomy fixture failed",
     "initial_postgres": "801 passed,2 failures (same fixture + busy workspace scheduler30s timeout)",
-    "correction": "Safe create-task fixture, one declined claim/workspace/page, atomic bulk seed, API-only authentication; focused checks running",
+    "correction": "Safe create-task fixture, bounded workspace claims, atomic bulk seed, and API authentication corrections passed in final combined gate. All four browser failures resolved; see automation-source-verification.json.",
     "final_log": "automation-check-release.log",
     "sqlite": 798,
     "sqlite_skips": 7,
@@ -580,9 +627,25 @@
     "result": "auditor-source-verification.json",
     "browser_unique": 152
   },
-  "updated_utc": "2026-10-13T10:32:34.039254+00:00",
+  "updated_utc": "2026-10-13T10:48:23.691083+00:00",
   "auditor_delivery": {
-    "status": "pending",
-    "next": "commit/push/build/quiescedbackup/deploy/liveverify"
+    "status": "complete",
+    "commit": "e9ad8c24f68c172e0ee2c92f549027b209b9d193",
+    "pushed": true,
+    "result": "auditor-delivery.json"
+  },
+  "status": "complete_local_software_scope",
+  "remaining_external": [
+    "Select hosted operator target, PostgreSQL/object store, public origin, and IdP; assign owners.",
+    "Choose retention/deletion rights and checkpoint/key custody.",
+    "Execute configured hosted authentication/recovery/capacity drills.",
+    "Complete pilot-team acceptance and measure operational baselines."
+  ],
+  "worker_accounting": {
+    "at": "2026-10-13T10:48:23.691083+00:00",
+    "expected_nodes": 30,
+    "accepted_nodes": 30,
+    "live_worker_check": "Native list_agents reports auditor_access_review, operations_doc_review, and stream_auth completed; no implementation/review worker remains running.",
+    "pending_integration": []
   }
 }

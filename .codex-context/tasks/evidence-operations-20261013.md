@@ -1,9 +1,10 @@
 # Complete trustworthy evidence operations
 
-Status: active. The user requested all remaining work in logical order,
-autonomously. The visual review is complete and locally deployed. Continue the
-remaining [phase 2 plan](../../docs/development-phase-2.md), preserving the prior
-commit/push/local Docker delivery workflow after verified milestones.
+Status: complete for the approved local software scope. The user requested all
+remaining work in logical order, autonomously. The visual review and all required
+[phase 2 software packages](../../docs/development-phase-2.md) are implemented,
+verified, pushed, and locally deployed. Hosted pilot setup and team acceptance
+remain external prerequisites.
 
 ## Ordered work
 
@@ -21,10 +22,10 @@ work that already satisfies its acceptance criteria.
 | 6 | Stream authorization, bounded queues, reconnect, and current OIDC settings | Complete; tested, pushed and locally deployed |
 | 7 | Typed proposals, supported citations/claims, and monitoring identity | Complete; strict payloads, verified quotes, deterministic projections and distinct monitoring |
 | 8 | Request limits and operational diagnostics | Complete; bounded requests and private aggregate diagnostics, capacity unmeasured |
-| 9 | Frozen auditor package, manifest, chain checkpoint, and offline verification | Implemented and verified; local delivery pending |
-| 10 | Period-correct exports, schema validation, and read-only auditor access | Isolated implementation;35 export tests pass, HTTP/UI integration running |
-| 11 | Database/blob backup and restore plus operator runbook | Isolated implementation;7 SQLite/local-blob recovery tests pass, runbook pending |
-| 12 | Full phase acceptance, commit/push, and local Docker delivery | Queued; independent review and applicable checks before delivery |
+| 9 | Frozen auditor package, manifest, chain checkpoint, and offline verification | Complete; real binary ZIP and retained receipt verified live |
+| 10 | Period-correct exports, schema validation, and read-only auditor access | Complete; official OSCAL validation and role/scope/authorization gates pass |
+| 11 | Database/blob backup and restore plus operator runbook | Complete locally; actual restore and reviewed binary fixture pass |
+| 12 | Engineering acceptance, commit/push, and local Docker delivery | Complete; hosted pilot and team acceptance remain external |
 
 The broader roadmap retains explicitly deferred SAML/SCIM, catalog expansion,
 questionnaire automation, 3D replay/lineage, and broad provider integrations.
@@ -48,7 +49,8 @@ Preserve canonical workspace authorization, artifact byte/hash integrity,
 fixed review snapshots, append-only audit/review history, original licensing
 classification, user scope exclusions, and accessible keyboard/mobile workflows.
 An agent narrative, mapping, or approved policy must not masquerade as an
-observed operational check. No live database writes occur during implementation.
+observed operational check. Live verification uses a temporary workspace and
+records its cleanup and expected sign-in/audit effects.
 
 ## Verification and next action
 
@@ -79,10 +81,20 @@ are verified: 151 in the full run and two final targeted passes after draining
 pending mock responses before fixture teardown. Product source stayed unchanged.
 Three independent reviews produced six supported findings, now fixed; the runbook
 review found no errors. See [verification](../runs/evidence-operations-20261013/auditor-source-verification.json).
-Next: commit/push, build candidate image, stop writers, capture and verify a fresh
-SQLite+referenced-blob backup, redeploy, verify migration/data/source preservation,
-and download/verify the live package as an auditor on desktop and phone.
+M4 is delivered: source `e9ad8c2` is pushed and running at localhost:8787, with
+202 matching runtime source hashes. Migration 8 and the live auditor journey
+preserve original assessment rows. A fresh quiesced backup verifies and restores
+to a separate location; its 18 artifacts are inline, with no file references.
+The recovery fixture separately verifies reviewed binary artifact restoration.
+The live package contains real binary evidence and passes trusted offline
+verification against separately retained receipt pins. Auditor write refusal,
+access records, audit integrity, and desktop/phone checks pass. The temporary
+workspace and blob are removed; two sign-in sessions/login timestamps and one
+workspace deletion event are the expected smoke effects. See
+[delivery](../runs/evidence-operations-20261013/auditor-delivery.json).
 
 Actual hosted pilot setup and representative capacity/user measurements remain
 external prerequisites, not passed local gates. Explicitly deferred expansions
 and the optional GitHub connector are outside these required phase packages.
+The phase plan lists the remaining operator decisions and pilot validation in
+dependency order. No implementation worker or local delivery step remains open.

@@ -2,71 +2,73 @@
 system: "codex-context"
 session_id: "20261013T064241Z-feat-light-workspace-design-19c0d5334d10"
 created_utc: "2026-10-13T06:42:41+00:00"
-updated_utc: "2026-10-13T08:55:07.600434+00:00"
+updated_utc: "2026-10-13T10:48:23.691083+00:00"
 task: "Complete remaining trustworthy evidence operations autonomously"
-status: "active"
+status: "complete"
 repo_root: "/Users/artem/visua"
 worktree_id: "fbce6dbefa7b12a8"
 branch: "feat/light-workspace-design"
-head: "b34cf1fe846920c98aa71df3121712284880dc1a"
+head: "e9ad8c24f68c172e0ee2c92f549027b209b9d193"
 ---
 
-# Autonomous evidence operations
+# Completed evidence operations
 
-Continue docs/development-phase-2.md M2 → M3 → M4. The user authorized ongoing
-implementation, commit/push, and local Docker deployment. The visual review is
-complete. Deferred catalog/provider expansion stays deferred; hosted pilot needs
-an operator target/configuration/team. Do not stop after the M2 milestone.
+All approved local software work from the visual review and phase 2 is complete.
+The [task](../tasks/evidence-operations-20261013.md) and
+[run ledger](../runs/evidence-operations-20261013/plan.json) record acceptance.
+All 30 expected worker results are present and accepted; no worker or integration
+step remains open. Preserve the explicitly deferred roadmap scope.
 
-Run: ../runs/evidence-operations-20261013/plan.json. Inventory accepted.
-M2 lifecycle is source-verified and staged for commit. Final source hashes are in
-lifecycle-final-source.json. Final pnpm check --no-e2e passes: SQLite650 +2 PG-only
-skips, PG652, typecheck, corpus, licensing, design. Browser coverage146 unique
-cases via full142-pass run plus targeted reruns; final32 dialog cases all pass.
-No single final full-check command passed. Details: source-verification.json.
-Independent review findings fixed: stale review after withdrawal and validity
-before acceptance. Lead also fixed agent review proposal expectedReviewId binding,
-restricted-title renewal task laundering, and closed-details focus trapping.
-Desktop and phone lifecycle captures inspected.
+## Delivered milestones
 
-Backup exists at /app/data/evidence-lifecycle-20261013-backup.db and ignored
-local data/deployment-backups/evidence-lifecycle-20261013-backup.db (mode600).
-Matching hashes in docker-backup.json; do not rerun the create-only backup script.
-Original:1 workspace,1487 states,18 tasks,18 inline evidence,0 files,2 tenants,
-9 memberships,112 activity. No new migration. Next: commit/push explicitly staged
-86 paths, build with commit revision, deploy, run docker-preservation.mjs before
-live smoke, docker-source-check.mjs (190 pins), live-lifecycle-smoke.mjs, inspect
-screenshots, verify cleanup and original data. HEAD/origin b34cf1f before commit;
-previous deployed source783ed28. Preserve volume and unrelated diagnostics.
+The existing Docker service at localhost:8787 is healthy at source `e9ad8c2`,
+with the original `visua_visua-data` volume and all 202 runtime source pins.
+Source commits are pushed to `feat/light-workspace-design`:
 
-M3 is ONLY in .check/evidence-automation-20261013 (detached b34cf1f plus M2
-overlay). Baseline automation-worktree-baseline.json. Never copy its whole diff:
-it includes inherited M2 and lacks later root modal/selector/ledger fixes.
-Run reliability, stream/auth, and corpus-claims workers are complete, reports and
-source hashes available in root run, not accepted/integrated yet. Run lane30
-focused tests; stream lane68 plus HTTP shutdown; corpus lane98 and3 typechecks.
-Some PG cases are authored but not run. Run backend carried latest M2 proposal
-review binding into isolated visua.ts; distinguish carried root changes.
+- M2 lifecycle: `3c85ef4`, delivery documentation `2f82c73`.
+- M3 automation: `dc5e68c`, delivery documentation `de3d02c`.
+- M4 auditor handoff and local recovery: `e9ad8c2`.
 
-Fresh automation_boundary_review is active (native handle /root/automation_boundary_review).
-Confirmed oldest256 active-run scan starvation using actual in-memory store;
-repro in automation-review-reproductions/scheduler-starvation.mjs. Review also
-examines inherited relay send-gap omission. Await final report before fixes.
+M4 final checks pass 883 SQLite tests plus nine PostgreSQL-only skips and 892
+PostgreSQL-lane tests, with typecheck, licensing, corpus, and design checks.
+All 152 browser cases are verified through 151 full-run passes and two final
+passes after a mock-response teardown correction. No single final full-check
+command passed. Product source remained unchanged after the full lane.
+Six independent M4 review findings are fixed; operations-guide review found none.
+See [source verification](../runs/evidence-operations-20261013/auditor-source-verification.json).
 
-Lead M3 strict schema work in isolated proposal-validation.ts and test, visua.ts,
-SettingsPage.tsx: 5 early pure tests pass; latest envelope/projection/service/UI
-integration unverified. Strict payload/envelope/citations; projection recomputed
-from current enabled sources/mappings; autonomy only create-task and immutable
-check-backed create-evidence. Still preserve projection on approval edits, adapt
-legacy test fixtures to strict contract, test combined changes. No root M3 edits.
+## Recovery and live evidence
 
-After M2 deployment: integrate M3 owned deltas, complete monitoring/limits and
-real two-instance PG gates, review/test/commit/deploy. Then frozen auditor bundle,
-exports/access/restore. Keep original scope/invariants; no live test database.
+The [delivery record](../runs/evidence-operations-20261013/auditor-delivery.json)
+records quiesced backup, host restore, migration/source/data preservation,
+actual binary ZIP download, retained receipt pins, trusted offline verification,
+auditor write refusal, separate access records, and desktop/phone checks.
+Original assessment rows and audit history remain intact. The temporary workspace
+and blob were removed; expected effects are two sign-in sessions/login timestamps
+and one workspace deletion event.
 
-M2 delivery checkpoint: `3c85ef4` committed/pushed and Docker healthy. Exact
-190 source pins, preservation and live smoke passed; screenshots inspected.
-After cleanup all original entity digests unchanged; one expected tenant
-workspace-deletion audit entry added. See lifecycle-delivery.json. Next remains
-M3 isolated integration: public-measures lifecycle_ui active, relay-recovery
-stream_auth active, independent review complete with two supported findings.
+Retain all three delivery backups. M4 backup is the directory
+`/app/data/evidence-auditor-20261013-backup`, copied privately under ignored
+`data/deployment-backups/`. Its SQL hash starts `f35472d1`; 18 artifacts are inline
+and no file references exist. Actual host restore is retained under ignored
+`data/recovery-drills/auditor-20261013/`. Binary recovery is separately verified
+by the reviewed-artifact test fixture. Do not recreate existing backup/restore
+destinations or repeat delivery merely to update documentation.
+
+## Remaining boundaries and local state
+
+[Phase 2 next steps](../../docs/development-phase-2.md#next-action) require a
+selected hosted target, IdP/storage configuration, retention/recovery owners,
+capacity drills, and pilot users. Those outcomes remain unverified; no hosted
+pilot acceptance or user time savings are claimed. Optional GitHub integration,
+SAML/SCIM, catalog expansion, and 3D replay remain separate follow-up work.
+
+The final documentation commit records delivery evidence; it changes no product
+source and needs no new deployment. Historical local review/diagnostic artifacts
+remain untracked and were intentionally excluded. Screenshots, full logs,
+backups, recovery drills, and isolated checkouts remain ignored. Use explicit
+staging; do not copy the old isolated M4 checkout over root.
+
+No local implementation step remains. Continue hosted preparation only when its
+operator inputs are available; retain the [operations guide](../../docs/operations.md)
+as the recovery and receipt-verification reference.
