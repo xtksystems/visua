@@ -246,7 +246,7 @@ describe(`legacy evidence migration (${db.dialect})`, () => {
       expect(await getLegacy(noHash.id)).toEqual(noHash);
       expect(await store.activity.head(ws.id)).toEqual(head);
       expect(await old.workspace(ws.id)).toEqual(before);
-      expect(await migrate(driver)).toEqual([5, 6]);
+      expect(await migrate(driver)).toEqual([5, 6, 7]);
       const migrated = (await store.evidence.get(e.id))!;
       expect(migrated).toMatchObject({ status: "pending-review", content: "Observed", sha256: legacy.sha256, validUntil: "invalid legacy expiry", reviewHistory: [{ legacy: true, decision: "accepted", reviewedBy: "Old reviewer", reviewedAt: legacy.reviewedAt }] });
       expect(migrated.reviewedBy).toBeUndefined();

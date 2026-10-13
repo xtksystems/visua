@@ -11,6 +11,7 @@ import { programPath } from "../lib/frameworks.ts";
 import { useActivity, useAuditVerification, useRuns, useWorkspace } from "../lib/queries.ts";
 import { split } from "../lib/media.ts";
 import { OverviewMetrics } from "../components/work/OverviewMetrics.tsx";
+import { ScoreHistory } from "../components/work/ScoreHistory.tsx";
 import { AttentionQueue } from "../components/work/AttentionQueue.tsx";
 import { QueryError } from "../components/ui/QueryError.tsx";
 import "../components/work/overview.css";
@@ -168,6 +169,7 @@ export function HomePage() {
           </div>
         </div>
       </div>
+      <ScoreHistory key={ws} ws={ws} />
     </div>
   );
 }

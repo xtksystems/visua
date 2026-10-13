@@ -5,7 +5,7 @@
  * requirements. A requirement's inspector lists the threats it helps address.
  */
 import { ExternalLink, Info, X } from "lucide-react";
-import { useId, useMemo, useState } from "react";
+import { useId, useMemo, useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import { corpusFileUrl } from "../../lib/api.ts";
 import { truncate } from "../../lib/format.ts";
@@ -298,7 +298,7 @@ function ExternalRefs({ refs }: { refs: ExternalReference[] }) {
 
 type ThreatTab = "overview" | "requirements" | "related";
 
-export function ThreatInspector({ data, onClose }: { data: NodeDetail; onClose: () => void }) {
+export function ThreatInspector({ data, onClose, navigation }: { data: NodeDetail; onClose: () => void; navigation?: ReactNode }) {
   const { ws = "" } = useParams();
   const [tab, setTab] = useState<ThreatTab>("overview");
   const tabsId = useId();
@@ -316,7 +316,7 @@ export function ThreatInspector({ data, onClose }: { data: NodeDetail; onClose: 
       <header className="inspector__head">
         <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
           <FrameworkBadge frameworkId={node.frameworkId} />
-          {data.ancestors.map((x) => (
+          {!navigation && data.ancestors.map((x) => (
             <span key={x.id} className="code" title={x.title}>
               {x.code}
             </span>
@@ -333,6 +333,7 @@ export function ThreatInspector({ data, onClose }: { data: NodeDetail; onClose: 
           <CoverageChip coverage={c} />
         </div>
         <h2 className="inspector__title">{node.title}</h2>
+        {navigation}
       </header>
       <Tabs<ThreatTab>
         id={tabsId}

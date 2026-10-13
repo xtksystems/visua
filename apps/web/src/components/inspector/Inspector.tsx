@@ -4,7 +4,7 @@
  */
 import { Bot, ExternalLink, FileText, ListChecks, Plus, Sparkles, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { levelLabel, type FrameworkFamily, type ProfileAction } from "@visua/core";
 import { api, corpusFileUrl } from "../../lib/api.ts";
@@ -21,14 +21,14 @@ import { ThreatInspector, ThreatsAddressed } from "./Threats.tsx";
 
 type Tab = "overview" | "tasks" | "evidence" | "mappings" | "history";
 
-export function Inspector({ nodeId, onClose }: { nodeId: string; onClose: () => void }) {
+export function Inspector({ nodeId, onClose, navigation }: { nodeId: string; onClose: () => void; navigation?: ReactNode }) {
   const ws = useWorkspaceId();
   // Cached selections need the same fresh draft/dialog lifetime as uncached ones.
   // Key the query observer too, so pending responses and placeholders stay with their selection.
-  return <InspectorSelection key={JSON.stringify([ws, nodeId])} ws={ws} nodeId={nodeId} onClose={onClose} />;
+  return <InspectorSelection key={JSON.stringify([ws, nodeId])} ws={ws} nodeId={nodeId} onClose={onClose} navigation={navigation} />;
 }
 
-function InspectorSelection({ ws, nodeId, onClose }: { ws: string; nodeId: string; onClose: () => void }) {
+function InspectorSelection({ ws, nodeId, onClose, navigation }: { ws: string; nodeId: string; onClose: () => void; navigation?: ReactNode }) {
   const { data, isLoading, error, refetch, isFetching } = useNodeDetail(ws, nodeId);
   const [tab, setTab] = useState<Tab>("overview");
   const tabsId = useId();
@@ -40,6 +40,7 @@ function InspectorSelection({ ws, nodeId, onClose }: { ws: string; nodeId: strin
           <span style={{ flex: 1 }} />
           <button className="btn btn--quiet btn--sm btn--icon" onClick={onClose} aria-label="Close inspector"><X size={14} /></button>
         </div>
+        {navigation}
         <p role="alert">Could not load this requirement: {error.message}</p>
         <button className="btn" disabled={isFetching} onClick={() => void refetch()}>{isFetching ? "Retrying…" : "Retry"}</button>
       </aside>
@@ -48,12 +49,13 @@ function InspectorSelection({ ws, nodeId, onClose }: { ws: string; nodeId: strin
   if (isLoading || !data) {
     return (
       <aside className="inspector" aria-busy="true" data-hud>
+        {navigation && <header className="inspector__head">{navigation}</header>}
         <div className="muted">Loading…</div>
       </aside>
     );
   }
   // Threat catalogs are not assessed: their nodes get the coverage inspector.
-  if (data.threat) return <ThreatInspector data={data} onClose={onClose} />;
+  if (data.threat) return <ThreatInspector data={data} onClose={onClose} navigation={navigation} />;
   const { node } = data;
   const status = data.status?.status ?? data.groupStatus ?? "not-started";
   return (
@@ -62,7 +64,7 @@ function InspectorSelection({ ws, nodeId, onClose }: { ws: string; nodeId: strin
       <header className="inspector__head">
         <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
           <FrameworkBadge frameworkId={node.frameworkId} />
-          {data.ancestors.map((a) => (
+          {!navigation && data.ancestors.map((a) => (
             <CodeTag key={a.id} id={a.id} />
           ))}
           <span style={{ flex: 1 }} />
@@ -77,6 +79,7 @@ function InspectorSelection({ ws, nodeId, onClose }: { ws: string; nodeId: strin
           <StatusChip status={status} />
         </div>
         {node.title && node.title !== node.code ? <h2 className="inspector__title">{node.title}</h2> : null}
+        {navigation}
       </header>
       <Tabs<Tab>
         id={tabsId}

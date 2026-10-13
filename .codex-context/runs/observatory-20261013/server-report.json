@@ -1,0 +1,75 @@
+{
+  "run_id": "observatory-20261013",
+  "node_id": "server",
+  "recorded_at": "2026-10-13T01:55:47.326523+00:00",
+  "base_head": "9755c01873444647c30821ac1d0b88aa16023632",
+  "changed_files": [
+    "apps/server/src/services/views.ts",
+    "apps/web/src/lib/types.ts",
+    "apps/server/test/observatory.test.ts"
+  ],
+  "contract": {
+    "normal_bundle": "asOf uses the single Date passed to scoreOf, evidence validity counting and law timing; hourly score cache is bypassed without changing score definitions.",
+    "unit_scope": "inScope is true only for enabled assessable nonwithdrawn stored requirements with applicable state, no userExclusion or not-applicable override, applicable svc.scopeOf settings, and current in-force law timing.",
+    "assignment": "ownerUserId is the stored stable member identity; owner text stays independent.",
+    "evidence": "Current accepted and bound directly linked evidence counts once per artifact and requirement; no body/blob hydration or group-to-child inheritance.",
+    "threats_access_mutations": "Threat bundle route remains unchanged. Existing tenancy and capabilities are preserved. Projection does not mutate workspace revision or audit history."
+  },
+  "coverage": [
+    "expiry inside cached score hour",
+    "status independent current valid artifact counts",
+    "duplicate links and group-only evidence",
+    "accepted alternatives with expired historical evidence",
+    "pending/rejected/future/unbound evidence exclusion",
+    "same-label member identity and external-owner label",
+    "disabled/excluded/withdrawn/group scope",
+    "SOC category, SP baseline/tailoring, law role and effective-date scope",
+    "renewal scope parity",
+    "metadata-only inline/file evidence reads",
+    "read-only workspace revision and audit",
+    "threat response fields",
+    "viewer access, cross-tenant 404 and unauthenticated 401"
+  ],
+  "checks": [
+    {
+      "command": "pnpm exec vitest run apps/server/test/observatory.test.ts",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "result": "8 SQLite tests passed"
+    },
+    {
+      "command": "pnpm --filter @visua/server typecheck",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "result": "Final server typecheck passed; initial fixture attribute typing error was corrected"
+    },
+    {
+      "command": "pnpm exec vitest run apps/server/test/observatory.test.ts apps/server/test/overview.test.ts apps/server/test/evidence-renewal.test.ts",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "result": "16 SQLite tests in 3 files passed"
+    },
+    {
+      "command": "git diff --check -- apps/server/src/services/views.ts apps/web/src/lib/types.ts",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "result": "No whitespace errors"
+    },
+    {
+      "command": "pnpm --filter @visua/web typecheck",
+      "cwd": "/Users/artem/visua",
+      "status": "failed",
+      "result": "Concurrent UI work: ObservatoryPage.tsx:406 passes old Outline filter prop while Outline now expects results, threat and revealSeq. Reported to lead; outside server ownership."
+    }
+  ],
+  "limitations": [
+    "PostgreSQL, browser tests and full checks were not run by this worker, per bounded brief.",
+    "Web typecheck sampled concurrent UI edits and failed on the UI-owned Outline call; integration must rerun it.",
+    "Shared frontend types keep inScope and asOf optional because threat bundles omit assessment-only fields; normal responses always supply them."
+  ],
+  "file_sha256": {
+    "apps/server/src/services/views.ts": "34dd5fa29b74198ded2cf994a0359e7068489cbd71d2b4d057e4e87882ffe33e",
+    "apps/web/src/lib/types.ts": "50ac233170c0a0debb785acf1862bfd4607d1e346f310203a98f1d0cf1360835",
+    "apps/server/test/observatory.test.ts": "a513dca7e1a221667eb1d7df36ec895bb48336814094c08eaecf85aa32c85247"
+  }
+}

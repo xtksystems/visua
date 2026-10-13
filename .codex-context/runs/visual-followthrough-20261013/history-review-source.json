@@ -1,0 +1,11 @@
+{
+  "packages/core/src/score-history.ts": "97c9f0b423972325250d04cec520d924d37b54f68cc5bea6a85151da9a722612",
+  "apps/server/src/services/score-history.ts": "8d1e830126c2a7a7219c540604eadb3fbcffb5b2ff9aa482ef6a74f3b795fb81",
+  "apps/server/src/services/score-history-ticker.ts": "8cecffcf9c74af7e67e55b968af30cbeb239fb59af9d974cd2ec283c841da400",
+  "apps/server/src/storage/migrations.ts": "04d478d10854db7c0d2ad21065d5a7695cefad61208e3d639442c3c5393b4b05",
+  "apps/server/src/storage/store.ts": "60e4eb9c280a9868e062772353b08befad7a92da875d3cb3053cb34c5221c9a3",
+  "apps/server/src/server.ts": "b24ee5af9525faec68d68ec59a3ef389c267da8710a51bc702fcf228f44ec50a",
+  "apps/server/src/app.ts": "88e99a45401103ad1329c45354ab937c5f33dcc6697749c1be1f6455f42f71e0",
+  "apps/web/src/components/work/ScoreHistory.tsx": "af26b530ffc6b1e8fcea231174b98340633b2c9c15fcf0bbb67268538e23db16",
+  "apps/web/src/lib/score-history.ts": "fa400230541d823f0b4a8d1de0eda34ca34508daae04aa5437860562580bb950"
+}

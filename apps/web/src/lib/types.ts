@@ -102,7 +102,11 @@ export interface UnitState {
   target: number;
   priority: "critical" | "high" | "medium" | "low";
   applicable: boolean;
+  /** Normal assessments always supply current enabled scope; absent on threat coverage units. */
+  inScope?: boolean;
   owner?: string;
+  /** Stable member identity; text-only external owners do not have one. */
+  ownerUserId?: string;
   status: Status;
   reasons: string[];
   openTasks: number;
@@ -117,6 +121,8 @@ export interface UnitState {
 
 export interface FrameworkStateBundle {
   frameworkId: string;
+  /** Shared score/evidence evaluation instant for normal assessment bundles. */
+  asOf?: string;
   overall: NodeScore;
   groups: Record<string, NodeScore & { status: Status }>;
   units: Record<string, UnitState>;

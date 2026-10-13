@@ -20,6 +20,7 @@ import { useWorkspace } from "../lib/queries.ts";
 import type { LinkStatus, ThreatRing } from "../lib/types.ts";
 import { NexusCanvas, frameworkColor, type NexusData } from "../scene/Nexus.tsx";
 import { useUi } from "../state/ui.ts";
+import { ComparisonMatrix } from "../components/crosswalk/ComparisonMatrix.tsx";
 
 interface Side {
   id: string;
@@ -301,6 +302,11 @@ function Overview({ data, onSelect }: { data: NexusData; onSelect: (id: string) 
 }
 
 export function CrosswalkPage() {
+  const [params] = useSearchParams();
+  return params.get("view") === "matrix" ? <ComparisonMatrix /> : <NexusPage />;
+}
+
+function NexusPage() {
   const ws = useWorkspaceId();
   const workspace = useWorkspace(ws);
   const [params, setParams] = useSearchParams();
@@ -348,7 +354,8 @@ export function CrosswalkPage() {
         </Suspense>
         <div className="hud hud--tl" data-hud>
           <div className="row" style={{ gap: 8, fontWeight: 600 }}>
-            <GitCompareArrows size={15} /> Crosswalk Nexus
+            <GitCompareArrows size={15} /> <span>Crosswalk Nexus</span>
+            <button className="btn btn--sm" onClick={() => { const next = new URLSearchParams(params); next.set("view", "matrix"); setParams(next); }}>Matrix</button>
           </div>
           <div className="row row--wrap" style={{ gap: 6, marginTop: 8 }}>
             {data!.frameworks.map((f) => (

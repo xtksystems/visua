@@ -1,0 +1,112 @@
+{
+  "node_id": "history",
+  "status": "complete",
+  "source_stable": true,
+  "completed_at": "2026-10-13T04:08:29.546592+00:00",
+  "files": [
+    {
+      "path": "packages/core/src/score-history.ts",
+      "sha256": "97c9f0b423972325250d04cec520d924d37b54f68cc5bea6a85151da9a722612"
+    },
+    {
+      "path": "packages/core/src/index.ts",
+      "sha256": "189b1f4482760d1347fc5ceb68ab3cbb1b85e6ed31fb5f18aeece7ad08409626"
+    },
+    {
+      "path": "apps/server/src/services/score-history.ts",
+      "sha256": "8d1e830126c2a7a7219c540604eadb3fbcffb5b2ff9aa482ef6a74f3b795fb81"
+    },
+    {
+      "path": "apps/server/src/services/score-history-ticker.ts",
+      "sha256": "8cecffcf9c74af7e67e55b968af30cbeb239fb59af9d974cd2ec283c841da400"
+    },
+    {
+      "path": "apps/server/src/storage/migrations.ts",
+      "sha256": "04d478d10854db7c0d2ad21065d5a7695cefad61208e3d639442c3c5393b4b05"
+    },
+    {
+      "path": "apps/server/src/storage/store.ts",
+      "sha256": "60e4eb9c280a9868e062772353b08befad7a92da875d3cb3053cb34c5221c9a3"
+    },
+    {
+      "path": "apps/server/src/server.ts",
+      "sha256": "b24ee5af9525faec68d68ec59a3ef389c267da8710a51bc702fcf228f44ec50a"
+    },
+    {
+      "path": "apps/server/src/app.ts",
+      "sha256": "88e99a45401103ad1329c45354ab937c5f33dcc6697749c1be1f6455f42f71e0"
+    },
+    {
+      "path": "apps/web/src/components/work/ScoreHistory.tsx",
+      "sha256": "af26b530ffc6b1e8fcea231174b98340633b2c9c15fcf0bbb67268538e23db16"
+    },
+    {
+      "path": "apps/web/src/components/work/score-history.css",
+      "sha256": "2f79533c679a03f8959a783150e675b2e6c71beecbc8103800c74f2239f213b9"
+    },
+    {
+      "path": "apps/web/src/pages/HomePage.tsx",
+      "sha256": "a12d787c5967d6a0fca54bce756f1e0a9f6d7dac3f13b35eed00800e1ac64860"
+    },
+    {
+      "path": "apps/web/src/lib/score-history.ts",
+      "sha256": "fa400230541d823f0b4a8d1de0eda34ca34508daae04aa5437860562580bb950"
+    },
+    {
+      "path": "apps/server/test/score-history.test.ts",
+      "sha256": "05e96df2c28e858eb8359df2b4794273c6c241abc14854d8a6645a379355336f"
+    },
+    {
+      "path": "apps/web/test/score-history.test.ts",
+      "sha256": "69c11afd824b6a942b0bdb50cf9daa6b68640827e9a451c4ec5613eab2f834c7"
+    }
+  ],
+  "summary": "Append-only transactional observations, migration 7, authorized manual capture, drained daily scheduling, and history UI with comparability breaks and numeric table.",
+  "tests": [
+    {
+      "command": "pnpm exec vitest run apps/server/test/score-history.test.ts apps/web/test/score-history.test.ts apps/server/test/storage.test.ts",
+      "result": "passed: 30 tests, 1 PostgreSQL-only skip; 3 files",
+      "backend": "sqlite"
+    },
+    {
+      "command": "pnpm --filter @visua/server typecheck",
+      "result": "passed"
+    },
+    {
+      "command": "pnpm --filter @visua/web typecheck",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "Compare history CSS var references to generated token definitions",
+      "result": "passed; no undefined tokens"
+    }
+  ],
+  "initial_failures_resolved": [
+    "Query validation originally threw raw ZodError (HTTP 500); now uses ValidationError (HTTP 400) and invalid values are covered.",
+    "Law test originally indexed default CSF instead of selecting law framework; corrected.",
+    "Initial web typecheck hit concurrent Plan error; lead fixed and final web typecheck passed."
+  ],
+  "api": {
+    "GET": "/api/workspaces/:ws/score-history?limit=60 (1\u2013200), private no-store, chronological bounded observations and hasOlder; no writes",
+    "POST": "/api/workspaces/:ws/score-history; work.write + CSRF; 201 manual observed snapshot"
+  },
+  "selectors": {
+    "section": "Observed score history",
+    "select": "History framework",
+    "button": "Record snapshot",
+    "numeric_region": "Recorded score observations",
+    "row": "[data-observation-id]",
+    "details": "Recorded scope, targets and calculation details"
+  },
+  "limits": [
+    "No PostgreSQL/full suite/browser/build/deployment was run by worker; lead owns those lanes.",
+    "History starts with real captures; no reconstructed prior observations.",
+    "UI shows latest 60 workspace observations; older observations are retained and bounded API reads support up to 200.",
+    "Capture work is serialized per workspace; scheduler checks every 15 minutes, initial 30 seconds, and never overlaps itself.",
+    "Catalog identity memoizes immutable loaded FrameworkIndex graphs; changing corpus requires the existing registry/restart workflow."
+  ]
+}

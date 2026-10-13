@@ -130,8 +130,7 @@ at localhost:8787. A fresh [delivery check](runs/decision-delivery-20261012/sour
 passed all 110 browser tests, 505 SQLite and 507 PostgreSQL tests; live API and
 desktop/mobile smoke checks passed, with the original data and audit chain
 verified. The next approved [evidence renewal task](tasks/evidence-renewal-20261012.md)
-is complete and included in the evidence renewal delivery commit. It remains
-undeployed. It adds cumulative
+is complete, committed and pushed as `9755c01`. It remains undeployed. It adds cumulative
 expiry windows, separate review and validity labels, and requirement impact
 using accepted alternatives through the first coverage gap.
 [Verification](runs/evidence-renewal-20261012/source-verification.json) passes
@@ -139,4 +138,32 @@ using accepted alternatives through the first coverage gap.
 passes and two targeted reruns. A viewer test had a transient route-fetch reset;
 an existing review test needed the new label text. All seven renewal browser
 cases passed in the full lane. Independent review and desktop/mobile captures
-also passed. Provenance/supersession and historical trends remain separate.
+also passed. Provenance/supersession remain on the broader development roadmap;
+subsequent snapshot-backed history is recorded below.
+
+The next visual-review package, [Observatory presets](tasks/observatory-20261013.md),
+is complete and uncommitted, with current-scope attention/evidence/assignment
+filters, a persistent labeled legend, and outline/inspector selection context.
+[Verification](runs/observatory-20261013/source-verification.json) passes 540
+SQLite and 542 PostgreSQL tests. All 123 browser cases passed in the full run;
+13 affected cases passed again after the final focus corrections. Typechecking,
+independent review corrections and desktop/touch-phone captures are complete.
+It is not deployed.
+
+The autonomous visual-review follow-through is complete and uncommitted. The
+[implementation plan](../docs/visual-review-plan.md) records all six completed
+packages: Crosswalk comparison, Plan urgency, CSF profile, actual agent stages,
+visual/accessibility consistency, and immutable snapshots with observed trends.
+The [completed task](tasks/visual-followthrough-20261013.md) and
+[verification](runs/visual-followthrough-20261013/source-verification.json) record
+626 SQLite passes plus two PostgreSQL-only skips, 628 PostgreSQL passes, and
+138 verified browser cases (136 full-run passes plus four final affected reruns).
+No single final full-check command passed: final test-only corrections address
+native Tab focus and the intended local-scroll contract. Product bytes remained
+unchanged after the full check. Three independent reviews and desktop/touch-phone
+captures are complete; all five supported findings were fixed. Snapshot capture
+is transactional, audited and isolated by workspace; migration 7 never backfills
+old scores. It samples daily by default, with manual capture for contributors.
+Commit/push/deployment remain separate; local Docker is still recorded at
+`e867494`, and its database was not touched. Broader evidence provenance,
+supersession, hosted operations, and connector expansion remain on the roadmap.

@@ -1,0 +1,26 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "The original inspector-navigation focus-loss defect is corrected, and no supported defect was found in the rapid selection/filter URL composition. One limited residual focus-request cancellation issue remains for pointer blur to non-focusable content.",
+  "coverage": [
+    "Verified all six review-fix-source.json SHA256 pins before and after this bounded correction pass; preserved the original review artifacts.",
+    "Inspected ObservatoryPage navigationFocus identity/lifetime, navigation ref focus restoration, parent/sibling controls, and enabled boundary fallback; traced cached, loading, error and threat inspector headers.",
+    "Confirmed InspectorSelection remains keyed by workspace/node and draft/dialog lifetime boundaries are unchanged. Inspected modal focus capture/restoration and existing keyboard isolation tests.",
+    "Traced immediate selectNode UI updates, filter/selection writes composed from current window.location.search, stale router-param effect suppression, framework switching, reset view and canvas key selection.",
+    "Read the added repeated sibling/parent focus browser test and corrected coarse-pointer phone fixture. Tests were inspected but not executed."
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "apps/web/src/pages/ObservatoryPage.tsx:382-389",
+      "mechanism": "After an inspector navigation restores focus, the request remains live for later header swaps. Clicking non-focusable content outside the navigation blurs its button with relatedTarget null, which the onBlurCapture guard ignores. A subsequent Observatory rerender, such as a scene hover or assessment refresh, receives a newly created navigation ref callback; with activeElement now body, it restores the old navigation focus even though the user already clicked elsewhere. This does not overwrite a focused form or dialog, but does produce an unsolicited keyboard-focus jump.",
+      "evidence": "The focus request set at 377 is not consumed by restoration at 382-386. Identity cleanup at 282-285 only clears it if workspace or selectedId changes. The blur handler at 388-389 requires relatedTarget instanceof Node, excluding normal blur to non-focusable content. restoreNavigationFocus is recreated on every page render and accepts body focus, while onHover at 341-345 updates page/global state. This is a source-supported edge case; no browser reproduction was executed in this review.",
+      "recommendation": "Cancel pending navigation restoration on an intentional pointer interaction outside the navigation, including non-focusable targets, while retaining it across keyed/loading header replacement. Keep the current active-element and workspace/node guards."
+    }
+  ],
+  "limitations": [
+    "This was a bounded follow-up to the original review, with the lead-provided correction rationale visible; it is not a new independent review of the whole feature.",
+    "No browsers, builds, tests or live data were executed. Runtime focus, exact loading timing and rapid input ordering remain owned by the separate integration lane.",
+    "The residual null-relatedTarget pointer-blur finding is source-derived and limited to focus returning from body; active form/dialog focus is protected by the current guard."
+  ]
+}

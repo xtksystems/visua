@@ -1553,6 +1553,7 @@ export class VisuaService {
         status: "queued",
         mode: "offline",
         steps: [],
+        stageHistory: [],
         focusNodeIds: [],
         taskId: typeof input.input?.["taskId"] === "string" ? (input.input["taskId"] as string) : undefined,
         ...(principal ? { startedBy: principal.id } : {}),
@@ -1617,27 +1618,40 @@ export class VisuaService {
     if (!initial) return;
     const workspaceId = initial.workspaceId;
     const recorder = new RunRecorder(this, workspaceId, initial);
-    const save = async (patch: Partial<AgentRun>) => {
+    const save = async (patch: Partial<AgentRun>, observations: NonNullable<AgentRun["stageHistory"]> = []) => {
       await recorder.flush();
       // A cancellation wins over anything the run reports afterwards.
-      const run = await this.store.runs.update(runId, (r) => (r.status === "cancelled" ? undefined : { ...r, ...patch }));
+      const run = await this.store.runs.update(runId, (r) => (r.status === "cancelled" ? undefined : {
+        ...r, ...patch,
+        ...(observations.length ? { stageHistory: [...(r.stageHistory ?? []), ...observations] } : {}),
+      }));
       if (run && run.status !== "cancelled") this.emit(workspaceId, "agent.run.updated", { ...run, steps: undefined });
       return run;
     };
-    await save({ status: "running", startedAt: now() });
+    const startedAt = now();
+    const started = await save({ status: "running", startedAt }, [{ stage: "collect", status: "started", at: startedAt }]);
+    if (!started || started.status === "cancelled" || signal.aborted) return;
     try {
       const host = await this.hostFor(workspaceId, runId, signal, recorder);
+      if (signal.aborted) return;
+      const collectedAt = now();
+      const collected = await save({}, [
+        { stage: "collect", status: "completed", at: collectedAt },
+        { stage: "analyze", status: "started", at: collectedAt },
+      ]);
+      if (!collected || collected.status === "cancelled" || signal.aborted) return;
       const result = await executeAgent(host, { agent: initial.agent, goal: initial.goal, input: initial.input });
       if (signal.aborted) return;
       const pending = (await this.store.proposals.list(workspaceId)).filter((p) => p.runId === runId && p.status === "pending").length;
+      const finishedAt = now();
       await save({
         status: pending ? "awaiting-approval" : "completed",
         summary: result.summary,
         mode: result.mode,
         model: result.model,
         usage: result.usage,
-        finishedAt: now(),
-      });
+        finishedAt,
+      }, [{ stage: "analyze", status: "completed", at: finishedAt }]);
       await this.log(workspaceId, `agent:${initial.agent}`, "finished", "agent-run", runId, `${initial.agent} finished${pending ? ` — ${pending} proposal(s) await approval` : ""}`);
     } catch (err) {
       if (signal.aborted) return;

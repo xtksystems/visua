@@ -143,6 +143,7 @@ physical file retention and garbage collection remain operator-managed. See
 | `VISUA_HOST` | `127.0.0.1` in developer mode; `0.0.0.0` with OIDC | Listener address. Changing it can expose the server; keep passwordless developer sign-in on a trusted local network. |
 | `VISUA_SEED` | `1` in non-production developer mode; `0` with OIDC or in production | Seed the demo when the store has no workspaces. Set `0` to disable it, or explicitly set `1` to add fictional demo organizations and their owners. |
 | `VISUA_SHUTDOWN_MS` | `10000` | Milliseconds to drain requests and background work before a forced stop |
+| `VISUA_SCORE_HISTORY` | `on` | Records one score observation per workspace every 24 hours while the server runs, checking every 15 minutes after an initial 30-second delay. Set `off` to disable scheduled capture; manual snapshots remain available. Missed days are not backfilled. |
 | `VISUA_REPO_SCAN_ROOTS` | Project directory in non-production developer mode; `[]` with OIDC or in production | JSON array of absolute directories that repository connectors may scan, for example `["/srv/repos"]`. `[]` disables local scans. |
 | `VISUA_DATABASE_URL` | `data/visua.db` | `postgres://user:pass@host:5432/db` for PostgreSQL, or a SQLite file path (`:memory:` works). `VISUA_DB` is accepted as a SQLite path too. |
 

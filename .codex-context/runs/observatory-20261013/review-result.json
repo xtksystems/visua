@@ -1,0 +1,32 @@
+{
+  "run_id": "observatory-20261013",
+  "node_id": "review",
+  "input_sha256": "f734a0f6b18a46248ef5e130f9859af0631ddaf5180f45d7b9ce1fd32c84633a",
+  "status": "complete",
+  "summary": "Reviewed the pinned Observatory changes against 9755c01873444647c30821ac1d0b88aa16023632. One supported keyboard-focus defect in the new inspector navigation; no other supported defects found within the assigned source-review scope.",
+  "evidence": [
+    ".codex-context/runs/observatory-20261013/review.json",
+    ".codex-context/runs/observatory-20261013/review-source.json",
+    "apps/server/src/services/views.ts",
+    "apps/server/src/services/visua.ts",
+    "packages/core/src/status.ts",
+    "packages/core/src/evidence.ts",
+    "apps/web/src/lib/observatory.ts",
+    "apps/web/src/lib/queries.ts",
+    "apps/web/src/lib/auth.ts",
+    "apps/web/src/components/shell/Shell.tsx",
+    "apps/web/src/pages/ObservatoryPage.tsx",
+    "apps/web/src/pages/observatory.css",
+    "apps/web/src/components/inspector/Inspector.tsx",
+    "apps/web/src/components/inspector/Threats.tsx",
+    "apps/server/test/observatory.test.ts",
+    "apps/web/test/observatory.test.ts",
+    "e2e/observatory-presets.spec.ts (original pinned version)",
+    "e2e/keyboard-outline.spec.ts"
+  ],
+  "limitations": [
+    "Per assignment, no browsers, builds, full tests, or live deployed data were used. Runtime focus and actual mobile geometry remain for the separate integration lane.",
+    "The originally pinned phone browser case changes viewport dimensions only; PHONE additionally requires pointer: coarse. The lead changed this test during review; the revised test and its runtime outcome were not independently reviewed here.",
+    "This was one bounded independent source pass using the supplied brief and repository source; implementation result reports were not read."
+  ]
+}

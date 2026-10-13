@@ -333,6 +333,18 @@ resource close; a timeout forces remaining sockets closed and exits with code
   - Repositories resolve their connection through an `AsyncLocalStorage` transaction
     context: a service method and everything it calls commit or roll back together.
     Nested `store.transaction()` calls use savepoints.
+  - Migration 7 adds append-only `score_snapshots`. Capture holds the workspace
+    lock, reads fresh evidence metadata and assessment signals at one server
+    instant, and commits the observation with its audit event. Observations
+    include exact numerators/denominators, formula version, catalog identity,
+    scope IDs, and per-requirement targets and priorities. Workspace deletion
+    removes its observations. Reads return a bounded chronological window.
+  - Scheduled capture checks every 15 minutes after a 30-second startup delay.
+    A locked last-scheduled observation check permits one capture per 24 hours
+    across server instances. Shutdown stops new captures and drains the active
+    one before closing storage. `VISUA_SCORE_HISTORY=off` disables the timer.
+    Manual capture requires `work.write`; GET never creates history. Existing
+    installations begin with no observations; downtime is not backfilled.
 - **Consistency.** Every service mutation runs in one transaction, holds a per-workspace
   lock (a Postgres advisory lock; SQLite serializes writers) and re-reads the workspace
   after taking it, so concurrent requests on different instances never lose updates.
@@ -583,17 +595,24 @@ are URL-backed, and inspection retains the existing detached review snapshot.
   - Below 1024px the sidebar folds into a labeled menu opened from the top bar,
     as described in [the design layout](../DESIGN.md#layout), and the inspector
     becomes a bottom sheet with a handle. Two-pane pages stack below
-    900px; Agents and Policies show one pane at a time. No page, panel or table scrolls
-    sideways at 1024px or on a phone (the ATLAS matrix scrolls within itself): a table's
+    900px; Agents and Policies show one pane at a time. The page itself does not
+    scroll sideways at 1024px or on a phone. Wide matrices, profile comparisons,
+    history charts and tables, schedule tables, and the six-column Board scroll
+    within labeled keyboard-focusable regions. A table's
     secondary columns hide when its panel is narrow (container queries on `.table-box`)
     or the screen is a phone, the FIPS 199 editor becomes one card per row, and chart
     rows wrap.
   - Breakpoints live in `lib/media.ts` (`NARROW`, `PHONE`, `split()`) and `global.css`.
-- **Overview and action plan.** Overview groups the primary framework's
-  readiness, gaps, evidence coverage, and pending decisions above framework
-  cards and next actions. It shows placeholders while the workspace loads.
-  The action plan offers a framework filter, board, timeline, quick add,
-  generated tasks, and agent planning. On the board, a pending status move is
+- **Overview and action plan.** Overview shows scoped implementation progress,
+  valid evidence coverage, risk counts, and the cross-framework attention queue
+  above framework cards. It shows placeholders while the workspace loads.
+  The action plan defaults to an urgency list, with persistent status counts
+  scoped by framework before the status filter. URL parameters retain view,
+  status, framework, and task selection. Board and Timeline remain alternate
+  views. The timeline uses due-only point markers and a numeric schedule table;
+  malformed or missing schedules remain visible without invented durations.
+  Quick add, generated tasks, and agent planning retain capability checks.
+  On the board, a pending status move is
   held by task ID and layered over query results so event-driven refreshes
   cannot briefly restore the old column. The card shows a saving state and
   cannot be dragged again until the request settles. A failed request clears
@@ -636,7 +655,8 @@ are URL-backed, and inspection retains the existing detached review snapshot.
   opens or a bottom sheet covers the canvas; the home view fits the ring and its
   titles inside the canvas and clear of every panel. The HUD's top bar wraps rather than
   overlaps, its chips become selects on a narrow canvas (container queries on the
-  stage), and the legend collapses to the lens name and swatches.
+  stage). Compact legend labels remain visible; their explanatory text can
+  collapse. The outline has its own status or threat-coverage legend.
 
   Below 1024px the outline opens over the scene; phones open the Observatory on its
   outline with the 3D scene one tap away, as described in
@@ -650,6 +670,15 @@ are URL-backed, and inspection retains the existing detached review snapshot.
   modals do not steer the scene. Deep links use `?select=`; requirement code
   links and palette results navigate to that requirement's canonical workspace
   and framework. Palette selection uses the URL rather than a delayed callback.
+
+  Outline presets and text search live in `?preset=` and `?q=` alongside the
+  selection. A pure projection distinguishes matches from ancestor and selected
+  context; context rows don't inflate result counts. Normal framework bundles
+  expose stable `ownerUserId`, current assessed `inScope`, and `asOf`. Status,
+  evidence counts, and scores use one fresh metadata snapshot and clock instead
+  of the hourly score cache. Observatory refreshes every minute and on workspace
+  events. Query placeholders never cross workspace or framework identities.
+  Threat bundles retain derived coverage and don't acquire assessment presets.
 
   Shared tabs provide one selected tab stop, wrapping Left/Right and Home/End,
   and stable tab/panel associations. Inactive panels retain their associations
@@ -678,6 +707,32 @@ are URL-backed, and inspection retains the existing detached review snapshot.
   a pillar hides unrelated arcs and draws its own links in framework color. Below
   1024px the scene and its details
   stack as one scrolling page.
+  The alternate **Matrix** reads `/crosswalk/comparison`: complete pair/group
+  counts with bounded record pagination, exact published endpoint direction,
+  authority, publication status, and source. Evidence selection reads scoped
+  metadata and direct links only; group links and mappings never grant proof.
+  URL parameters retain axes, group filters, page, and artifact. Query results
+  never reuse another pair's details; keyboard focus returns to the initiating
+  control after a new selection loads unless the user has moved focus.
+- **CSF profile.** Full-width category rows align current, target, and the gap
+  between means on a 0–4 scale, with a numeric table and scoped requirement
+  drill-down. Sorting and selection live in the URL. Unknown scope withholds
+  means; excluded categories do not become zeros. Tier answers and save state
+  outlive tab panels but reset with canonical workspace identity. The Shell
+  retains the same workspace subtree through temporary refresh errors when
+  cached data exists; access loss still closes the protected subtree.
+- **Agent stages.** New runs persist collection and analysis boundaries.
+  Proposal, review, and application states derive from persisted outcomes,
+  including autonomy and partial results. Legacy absence remains unknown;
+  cancellation and errors cannot complete an unobserved stage. Decision views
+  retain token-based approval; the flight recorder uses keyboard-operable
+  details controls beneath them.
+- **Observed history.** The overview fetches stored score observations apart
+  from current metrics. Point shapes, direct labels, and an exact numeric table
+  distinguish progress from proof. Lines connect only comparable observations;
+  scope, targets/priorities, catalog, formula, missing frameworks, or gaps over
+  36 hours break the series. One observation does not imply a trend. The chart
+  keeps a readable scale on phones through local horizontal scrolling.
 - **Demand rendering.** Both 3D canvases stop drawing when idle. Camera controls,
   height transitions, and active agent work request frames while moving. DOM
   mutation, resize, scroll, and font observers wake labels and camera framing
@@ -798,7 +853,7 @@ preserve edited fields, while switching tasks discards them.
     previous one (the camera controls leave its world matrix to the renderer), and shown
     and hidden by opacity, a compositor change, so a busy machine never draws new
     positions over old raster
-- `e2e/` (Playwright, 21 tests) runs against the production bundle served by the API,
+- `e2e/` (Playwright) runs against the production bundle served by the API,
   with an in-memory seeded database and WebGL on SwiftShader. It covers the
   Overview and its program links, the Observatory and its 2D twin, the Nexus,
   RMF, SOC 2, AI governance, an agent run with citations, the trust center and
@@ -810,9 +865,12 @@ preserve edited fields, while switching tasks discards them.
   Observatory, the State AI laws page (roles deciding scope, the
   timeline and its list view, obligations in 3D), and layout: labels in the 3D scenes
   stay inside the canvas and clear of the HUD and of each other at 1440 and 1024
-  pixels, the sidebar folds into a menu on a phone, no page, panel or table
-  scrolls sideways at 1024 pixels or on a phone, and the Observatory opens on
-  its outline on a phone.
+  pixels, the sidebar folds into a menu on a phone, pages fit narrow screens,
+  and the Observatory opens on its outline on a phone. Wide comparison charts
+  and tables scroll in explicitly named, keyboard-focusable regions that stay
+  within the viewport. The suite also covers matrix direction/provenance,
+  urgency and due-only tasks, profile/tier draft lifetime, actual agent stages,
+  snapshot comparison breaks, and native keyboard/touch chart scrolling.
 - `pnpm screens` (`scripts/screens.ts`) photographs every view at 1440×900, 1024×768
   and 390×844 into the git-ignored `.screens/` folder, with a contact sheet and a
   report of horizontal overflow and console errors; `--docs` regenerates the README

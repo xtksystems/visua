@@ -591,6 +591,15 @@ export interface Connector {
 
 export type AgentRunStatus = "queued" | "running" | "awaiting-approval" | "completed" | "failed" | "cancelled";
 
+export type AgentStage = "collect" | "analyze" | "propose" | "review" | "apply";
+
+/** Observed runtime boundaries; proposal stages use the persisted proposals themselves. */
+export interface AgentStageObservation {
+  stage: "collect" | "analyze";
+  status: "started" | "completed";
+  at: string;
+}
+
 export type AgentStepType =
   | "plan"
   | "thought"
@@ -663,6 +672,8 @@ export interface AgentRun {
   mode: "claude" | "offline";
   model?: string;
   steps: AgentStep[];
+  /** Absent on legacy runs. An empty array means tracking exists but work has not started. */
+  stageHistory?: AgentStageObservation[];
   summary?: string;
   focusNodeIds: string[];
   taskId?: string;

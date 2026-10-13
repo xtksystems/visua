@@ -1,0 +1,73 @@
+{
+  "run_id": "visual-followthrough-20261013",
+  "node_id": "agent-stages",
+  "status": "complete",
+  "completed_at": "2026-10-13T04:03:25.192552+00:00",
+  "summary": "Recorded explicit initial collection and analysis boundaries, projected proposal/review/application stages from persisted outcomes, and added accessible stage and flight-recorder views with honest query failure states.",
+  "model": [
+    "New runs begin with stageHistory=[]; absent stageHistory remains legacy not recorded.",
+    "Collect spans initial workspace snapshot loading; Analyze spans runtime execution, including tools and proposal generation. Completion observations are appended only after those operations succeed.",
+    "Propose is grounded in persisted proposals. Interrupted runs label recorded proposals without claiming generation completed.",
+    "Review counts pending decisions, human decisions, granted autonomy and unknown legacy decision sources separately.",
+    "Apply completes only when every recorded proposal is applied; failed, rejected, pending, mixed and approved-without-application outcomes remain explicit.",
+    "Answer-only successful tracked runs mark proposal/review/application not needed. Failure and cancellation remain terminal and preserve any proposal outcomes."
+  ],
+  "invariants": [
+    "No changes to approval token/snapshot checks or proposal mutations.",
+    "Lifecycle row updates append facts while preserving cancellation wins. Cancellation during collection prevents subsequent analysis.",
+    "No migration or legacy history backfill. Existing run/proposal routes retain workspace and capability gates.",
+    "Proposal review remains ahead of technical details and the flight recorder."
+  ],
+  "tests": [
+    {
+      "command": "pnpm exec vitest run apps/web/test/agent-stages.test.ts apps/server/test/agent-stages.test.ts",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "result": "19 tests: 12 projection cases and 7 service lifecycle cases; final rerun passed."
+    },
+    {
+      "command": "pnpm --filter @visua/web --filter @visua/server --filter @visua/core typecheck",
+      "cwd": "/Users/artem/visua",
+      "status": "partial",
+      "result": "Core and server passed; web initially failed only in concurrently edited ProfilePage.tsx."
+    },
+    {
+      "command": "pnpm --filter @visua/web typecheck",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "result": "Final retry passed after Profile worker stabilized."
+    },
+    {
+      "command": "git diff --check -- packages/core/src/types.ts apps/server/src/services/visua.ts apps/web/src/pages/AgentsPage.tsx",
+      "cwd": "/Users/artem/visua",
+      "status": "passed"
+    }
+  ],
+  "browser_selectors": {
+    "region": "Agent stages",
+    "stage": "li[data-stage=collect|analyze|propose|review|apply]",
+    "state_attribute": "data-state",
+    "current_attribute": "aria-current=step",
+    "pending_heading": "Current stage: Review",
+    "answer_heading": "Completed without proposed changes",
+    "failure_heading": "Run failed during Analyze (or Collect)",
+    "flight_expansion": "button.agent-step__toggle with aria-expanded and aria-controls",
+    "runs_retry": "Retry loading runs",
+    "inbox_retry": "Retry loading approvals",
+    "run_retry": "Retry loading run"
+  },
+  "source_sha256": {
+    "packages/core/src/types.ts": "af6ea46636e5a6c9c8890e8f20a87e0866bcc08a09ae0a7435eae940fa08015a",
+    "apps/server/src/services/visua.ts": "5c0141c5aa4ebd4b3d6e5f06506f23adfea4974555348647135b792aee9eeb57",
+    "apps/web/src/pages/AgentsPage.tsx": "d5968af32afe6c5ed8824f38dacfb7deb94acb4bc89ed530b39ff852573ccd39",
+    "apps/web/src/lib/agent-stages.ts": "281b2990f7858a76b926cd9b7cb53fecc2bed9ada3f6907b293475f373dc57c9",
+    "apps/web/src/pages/agents.css": "a760bd5571e4a47ed15a4a71299940f797968dcd7bc64524d9ece7908a57ea28",
+    "apps/server/test/agent-stages.test.ts": "52566f281c7cb0eef19ab1ef0ef2946743add1e5a80b69e332c28073ca8bbfc4",
+    "apps/web/test/agent-stages.test.ts": "3dbd1816ed4b504a4c31cca0188ba4b1ad83d1d273b02be899cda420392109fe"
+  },
+  "limitations": [
+    "Build, browser, PostgreSQL/full suites, independent review and visual inspection remain with lead.",
+    "Collect is the initial workspace snapshot boundary; later connector/tool work remains within recorded runtime analysis and is detailed in the flight recorder.",
+    "Legacy decision-source uncertainty is preserved; no stage history is fabricated."
+  ]
+}

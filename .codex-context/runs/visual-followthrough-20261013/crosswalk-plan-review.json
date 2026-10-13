@@ -1,0 +1,39 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "Fresh independent bounded review of Crosswalk comparison and Plan urgency in the dirty checkout based on 9755c01873444647c30821ac1d0b88aa16023632 found two supported issues: inconsistent overdue semantics for legacy timestamps and loss of keyboard focus during uncached comparison selections. All eight supplied source hashes matched at entry and completion; no worker conclusions were read.",
+  "coverage": [
+    "Source identity: crosswalk-plan-review-source.json SHA-256 d5794d26c63ff5588ac4b4dd712a56f76f122d65a3026a5b0ad085a35c7fed1a. Its eight path hashes were verified twice. Brief SHA-256 bf37b10413829e64d86a01a8a83f86f5ae64f363983e4dff3648995227dfaaa8.",
+    "Read AGENTS.md, CLAUDE.md, declared startup project context, workflow, adversarial-review SKILL.md and review contract/schema, and docs/visual-review-plan.md packages 1 and 2 and preserved boundaries.",
+    "Inspected apps/server/src/services/crosswalk-comparison.ts and groupOf in crosswalk.ts: every mapping record and duplicate identity, pair/group/cell totals, reverse axes with original endpoints, authority/publication/source metadata, unresolved endpoints, filter validation, pagination, metadata-only direct evidence links, bound review, independent validity, and no coverage propagation.",
+    "Inspected apps/server/src/app.ts comparison/task routes and workspaceAccess: canonical workspace access, viewer reads, work.write mutation floor, tenant-safe evidence lookup, and read-only comparison behavior.",
+    "Inspected CrosswalkPage.tsx matrix/Nexus routing, ComparisonMatrix.tsx, comparison.css, crosswalk-comparison.ts query helpers, API abort-signal wiring, query defaults, workspace context and keyed Shell provider: URL state, stale pair/workspace isolation, query cancellation, empty/error/reset paths, original-direction labels, evidence labels/links, and keyboard controls.",
+    "Inspected PlanPage.tsx, plan-urgency.ts, plan.css, task/query/mutation hooks, TaskDialogDetails and shared Dialog/modal/Segmented implementations: list default, urgency order, calendar/date-only/invalid schedules, persistent scoped counts, filters, task selection and drafts, workspace changes, assignment/checklists, mutation gating, pending moves, error/retry paths, and focus restoration.",
+    "Compared Plan overdue calculation with packages/core/src/status.ts and its callers apps/server/src/services/attention.ts and views.ts; inspected service handling that explicitly retains unedited legacy timestamp dates.",
+    "Ran pnpm exec vitest run apps/web/test/plan-urgency.test.ts apps/web/test/crosswalk-comparison.test.ts apps/server/test/crosswalk-comparison.test.ts --no-cache from /Users/artem/visua: 3 files, 35 tests passed in 3.84 seconds. The server suite used SQLite in memory and exercised viewer/cross-tenant behavior, metadata-only evidence, expiry, duplicate mappings and pagination beyond old caps.",
+    "Ran an in-memory read-only comparison against FrameworkRegistry.load(): loaded CSF/RMF, CSF/SP800-53 and RMF/SP800-53 pairs had 176, 745 and 77 records respectively; pair, cell, source-group, target-group and reversed totals matched. The first page original published endpoint/relationship tuples remained equal after reversal.",
+    "Executed direct Node reproduction for a task due 2026-10-13T12:00:00Z at 2026-10-13T18:00:00Z: canonical isTaskOverdue=true, Plan taskOverdue=false, Plan taskUrgency=Due today (rank 3).",
+    "Read e2e/crosswalk-comparison.spec.ts and e2e/plan-urgency.spec.ts to assess covered flows; did not claim their execution."
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "apps/web/src/lib/plan-urgency.ts:42-44 (taskOverdue); corroborating packages/core/src/status.ts:45-49",
+      "mechanism": "Legacy dueDate timestamps are rounded down to a UTC day and Plan waits until the following midnight before marking them overdue. Existing canonical status logic preserves timestamp precision. Therefore a task whose timestamp deadline passed earlier today appears as Due today, below review work, even while Overview attention and linked requirement status treat it as overdue. This changes urgency for retained legacy records by up to almost a day.",
+      "evidence": "Executed Node import reproduction on the reviewed source: dueDate=2026-10-13T12:00:00Z and at=2026-10-13T18:00:00Z yielded coreOverdue:true, planOverdue:false, planUrgency:{rank:3,label:\"Due today\",tone:\"review\"}. apps/server/src/services/visua.ts:301-305 explicitly permits unedited old records to retain timestamps; attention.ts:133 and views.ts:248 consume canonical isTaskOverdue. The existing Plan unit suite passes but does not check this canonical agreement.",
+      "recommendation": "Use the canonical overdue semantics for Plan: date-only deadlines stay due through the UTC day, while timezone-qualified legacy timestamps retain their recorded instant. Keep UTC-day projection for timeline display. Add a focused regression comparing both calculations before/after a legacy timestamp deadline and ensure an open Plan refreshes when that deadline passes."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/web/src/components/crosswalk/ComparisonMatrix.tsx:18-37 and 66-69, 86, 89",
+      "mechanism": "Selecting an uncached cell/group, page or evidence artifact changes the query key. With no placeholder data, result.data becomes undefined, so the loading-only return removes the complete matrix and its focused control. When the response arrives all controls are recreated without focus restoration. A keyboard user loses their current matrix or pagination position on each first-time selection and has to traverse the view again; an announced loading message does not preserve focus.",
+      "evidence": "Source trace: queryKey includes the full comparison query at line 19; the cell/group/page/evidence handlers update query parameters; line 37 returns only a heading and loading status while the new key has no data. No retained control shell, focus ref, autofocus, or completion focus effect exists in this component. The app query defaults in main.tsx provide no placeholder data. This is a supported source-derived failure path; no browser reproduction was run because the lead owns that lane.",
+      "recommendation": "Keep the interactive control shell stable during comparison loads or restore focus by logical control identity after results arrive. Preserve the rule against presenting old pair/detail data. Verify keyboard selection of an uncached cell, pagination and evidence selection, including a deliberately delayed response."
+    }
+  ],
+  "limitations": [
+    "No browser/build/server/full-suite/production operations were run; those lanes belong to the lead. Visual rendering, touch behavior and the focus-loss path were reviewed from source, not newly observed in a browser.",
+    "Targeted server verification covered SQLite in memory only, not PostgreSQL. Test execution does not establish untested concurrency or malformed persisted-record behavior.",
+    "The review is bound to the eight supplied hashes and the inspected dependencies at review time; subsequent fixes require affected-path verification."
+  ]
+}

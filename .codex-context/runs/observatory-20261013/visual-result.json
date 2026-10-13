@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "source": "delivery-source.json",
+  "illustrative_fixture": true,
+  "captures": [
+    {
+      "path": ".screens/observatory-20261013/at-risk-1440.png",
+      "viewport": "1440x900",
+      "observed": "Two at-risk matches, ancestor context, persistent outline and scene legends, full framework scene."
+    },
+    {
+      "path": ".screens/observatory-20261013/selection-390.png",
+      "viewport": "390x844, touch and coarse pointer",
+      "observed": "Selected requirement and ancestors remain above inspector; labeled legend, path and sibling controls visible."
+    }
+  ],
+  "automated_assertions": [
+    "Selected row bottom is above the inspector sheet.",
+    "Phone document has at most 1px horizontal overflow."
+  ],
+  "limitations": [
+    "Screenshots use ephemeral browser fixtures, not production records.",
+    "No user study or assistive-technology session performed."
+  ]
+}

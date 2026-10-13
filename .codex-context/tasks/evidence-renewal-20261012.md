@@ -1,6 +1,6 @@
 # Evidence renewal
 
-Status: complete; included in the evidence renewal delivery commit; not deployed
+Status: complete; committed and pushed as `9755c01`; not deployed
 
 ## Outcome and scope
 
@@ -63,8 +63,7 @@ See the [final verification record](../runs/evidence-renewal-20261012/source-ver
 ## Delivery state and next action
 
 Renewal implementation, documentation and verification are complete in the main
-workspace. The verified source is included in the evidence renewal delivery commit and is
-not deployed. The local Docker service
+workspace. The verified source is committed and pushed as `9755c01` and is not deployed. The local Docker service
 continues to run the already-delivered decision workspace commit `e867494`.
 Use the explicit changed paths in the verification record for this delivery;
 leave raw diagnostic traces, transient harnesses and prior visual-review

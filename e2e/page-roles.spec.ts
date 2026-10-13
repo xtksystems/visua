@@ -103,6 +103,7 @@ for (const role of Object.keys(PERSONAS) as TestRole[]) {
       await expect(page.getByRole("button", { name: "Add task", exact: true })).toBeEnabled();
     } else await expect(page.getByRole("button", { name: "Add task", exact: true })).toBeDisabled();
     await expect(page.getByRole("combobox", { name: "Filter by framework" })).toBeEnabled();
+    await page.getByRole("button", { name: "Board", exact: true }).click();
     const card = page.locator(".card").filter({ hasText: TASK });
     await expect(card).toHaveAttribute("draggable", String(canWrite));
     if (!canWrite) {
@@ -163,6 +164,7 @@ for (const role of Object.keys(PERSONAS) as TestRole[]) {
 
     await open("/profile");
     await expect(page.getByRole("heading", { name: "Organizational Profile & Tiers" })).toBeVisible();
+    await page.getByRole("tab", { name: "Tiers", exact: true }).click();
     const tierRadio = page.locator('input[type="radio"]').first();
     await expectWriteControl(tierRadio, canWrite);
     if (canWrite) for (const field of await page.locator('fieldset').all()) {
@@ -269,7 +271,7 @@ test("contributor page writes succeed and a failed policy save keeps its draft w
   const creation = page.waitForResponse((response) => response.request().method() === "POST" && response.url().endsWith(`/workspaces/${fixture.id}/tasks`));
   await page.getByRole("button", { name: "Add task", exact: true }).click();
   expect((await creation).status()).toBe(201);
-  await expect(page.locator(".card").filter({ hasText: newTitle })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Open task ${newTitle}`, exact: true })).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Task title", exact: true })).toHaveValue("");
 
   await page.goto(`/w/${fixture.slug}/policies`);

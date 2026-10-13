@@ -60,6 +60,21 @@ evidence coverage for their individual requirements. Metrics and the queue
 refresh every minute and after relevant workspace changes. Failed loads offer
 retry instead of reporting that no work remains.
 
+**Observed score history** appears below the current overview. A contributor
+can choose **Record snapshot**; scheduled capture also records an observation
+every 24 hours while enabled. Choose a framework to compare its recorded
+implementation progress and valid evidence coverage. The table gives exact
+numerators, denominators, risk counts, observation times, and comparison notes.
+
+History begins with the first recorded observation. It never reconstructs
+earlier scores or fills missed days. Scope, target, priority, catalog, or
+calculation changes interrupt chart lines, as do gaps longer than 36 hours or
+an intervening observation without that framework. The latest 60 workspace
+observations are shown; older observations remain stored. These are sampled
+observations, not continuous monitoring. On narrow screens, scroll the chart
+and table horizontally within their panels. Expand the details for the scope
+and targets behind each point.
+
 ## Review agent changes
 
 Open a proposal from **Needs attention**, an agent run, or the **Approvals
@@ -68,6 +83,13 @@ values, affected requirements, supporting sources, and unknowns before making
 a decision. Agent confidence is a qualitative assessment, not verification.
 The flight recorder remains below the proposals; runtime and token counts are
 under **Run details**.
+
+Runs show **Collect → Analyze → Propose → Review → Apply** from recorded
+lifecycle facts and proposal outcomes. The active stage and any blocker are
+visible. Older runs show unrecorded stages explicitly; answer-only runs do
+not imply changes were applied. Decisions under granted autonomy are labeled
+separately from explicit approvals and rejections. Failed, rejected, cancelled, and mixed outcomes
+remain visible rather than completing the whole sequence.
 
 An approver, admin, or owner can choose **Approve and apply** or **Reject
 proposal**. The review stays fixed while open. If the proposal or workspace
@@ -85,17 +107,25 @@ an applied change.
 
 ## Move work forward
 
-**Action plan** offers a board and a timeline. The board keeps all six task
-statuses visible in groups of three columns on typical desktop screens and
-stacks them on a phone. The framework filter narrows both views. The
-**Generate plan** action always uses the workspace's primary framework.
+**Action plan** opens as a list ordered by blocked work, overdue work, review
+work, work due today or within seven days, other open work, then completed
+work. Priority and due date break ties. Each row includes an owner and next
+action. Status counts stay visible and reflect the selected framework before
+the status filter. View, framework, status, and selected task are in the URL.
+
+**Board** keeps six status columns in a horizontally scrollable region.
+**Timeline** includes a point marker for tasks with only a due date; it never
+invents a start date. Its schedule table also includes unscheduled tasks.
+Dates use UTC; calendar dates remain due through their entire UTC day, while
+older timestamp deadlines retain their exact instant. The **Generate plan**
+action uses the workspace's primary framework.
 
 1. Use **Generate plan** to create tasks from official implementation
    guidance for the primary framework, or use **Plan with agent** to request
    a proposed plan.
 2. Enter a title in **Quick add a task**, then select **Add task** to create
    it in **To do**.
-3. Open a card to review its checklist, status, dates, assignee, and linked
+3. Open a task to review its checklist, status, dates, assignee, and linked
    requirements. Choose an organization member in **Assignee**, set **Due date**,
    and search for requirements to add or remove. Choose **Save task details** to record
    these changes or **Cancel task changes** to discard them. Status and checklist
@@ -106,6 +136,26 @@ stacks them on a phone. The framework filter narrows both views. The
 A card cannot be dragged again while its move is saving. If the save fails,
 the card returns to its previous status and an error message appears. A
 successful move remains in place while the workspace refreshes.
+
+## Compare the CSF profile
+
+**CSF profile & tiers** opens on the **Profile** tab. Category rows compare
+current and target levels on one 0–4 scale, with labeled numeric values,
+the gap between means, and the number of outcomes below target. Sort by
+function, largest mean gap, lowest current level, or highest target level.
+Select a category to inspect its in-scope requirements, status, and valid
+evidence counts. Requirement links open the Observatory inspector.
+
+An excluded or unavailable category has no score; it is not displayed as
+zero progress. **How profile metrics are calculated** explains the scope,
+priority-weighted implementation progress, and observation time. Category
+means themselves are unweighted.
+
+The **Tiers** tab holds the organizational questionnaire. Unsaved answers
+survive switching tabs, a failed save, and temporary workspace refresh failures.
+Saving records the assessment in
+the audit trail. Readers can inspect both tabs; contributors and above can
+save tier assessments.
 
 ## Find your assigned work
 
@@ -202,12 +252,30 @@ requirement to inspect its status, evidence, and tasks. Its 2D outline gives
 you the same path through the framework; on a phone, the outline opens first
 and the 3D scene is one tap away.
 
+Use **Outline preset** to find **At risk**, **Missing evidence**, or
+**Assigned to me** requirements. Presets include only requirements in the
+workspace's current assessed scope. **At risk** uses the derived status;
+**Missing evidence** means no currently valid, accepted evidence is linked
+directly to the requirement. Evidence linked only to a parent group doesn't
+cover its children. **Assigned to me** uses your member account, not an owner
+label that happens to match your name.
+
+Search within a preset with **Filter outline**. The URL retains the preset,
+search, and selection. Matching counts exclude ancestor context and a selected
+requirement outside the filter. The spatial map keeps the whole framework for
+context while the outline narrows your results. Threat catalogs show derived
+coverage and don't offer assessment presets. The labeled legend stays visible;
+expand its explanation for more detail about the scene's encodings.
+
 Tab to the selected outline row or the framework canvas before using scene
 shortcuts. Arrow keys move between siblings, **Enter** opens the first child,
 and **Backspace** or **Escape** moves to the parent. Press **/** to focus the
 outline filter, **F** to frame the selection, or **L** to change lenses. These
 shortcuts leave inspector fields, buttons, and open dialogs alone. Filtering
-keeps your selection and limits tree navigation to visible matches.
+keeps your selection visible with its ancestors, labels context separately,
+and limits tree navigation to visible rows. The inspector's selection context
+lets you move to a parent or sibling without clearing your filter. On a phone,
+the outline reserves room above the inspector sheet for surrounding rows.
 
 Use **Left** and **Right** to change inspector tabs, or **Home** and **End** to
 reach the first and last tab. **Tab** moves into the selected panel. Dialogs
@@ -241,6 +309,18 @@ searchable group list provides a 2D path through the same information. The
 inner threat ring shows published links from threat catalogs to requirement
 groups. A mapping suggests where work may apply; each requirement still needs
 its own evidence.
+
+Choose **Matrix** to compare two requirement frameworks. Select a row, column,
+or cell to inspect its mapping records. Counts include every published record,
+including separate records from different sets. Reversing the axes keeps each
+record's original direction and relationship. Details show the recorded
+authority, publication status, source, and any qualification. Pair, selection,
+page, and evidence filters survive a URL reload.
+
+Select an **Evidence artifact** to inspect its direct links across frameworks.
+Review status and validity are shown separately. Group links provide context;
+they do not cover child requirements, and mappings do not transfer accepted
+proof. The matrix is available to readers and makes no assessment changes.
 
 ![Selected Nexus threat showing its linked groups and mapping details](images/nexus-threat-ring.jpg)
 

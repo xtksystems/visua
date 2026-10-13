@@ -1,0 +1,64 @@
+{
+  "run_id": "observatory-20261013",
+  "node_id": "ui",
+  "changed_files": [
+    "apps/web/src/pages/ObservatoryPage.tsx",
+    "apps/web/src/pages/observatory.css",
+    "apps/web/src/lib/observatory.ts",
+    "apps/web/test/observatory.test.ts",
+    "apps/web/src/components/inspector/Inspector.tsx",
+    "apps/web/src/components/inspector/Threats.tsx"
+  ],
+  "ownership_extension": "Lead explicitly authorized the Threats.tsx optional navigation prop/header slot.",
+  "contract": [
+    "URL preset=all|at-risk|missing-evidence|assigned-to-me and q edits preserve select and unrelated query parameters. Framework switches preserve filtering and use canonical workspace id, dropping cross-framework selection.",
+    "Assessment presets require an enabled non-threat framework, assessable node and inScope===true. At-risk uses derived status, missing evidence uses evidence===0, assignment uses ownerUserId for user principals only.",
+    "All/search navigates the entire graph. Counts include only matching currently in-scope assessable units; ancestor and selected context never inflate counts.",
+    "Missing/error assessment or identity data cannot claim a zero count; retry controls are explicit. Framework snapshot id and placeholder state are checked. Observatory requests 60-second refresh from the lead-owned query hook.",
+    "Filtering retains selected node and ancestors, marks Context/Outside filter, keeps roving tree focus and shortcut ownership, and provides clear/return controls plus inspector ancestor and full sibling navigation.",
+    "Phone outline reserves the standard 55-percent sheet footprint; expanded sheets hide the underlying outline while selection navigation stays in the inspector. Scroll adjustment affects only the tree scroller.",
+    "Outline status/coverage glyph legend and active scene lens labels stay visible. Only explanatory legend prose collapses. CSS colors derive from design tokens.",
+    "Optional inspector navigation preserves existing callers and the workspace/node keyed draft lifetime."
+  ],
+  "selectors": {
+    "preset": "select[aria-label=\"Outline preset\"]",
+    "search": "input[aria-label=\"Filter outline\"]",
+    "summary": ".outline__summary",
+    "tree": "[role=\"tree\"][aria-label=\"Framework outline\"]",
+    "rows": "[role=\"treeitem\"][data-node-id]",
+    "context": "nav[aria-label=\"Selection context\"]",
+    "outline_legend": "[aria-label=\"Outline status legend\"] or [aria-label=\"Outline coverage legend\"]"
+  },
+  "checks": [
+    {
+      "command": "pnpm exec vitest run apps/web/test/observatory.test.ts",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed",
+      "tests": 8
+    },
+    {
+      "command": "pnpm --filter @visua/web typecheck",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed",
+      "note": "Initial attempt exposed a NodeScore fixture shape error; corrected fixture and final typecheck passed."
+    },
+    {
+      "command": "git diff --check -- apps/web/src/pages/ObservatoryPage.tsx apps/web/src/components/inspector/Inspector.tsx apps/web/src/components/inspector/Threats.tsx",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed"
+    }
+  ],
+  "limitations": [
+    "No browser, build, full suite, commit, push, or deployment performed by this worker. Integrated browser and visual acceptance belongs to the lead.",
+    "Helper tests passed before the final fixture-only NodeScore shape correction; final web typecheck validates that corrected fixture.",
+    "Mobile sheet geometry and legend layout are implemented but require lead browser/capture validation."
+  ],
+  "source_sha256": {
+    "apps/web/src/pages/ObservatoryPage.tsx": "03ed26abb954537f318ab64d0750910561bc60097222f237f63ce035f3e6097b",
+    "apps/web/src/pages/observatory.css": "d9c83ce05b3916c743273599044689ad02a87606270dd19181ad719de2668379",
+    "apps/web/src/lib/observatory.ts": "a114ab49f3d3d8fb96d74e66e76dc065e11cac6b5f696fbafa10dbe312864ca6",
+    "apps/web/test/observatory.test.ts": "48ebbff3d5705ed7048a63da26ea6add68b9cfe4f5d97cc301a9242118638b4c",
+    "apps/web/src/components/inspector/Inspector.tsx": "f51fd73fd262cc498f9f06567c9943b5a893f99956c03f26f9cf717d06690bd9",
+    "apps/web/src/components/inspector/Threats.tsx": "688e8a808909ae7e21ce8da42bf3ec8148893b2f8db6d13deb6bd344d674aea9"
+  }
+}

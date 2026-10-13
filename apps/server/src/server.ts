@@ -11,6 +11,8 @@ import { AuthService, RECHECK_BATCH } from "./auth/service.ts";
 import { startDomainRechecks } from "./auth/recheck-ticker.ts";
 import { createService, databaseUrl, type ServiceOptions } from "./context.ts";
 import { initializeWorkspace, loadStartupConfig } from "./startup.ts";
+import { captureDueScoreObservations } from "./services/score-history.ts";
+import { startScoreHistory } from "./services/score-history-ticker.ts";
 import { loadScanRoots } from "./connectors/repo-scan.ts";
 
 async function withinShutdownDeadline(work: Promise<void>, milliseconds: number, force = () => {}): Promise<void> {
@@ -38,6 +40,7 @@ export async function startServer({ env = process.env, ...options }: ServiceOpti
   const connectorRoots = options.connectorRoots ?? loadScanRoots(env);
   const svc = await createService({ ...options, connectorRoots, database: options.database ?? databaseUrl(env) });
   let stopRechecks = async () => {};
+  let stopScoreHistory = async () => {};
   try {
     if (!svc.registry.indexes.size) throw new Error("No framework data found. Run `pnpm ingest` to build it from the local corpus.");
     const auth = new AuthService(svc, authConfig);
@@ -91,16 +94,20 @@ export async function startServer({ env = process.env, ...options }: ServiceOpti
         while (!lifecycle.stopping && (await auth.recheckDueDomains()) === RECHECK_BATCH);
       });
     }
+    if (env["VISUA_SCORE_HISTORY"] !== "off") {
+      stopScoreHistory = startScoreHistory(() => captureDueScoreObservations(svc, { stopped: () => lifecycle.stopping }));
+    }
     let stopped: Promise<void> | undefined;
     const stop = () => {
       if (stopped) return stopped;
       lifecycle.stopping = true;
       shutdown.abort();
       const rechecks = stopRechecks();
+      const scoreHistory = stopScoreHistory();
       const requests = new Promise<void>((done, reject) => server.close((err) => err ? reject(err) : done()));
       server.closeIdleConnections();
       stopped = withinShutdownDeadline((async () => {
-        await Promise.all([requests, rechecks]);
+        await Promise.all([requests, rechecks, scoreHistory]);
         // A disconnected client does not mean its handler has stopped writing.
         while (handlers.size) await Promise.allSettled([...handlers]);
         await svc.drainRuns();
@@ -112,7 +119,7 @@ export async function startServer({ env = process.env, ...options }: ServiceOpti
   } catch (err) {
     try {
       await withinShutdownDeadline((async () => {
-        await stopRechecks();
+        await Promise.all([stopRechecks(), stopScoreHistory()]);
         await svc.drainRuns();
         await svc.store.close();
       })(), config.shutdownMs);

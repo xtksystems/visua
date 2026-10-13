@@ -43,8 +43,10 @@ import { lawsOverview } from "./services/laws.ts";
 import { parseMinStatus, threatCatalogState, threatRing, threatsOverview } from "./services/threats.ts";
 import { overlayMeta, overlaySummary } from "./services/overlays.ts";
 import { crosswalkOverview, crosswalkRows } from "./services/crosswalk.ts";
+import { crosswalkComparison } from "./services/crosswalk-comparison.ts";
 import { soc2Description } from "./services/soc2.ts";
 import { frameworkState, leanGraph, nodeDetail, workspaceSummary } from "./services/views.ts";
+import { recordScoreObservation } from "./services/score-history.ts";
 import { workspaceAttention } from "./services/attention.ts";
 import { workspaceEvidenceRenewal } from "./services/evidence-renewal.ts";
 import { NotFoundError, ValidationError, type VisuaService } from "./services/visua.ts";
@@ -463,6 +465,16 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
     return c.json({ ok: true });
   });
 
+  app.get("/api/workspaces/:ws/score-history", async (c) => {
+    const parsed = z.coerce.number().int().min(1).max(200).safeParse(c.req.query("limit") ?? 60);
+    if (!parsed.success) throw new ValidationError("History limit must be an integer between 1 and 200");
+    const limit = parsed.data;
+    c.header("Cache-Control", "private, no-store");
+    return c.json(await svc.store.scoreHistory.recent(wsId(c), limit));
+  });
+  app.post("/api/workspaces/:ws/score-history", need("work.write"), async (c) =>
+    c.json(await recordScoreObservation(svc, wsId(c), actorOf(c)), 201));
+
   app.get("/api/workspaces/:ws/recommendation", async (c) => c.json(recommend(wsOf(c).profile)));
 
   app.put("/api/workspaces/:ws/frameworks/:fw", need("workspace.configure"), async (c) => {
@@ -698,6 +710,10 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
 
   // ---------------------------------------------------------------- crosswalk, SOC 2 description, activity & events
   app.get("/api/workspaces/:ws/crosswalk", async (c) => c.json(await crosswalkOverview(svc, wsOf(c))));
+  app.get("/api/workspaces/:ws/crosswalk/comparison", async (c) => {
+    c.header("Cache-Control", "private, no-store");
+    return c.json(await crosswalkComparison(svc, wsOf(c), c.req.query()));
+  });
   // The Nexus inner ring: threat catalogs bundled onto the requirement groups linked to them.
   app.get("/api/workspaces/:ws/crosswalk/threats", async (c) => c.json(await threatRing(svc, wsOf(c), parseMinStatus(c.req.query("min")))));
   app.get("/api/workspaces/:ws/crosswalk/rows", async (c) =>

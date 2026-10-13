@@ -1,5 +1,5 @@
-/** Plan: board (drag between statuses), timeline, and task execution. */
-import { Bot, CalendarRange, Columns3, Plus, Sparkles, Wand2 } from "lucide-react";
+/** Plan: urgency list, board (drag between statuses), timeline, and task execution. */
+import { Bot, Plus, Sparkles, Wand2 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -16,8 +16,10 @@ import { Markdown } from "../lib/markdown.tsx";
 import { keys, useSearch, useTasks, useWorkspace, useWsMutation } from "../lib/queries.ts";
 import type { MyWork, Task } from "../lib/types.ts";
 import { split } from "../lib/media.ts";
+import { DAY_MS, PLAN_STATUSES, filterPlanTasks, planStatusCounts, projectTaskTimeline, readPlanQuery, sortPlanTasks, taskDay, taskNextAction, taskOverdue, taskUrgency, writePlanQuery, type PlanQuery, type PlanStatus, type PlanView } from "../lib/plan-urgency.ts";
+import "./plan.css";
 
-const COLUMNS: Task["status"][] = ["backlog", "todo", "in-progress", "in-review", "blocked", "done"];
+const COLUMNS = PLAN_STATUSES;
 const PRIORITY_COLOR: Record<string, string> = {
   critical: "var(--color-status-at-risk)",
   high: "var(--color-status-in-progress)",
@@ -27,7 +29,7 @@ const PRIORITY_COLOR: Record<string, string> = {
 
 function TaskCard({ task, onOpen, saving, canWrite }: { task: Task; onOpen: () => void; saving: boolean; canWrite: boolean }) {
   const done = task.checklist.filter((c) => c.done).length;
-  const overdue = task.status !== "done" && task.dueDate && task.dueDate < new Date().toISOString().slice(0, 10);
+  const overdue = taskOverdue(task);
   return (
     <div className="card" draggable={canWrite && !saving} aria-busy={saving} onDragStart={(e) => e.dataTransfer.setData("text/task", task.id)} onClick={onOpen} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(); } }}>
       <div className="row" style={{ alignItems: "flex-start", gap: 8 }}>
@@ -42,7 +44,7 @@ function TaskCard({ task, onOpen, saving, canWrite }: { task: Task; onOpen: () =
         ))}
         <span>· {task.kind}</span>
         {task.checklist.length ? <span>· {done}/{task.checklist.length}</span> : null}
-        {task.dueDate ? <span style={{ color: overdue ? "var(--color-status-at-risk)" : undefined }}>· {overdue ? "Overdue" : "Due"} {shortDate(/^\d{4}-\d{2}-\d{2}$/.test(task.dueDate) ? `${task.dueDate}T12:00:00` : task.dueDate)}</span> : null}
+        {task.dueDate ? <span style={{ color: overdue ? "var(--color-status-at-risk)" : undefined }}>· {taskDay(task.dueDate) === null ? "Invalid due date" : `${overdue ? "Overdue" : "Due"} ${planDate(taskDay(task.dueDate))}`}</span> : null}
         {task.assignee?.type === "agent" ? <AgentBadge label="agent" /> : task.assignee ? <span>· {task.assignee.name.split(" (")[0]}</span> : null}
         {saving && <span className="card__saving">Saving…</span>}
       </div>
@@ -253,68 +255,101 @@ function TaskDialogDetails({ task, onClose, saving = false }: { task: Task; onCl
   );
 }
 
-function Timeline({ tasks, onOpen }: { tasks: Task[]; onOpen: (t: Task) => void }) {
-  const dated = tasks.filter((t) => t.startDate && t.dueDate).sort((a, b) => a.startDate!.localeCompare(b.startDate!));
-  if (!dated.length) return <Empty title="No scheduled tasks" />;
-  const min = new Date(dated[0]!.startDate!).getTime() - 3 * 86_400_000;
-  const max = Math.max(...dated.map((t) => new Date(t.dueDate!).getTime())) + 5 * 86_400_000;
+function planDate(day: number | null): string {
+  return day === null ? "—" : new Date(day).toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+}
+
+function TaskOwner({ task }: { task: Task }) {
+  if (!task.assignee) return <span className="muted">Unassigned</span>;
+  if (task.assignee.type === "agent") return <AgentBadge label={task.assignee.name} />;
+  return <span>{task.assignee.name}{task.assignee.type === "external" ? " (external)" : ""}</span>;
+}
+
+function TaskDue({ task, now }: { task: Task; now: number }) {
+  const due = taskDay(task.dueDate);
+  const overdue = taskOverdue(task, now);
+  return <span className={overdue ? "plan-overdue" : undefined}>{due === null ? task.dueDate ? "Invalid due date" : "No due date" : <>{overdue ? "Overdue · " : ""}<time dateTime={new Date(due).toISOString().slice(0, 10)}>{planDate(due)}</time></>}</span>;
+}
+
+function UrgencyList({ tasks, now, onOpen }: { tasks: Task[]; now: number; onOpen: (task: Task) => void }) {
+  return <section aria-labelledby="plan-list-title">
+    <h2 className="section-title" id="plan-list-title">Tasks by urgency</h2>
+    <p className="muted plan-caption">Blocked, overdue, then awaiting review; followed by due today, the next 7 days, and upcoming work. Priority and due date break ties. Completed work is last.</p>
+    <ol className="plan-list">
+      {tasks.map((task) => {
+        const urgency = taskUrgency(task, now);
+        const statusLabel = TASK_STATUS_LABEL[task.status] ?? task.status;
+        return <li key={task.id} className="panel plan-task" data-task-id={task.id}>
+          <div className="plan-task__reason">
+            <span className={`plan-urgency plan-urgency--${urgency.tone}`}>{urgency.label}</span>
+            <span className="muted">{urgency.label.toLowerCase() === statusLabel.toLowerCase() ? "" : `${statusLabel} · `}{task.priority}</span>
+          </div>
+          <div className="plan-task__subject">
+            <button className="btn btn--quiet plan-task__title" aria-label={`Open task ${task.title}`} onClick={() => onOpen(task)}>{task.title}</button>
+            {task.requirementIds.length ? <div className="row row--wrap" aria-label="Affected requirements">{task.requirementIds.map((id) => <CodeTag key={id} id={id} />)}</div> : <span className="muted">No linked requirements</span>}
+          </div>
+          <dl className="plan-task__facts">
+            <div><dt>Owner</dt><dd><TaskOwner task={task} /></dd></div>
+            <div><dt>Due date · UTC</dt><dd><TaskDue task={task} now={now} /></dd></div>
+            <div><dt>Next action</dt><dd>{taskNextAction(task)}</dd></div>
+          </dl>
+        </li>;
+      })}
+    </ol>
+  </section>;
+}
+
+function Timeline({ tasks, now, onOpen }: { tasks: Task[]; now: number; onOpen: (t: Task) => void }) {
+  const entries = projectTaskTimeline(tasks);
+  const dated = entries.filter((entry) => entry.due !== null);
+  const min = dated.length ? Math.min(...dated.map((entry) => entry.start ?? entry.due!)) - 3 * DAY_MS : 0;
+  const max = dated.length ? Math.max(...dated.map((entry) => entry.due!)) + 5 * DAY_MS : DAY_MS;
   const span = max - min;
-  const today = Date.now();
-  const x = (d: number) => `${((d - min) / span) * 100}%`;
-  const months: { label: string; at: number }[] = [];
-  const cursor = new Date(min);
-  cursor.setDate(1);
-  while (cursor.getTime() < max) {
-    if (cursor.getTime() > min) months.push({ label: cursor.toLocaleDateString("en", { month: "short", year: "2-digit" }), at: cursor.getTime() });
-    cursor.setMonth(cursor.getMonth() + 1);
-  }
-  return (
-    <div className="panel" style={{ position: "relative", overflowX: "auto" }}>
-      <div style={{ position: "relative", minWidth: 900 }}>
-        <div style={{ position: "relative", height: 22, borderBottom: "1px solid var(--color-outline)", marginBottom: 8 }}>
-          {months.map((m) => (
-            <span key={m.at} className="eyebrow" style={{ position: "absolute", left: x(m.at) }}>
-              {m.label}
-            </span>
-          ))}
-        </div>
-        {today > min && today < max && <div style={{ position: "absolute", top: 0, bottom: 0, left: x(today), width: 2, background: "var(--color-primary)", opacity: 0.7 }} title="Today" />}
-        {dated.map((t) => {
-          const s = new Date(t.startDate!).getTime();
-          const e = new Date(t.dueDate!).getTime() + 86_400_000;
-          const late = t.status !== "done" && e < today;
-          return (
-            <div key={t.id} style={{ position: "relative", height: 30 }}>
+  const x = (day: number) => `${((day - min) / span) * 100}%`;
+  const today = Math.floor(now / DAY_MS) * DAY_MS;
+  return <section className="stack" aria-labelledby="plan-timeline-title">
+    <div>
+      <h2 className="section-title" id="plan-timeline-title">Task timeline</h2>
+      <p className="muted plan-caption">Dates use UTC. A diamond marks a due date without a usable start; a bar spans recorded start and due dates. Every task also appears in the schedule table.</p>
+    </div>
+    {dated.length ? <div className="panel plan-scroll" role="region" aria-label="Task timeline chart" tabIndex={0}>
+      <div className="plan-timeline">
+        <div className="plan-timeline__row plan-timeline__axis"><span>Task</span><div><span>{planDate(min)}</span><span>{planDate(max)}</span></div></div>
+        {dated.map((entry) => {
+          const late = taskOverdue(entry.task, now);
+          const description = entry.kind === "due" ? `Due date only: ${planDate(entry.due)}` : `${planDate(entry.start)} to ${planDate(entry.due)}`;
+          return <div className="plan-timeline__row" key={entry.task.id}>
+            <span className="plan-timeline__label">{entry.task.title}</span>
+            <div className="plan-timeline__track">
+              {today >= min && today <= max && <span className="plan-timeline__today" style={{ left: x(today) }} title={`Today · ${planDate(today)}`} />}
               <button
-                onClick={() => onOpen(t)}
-                title={`${late ? "Overdue · " : ""}${t.title} · ${TASK_STATUS_LABEL[t.status]}`}
-                style={{
-                  position: "absolute",
-                  left: x(s),
-                  width: `max(${((e - s) / span) * 100}%, 6px)`,
-                  top: 4,
-                  height: 22,
-                  borderRadius: 6,
-                  border: `1px solid ${late ? "var(--color-status-at-risk)" : "var(--color-outline-strong)"}`,
-                  background: t.status === "done" ? "var(--color-status-implemented-container)" : t.status === "in-progress" || t.status === "in-review" ? "var(--color-status-in-progress-container)" : "var(--color-surface-raised)",
-                  color: "var(--color-on-surface)",
-                  fontSize: 11.5,
-                  textAlign: "left",
-                  padding: "0 8px",
-                  overflow: "hidden",
-                  whiteSpace: "nowrap",
-                  textOverflow: "ellipsis",
-                  cursor: "pointer",
-                }}
-              >
-                {late ? "Overdue · " : ""}{t.title}
-              </button>
+                className={`plan-timeline__event ${entry.kind === "due" ? "plan-timeline__event--due" : ""} ${late ? "is-overdue" : ""} ${entry.task.status === "done" ? "is-done" : ""}`}
+                data-task-id={entry.task.id}
+                data-schedule-kind={entry.kind}
+                style={{ left: x(entry.start ?? entry.due!), width: entry.kind === "interval" ? `max(${((entry.due! + DAY_MS - entry.start!) / span) * 100}%, 24px)` : undefined }}
+                aria-label={`${entry.task.title} · ${description}${late ? " · Overdue" : ""}`}
+                title={`${entry.task.title} · ${description}${late ? " · Overdue" : ""}${entry.note ? ` · ${entry.note}` : ""}`}
+                onClick={() => onOpen(entry.task)}
+              >{entry.kind === "due" ? "◆" : late ? "Overdue" : TASK_STATUS_LABEL[entry.task.status]}</button>
             </div>
-          );
+          </div>;
         })}
       </div>
+    </div> : <Empty title="No scheduled tasks">Add a due date in task details to place work on the timeline. All filtered tasks are listed below.</Empty>}
+    <div className="plan-scroll" role="region" aria-label="Task schedule table" tabIndex={0}>
+      <table className="table plan-schedule">
+        <caption>Task schedule · {tasks.length} filtered tasks · UTC dates</caption>
+        <thead><tr><th scope="col">Task</th><th scope="col">Status</th><th scope="col">Start date</th><th scope="col">Due date</th><th scope="col">Schedule</th></tr></thead>
+        <tbody>{entries.map((entry) => <tr key={entry.task.id}>
+          <th scope="row"><button className="btn btn--quiet plan-task__title" onClick={() => onOpen(entry.task)}>{entry.task.title}</button></th>
+          <td>{TASK_STATUS_LABEL[entry.task.status]}</td>
+          <td>{entry.task.startDate ? planDate(taskDay(entry.task.startDate)) : "Not set"}</td>
+          <td><TaskDue task={entry.task} now={now} /></td>
+          <td>{entry.note ?? (entry.kind === "due" ? "Due date only" : "Start to due date")}</td>
+        </tr>)}</tbody>
+      </table>
     </div>
-  );
+  </section>;
 }
 
 export function PlanPage() {
@@ -326,10 +361,23 @@ export function PlanPage() {
   const workspace = useWorkspace(ws);
   const run = useRunAgent();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [view, setView] = useState<"board" | "timeline">("board");
+  const { view, framework, status } = readPlanQuery(searchParams);
+  const setFilters = (patch: Partial<PlanQuery>) => setSearchParams((previous) => writePlanQuery(previous, patch));
   const [over, setOver] = useState<string | null>(null);
-  const [framework, setFramework] = useState("all");
   const [newTitle, setNewTitle] = useState("");
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    // Refresh an open plan at the UTC day boundary, including after tab suspension.
+    const refresh = () => setNow(Date.now());
+    const timer = window.setTimeout(refresh, DAY_MS - now % DAY_MS + 50);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [now]);
   const pendingMovesRef = useRef<Record<string, Task["status"]>>({});
   const [pendingMoves, setPendingMoves] = useState<Record<string, Task["status"]>>({});
   const clearPendingMove = (id: string) => {
@@ -359,13 +407,27 @@ export function PlanPage() {
   const create = useWsMutation(ws, (title: string) => api.post(`/workspaces/${encodeURIComponent(ws)}/tasks`, { title, status: "todo" }), {
     onError: (error) => toast(`Could not add task: ${error.message}`, "error"),
   });
-  const filtered = useMemo(() => (framework === "all" ? tasks : tasks.filter((t) => t.requirementIds.some((id) => frameworkOf(id) === framework))).map((task) => {
-    const status = pendingMoves[task.id];
-    return status ? { ...task, status } : task;
-  }), [tasks, framework, pendingMoves]);
+  const scoped = useMemo(() => filterPlanTasks(tasks.map((task) => {
+    const nextStatus = pendingMoves[task.id];
+    return nextStatus ? { ...task, status: nextStatus } : task;
+  }), framework), [tasks, framework, pendingMoves]);
+  const filtered = useMemo(() => sortPlanTasks(filterPlanTasks(scoped, "all", status), now), [scoped, status, now]);
+  const counts = planStatusCounts(scoped);
+  const frameworks = [...new Set([...(workspace.data?.frameworks.map((item) => item.id) ?? []), ...tasks.flatMap((task) => task.requirementIds.map(frameworkOf))])].filter((id) => id && !isThreatCatalog(id));
   const selectedId = searchParams.get("task");
   const selectedTask = selectedId ? tasks.find((t) => t.id === selectedId) : undefined;
   const current = selectedTask ? { ...selectedTask, status: pendingMoves[selectedTask.id] ?? selectedTask.status } : null;
+  const statusSummaryRef = useRef<HTMLElement>(null);
+  const previousSelectedRef = useRef<string | null>(null);
+  useEffect(() => {
+    const previous = previousSelectedRef.current;
+    previousSelectedRef.current = current?.id ?? null;
+    if (!previous || current) return;
+    // The shared dialog restores its trigger; a status edit can filter that trigger out.
+    queueMicrotask(() => {
+      if (document.activeElement === document.body) statusSummaryRef.current?.querySelector<HTMLButtonElement>('button[aria-pressed="true"]')?.focus();
+    });
+  }, [current?.id]);
   const openTask = (task: Task) => setSearchParams((previous) => {
     const next = new URLSearchParams(previous);
     next.set("task", task.id);
@@ -389,19 +451,20 @@ export function PlanPage() {
   if (taskQuery.error && !taskQuery.data) return <QueryError title="Unable to load the action plan" error={taskQuery.error} retry={() => taskQuery.refetch()} />;
   if (!taskQuery.data) return <div className="page muted" role="status">Loading action plan…</div>;
   return (
-    <div className="page">
+    <div className="page plan-page">
       <header className="page__header">
         <div>
           <div className="eyebrow">Plan</div>
           <h1>Action plan</h1>
-          <p>Tasks are grounded in official implementation examples, points of focus and assessment objectives. Drag cards between columns; open one to work its checklist or hand it to an agent.</p>
+          <p>Resolve blockers, review finished work, and act on approaching due dates. Open a task to work its checklist, update details, or hand it to an agent.</p>
         </div>
         <div className="page__actions">
-          <Segmented
+          <Segmented<PlanView>
             label="View"
             value={view}
-            onChange={setView}
+            onChange={(next) => setFilters({ view: next })}
             options={[
+              { id: "list", label: "List" },
               { id: "board", label: "Board" },
               { id: "timeline", label: "Timeline" },
             ]}
@@ -424,17 +487,19 @@ export function PlanPage() {
       </header>
       {!canWrite && <p className="muted" role="note">Read-only access. You can view tasks, checklists and the timeline; contributors and above manage the plan.</p>}
       {taskQuery.error && <div className="panel row row--wrap" role="alert" style={{ marginBottom: 16, gap: 12 }}><span>Could not refresh the action plan. Showing the last loaded tasks.</span><button className="btn btn--sm" onClick={() => void taskQuery.refetch()}>Retry</button></div>}
+      {workspace.error && <div className="panel row row--wrap" role="alert"><span>Could not load workspace framework details.</span><button className="btn btn--sm" onClick={() => void workspace.refetch()}>Retry framework details</button></div>}
       <div className="row row--wrap" style={{ marginBottom: 16, gap: 8 }}>
-        <select className="select" style={{ width: 220, maxWidth: "100%" }} value={framework} onChange={(e) => setFramework(e.target.value)} aria-label="Filter by framework">
+        <select className="select" style={{ width: 220, maxWidth: "100%" }} value={framework} onChange={(e) => setFilters({ framework: e.target.value })} aria-label="Filter by framework">
           <option value="all">All frameworks</option>
-          {workspace.data?.frameworks.map((f) => (
-            <option key={f.id} value={f.id}>
-              {badgeOf(f.id)}
+          {framework !== "all" && !frameworks.includes(framework) && <option value={framework}>Unavailable framework ({framework})</option>}
+          {frameworks.map((id) => (
+            <option key={id} value={id}>
+              {badgeOf(id)}
             </option>
           ))}
         </select>
-        <span className="muted" style={{ fontSize: 13 }}>
-          {filtered.length} task(s) · {filtered.filter((t) => t.status === "done").length} done
+        <span className="muted" style={{ fontSize: 13 }} role="status">
+          Showing {filtered.length} of {scoped.length} task(s) in {framework === "all" ? "all frameworks" : badgeOf(framework)}
         </span>
         <span style={{ flex: 1 }} />
         <form
@@ -453,8 +518,19 @@ export function PlanPage() {
           </button>
         </form>
       </div>
-      {view === "board" ? (
-        <div className="board">
+      <section ref={statusSummaryRef} className="plan-status-summary" aria-label="Task status counts">
+        <p className="muted plan-caption">Counts include every status in {framework === "all" ? "all frameworks" : badgeOf(framework)}, before the status filter.</p>
+        <Segmented<PlanStatus> label="Filter tasks by status" value={status} onChange={(next) => setFilters({ status: next })} options={[
+          { id: "all", label: `All statuses (${scoped.length})` },
+          ...COLUMNS.map((column) => ({ id: column, label: `${TASK_STATUS_LABEL[column]} (${counts[column]})` })),
+        ]} />
+      </section>
+      {!filtered.length ? <Empty title={tasks.length ? "No tasks match these filters" : "No tasks yet"}>
+        {tasks.length ? <button className="btn btn--sm" onClick={() => setFilters({ framework: "all", status: "all" })}>Clear task filters</button> : canWrite ? "Add a task or use Generate plan to turn your gaps into work." : "No tasks have been added to this workspace."}
+      </Empty> : view === "list" ? <UrgencyList tasks={filtered} now={now} onOpen={openTask} /> : view === "board" ? (
+        <div className="plan-scroll" role="region" aria-label="Task board" tabIndex={0}>
+        <p className="muted plan-caption">Scroll to see all six statuses. Open a card for task details{canWrite ? ", or drag it to another column" : ""}.</p>
+        <div className="board plan-board">
           {COLUMNS.map((col) => {
             const items = filtered.filter((t) => t.status === col);
             return (
@@ -496,15 +572,9 @@ export function PlanPage() {
             );
           })}
         </div>
-      ) : (
-        <Timeline tasks={filtered} onOpen={openTask} />
-      )}
-      {view === "board" && !filtered.length && (
-        <div style={{ marginTop: 16 }}>
-          <Empty title="No tasks yet">
-            Use <strong>Generate plan</strong> to turn your gaps into scheduled work, or ask the Planner agent. <Columns3 size={12} /> <CalendarRange size={12} />
-          </Empty>
         </div>
+      ) : (
+        <Timeline tasks={filtered} now={now} onOpen={openTask} />
       )}
       {current && <TaskDialog key={current.id} task={current} saving={!!pendingMoves[current.id]} onClose={closeTask} />}
     </div>

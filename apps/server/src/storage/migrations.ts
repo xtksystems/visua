@@ -254,7 +254,20 @@ const evidenceContentSeparation: Migration = {
   },
 };
 
-export const MIGRATIONS: Migration[] = [baseline, tenantSettings, ssoDomainVerification, ssoDomainRecheck, evidenceApprovalBinding, evidenceContentSeparation];
+/** Begin recording observations only; existing scores are not historical evidence. */
+const scoreHistory: Migration = {
+  version: 7,
+  name: "immutable observed score history",
+  async up(db) {
+    await run(db, [
+      `CREATE TABLE score_snapshots (id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE, observed_at TEXT NOT NULL, revision INTEGER NOT NULL, reason TEXT NOT NULL CHECK (reason IN ('manual', 'scheduled')), data ${json(db.dialect)} NOT NULL)`,
+      `CREATE INDEX score_snapshots_ws_time ON score_snapshots(workspace_id, observed_at, revision, id)`,
+      `CREATE INDEX score_snapshots_ws_reason_time ON score_snapshots(workspace_id, reason, observed_at)`,
+    ]);
+  },
+};
+
+export const MIGRATIONS: Migration[] = [baseline, tenantSettings, ssoDomainVerification, ssoDomainRecheck, evidenceApprovalBinding, evidenceContentSeparation, scoreHistory];
 
 export async function migrate(driver: SqlDriver): Promise<number[]> {
   await driver.execute(`CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL)`);

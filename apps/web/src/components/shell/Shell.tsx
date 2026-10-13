@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
-import { api, setCsrfToken } from "../../lib/api.ts";
+import { api, ApiError, setCsrfToken } from "../../lib/api.ts";
 import { ROLE_NAMES, useCan, useMe, useResetSession } from "../../lib/auth.ts";
 import { initials } from "../../pages/LoginPage.tsx";
 import { useWorkspaceEvents } from "../../lib/events.ts";
@@ -485,8 +485,13 @@ export function Shell() {
     return () => window.removeEventListener("keydown", onKey);
   }, [openPalette]);
 
-  if (route.error || summary.error) return <QueryError title="Unable to open this workspace" error={route.error ?? summary.error} retry={() => route.error ? route.refetch() : summary.refetch()}><Link className="btn" to="/">Workspaces</Link></QueryError>;
-  if (meta.error) return <QueryError title="Unable to load Visua" error={meta.error} retry={() => meta.refetch()} />;
+  // Keep same-workspace drafts mounted through temporary background failures.
+  // Access loss and missing destinations still discard the protected subtree.
+  const transient = (error: Error) => !(error instanceof ApiError) || error.status >= 500 || error.status === 408 || error.status === 429;
+  const workspaceError = route.error ?? summary.error;
+  const fatalWorkspace = (route.error && (!route.data || !transient(route.error))) || (summary.error && (!data || !transient(summary.error)));
+  if (fatalWorkspace) return <QueryError title="Unable to open this workspace" error={workspaceError} retry={() => route.error ? route.refetch() : summary.refetch()}><Link className="btn" to="/">Workspaces</Link></QueryError>;
+  if (meta.error && (!meta.data || !transient(meta.error))) return <QueryError title="Unable to load Visua" error={meta.error} retry={() => meta.refetch()} />;
   if (!data || !meta.data) return <div className="page muted">Loading Visua…</div>;
   return (
     <WorkspaceContext.Provider key={data.workspace.id} value={{ id: data.workspace.id, slug: data.workspace.slug, route: ws }}>
@@ -495,6 +500,10 @@ export function Shell() {
       {navOpen && <div className="shell__backdrop" onClick={() => setNav(false)} aria-hidden />}
       <TopBar ws={ws} />
       <main className="main" id="main">
+        {(workspaceError || meta.error) && <div className="panel" role="status" style={{ margin: "var(--space-md)", padding: "var(--space-md)" }}>
+          <p>Could not refresh workspace information. The current page and unsaved drafts are retained. {(workspaceError ?? meta.error)?.message}</p>
+          <button className="btn btn--sm" onClick={() => void Promise.all([route.refetch(), summary.refetch(), meta.refetch()])}>Retry workspace refresh</button>
+        </div>}
         <Outlet />
       </main>
       <CommandPalette ws={ws} />

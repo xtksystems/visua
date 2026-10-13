@@ -17,3 +17,4 @@ export * from "./trust.ts";
 export * from "./laws.ts";
 export * from "./attention.ts";
 export * from "./proposal-review.ts";
+export * from "./score-history.ts";

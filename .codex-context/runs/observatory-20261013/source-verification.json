@@ -1,0 +1,91 @@
+{
+  "status": "verified",
+  "verified_utc": "2026-10-13T02:31:44.754223+00:00",
+  "repo_root": "/Users/artem/visua",
+  "base_commit": "9755c01873444647c30821ac1d0b88aa16023632",
+  "branch": "feat/light-workspace-design",
+  "change_state": "uncommitted; not deployed",
+  "source_pins": "delivery-source.json",
+  "source_pins_checked": 287,
+  "changed_paths": [
+    "apps/server/src/services/views.ts",
+    "apps/server/test/observatory.test.ts",
+    "apps/web/src/components/inspector/Inspector.tsx",
+    "apps/web/src/components/inspector/Threats.tsx",
+    "apps/web/src/lib/observatory.ts",
+    "apps/web/src/lib/queries.ts",
+    "apps/web/src/lib/types.ts",
+    "apps/web/src/pages/ObservatoryPage.tsx",
+    "apps/web/src/pages/observatory.css",
+    "apps/web/test/observatory.test.ts",
+    "docs/architecture.md",
+    "docs/workspace.md",
+    "e2e/keyboard-outline.spec.ts",
+    "e2e/observatory-presets.spec.ts"
+  ],
+  "checks": {
+    "non_browser": {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL -u VISUA_AUTH_MODE -u VISUA_SEED pnpm check --no-e2e",
+      "cwd": "/Users/artem/visua",
+      "exit_code": 0,
+      "sqlite_passed": 540,
+      "sqlite_skipped": 2,
+      "postgres_passed": 542,
+      "licensing": "passed",
+      "corpus": "passed",
+      "design": "passed",
+      "log": "check-no-e2e.log",
+      "reuse": "Server, helpers, unit tests, dependencies and configurations unchanged since this pass; later edits concern page focus/URL behavior and browser assertions."
+    },
+    "typecheck": {
+      "command": "pnpm typecheck",
+      "exit_code": 0,
+      "log": "typecheck-final-focus.log"
+    },
+    "browser": {
+      "status": "verified_with_targeted_reruns",
+      "unique_cases": 123,
+      "full_lane": {
+        "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL VISUA_AUTH_MODE=dev VISUA_SEED=1 pnpm test:e2e",
+        "exit_code": 0,
+        "passed": 123,
+        "duration": "11.0m",
+        "source": "final-source.json",
+        "log": "browser-full.log"
+      },
+      "final_affected": {
+        "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL VISUA_AUTH_MODE=dev VISUA_SEED=1 pnpm test:e2e e2e/observatory-presets.spec.ts e2e/keyboard-outline.spec.ts",
+        "exit_code": 0,
+        "passed": 13,
+        "duration": "1.2m",
+        "source": "delivery-source.json",
+        "log": "browser-final-focus.log"
+      },
+      "reconciliation": "Full suite passed, then two focus corrections changed ObservatoryPage plus two browser specs. All 13 affected cases passed on the final source. The other 110 cases remain applicable."
+    },
+    "independent_review": {
+      "status": "complete",
+      "initial": "review.json",
+      "followup": "review-fix.json",
+      "verdict": "findings resolved by lead",
+      "adjudication": "lead-delta-review.json"
+    },
+    "visual": {
+      "status": "passed",
+      "report": "visual-result.json"
+    },
+    "diff_check": "passed",
+    "documentation_links": "8 local links in changed canonical docs checked; no missing targets"
+  },
+  "delivery": {
+    "renewal": "9755c01 committed and pushed this turn",
+    "observatory": "uncommitted; not deployed",
+    "local_docker": "e867494 remains the deployed revision"
+  },
+  "limitations": [
+    "No single full-browser command was run after the final focus corrections; final coverage combines the full suite and affected reruns.",
+    "Presets filter the outline while the 3D scene retains the full framework for context.",
+    "Periodic time-driven refresh is once per minute while active; workspace events also refresh assessment data.",
+    "Crosswalk matrix, Plan urgency list, CSF profile refinement, full agent stages and broader visual polish remain. Historical trends require reliable scope/target-aware snapshots."
+  ]
+}

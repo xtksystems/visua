@@ -7,7 +7,7 @@
  * `store.atomic()` / `store.transaction()` that is the open transaction, so a
  * service method and everything it calls commit or roll back together.
  */
-import type { ActivityEvent, AgentRun, CheckResult, Connector, Evidence, Policy, Proposal, RequirementState, Risk, Task, Workspace } from "@visua/core";
+import type { ActivityEvent, AgentRun, CheckResult, Connector, Evidence, Policy, Proposal, RequirementState, Risk, Task, Workspace, ScoreObservation, ScoreHistory } from "@visua/core";
 import { parseJson, txContext, type Dialect, type SqlDriver, type TxContext } from "./driver.ts";
 import { IdentityStore } from "./identity.ts";
 import { Repo, type StoreContext } from "./repo.ts";
@@ -84,6 +84,29 @@ export class Collection<T extends Entity> extends Repo {
   async count(workspaceId: string): Promise<number> {
     const [row] = await this.db.query<{ n: number }>(`SELECT COUNT(*) AS n FROM ${this.table} WHERE workspace_id = ?`, [workspaceId]);
     return Number(row?.n ?? 0);
+  }
+}
+
+/** Append-only observations: callers cannot overwrite an existing snapshot. */
+export class ScoreHistoryTable extends Repo {
+  async append(observation: ScoreObservation): Promise<void> {
+    await this.db.execute(`INSERT INTO score_snapshots (id, workspace_id, observed_at, revision, reason, data) VALUES (?, ?, ?, ?, ?, ${this.J})`,
+      [observation.id, observation.workspaceId, observation.observedAt, observation.revision, observation.reason, JSON.stringify(observation)]);
+  }
+
+  async recent(workspaceId: string, limit = 60): Promise<ScoreHistory> {
+    const bounded = Math.max(1, Math.min(200, Math.floor(limit)));
+    const rows = await this.db.query<DataRow>(`SELECT data FROM score_snapshots WHERE workspace_id = ? ORDER BY observed_at DESC, revision DESC, id DESC LIMIT ?`, [workspaceId, bounded + 1]);
+    return { workspaceId, hasOlder: rows.length > bounded, observations: rows.slice(0, bounded).reverse().map(row => parseJson<ScoreObservation>(row.data)) };
+  }
+
+  async latestScheduledAt(workspaceId: string): Promise<string | undefined> {
+    const [row] = await this.db.query<{ observed_at: string }>(`SELECT observed_at FROM score_snapshots WHERE workspace_id = ? AND reason = 'scheduled' ORDER BY observed_at DESC LIMIT 1`, [workspaceId]);
+    return row?.observed_at;
+  }
+
+  async deleteWorkspace(workspaceId: string): Promise<void> {
+    await this.db.execute(`DELETE FROM score_snapshots WHERE workspace_id = ?`, [workspaceId]);
   }
 }
 
@@ -323,6 +346,7 @@ export class Store implements StoreContext {
   readonly runs: Collection<AgentRun>;
   readonly proposals: Collection<Proposal>;
   readonly activity: ActivityLog;
+  readonly scoreHistory: ScoreHistoryTable;
   readonly identity: IdentityStore;
   private savepoints = 0;
   private readonly closers: (() => Promise<void>)[] = [];
@@ -340,6 +364,7 @@ export class Store implements StoreContext {
     this.runs = new Collection<AgentRun>(this, "agent_runs");
     this.proposals = new Collection<Proposal>(this, "proposals");
     this.activity = new ActivityLog(this);
+    this.scoreHistory = new ScoreHistoryTable(this);
     this.identity = new IdentityStore(this);
   }
 
@@ -421,7 +446,7 @@ export class Store implements StoreContext {
   async deleteWorkspace(id: string): Promise<void> {
     await this.atomic(async () => {
       await this.states.deleteWorkspace(id);
-      for (const c of [this.tasks, this.evidence, this.policies, this.risks, this.connectors, this.checks, this.runs, this.proposals, this.activity]) {
+      for (const c of [this.tasks, this.evidence, this.policies, this.risks, this.connectors, this.checks, this.runs, this.proposals, this.activity, this.scoreHistory]) {
         await c.deleteWorkspace(id);
       }
       await this.workspaces.delete(id);

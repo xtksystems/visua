@@ -1,0 +1,70 @@
+.agent-stages {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--color-outline);
+}
+
+.agent-stages h3 {
+  margin: 0;
+  font-size: var(--font-body-lg-size);
+  font-weight: var(--font-title-md-weight);
+}
+
+.agent-stages__blocker {
+  margin-top: var(--space-sm);
+  font-size: var(--font-body-md-size);
+  line-height: var(--font-body-md-line-height);
+}
+
+.agent-stages__sequence {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-md);
+  margin: var(--space-lg) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.agent-stages__sequence li {
+  min-width: 0;
+  padding-top: var(--space-sm);
+  border-top: 3px solid var(--color-outline);
+  overflow-wrap: anywhere;
+}
+
+.agent-stages__sequence li[aria-current="step"] { border-color: var(--color-tertiary); }
+.agent-stages__sequence li[data-state="complete"] { border-color: var(--color-status-implemented); }
+.agent-stages__sequence li[data-state="failed"],
+.agent-stages__sequence li[data-state="partial"] { border-color: var(--color-status-at-risk); }
+.agent-stages__label { font-weight: var(--font-title-md-weight); }
+.agent-stages__state { display: block; margin-top: var(--space-xs); font-size: var(--font-body-sm-size); }
+.agent-stages__sequence p { margin-top: var(--space-xs); font-size: var(--font-body-sm-size); line-height: var(--font-body-sm-line-height); color: var(--color-on-surface-muted); }
+
+.agent-step__toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: var(--font-label-lg-weight);
+  text-align: left;
+  cursor: pointer;
+}
+
+.agent-step__toggle span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.agent-step__toggle:focus-visible { outline: 2px solid var(--color-tertiary); outline-offset: 4px; }
+
+@media (max-width: 1100px) {
+  .agent-stages__sequence { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 500px) {
+  .agent-stages__sequence { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

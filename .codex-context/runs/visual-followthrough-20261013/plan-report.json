@@ -1,0 +1,96 @@
+{
+  "run_id": "visual-followthrough-20261013",
+  "node_id": "plan",
+  "input_sha256": "2dbb276381010031b1d0380e85e4fbf6de46cc041292a7971d4afbccca3acecf",
+  "status": "complete",
+  "recorded_utc": "2026-10-13T03:50:02.745613+00:00",
+  "head": "9755c01873444647c30821ac1d0b88aa16023632",
+  "summary": "Implemented default urgency List, URL-backed view/status/framework filters, persistent scope-labeled status counts, existing task dialog and bounded horizontal Board, UTC due-only timeline markers and accessible schedule table.",
+  "changed_files": [
+    {
+      "path": "apps/web/src/pages/PlanPage.tsx",
+      "sha256": "2e93f857fc00ddd85219940d4d5f3cde47b44d367f26aefa28f5445d02639120"
+    },
+    {
+      "path": "apps/web/src/lib/plan-urgency.ts",
+      "sha256": "b89d198e65dd2b2bdb6035c550cef90301abf948b26fbb79ccef950ad592e268"
+    },
+    {
+      "path": "apps/web/src/pages/plan.css",
+      "sha256": "d1641f9fafcebf2a5256b528a374bd74725675bad5af3053d6c781c925b7ea3e"
+    },
+    {
+      "path": "apps/web/test/plan-urgency.test.ts",
+      "sha256": "a4c49b3f606b22346a9497557236380ce220a3756067b422d226ca0d03344f1e"
+    }
+  ],
+  "verification": [
+    {
+      "command": "pnpm exec vitest run apps/web/test/plan-urgency.test.ts",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed: 15 tests",
+      "exit_code": 0
+    },
+    {
+      "command": "pnpm --filter @visua/web typecheck",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check -- apps/web/src/pages/PlanPage.tsx; git diff --no-index --check /dev/null NEW_FILE for each new owned source/test file",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed: no whitespace errors"
+    }
+  ],
+  "contracts": {
+    "default_view": "list",
+    "query_parameters": [
+      "view=list|board|timeline",
+      "status=all|backlog|todo|in-progress|in-review|blocked|done",
+      "framework=ID",
+      "task=ID"
+    ],
+    "urgency": [
+      "blocked",
+      "overdue",
+      "in-review",
+      "due today",
+      "due within 7 days",
+      "remaining open",
+      "completed"
+    ],
+    "tie_breaks": [
+      "priority critical/high/medium/low",
+      "due UTC day with missing/invalid last",
+      "stable task ID"
+    ],
+    "counts": "Framework scope before status filter; all six statuses always visible.",
+    "selectors": [
+      "section Tasks by urgency",
+      ".plan-task[data-task-id]",
+      "button Open task TITLE",
+      "group View",
+      "group Filter tasks by status",
+      "region Task board",
+      "region Task timeline chart",
+      "button[data-task-id][data-schedule-kind=due|interval]",
+      "region Task schedule table"
+    ],
+    "preserved": [
+      "TaskDialog fixed workspace/task draft identity and save/cancel/error behavior",
+      "MemberPicker assignment contracts and external owner labels",
+      "canonical query/mutation workspace identity",
+      "work.write gating",
+      ".board/.board__col/.card keyboard and drag affordances",
+      "deep-linked selection independent of filters"
+    ]
+  },
+  "documentation_implications": [
+    "Update docs/workspace.md Move work forward for List default, urgency ordering, horizontal six-column Board, URL filters, labeled persistent counts, due-only timeline markers and UTC schedule table."
+  ],
+  "limitations": [
+    "Playwright, build, full suites and visual review reserved to lead; not run by worker.",
+    "No docs/e2e/shared files changed. Lead owns browser cases and legacy Board-default test updates."
+  ]
+}

@@ -553,7 +553,7 @@ test("phones: the rail folds into a menu", async ({ page }) => {
   await expect(nav).toBeHidden();
 });
 
-test("no page, panel or table scrolls sideways at 1024px or on a phone (the ATLAS matrix scrolls in its own box)", async ({ page }) => {
+test("pages fit narrow screens and wide comparisons scroll within labeled regions", async ({ page }) => {
   await signIn(page);
   const paths = ["", "/plan", "/evidence", "/organization", "/reports", "/settings", "/profile", "/rmf", "/soc2", "/ai", "/laws", "/threats"].map((p) => `${WS}${p}`);
   for (const [width, height] of [
@@ -572,6 +572,10 @@ test("no page, panel or table scrolls sideways at 1024px or on a phone (the ATLA
           if (el.closest(".atlas-matrix")) continue;
           const { overflowX } = getComputedStyle(el);
           if ((overflowX === "auto" || overflowX === "scroll") && el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 1) {
+            if (el.matches(".comparison__scroll, .profile-chart__scroll, .profile-detail__scroll, .plan-scroll, .score-history__chart-scroll, .score-history__table-scroll")) {
+              const bounds = el.getBoundingClientRect();
+              if (el.getAttribute("role") === "region" && el.getAttribute("aria-label")?.trim() && el.tabIndex >= 0 && bounds.left >= -1 && bounds.right <= window.innerWidth + 1) continue;
+            }
             out.push(`${el.tagName.toLowerCase()}${[...el.classList].map((c) => `.${c}`).join("")} (${el.scrollWidth}px in ${el.clientWidth}px)`);
           }
         }

@@ -1,0 +1,16 @@
+{
+  "apps/server/src/services/views.ts": "34dd5fa29b74198ded2cf994a0359e7068489cbd71d2b4d057e4e87882ffe33e",
+  "apps/server/test/observatory.test.ts": "a513dca7e1a221667eb1d7df36ec895bb48336814094c08eaecf85aa32c85247",
+  "apps/web/src/lib/types.ts": "50ac233170c0a0debb785acf1862bfd4607d1e346f310203a98f1d0cf1360835",
+  "apps/web/src/lib/queries.ts": "fe4fc0bf92a2a5b2e0e7ca682763891c017857cef651409f0271227406fc3aee",
+  "apps/web/src/lib/observatory.ts": "a114ab49f3d3d8fb96d74e66e76dc065e11cac6b5f696fbafa10dbe312864ca6",
+  "apps/web/test/observatory.test.ts": "48ebbff3d5705ed7048a63da26ea6add68b9cfe4f5d97cc301a9242118638b4c",
+  "apps/web/src/pages/ObservatoryPage.tsx": "03ed26abb954537f318ab64d0750910561bc60097222f237f63ce035f3e6097b",
+  "apps/web/src/pages/observatory.css": "d9c83ce05b3916c743273599044689ad02a87606270dd19181ad719de2668379",
+  "apps/web/src/components/inspector/Inspector.tsx": "f51fd73fd262cc498f9f06567c9943b5a893f99956c03f26f9cf717d06690bd9",
+  "apps/web/src/components/inspector/Threats.tsx": "688e8a808909ae7e21ce8da42bf3ec8148893b2f8db6d13deb6bd344d674aea9",
+  "e2e/observatory-presets.spec.ts": "7913cf085bb4178f61ea20bbc08b4cb9212985e36a500dc0404172707c78b951",
+  "e2e/keyboard-outline.spec.ts": "18c8559d83b4c7f873e38f6f4bf9feef462c5afa636b3ff2367809be9d06dceb",
+  "docs/workspace.md": "1da83b04d859ead7bbd637b9ab1b7464a3ce7d6532170c781a193aeaeb08baf4",
+  "docs/architecture.md": "47cce8948c29033be516da762fdaf87ae6de7ae4c64d2701bceb83874960d865"
+}

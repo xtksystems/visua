@@ -79,14 +79,14 @@ test("slug routes share canonical task writes, live events and the id route cach
   const local = await created;
   expect(new URL(local.url()).pathname).toBe(`/api/workspaces/${workspace.id}/tasks`);
   expect(local.status()).toBe(201);
-  await expect(page.locator(".card").filter({ hasText: "Local canonical task" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open task Local canonical task", exact: true })).toBeVisible();
   const remote = await page.request.post(`/api/workspaces/${workspace.id}/tasks`, { headers: { "x-visua-csrf": workspace.csrf }, data: { title: "Remote live event task", status: "todo" } });
   expect(remote.status()).toBe(201);
-  await expect(page.locator(".card").filter({ hasText: "Remote live event task" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open task Remote live event task", exact: true })).toBeVisible();
   expect(readPaths).toContain(`/api/workspaces/${workspace.id}/events`);
   expect(readPaths.every((path) => path.includes(`/workspaces/${workspace.id}/`))).toBe(true);
   await page.evaluate((path) => { history.pushState({}, "", path); window.dispatchEvent(new PopStateEvent("popstate")); }, `/w/${workspace.id}/plan`);
-  await expect(page.locator(".card").filter({ hasText: "Remote live event task" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open task Remote live event task", exact: true })).toBeVisible();
   await expect(page).toHaveURL(new RegExp(`/w/${workspace.id}/plan$`));
   expect(readPaths.every((path) => path.includes(`/workspaces/${workspace.id}/`))).toBe(true);
 });
@@ -105,11 +105,11 @@ test("reconnecting events refresh changes missed while disconnected", async ({ p
   await expect(page.getByRole("heading", { name: "Action plan", exact: true })).toBeVisible();
   const response = await page.request.post(`/api/workspaces/${workspace.id}/tasks`, { headers: { "x-visua-csrf": workspace.csrf }, data: { title: "Task created during the event gap", status: "todo" } });
   expect(response.status()).toBe(201);
-  await expect(page.locator(".card").filter({ hasText: "Task created during the event gap" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Open task Task created during the event gap", exact: true })).toHaveCount(0);
   await page.evaluate(() => {
     for (const source of (window as unknown as { sources: EventTarget[] }).sources) source.dispatchEvent(new Event("open"));
   });
-  await expect(page.locator(".card").filter({ hasText: "Task created during the event gap" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open task Task created during the event gap", exact: true })).toBeVisible();
 });
 
 for (const email of ["jordan.park@northwind-health.example", "alex.kim@audit-partners.example"]) {

@@ -1,0 +1,82 @@
+import { expect } from "@playwright/test";
+import { CSF, GROUP, REQUIREMENT, VIEWER, capture, signIn, test, write } from "./visual-review.fixture.ts";
+
+test("profile sorting and category drill-down preserve scoped values and URL state", async ({ page, visual: ws }) => {
+  await write(page.request, ws, "patch", `/requirements/${encodeURIComponent(REQUIREMENT)}`, { current: 2, target: 4 });
+  await page.goto(`/w/${ws.slug}/profile`);
+  await expect(page.getByRole("tab", { name: "Profile", exact: true })).toHaveAttribute("aria-selected", "true");
+  const table = page.getByRole("table", { name: "Current and target profile by category" });
+  await expect(table).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save assessment", exact: true })).toHaveCount(0);
+  await page.getByRole("combobox", { name: "Sort categories", exact: true }).selectOption("gap");
+  await page.getByRole("button", { name: "View requirements for PR.AA", exact: true }).click();
+  await expect(page).toHaveURL(/sort=gap/);
+  await expect(page).toHaveURL(new RegExp(`category=${encodeURIComponent(GROUP)}`));
+  const detail = page.getByRole("region", { name: "Category requirements", exact: true });
+  const requirement = detail.getByRole("row").filter({ has: page.getByRole("link", { name: /PR.AA-01/ }) });
+  await expect(requirement).toContainText("2");
+  await expect(requirement).toContainText("4");
+  await expect(requirement.getByRole("link").first()).toHaveAttribute("href", new RegExp(`select=${encodeURIComponent(REQUIREMENT)}`));
+  await page.reload();
+  await expect(detail).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Sort categories", exact: true })).toHaveValue("gap");
+  await capture(page, "profile-analysis-1440");
+  await table.scrollIntoViewIfNeeded();
+  await capture(page, "profile-chart-1440");
+  await write(page.request, ws, "patch", `/requirements/${encodeURIComponent(REQUIREMENT)}`, { applicable: false, applicabilityRationale: "Excluded from this browser fixture scope." });
+  await expect(detail.getByRole("link", { name: /PR.AA-01/ })).toHaveCount(0);
+});
+
+test("tier draft survives keyboard tab changes and a failed save", async ({ page, visual: ws }) => {
+  await page.goto(`/w/${ws.slug}/profile?tab=tiers`);
+  const fields = page.locator("fieldset");
+  await expect(fields.first()).toBeVisible();
+  for (const field of await fields.all()) await field.locator('input[type="radio"]').last().locator("..").click();
+  const selected = await page.locator('input[type="radio"]:checked').count();
+  expect(selected).toBeGreaterThan(0);
+  const before = await page.locator('input[type="radio"]:checked').evaluateAll(inputs => inputs.map(input => ({ name: (input as HTMLInputElement).name, index: Array.from(document.querySelectorAll(`input[name="${(input as HTMLInputElement).name}"]`)).indexOf(input) })));
+  const summaryPattern = new RegExp(`/api/workspaces/(?:${ws.id}|${ws.slug})$`);
+  await page.route(summaryPattern, route => route.fulfill({ status: 503, json: { error: "Workspace refresh temporarily unavailable" } }));
+  await write(page.request, ws, "post", "/tasks", { title: "Refresh profile via a workspace event" });
+  await expect(page.getByRole("alert").first()).toContainText("Workspace refresh temporarily unavailable");
+  await page.unroute(summaryPattern);
+  await page.getByRole("button", { name: "Retry", exact: true }).first().click();
+  await expect(page.locator('input[type="radio"]:checked')).toHaveCount(selected);
+  expect(await page.locator('input[type="radio"]:checked').evaluateAll(inputs => inputs.map(input => ({ name: (input as HTMLInputElement).name, index: Array.from(document.querySelectorAll(`input[name="${(input as HTMLInputElement).name}"]`)).indexOf(input) })))).toEqual(before);
+  const tiers = page.getByRole("tab", { name: "Tiers", exact: true });
+  await tiers.focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect(page.getByRole("tab", { name: "Profile", exact: true })).toHaveAttribute("aria-selected", "true");
+  await page.keyboard.press("ArrowRight");
+  await expect(tiers).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator('input[type="radio"]:checked')).toHaveCount(selected);
+  await page.route(`**/api/workspaces/${ws.id}/tiers`, route => route.fulfill({ status: 503, json: { error: "Tier save temporarily unavailable" } }));
+  await page.getByRole("button", { name: "Save assessment", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("Tier save temporarily unavailable");
+  await expect(page.locator('input[type="radio"]:checked')).toHaveCount(selected);
+  await page.unroute(`**/api/workspaces/${ws.id}/tiers`);
+  await page.getByRole("button", { name: "Save assessment", exact: true }).click();
+  await expect(page.getByText("Tier assessment recorded in the audit trail", { exact: true })).toBeVisible();
+  await page.route(summaryPattern, route => route.fulfill({ status: 404, json: { error: "Workspace no longer available" } }));
+  await write(page.request, ws, "post", "/tasks", { title: "Recheck workspace access after cached data" });
+  await expect(page.getByRole("heading", { name: "Unable to open this workspace", exact: true })).toBeVisible();
+  await expect(page.locator('input[type="radio"]')).toHaveCount(0);
+});
+
+test.describe("touch phone profile", () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  test("reader gets numeric profile and requirement links without page overflow", async ({ page, visual: ws }) => {
+    await signIn(page.request, VIEWER);
+    await page.goto(`/w/${ws.slug}/profile?category=${encodeURIComponent(GROUP)}`);
+    await expect(page.getByRole("table", { name: "Current and target profile by category" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Category requirements" })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    await capture(page, "profile-analysis-390");
+    await page.getByRole("region", { name: "Scrollable category comparison", exact: true }).scrollIntoViewIfNeeded();
+    await capture(page, "profile-chart-390");
+    await page.getByRole("tab", { name: "Tiers", exact: true }).click();
+    await expect(page.locator('input[type="radio"]').first()).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Save assessment", exact: true })).toBeDisabled();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  });
+});

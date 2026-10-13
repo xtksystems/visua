@@ -99,21 +99,20 @@ test("outline has one named tab stop and focus follows siblings, children, paren
   await expect(row(page, B)).toBeFocused();
 });
 
-test("filter typing keeps selection and tree navigation stays among visible matches", async ({ page, keyboardWorkspace: workspace }) => {
+test("filter typing keeps selected context and tree navigation stays among visible rows", async ({ page, keyboardWorkspace: workspace }) => {
   await open(page, workspace);
   await row(page, A).focus();
   await row(page, A).press("/");
   await expect(filter(page)).toBeFocused();
   await filter(page).fill("PR.AA-02");
-  await expect(row(page, A)).toHaveCount(0);
-  await expect(tree(page).getByRole("treeitem")).toHaveCount(3);
+  await expect(row(page, A)).toBeVisible();
+  await expect(row(page, A)).toHaveAttribute("aria-selected", "true");
+  await expect(tree(page).getByRole("treeitem")).toHaveCount(4);
   await filter(page).press("ArrowDown");
   await expect(page).toHaveURL(new RegExp(`select=${encodeURIComponent(A)}`));
   await filter(page).press("Tab");
-  await expect(row(page, ROOT)).toBeFocused();
-  await row(page, ROOT).press("Enter");
-  await expect(row(page, PARENT)).toBeFocused();
-  await row(page, PARENT).press("Enter");
+  await expect(row(page, A)).toBeFocused();
+  await row(page, A).press("ArrowDown");
   await expectSelection(page, B);
   await expect(row(page, B)).toBeFocused();
   await row(page, B).press("ArrowDown");
@@ -121,7 +120,9 @@ test("filter typing keeps selection and tree navigation stays among visible matc
   await expect(row(page, B)).toBeFocused();
   await row(page, B).press("/");
   await filter(page).fill("no framework row matches this phrase");
-  await expect(tree(page).getByRole("treeitem")).toHaveCount(0);
+  // No matches still retains the selected requirement and its two ancestors.
+  await expect(tree(page).getByRole("treeitem")).toHaveCount(3);
+  await expect(row(page, B)).toHaveAttribute("aria-selected", "true");
   await filter(page).press("Escape");
   await expect(page).toHaveURL(new RegExp(`select=${encodeURIComponent(B)}`));
   await expect(filter(page)).toBeFocused();
@@ -199,6 +200,11 @@ test("canvas receives tab and pointer focus while its HUD retains ordinary butto
   await expect(page).not.toHaveURL(/select=/);
   await reset.press("ArrowDown");
   await expect(page).not.toHaveURL(/select=/);
+  await page.getByRole("button", { name: "Toggle outline", exact: true }).click();
+  await expect(filter(page)).toHaveCount(0);
+  await canvas.focus();
+  await canvas.press("/");
+  await expect(filter(page)).toBeFocused();
 });
 
 test("cached keyboard selections reset owner drafts and external deep links reveal rows without taking input focus", async ({ page, keyboardWorkspace: workspace }) => {

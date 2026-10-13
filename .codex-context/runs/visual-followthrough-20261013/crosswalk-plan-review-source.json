@@ -1,0 +1,10 @@
+{
+  "apps/web/src/pages/CrosswalkPage.tsx": "a11a6f14c0789966091239a6a25ed2151ad61f45135e35dfbd7ef51e0cd01e2f",
+  "apps/web/src/lib/crosswalk-comparison.ts": "f32c3e093230eecf45039e59a9baf2de2cd89a6b5a2346915b245fa73baef535",
+  "apps/server/src/services/crosswalk-comparison.ts": "277488dd0aebc1b9dc72ca8064c1c242c0ee894cc4dd12bbde4b48eccd97008f",
+  "apps/server/src/app.ts": "393634b55cd8a627642a8ebd86f8a88e2c9c2540fb4a1d683d1fdbc38d3c31ce",
+  "apps/web/src/pages/PlanPage.tsx": "2e93f857fc00ddd85219940d4d5f3cde47b44d367f26aefa28f5445d02639120",
+  "apps/web/src/lib/plan-urgency.ts": "b89d198e65dd2b2bdb6035c550cef90301abf948b26fbb79ccef950ad592e268",
+  "apps/web/src/components/crosswalk/comparison.css": "87926982c10a154667f8702e3961f74334e5ab73eeddfd6916bb9131fcbecc56",
+  "apps/web/src/components/crosswalk/ComparisonMatrix.tsx": "6826a3a1e8678ee9f031897064a2ea2189859f0d18892562a9f4afd1f0947fb7"
+}

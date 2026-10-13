@@ -1,0 +1,26 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "Reviewed the pinned Observatory changes against 9755c01873444647c30821ac1d0b88aa16023632. One supported keyboard-focus defect in the new inspector navigation; no other supported defects found within the assigned source-review scope.",
+  "coverage": [
+    "Verified all 14 review-source.json SHA256 pins at review start. Final check confirmed all product source remains pinned; e2e/observatory-presets.spec.ts changed during review in the separate integration lane and its revised version is outside this report.",
+    "Traced frameworkState through scoreOf, scopeOf, isEvidenceValid and hasCurrentEvidenceReview: enabled/current assessable scope, exclusions and law timing, bound accepted direct evidence, fresh shared scoring/evidence clock, stable ownerUserId, and separate threat coverage.",
+    "Inspected outlineResults and query helpers for search/preset intersection, actual-match counts, selected/ancestor context, canonical workspace query keys, framework placeholder isolation, and loading/error handling.",
+    "Inspected useMe/session reset and Shell workspace identity/reset paths; traced InspectorSelection keying, new selection navigation, outline pending focus, scene/modal keyboard guards, and mobile outline/sheet CSS.",
+    "Read server and web Observatory unit tests, pinned Observatory preset browser tests, changed keyboard outline tests, and relevant documentation diff. No runtime tests executed."
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "apps/web/src/pages/ObservatoryPage.tsx:369-376; apps/web/src/components/inspector/Inspector.tsx:24-28",
+      "mechanism": "Keyboard-activating Previous sibling, Next sibling, or an ancestor in the new inspector navigation changes selectedId, which changes the key of InspectorSelection. The focused navigation button is unmounted with that keyed subtree. No navigation-specific focus restoration exists; the outline intentionally only focuses after tree interaction or explicit Show in outline. Consequently keyboard focus falls out of the navigation after one activation, so repeated sibling navigation and continued inspector interaction lose their place. This affects cached selections too, and also applies to threat inspector navigation.",
+      "evidence": "ObservatoryPage.tsx:369,373,375 invoke selectNode directly. selectNode at 305-313 updates global selection and the URL, without scheduling focus. Inspector.tsx:28 keys the entire InspectorSelection by workspace and nodeId, and renders navigation inside it at 82 (Threats.tsx:336 similarly). Outline focus at ObservatoryPage.tsx:86-89 and 105-115 is only requested when revealSeq changes or pendingFocus is set by tree interaction; these inspector controls do neither. This is a source-supported lifecycle finding, not a browser reproduction.",
+      "recommendation": "Keep selection navigation mounted outside the node-keyed draft/query subtree, or explicitly restore focus to the equivalent navigation control after a navigation-triggered selection change, with an enabled fallback at sibling boundaries. Preserve the existing workspace/node keys for drafts and review dialogs. Add one focused keyboard check for repeated sibling activation across cached and uncached selections."
+    }
+  ],
+  "limitations": [
+    "Per assignment, no browsers, builds, full tests, or live deployed data were used. Runtime focus and actual mobile geometry remain for the separate integration lane.",
+    "The originally pinned phone browser case changes viewport dimensions only; PHONE additionally requires pointer: coarse. The lead changed this test during review; the revised test and its runtime outcome were not independently reviewed here.",
+    "This was one bounded independent source pass using the supplied brief and repository source; implementation result reports were not read."
+  ]
+}

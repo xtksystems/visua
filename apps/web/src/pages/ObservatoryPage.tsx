@@ -2,7 +2,7 @@
  * Observatory: the 3D framework space + its keyboard-navigable 2D twin (outline)
  * + HUD (lens, view, legend, metrics) + inspector.
  */
-import { Box, ChevronDown, ChevronRight, ChevronUp, Crosshair, ListTree, Search } from "lucide-react";
+import { Box, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Crosshair, ListTree, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { useWorkspaceId } from "../lib/workspace.ts";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -11,15 +11,18 @@ import { Inspector } from "../components/inspector/Inspector.tsx";
 import { ThreatLinkFilter } from "../components/threats/Coverage.tsx";
 import { StatusBar, StatusGlyph } from "../components/ui/index.tsx";
 import { STATUS_LABEL, truncate } from "../lib/format.ts";
+import { useMe } from "../lib/auth.ts";
 import { badgeOf, isThreatCatalog, threatCatalogs } from "../lib/frameworks.ts";
 import { PHONE, useMediaQuery } from "../lib/media.ts";
 import { useFrameworkState, useGraph, useWorkspace } from "../lib/queries.ts";
 import type { FrameworkStateBundle, LeanNode } from "../lib/types.ts";
+import { OUTLINE_PRESETS, PRESET_LABEL, outlineMode, outlineResults, outlineUserId, readOutlineQuery, writeOutlineQuery, type OutlinePreset, type OutlineResults } from "../lib/observatory.ts";
 import { LENS_INFO, THREAT_LENS, THREAT_STATUS_LABEL, overlaySwatch } from "../scene/colors.ts";
 import { computeLayout } from "../scene/layout.ts";
 import { Observatory } from "../scene/Observatory.tsx";
 import { useAgentActivity } from "../state/agentActivity.ts";
 import { LENSES, useUi, type Lens } from "../state/ui.ts";
+import "./observatory.css";
 
 function nodeStatus(state: FrameworkStateBundle | undefined, node: LeanNode): Status {
   if (!state) return "not-started";
@@ -36,7 +39,17 @@ function canUseSceneKeys(event: KeyboardEvent<HTMLElement>) {
     && !document.querySelector('[aria-modal="true"]');
 }
 
-function Outline({ nodes, state, selectedId, onSelect, filter, onShortcut }: { nodes: LeanNode[]; state: FrameworkStateBundle | undefined; selectedId: string | null; onSelect: (id: string | null) => void; filter: string; onShortcut: (event: KeyboardEvent<HTMLElement>) => boolean }) {
+function OutlineLegend({ threat }: { threat: boolean }) {
+  const statuses: Status[] = threat ? ["implemented", "in-progress", "not-started", "not-applicable"] : ["not-started", "in-progress", "implemented", "verified", "at-risk", "not-applicable"];
+  return <div className="outline__legend" aria-label={threat ? "Outline coverage legend" : "Outline status legend"}>
+    {statuses.map((status) => <span key={status} className="observatory-legend__item">
+      <span className={`status--${status} observatory-legend__glyph`}><StatusGlyph status={status} size={11} /></span>
+      {threat ? THREAT_STATUS_LABEL[status] : STATUS_LABEL[status]}
+    </span>)}
+  </div>;
+}
+
+function Outline({ nodes, state, selectedId, onSelect, results, threat, revealSeq, onShortcut }: { nodes: LeanNode[]; state: FrameworkStateBundle | undefined; selectedId: string | null; onSelect: (id: string | null) => void; results: OutlineResults; threat: boolean; revealSeq: number; onShortcut: (event: KeyboardEvent<HTMLElement>) => boolean }) {
   const children = useMemo(() => {
     const m = new Map<string | null, LeanNode[]>();
     for (const n of nodes) m.set(n.parentId, [...(m.get(n.parentId) ?? []), n]);
@@ -48,6 +61,15 @@ function Outline({ nodes, state, selectedId, onSelect, filter, onShortcut }: { n
   const [activeId, setActiveId] = useState<string | null>(null);
   const rows = useRef(new Map<string, HTMLLIElement>());
   const pendingFocus = useRef<string | null>(null);
+  const lastReveal = useRef(0);
+  const scrollRow = (row: HTMLLIElement) => {
+    const scroll = row.closest<HTMLElement>(".outline__scroll");
+    const bounds = row.firstElementChild?.getBoundingClientRect();
+    if (!scroll || !bounds) return;
+    const viewport = scroll.getBoundingClientRect();
+    if (bounds.top < viewport.top) scroll.scrollTop += bounds.top - viewport.top;
+    else if (bounds.bottom > viewport.bottom) scroll.scrollTop += bounds.bottom - viewport.bottom;
+  };
 
   // A deep link reveals its ancestors but leaves inspector, input and dialog focus alone.
   useEffect(() => {
@@ -61,29 +83,18 @@ function Outline({ nodes, state, selectedId, onSelect, filter, onShortcut }: { n
       }
       return next.size === current.size ? current : next;
     });
-  }, [selectedId, byId]);
-
-  const q = filter.trim().toLowerCase();
-  const matches = useMemo(() => {
-    if (!q) return null;
-    const hit = new Set<string>();
-    for (const n of nodes) {
-      if (n.code.toLowerCase().includes(q) || n.title.toLowerCase().includes(q) || n.text.toLowerCase().includes(q)) {
-        let cur: LeanNode | undefined = n;
-        while (cur) {
-          hit.add(cur.id);
-          cur = cur.parentId ? byId.get(cur.parentId) : undefined;
-        }
-      }
+    if (revealSeq !== lastReveal.current) {
+      pendingFocus.current = selectedId;
+      lastReveal.current = revealSeq;
     }
-    return hit;
-  }, [q, nodes, byId]);
-  const visibleChildren = (parent: string | null) => (children.get(parent) ?? []).filter((node) => !matches || matches.has(node.id));
+  }, [selectedId, byId, revealSeq]);
+
+  const visibleChildren = (parent: string | null) => (children.get(parent) ?? []).filter((node) => results.visible.has(node.id));
   const visibleIds = new Set<string>();
   const collectVisible = (parent: string | null) => {
     for (const node of visibleChildren(parent)) {
       visibleIds.add(node.id);
-      if (matches || open.has(node.id)) collectVisible(node.id);
+      if (results.filtered || open.has(node.id)) collectVisible(node.id);
     }
   };
   collectVisible(null);
@@ -97,10 +108,11 @@ function Outline({ nodes, state, selectedId, onSelect, filter, onShortcut }: { n
     if (row) {
       pendingFocus.current = null;
       row.focus();
-      row.scrollIntoView({ block: "nearest" });
+      scrollRow(row);
     }
-    if (selectedId) rows.current.get(selectedId)?.scrollIntoView({ block: "nearest" });
-  }, [selectedId, open, matches, activeId]);
+    const selected = selectedId ? rows.current.get(selectedId) : undefined;
+    if (selected) scrollRow(selected);
+  }, [selectedId, open, results, activeId, revealSeq]);
 
   const focusRow = (id: string) => {
     setActiveId(id);
@@ -108,7 +120,7 @@ function Outline({ nodes, state, selectedId, onSelect, filter, onShortcut }: { n
     if (row) {
       pendingFocus.current = null;
       row.focus();
-      row.scrollIntoView({ block: "nearest" });
+      scrollRow(row);
     } else pendingFocus.current = id;
   };
   const navigateTo = (id: string | null) => {
@@ -166,10 +178,12 @@ function Outline({ nodes, state, selectedId, onSelect, filter, onShortcut }: { n
   const render = (parent: string | null, depth: number): React.ReactNode =>
     visibleChildren(parent).map((n, index, siblings) => {
       const kids = visibleChildren(n.id);
-      const expanded = !!matches || open.has(n.id);
+      const expanded = results.filtered || open.has(n.id);
       const status = nodeStatus(state, n);
       const unit = state?.units[n.id];
       const title = n.title && n.title !== n.code ? n.title : truncate(n.text, 70);
+      const contextLabel = results.context.has(n.id) ? selectedId === n.id ? "Outside filter" : "Context" : null;
+      const statusKnown = !!state && (n.assessable ? !!unit : !!state.groups[n.id]);
       return (
         <li
           key={n.id}
@@ -177,6 +191,7 @@ function Outline({ nodes, state, selectedId, onSelect, filter, onShortcut }: { n
           className="outline__item"
           role="treeitem"
           data-node-id={n.id}
+          data-filter-context={contextLabel ?? undefined}
           aria-label={`${n.code}${title ? ` ${title}` : ""}`}
           aria-level={depth + 1}
           aria-posinset={index + 1}
@@ -213,11 +228,12 @@ function Outline({ nodes, state, selectedId, onSelect, filter, onShortcut }: { n
             ) : (
               <span style={{ width: 18 }} />
             )}
-            <span className={`status--${status}`} style={{ background: "transparent", display: "inline-flex" }} title={STATUS_LABEL[status]}>
+            {statusKnown ? <span className={`status--${status}`} style={{ background: "transparent", display: "inline-flex" }} title={threat ? THREAT_STATUS_LABEL[status] : STATUS_LABEL[status]}>
               <StatusGlyph status={status} size={11} />
-            </span>
+            </span> : <span className="outline__unknown" title="Status unavailable">·</span>}
             <span className="mono outline__code">{n.code}</span>
             <span className="outline__text">{truncate(n.title && n.title !== n.code ? n.title : n.text, 70)}</span>
+            {contextLabel && <span className="outline__context">{contextLabel}</span>}
             {unit && unit.applicable ? (
               <span className="mono muted" style={{ fontSize: 10.5 }} title="Current → target">
                 {unit.current}→{unit.target}
@@ -245,40 +261,74 @@ export function ObservatoryPage() {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const workspace = useWorkspace(ws);
+  const me = useMe();
   const enabled = workspace.data?.frameworks.map((f) => f.id) ?? [];
   const fw = fwParam ?? enabled[0] ?? "nist-csf-2.0";
   const graph = useGraph(fw);
-  const state = useFrameworkState(workspace.data?.workspace.id, fw);
+  const state = useFrameworkState(workspace.data?.workspace.id, fw, { refetchInterval: 60_000 });
+  const snapshot = state.data?.frameworkId === fw && !state.isPlaceholderData && !state.error ? state.data : undefined;
   const { selectedId, hoveredId, focusIds, focusSeq, lens, view, outlineOpen } = useUi();
   const ui = useUi();
   const running = useAgentActivity((s) => Object.keys(s.running).length > 0);
-  const [filter, setFilter] = useState("");
+  const { preset, query: filter } = readOutlineQuery(params);
+  const [revealSeq, setRevealSeq] = useState(0);
   const [pointer, setPointer] = useState<{ x: number; y: number } | null>(null);
   const legendOpen = useUi((s) => s.legendOpen);
   const phone = useMediaQuery(PHONE);
   const [threeD, setThreeD] = useState(false);
   const outlineView = phone && !threeD;
   const filterRef = useRef<HTMLInputElement>(null);
+  const navigationFocus = useRef<{ workspaceId: string; nodeId: string; control: string } | null>(null);
+  useEffect(() => {
+    const request = navigationFocus.current;
+    if (request && (request.workspaceId !== ws || request.nodeId !== selectedId)) navigationFocus.current = null;
+  }, [ws, selectedId]);
 
   const layout = useMemo(() => (graph.data ? computeLayout(graph.data.nodes, view) : undefined), [graph.data, view]);
   const byId = layout?.byId;
+  const threat = isThreatCatalog(fw);
+  const mode = outlineMode(fw, enabled, threat);
+  const userId = outlineUserId(me.data);
+  const resultState = preset === "assigned-to-me" && (!userId || me.error) ? undefined : snapshot;
+  const results = useMemo(() => outlineResults({ nodes: graph.data?.nodes ?? [], state: resultState, mode, preset, query: filter, selectedId, userId }), [graph.data, resultState, mode, preset, filter, selectedId, userId]);
+  const filtersActive = preset !== "all" || !!filter;
+  // Router rendering may trail a completed history write. Compose rapid edits
+  // from the current address bar so a search cannot restore an older selection.
+  const changeFilters = (update: { preset?: OutlinePreset; query?: string }) => setParams(writeOutlineQuery(new URLSearchParams(window.location.search), update), { replace: true });
+  const setFilter = (query: string) => changeFilters({ query });
+  const clearFilters = () => changeFilters({ preset: "all", query: "" });
+  const returnToSelection = () => {
+    if (phone) setThreeD(false);
+    else if (!outlineOpen) ui.toggleOutline();
+    document.querySelector<HTMLButtonElement>(".observatory .inspector[data-full] .inspector__grabber")?.click();
+    setRevealSeq((value) => value + 1);
+    if (selectedId) ui.focus([selectedId]);
+  };
+  const switchFramework = (id: string) => {
+    const next = new URLSearchParams(window.location.search);
+    next.delete("select");
+    navigate(`/w/${encodeURIComponent(ws)}/observatory/${encodeURIComponent(id)}${next.size ? `?${next}` : ""}`);
+  };
 
   const selectNode = useCallback((id: string | null) => {
     ui.select(id);
-    setParams((current) => {
-      const next = new URLSearchParams(current);
-      if (id) next.set("select", id);
-      else next.delete("select");
-      return next;
-    }, { replace: true });
+    const next = new URLSearchParams(window.location.search);
+    if (id) next.set("select", id);
+    else next.delete("select");
+    setParams(next, { replace: true });
   }, [ui.select, setParams]);
+  const resetView = () => {
+    selectNode(null);
+    ui.focus([]);
+  };
 
   // Keep a deep link retryable even when requirement details fail to load.
   useEffect(() => {
+    if (params.toString() !== new URLSearchParams(window.location.search).toString()) return;
     const sel = params.get("select");
     if (sel && byId?.has(sel)) {
       ui.select(sel);
-    }
+    } else if (!sel) ui.select(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params, byId]);
 
@@ -298,13 +348,12 @@ export function ObservatoryPage() {
 
 
   const hovered = hoveredId && byId ? byId.get(hoveredId) : undefined;
-  const hoveredUnit = hoveredId ? state.data?.units[hoveredId] : undefined;
-  const hoveredGroup = hoveredId ? state.data?.groups[hoveredId] : undefined;
+  const hoveredUnit = hoveredId ? snapshot?.units[hoveredId] : undefined;
+  const hoveredGroup = hoveredId ? snapshot?.groups[hoveredId] : undefined;
   // The overlay lens exists only where the framework has an overlay (CSF: Cyber AI Profile; SP 800-53: COSAiS).
-  const overlay = state.data?.overlay ?? null;
+  const overlay = snapshot?.overlay ?? null;
   // Threat catalogs: coverage (status lens) and its gap only.
   // Threat catalogs open with coverage in place of status.
-  const threat = isThreatCatalog(fw);
   const activeLens: Lens = threat ? (lens === "gap" ? "gap" : "status") : lens === "overlay" && !overlay ? "status" : lens;
   const lensInfo = threat
     ? THREAT_LENS[activeLens === "gap" ? "gap" : "status"]
@@ -321,6 +370,40 @@ export function ObservatoryPage() {
     breadcrumb.unshift(cur);
     cur = cur.parentId ? byId?.get(cur.parentId) : undefined;
   }
+  const selected = selectedId ? byId?.get(selectedId) : undefined;
+  const siblings = selected ? layout?.children.get(selected.parentId) ?? [] : [];
+  const siblingIndex = siblings.findIndex((node) => node.id === selectedId);
+  const navigateFromInspector = (nodeId: string, control: string) => {
+    navigationFocus.current = { workspaceId: ws, nodeId, control };
+    selectNode(nodeId);
+  };
+  // Detail observers remount for each selection (including their loading header).
+  // Restore only an explicit navigation request, and never take focus from a form.
+  const restoreNavigationFocus = (element: HTMLElement | null) => {
+    const request = navigationFocus.current;
+    if (!element || !request || request.workspaceId !== ws || request.nodeId !== selectedId || document.activeElement !== document.body) return;
+    const control = [...element.querySelectorAll<HTMLButtonElement>("[data-navigation-control]")].find((button) => button.dataset.navigationControl === request.control && !button.disabled);
+    (control ?? element.querySelector<HTMLButtonElement>('button[aria-current="location"]'))?.focus({ preventScroll: true });
+  };
+  const selectionNavigation = selected ? <nav className="observatory-selection" aria-label="Selection context" ref={restoreNavigationFocus} onBlurCapture={(event) => {
+    // Plain text clicks and window blur have no next focus target, but still
+    // cancel the user's earlier request to keep navigating from this control.
+    if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) navigationFocus.current = null;
+  }}>
+    <div className="observatory-selection__path" aria-label="Selection path">
+      {breadcrumb.map((node, index) => <span key={node.id}>
+        {index > 0 && <ChevronRight size={11} aria-hidden />}
+        <button className="btn btn--quiet btn--sm mono" data-navigation-control={node.id} aria-current={node.id === selectedId ? "location" : undefined} onClick={() => navigateFromInspector(node.id, node.id)} title={node.title || node.code}>{node.code}</button>
+      </span>)}
+    </div>
+    <div className="observatory-selection__peers">
+      <button className="btn btn--quiet btn--sm btn--icon" aria-label="Previous sibling" data-navigation-control="previous" disabled={siblingIndex <= 0} onClick={() => navigateFromInspector(siblings[siblingIndex - 1]!.id, "previous")}><ChevronLeft size={14} /></button>
+      <span className="muted">{siblingIndex + 1} of {siblings.length} peers</span>
+      <button className="btn btn--quiet btn--sm btn--icon" aria-label="Next sibling" data-navigation-control="next" disabled={siblingIndex < 0 || siblingIndex === siblings.length - 1} onClick={() => navigateFromInspector(siblings[siblingIndex + 1]!.id, "next")}><ChevronRight size={14} /></button>
+      {results.selectedOutside && <span className="outline__context">Outside filter</span>}
+      <button className="btn btn--quiet btn--sm" onClick={returnToSelection}>Show in outline</button>
+    </div>
+  </nav> : undefined;
 
   const lenses: Lens[] = threat ? ["status", "gap"] : LENSES.filter((l) => l !== "overlay" || overlay);
   // DESIGN.md's keyboard map applies only to the outline or the focused canvas.
@@ -333,11 +416,19 @@ export function ObservatoryPage() {
       case "l":
         ui.setLens(lenses[(lenses.indexOf(activeLens) + 1) % lenses.length]!);
         break;
-      case "/":
-        if (!outlineView && !outlineOpen) ui.toggleOutline();
-        // When opening the outline, its input mounts after this handler returns.
-        requestAnimationFrame(() => filterRef.current?.focus());
+      case "/": {
+        if (filterRef.current) filterRef.current.focus();
+        else {
+          if (!outlineView && !outlineOpen) ui.toggleOutline();
+          // Only a newly opened outline needs to wait for its input to mount.
+          // A later interaction must not be displaced by this deferred focus.
+          const origin = event.target;
+          requestAnimationFrame(() => {
+            if (document.activeElement === origin) filterRef.current?.focus();
+          });
+        }
         break;
+      }
       default:
         return false;
     }
@@ -382,26 +473,43 @@ export function ObservatoryPage() {
   const outline = (
     <aside className="outline" aria-label="Outline (2D twin of the 3D scene)" data-hud>
       <div className="outline__head">
+        <div className="outline__controls">
+          {outlineView && <select className="select" aria-label="Framework" value={fw} onChange={(e) => switchFramework(e.target.value)}>
+            {[...chips, ...(threat ? [] : threatCatalogs().map((c) => c.id))].map((id) => <option key={id} value={id}>{chipLabel(id)}</option>)}
+          </select>}
+          {mode === "assessed" && <select className="select" aria-label="Outline preset" value={preset} onChange={(e) => changeFilters({ preset: e.target.value as OutlinePreset })}>
+            {OUTLINE_PRESETS.map((value) => <option key={value} value={value} disabled={value === "assigned-to-me" && me.data?.principal === "token"}>{PRESET_LABEL[value]}</option>)}
+          </select>}
+          {outlineView && <button className="btn btn--sm" onClick={() => setThreeD(true)} title="Show the 3D scene"><Box size={13} /> 3D</button>}
+        </div>
+        <div className="outline__filter-actions">
+          <span className="muted">Outline results · scene keeps context</span>
+          {filtersActive && <button className="btn btn--quiet btn--sm" onClick={clearFilters}>Clear filters</button>}
+          {selected && <button className="btn btn--quiet btn--sm" onClick={returnToSelection}>Return to selection</button>}
+        </div>
+        {!workspace.data ? <p className="outline__notice">Loading workspace…</p> : mode !== "assessed" && <p className="outline__notice">
+          {mode === "threat" ? "Threat catalogs show derived coverage and are not assessed. Search the full catalog." : "This framework is a guide in this workspace. Assessment presets require an enabled framework."}
+        </p>}
+        {mode === "assessed" && <div className="outline__summary" aria-live="polite">
+          {state.error ? <><p role="alert">Could not load assessment: {state.error.message}</p><button className="btn btn--sm" disabled={state.isFetching} onClick={() => void state.refetch()}>{state.isFetching ? "Retrying…" : "Retry assessment"}</button></>
+            : preset === "assigned-to-me" && me.error ? <><p role="alert">Could not load your identity: {me.error.message}</p><button className="btn btn--sm" onClick={() => void me.refetch()}>Retry identity</button></>
+              : preset === "assigned-to-me" && !userId ? <span>{me.isPending ? "Loading your identity…" : "Assigned to me is available for signed-in people."}</span>
+                : !graph.data || results.count === null ? <span>Loading assessment…</span>
+                  : <span>{results.count} in-scope requirement{results.count === 1 ? "" : "s"}{results.filtered ? results.count === 1 ? " matches" : " match" : ""}{state.isFetching ? " · Refreshing…" : ""}</span>}
+        </div>}
         <div className="row" style={{ gap: 8 }}>
           <Search size={14} className="muted" />
           <input ref={filterRef} className="input" style={{ minHeight: 30, height: 30 }} placeholder="Filter (press /)" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Filter outline" />
-          {outlineView && (
-            <button className="btn btn--sm" onClick={() => setThreeD(true)} title="Show the 3D scene">
-              <Box size={13} /> 3D
-            </button>
-          )}
         </div>
-        {outlineView && (
-          <select className="select" style={{ marginTop: 8 }} aria-label="Framework" value={fw} onChange={(e) => navigate(`/w/${ws}/observatory/${e.target.value}`)}>
-            {[...chips, ...(threat ? [] : threatCatalogs().map((c) => c.id))].map((id) => (
-              <option key={id} value={id}>
-                {chipLabel(id)}
-              </option>
-            ))}
-          </select>
-        )}
+        <OutlineLegend threat={threat} />
       </div>
-      <div className="outline__scroll">{graph.data ? <Outline key={`${workspace.data?.workspace.id ?? ws}:${fw}`} nodes={graph.data.nodes} state={state.data} selectedId={selectedId} onSelect={selectNode} filter={filter} onShortcut={onShortcut} /> : <div className="muted" style={{ padding: 16 }}>Loading framework…</div>}</div>
+      <div className="outline__scroll">
+        {graph.error ? <div className="outline__empty"><p role="alert">Could not load framework: {graph.error.message}</p><button className="btn btn--sm" onClick={() => void graph.refetch()}>Retry framework</button></div>
+          : graph.data ? <>
+            {results.filtered && results.matches.size === 0 && (mode !== "assessed" || results.count !== null) && <p className="outline__empty">No matches.{selected ? " Selection remains below." : " Try another preset or search."}</p>}
+            <Outline key={`${workspace.data?.workspace.id ?? ws}:${fw}`} nodes={graph.data.nodes} state={snapshot} selectedId={selectedId} onSelect={selectNode} results={results} threat={threat} revealSeq={revealSeq} onShortcut={onShortcut} />
+          </> : <div className="outline__empty">Loading framework…</div>}
+      </div>
     </aside>
   );
 
@@ -410,7 +518,7 @@ export function ObservatoryPage() {
     return (
       <div className={`observatory is-outline-view ${selectedId ? "has-inspector" : ""}`}>
         {outline}
-        {selectedId && byId?.has(selectedId) && <Inspector nodeId={selectedId} onClose={() => selectNode(null)} />}
+        {selectedId && byId?.has(selectedId) && <Inspector nodeId={selectedId} onClose={() => selectNode(null)} navigation={selectionNavigation} />}
       </div>
     );
   }
@@ -435,7 +543,7 @@ export function ObservatoryPage() {
         {layout ? (
           <Observatory
             layout={layout}
-            state={state.data}
+            state={snapshot}
             lens={activeLens}
             selectedId={selectedId}
             hoveredId={hoveredId}
@@ -459,23 +567,23 @@ export function ObservatoryPage() {
                 <ListTree size={15} />
               </button>
               {threat && (
-                <button className="chip" onClick={() => navigate(`/w/${ws}/observatory/${enabled[0] ?? "nist-csf-2.0"}`)} title="Back to your frameworks">
+                <button className="chip" onClick={() => switchFramework(enabled[0] ?? "nist-csf-2.0")} title="Back to your frameworks">
                   ← Frameworks
                 </button>
               )}
               <span className="hud-chips hud-chips--frameworks row" style={{ gap: 6, flexWrap: "wrap" }}>
                 {chips.map((id) => (
-                  <button key={id} className="chip" aria-pressed={id === fw} onClick={() => navigate(`/w/${ws}/observatory/${id}`)} title={threat ? "Coverage derived from the requirements linked to each threat" : undefined}>
+                  <button key={id} className="chip" aria-pressed={id === fw} onClick={() => switchFramework(id)} title={threat ? "Coverage derived from the requirements linked to each threat" : undefined}>
                     {chipLabel(id)}
                   </button>
                 ))}
                 {!threat && (
-                  <button className="chip" onClick={() => navigate(`/w/${ws}/observatory/${threatCatalogs()[0]?.id ?? ""}`)} title="AI threat catalogs (MITRE ATLAS, OWASP, NIST AI 100-2), colored by coverage">
+                  <button className="chip" onClick={() => switchFramework(threatCatalogs()[0]?.id ?? "")} title="AI threat catalogs (MITRE ATLAS, OWASP, NIST AI 100-2), colored by coverage">
                     Threats →
                   </button>
                 )}
               </span>
-              <select className="select hud-select hud-select--frameworks" aria-label="Framework" value={fw} onChange={(e) => navigate(`/w/${ws}/observatory/${e.target.value}`)}>
+              <select className="select hud-select hud-select--frameworks" aria-label="Framework" value={fw} onChange={(e) => switchFramework(e.target.value)}>
                 {[...chips, ...(threat ? [] : threatCatalogs().map((c) => c.id))].map((id) => (
                   <option key={id} value={id}>
                     {chipLabel(id)}
@@ -484,7 +592,7 @@ export function ObservatoryPage() {
               </select>
             </div>
             <nav aria-label="Breadcrumb" className="row" style={{ gap: 4, marginTop: 8, fontSize: 12, flexWrap: "wrap" }}>
-              <button className="btn btn--quiet btn--sm" onClick={() => (selectNode(null), ui.focus([]))}>
+              <button className="btn btn--quiet btn--sm" onClick={resetView}>
                 {graph.data?.framework.shortName ?? badgeOf(fw)}
               </button>
               {breadcrumb.map((b) => (
@@ -527,7 +635,7 @@ export function ObservatoryPage() {
                   Terrain
                 </button>
               </div>
-              <button className="btn btn--sm" onClick={() => (selectNode(null), ui.focus([]))} title="Frame everything (F with nothing selected)">
+              <button className="btn btn--sm" onClick={resetView} title="Frame everything (F with nothing selected)">
                 <Crosshair size={13} /> Reset view
               </button>
             </div>
@@ -535,29 +643,20 @@ export function ObservatoryPage() {
         </div>
 
         <div className="hud-foot">
-          <div className={`hud hud-legend ${legendOpen ? "is-open" : ""}`} data-hud>
+          <div className={`hud hud-legend observatory-legend ${legendOpen ? "is-open" : ""}`} data-hud>
             <button className="hud-legend__toggle" aria-expanded={legendOpen} onClick={() => ui.toggleLegend()}>
               <span className="eyebrow">{lensInfo.title} lens</span>
-              {!legendOpen && (
-                <span className="row" style={{ gap: 3 }} aria-hidden>
-                  {lensInfo.legend.map((item) => (
-                    <span key={item.label} style={{ width: 8, height: 8, borderRadius: 2, background: item.color }} />
-                  ))}
-                </span>
-              )}
               {legendOpen ? <ChevronDown size={13} aria-hidden /> : <ChevronUp size={13} aria-hidden />}
             </button>
+            <div className="observatory-legend__items" aria-label={`${lensInfo.title} lens legend`}>
+              {lensInfo.legend.map((item) => <span key={item.label} className="observatory-legend__item">
+                <span className="observatory-legend__swatch" style={{ background: item.color }} aria-hidden />{item.label}
+              </span>)}
+            </div>
             {legendOpen && (
               <>
-                <div className="stack" style={{ gap: 4, marginTop: 6 }}>
-                  {lensInfo.legend.map((item) => (
-                    <div key={item.label} className="row" style={{ gap: 8, fontSize: 12 }}>
-                      <span style={{ width: 10, height: 10, borderRadius: 2, background: item.color }} />
-                      {item.label}
-                    </div>
-                  ))}
-                </div>
-                <div className="muted" style={{ fontSize: 11, marginTop: 8, maxWidth: 230 }}>
+                <div className="muted observatory-legend__explanation">
+                  {lensInfo.description}{" "}
                   {threat
                     ? `Height = coverage level · outlined glass = full coverage gap · ${view === "constellation" ? "outer arc" : "beacon ring"} = coverage · small dots: no link in your frameworks${fw === "mitre-atlas" ? " · mitigations are listed in each technique's inspector" : ""}`
                     : `Height = current level · outlined glass = target gap · ${view === "constellation" ? "outer arc" : "beacon ring"} = readiness · small dots: out of scope · ◆ task · ▲ evidence`}
@@ -566,34 +665,34 @@ export function ObservatoryPage() {
             )}
           </div>
 
-          {state.data && (
+          {snapshot && (
             <div className="hud hud-stats" data-hud>
               <div className="row" style={{ gap: 16, alignItems: "flex-end" }}>
                 <div>
                   <div className="eyebrow">{threat ? "Coverage" : "Readiness"}</div>
                   <div className="metric__value hud-stats__value">
-                    {Math.round(state.data.overall.readiness * 100)}
+                    {Math.round(snapshot.overall.readiness * 100)}
                     <small>%</small>
                   </div>
                 </div>
                 <div>
                   <div className="eyebrow">{threat ? "Not fully covered" : "Gaps"}</div>
                   <div className="mono" style={{ fontSize: 18 }}>
-                    {state.data.overall.gaps}
+                    {snapshot.overall.gaps}
                   </div>
                 </div>
                 {threat ? (
                   <div>
                     <div className="eyebrow">In scope</div>
                     <div className="mono" style={{ fontSize: 18 }}>
-                      {state.data.overall.total}
+                      {snapshot.overall.total}
                     </div>
                   </div>
                 ) : (
                   <div>
                     <div className="eyebrow">Evidence</div>
                     <div className="mono" style={{ fontSize: 18 }}>
-                      {Math.round(state.data.overall.evidenceCoverage * 100)}%
+                      {Math.round(snapshot.overall.evidenceCoverage * 100)}%
                     </div>
                   </div>
                 )}
@@ -607,7 +706,7 @@ export function ObservatoryPage() {
                 </div>
               )}
               <div className="hud-stats__bar">
-                <StatusBar counts={state.data.overall.counts} />
+                <StatusBar counts={snapshot.overall.counts} />
               </div>
               <div className="muted hud-stats__keys">←→ siblings · Enter drill in · Esc up · F frame · L lens · / filter</div>
             </div>
@@ -645,7 +744,7 @@ export function ObservatoryPage() {
           </div>
         )}
       </section>
-      {selectedId && byId?.has(selectedId) && <Inspector nodeId={selectedId} onClose={() => selectNode(null)} />}
+      {selectedId && byId?.has(selectedId) && <Inspector nodeId={selectedId} onClose={() => selectNode(null)} navigation={selectionNavigation} />}
     </div>
   );
 }

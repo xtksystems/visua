@@ -1,0 +1,18 @@
+{
+  "run_id": "visual-followthrough-20261013",
+  "node_id": "agent-stages",
+  "input_sha256": "af3894ac5c5968a7eceea6e9b446e0bf912745a7566e466e7647df6522e09339",
+  "status": "complete",
+  "summary": "Recorded explicit initial collection and analysis boundaries, projected proposal/review/application stages from persisted outcomes, and added accessible stage and flight-recorder views with honest query failure states.",
+  "evidence": [
+    ".codex-context/runs/visual-followthrough-20261013/agent-stages-report.json",
+    "19 focused Vitest tests passed",
+    "Core, server and final web TypeScript checks passed",
+    "Owned tracked-file whitespace check passed"
+  ],
+  "limitations": [
+    "Build, browser, PostgreSQL/full suites, independent review and visual inspection remain with lead.",
+    "Collect is the initial workspace snapshot boundary; later connector/tool work remains within recorded runtime analysis and is detailed in the flight recorder.",
+    "Legacy decision-source uncertainty is preserved; no stage history is fabricated."
+  ]
+}

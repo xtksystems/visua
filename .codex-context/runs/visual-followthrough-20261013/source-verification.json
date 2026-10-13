@@ -1,0 +1,98 @@
+{
+  "run_id": "visual-followthrough-20261013",
+  "status": "passed",
+  "recorded_utc": "2026-10-13T04:56:24.193821+00:00",
+  "cwd": "/Users/artem/visua",
+  "branch": "feat/light-workspace-design",
+  "head": "9755c01873444647c30821ac1d0b88aa16023632",
+  "runtime": {
+    "node": "v26.0.0",
+    "pnpm": "10.33.0"
+  },
+  "source": {
+    "manifest": "delivery-source.json",
+    "sha256": "488ffa31ec697173b1d3a62edd412c4b854eaa771cc5abeefcd15c2ea5840db7",
+    "files": 318,
+    "baseline": "baseline-source.json",
+    "changes_after_full_check": [
+      "docs/architecture.md",
+      "e2e/score-history.spec.ts",
+      "e2e/visua.spec.ts"
+    ],
+    "product_source_changed_after_full_check": false
+  },
+  "checks": {
+    "full": {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL VISUA_AUTH_MODE=dev VISUA_SEED=1 pnpm check",
+      "exit_code": 1,
+      "log": "check-full.log",
+      "typecheck": "passed",
+      "licensing": "passed",
+      "corpus": "passed",
+      "design_lint": "passed",
+      "sqlite": {
+        "passed": 626,
+        "skipped": 2,
+        "skip_reason": "PostgreSQL-only cases"
+      },
+      "postgres": {
+        "passed": 628,
+        "backend": "disposable postgres:17 container, removed by check runner"
+      },
+      "browser": {
+        "passed": 136,
+        "failed": 2,
+        "log": "full-end-to-end-playwright.log"
+      }
+    },
+    "final_browser_delta": {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL VISUA_AUTH_MODE=dev VISUA_SEED=1 pnpm test:e2e e2e/score-history.spec.ts e2e/visua.spec.ts -g 'history begins|history load failure|reader sees exact|pages fit narrow'",
+      "exit_code": 0,
+      "passed": 4,
+      "log": "browser-final-delta.log",
+      "changes": "Test-only corrections: native Tab entry before keyboard scrolling; permit only named, focusable, viewport-bounded comparison scrollers."
+    },
+    "accepted_browser_cases": {
+      "unique": 138,
+      "composition": "134 unaffected full-run cases plus all 4 final affected cases; the full run had 136 passes, including 2 history cases rerun in the final delta."
+    },
+    "documentation": {
+      "status": "passed",
+      "record": "docs-links.json",
+      "local_links_checked": 76
+    },
+    "whitespace": {
+      "status": "passed",
+      "record": "whitespace.json",
+      "new_files_checked": 36
+    }
+  },
+  "reviews": {
+    "reports": [
+      "crosswalk-plan-review.json",
+      "profile-stages-review.json",
+      "history-review.json"
+    ],
+    "supported_findings": 5,
+    "resolved": 5,
+    "adjudication": "lead-adjudication.json"
+  },
+  "visual": "visual-verification.json",
+  "delivery": {
+    "implementation": "complete and verified",
+    "commit": "uncommitted",
+    "push": "not performed",
+    "deployment": "not performed; existing recorded Docker revision e867494 and database untouched"
+  },
+  "limitations": [
+    "No single final full-check command passed. Accepted verification composes unchanged full-lane results with the four final affected browser reruns.",
+    "History starts from real captures, without backfilling prior scores; the interface shows the latest 60 workspace observations, with older observations retained.",
+    "The design review and visual checks do not constitute a user study."
+  ],
+  "accounting": {
+    "status": "passed",
+    "record": "fan-in.json",
+    "accepted_results": 8,
+    "stale_sources": 0
+  }
+}

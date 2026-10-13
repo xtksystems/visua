@@ -16,6 +16,8 @@ import { NARROW, useMediaQuery } from "../lib/media.ts";
 import { useMeta, useProposals, useRun, useRuns, useWorkspace, useWsMutation } from "../lib/queries.ts";
 import type { RunWithProposals } from "../lib/types.ts";
 import { useUi } from "../state/ui.ts";
+import { agentStages, STAGE_STATE_LABELS } from "../lib/agent-stages.ts";
+import "./agents.css";
 
 const STEP_ICON: Record<AgentStep["type"], React.ReactNode> = {
   plan: <Compass size={14} />,
@@ -46,6 +48,8 @@ function StepView({ step }: { step: AgentStep }) {
   const ws = useWorkspaceId();
   const tool = step.type === "tool-call" || step.type === "tool-result";
   const [open, setOpen] = useState(false);
+  const detailsId = useId();
+  const expandable = step.data !== undefined || !!(step.detail && step.type !== "message");
   return (
     <li className="flight__step">
       <span className={`flight__dot flight__dot--${step.type}`}>{STEP_ICON[step.type]}</span>
@@ -58,13 +62,17 @@ function StepView({ step }: { step: AgentStep }) {
             {new Date(step.at).toLocaleTimeString()}
           </span>
         </div>
-        <div className={tool ? "agent-step agent-step--tool" : step.type === "error" ? "toast toast--error" : "agent-step"} style={{ marginTop: 4, cursor: step.data || step.detail ? "pointer" : undefined }} onClick={() => setOpen(!open)}>
-          <div style={{ fontWeight: tool ? 500 : 500 }}>{step.title}</div>
-          {open && step.detail && step.type !== "message" && <div style={{ marginTop: 6, whiteSpace: "pre-wrap", opacity: 0.9 }}>{step.detail}</div>}
-          {open && step.data !== undefined && (
-            <pre className="mono" style={{ marginTop: 8, whiteSpace: "pre-wrap", fontSize: 11, maxHeight: 260, overflow: "auto" }}>
-              {JSON.stringify(step.data, null, 2).slice(0, 4000)}
-            </pre>
+        <div className={tool ? "agent-step agent-step--tool" : step.type === "error" ? "toast toast--error" : "agent-step"} style={{ marginTop: 4 }}>
+          {expandable ? <button className="agent-step__toggle" aria-expanded={open} aria-controls={detailsId} onClick={() => setOpen(!open)}><span>{step.title}</span><span aria-hidden>{open ? "−" : "+"}</span></button> : <div style={{ fontWeight: 500 }}>{step.title}</div>}
+          {expandable && (
+            <div id={detailsId} hidden={!open}>
+              {step.detail && step.type !== "message" && <div style={{ marginTop: 6, whiteSpace: "pre-wrap", opacity: 0.9 }}>{step.detail}</div>}
+              {step.data !== undefined && (
+                <pre className="mono" style={{ marginTop: 8, whiteSpace: "pre-wrap", fontSize: 11, maxHeight: 260, overflow: "auto" }}>
+                  {JSON.stringify(step.data, null, 2).slice(0, 4000)}
+                </pre>
+              )}
+            </div>
           )}
         </div>
         {step.type === "message" && step.detail && (
@@ -98,6 +106,21 @@ function StepView({ step }: { step: AgentStep }) {
   );
 }
 
+function RunStageOverview({ run }: { run: RunWithProposals }) {
+  const progress = agentStages(run, run.proposals);
+  return <section className="agent-stages" aria-label="Agent stages">
+    <h3>{progress.summary}</h3>
+    {progress.blocker && <p className="agent-stages__blocker">{progress.blocker}</p>}
+    <ol className="agent-stages__sequence">
+      {progress.stages.map((stage) => <li key={stage.id} data-stage={stage.id} data-state={stage.state} aria-current={progress.current === stage.id ? "step" : undefined}>
+        <div className="agent-stages__label">{stage.label}</div>
+        <span className="agent-stages__state">{STAGE_STATE_LABELS[stage.state]}</span>
+        <p>{stage.detail}</p>
+      </li>)}
+    </ol>
+  </section>;
+}
+
 function FlightRecorder({ runId }: { runId: string }) {
   const ws = useWorkspaceId();
   const { data: run, isError, error, refetch, isFetching } = useRun(ws, runId);
@@ -112,11 +135,12 @@ function FlightRecorder({ runId }: { runId: string }) {
     previousProposal.current = proposalId;
   }, [proposalId]);
   if (isError && !run) return <div role="alert" className="panel"><p>Could not load this run: {error.message}</p><button className="btn" disabled={isFetching} onClick={() => void refetch()}>Retry loading run</button></div>;
-  if (!run) return <div className="muted">Loading run…</div>;
+  if (!run) return <div className="muted" role="status">Loading run…</div>;
   const pending = run.proposals.filter((p) => p.status === "pending");
   const duration = run.startedAt && run.finishedAt ? Math.max(0, (new Date(run.finishedAt).getTime() - new Date(run.startedAt).getTime()) / 1000) : undefined;
   return (
     <div className="stack" style={{ gap: 16 }}>
+      {isError && <div role="alert" className="panel"><p>Could not refresh this run. The last loaded information is shown: {error.message}</p><button className="btn" disabled={isFetching} onClick={() => void refetch()}>Retry loading run</button></div>}
       <div className="panel">
         <div className="row row--wrap" style={{ alignItems: "flex-start", gap: 12 }}>
           <div style={{ flex: "1 1 260px", minWidth: 0 }}>
@@ -136,7 +160,7 @@ function FlightRecorder({ runId }: { runId: string }) {
           )}
           <ReviewAllProposals runId={run.id} count={pending.length} />
         </div>
-        {run.error && <div className="toast toast--error" style={{ marginTop: 12 }}>{run.error}</div>}
+        <RunStageOverview run={run} />
       </div>
       {proposalId && !run.proposals.some((p) => p.id === proposalId) && <div className="panel" role="alert"><p>This proposal is not available in this run. It may have been removed, or the link may refer to another run.</p><button className="btn" disabled={isFetching} onClick={() => void refetch()}>Retry loading proposal</button></div>}
       {proposalId && run.proposals.some((p) => p.id === proposalId) && <ProposalReviewDialog
@@ -286,10 +310,12 @@ export function AgentsPage() {
           style={{ marginTop: 8 }}
           value={tab}
           onChange={setTab}
-          tabs={[{ id: "runs", label: "Runs", count: runs.data?.length ?? 0 }, { id: "inbox", label: "Approvals inbox", count: inbox.length }]}
+          tabs={[{ id: "runs", label: "Runs", count: runs.data?.length }, { id: "inbox", label: "Approvals inbox", count: pending.data?.length }]}
         />
         <TabPanel groupId={tabsId} id="runs" active={tab === "runs"}>
           <div className="stack" style={{ gap: 6 }}>
+            {runs.isError && <div role="alert" className="panel"><p>Could not {runs.data ? "refresh" : "load"} runs.{runs.data ? " Last loaded runs are shown." : ""}</p><button className="btn" disabled={runs.isFetching} onClick={() => void runs.refetch()}>Retry loading runs</button></div>}
+            {runs.isPending && <p role="status" className="muted">Loading runs…</p>}
             {(runs.data ?? []).map((r) => (
               <button key={r.id} className={`runrow ${selected === r.id ? "is-selected" : ""}`} onClick={() => navigate(`/w/${ws}/agents/${r.id}`)}>
                 <div className="row" style={{ gap: 8 }}>
@@ -303,15 +329,17 @@ export function AgentsPage() {
                 <div style={{ marginTop: 6, textAlign: "left" }}>{truncate(r.goal, 110)}</div>
               </button>
             ))}
-            {!runs.data?.length && <Empty title="No runs yet">Launch an agent above.</Empty>}
+            {runs.isSuccess && !runs.data.length && <Empty title="No runs yet">Launch an agent above.</Empty>}
           </div>
         </TabPanel>
         <TabPanel groupId={tabsId} id="inbox" active={tab === "inbox"}>
           <div className="stack" style={{ gap: 8 }}>
+            {pending.isError && <div role="alert" className="panel"><p>Could not {pending.data ? "refresh" : "load"} the approvals inbox.{pending.data ? " Last loaded proposals are shown." : ""}</p><button className="btn" disabled={pending.isFetching} onClick={() => void pending.refetch()}>Retry loading approvals</button></div>}
+            {pending.isPending && <p role="status" className="muted">Loading approvals…</p>}
             {inbox.map((p) => (
               <ProposalCard key={p.id} proposal={p} compact />
             ))}
-            {!inbox.length && <Empty title="Inbox zero">No proposals are waiting for a decision.</Empty>}
+            {pending.isSuccess && !inbox.length && <Empty title="Inbox zero">No proposals are waiting for a decision.</Empty>}
           </div>
         </TabPanel>
       </aside>

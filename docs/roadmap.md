@@ -50,6 +50,11 @@ generated from the product, not written by marketing.
 
 ## Next: platform foundations
 
+The completed [visual review implementation plan](visual-review-plan.md) records
+Crosswalk comparison, Plan urgency, CSF profile, agent stages, accessibility
+consistency, and snapshot-backed history. Its verification and delivery status
+are tracked separately from the platform work below.
+
 1. **Identity follow-ups.** SAML and SCIM provisioning.
 2. **Evidence file storage.** Object storage for evidence files, content-addressed by
    SHA-256, and Postgres row-level security as a second tenancy guard.

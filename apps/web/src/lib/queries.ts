@@ -94,7 +94,7 @@ export const useWorkspace = (ws: string | undefined, options: { refetchInterval?
 };
 export const useGraph = (fw: string | undefined) =>
   useQuery({ queryKey: keys.graph(fw ?? ""), queryFn: () => api.get<LeanGraph>(`/frameworks/${enc(fw!)}`), enabled: !!fw, staleTime: Infinity });
-export const useFrameworkState = (ws: string | undefined, fw: string | undefined) => {
+export const useFrameworkState = (ws: string | undefined, fw: string | undefined, options: { refetchInterval?: number } = {}) => {
   ws = useResolvedWorkspaceId(ws);
   // Threat catalogs carry derived coverage, counted down to the chosen link status.
   const min = useUi((s) => s.threatMin);
@@ -103,7 +103,9 @@ export const useFrameworkState = (ws: string | undefined, fw: string | undefined
     queryKey: threat ? [...keys.state(ws ?? "", fw ?? ""), min] : keys.state(ws ?? "", fw ?? ""),
     queryFn: () => api.get<FrameworkStateBundle>(`/workspaces/${enc(ws!)}/frameworks/${enc(fw!)}/state${threat ? `?min=${min}` : ""}`),
     enabled: !!ws && !!fw,
-    placeholderData: keepPreviousData,
+    // A previous framework or workspace must never supply another view's counts.
+    placeholderData: (prev, query) => query?.queryKey[1] === ws && prev?.frameworkId === fw ? prev : undefined,
+    refetchInterval: options.refetchInterval,
   });
 };
 export const useNodeDetail = (ws: string | undefined, id: string | undefined) => {

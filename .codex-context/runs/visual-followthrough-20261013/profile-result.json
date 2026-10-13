@@ -1,0 +1,18 @@
+{
+  "run_id": "visual-followthrough-20261013",
+  "node_id": "profile",
+  "input_sha256": "a748211f2ad6f61f42752cb52e9fca3786bbc0ed4d3fb7842afd761b5f7f9c3f",
+  "status": "complete",
+  "summary": "CSF categories now share a full-width aligned chart and numeric table, with URL sorting and scoped requirement drill-down. Organizational Tiers are in a separate keyboard tab with workspace-bound draft and save state.",
+  "evidence": [
+    ".codex-context/runs/visual-followthrough-20261013/profile-report.json",
+    ".codex-context/runs/visual-followthrough-20261013/profile-unit.log",
+    ".codex-context/runs/visual-followthrough-20261013/profile-typecheck.log",
+    ".codex-context/runs/visual-followthrough-20261013/profile-css-tokens.json"
+  ],
+  "limitations": [
+    "Browser execution, production build, screenshot inspection and combined full suites are lead-owned and were not run by this worker.",
+    "Narrow layouts retain table comparisons in named keyboard-focusable horizontal scroll regions; page overflow requires the lead browser check.",
+    "No backend, shared contracts, documentation, e2e, commit, push or deployment files were changed."
+  ]
+}
