@@ -42,7 +42,7 @@ OWASP Top 10s show which AI threats the program addresses.
 | | |
 |---|---|
 | ![Crosswalk Nexus](docs/images/crosswalk-nexus.jpg) | ![SP 800-53 Rev. 5, full catalog](docs/images/observatory-800-53.jpg) |
-| ![Overview dashboard with readiness summary and labeled navigation](docs/images/home.jpg) | ![NIST RMF program](docs/images/rmf.jpg) |
+| ![Overview with implementation progress, evidence coverage, and an attention queue](docs/images/home.jpg) | ![NIST RMF program](docs/images/rmf.jpg) |
 | ![AI governance with the NIST AI RMF](docs/images/ai-governance.jpg) | ![SOC 2 program](docs/images/soc2.jpg) |
 | ![MITRE ATLAS matrix with coverage from linked requirements](docs/images/threats-atlas.jpg) | ![The Nexus threat ring: OWASP LLM01 linked to AI RMF, SP 800-53 and CSF groups](docs/images/nexus-threat-ring.jpg) |
 

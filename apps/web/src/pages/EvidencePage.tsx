@@ -2,6 +2,8 @@
 import { evidenceFreshness, evidenceReviewScope, isEvidenceValid } from "@visua/core";
 import { Check, Download, Plug, Play, Plus, ShieldCheck, Upload, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { useRunAgent } from "../components/inspector/Inspector.tsx";
 import { CodeTag, Dialog, Empty, Metric, Segmented, toast } from "../components/ui/index.tsx";
 import { useWorkspaceId } from "../lib/workspace.ts";
@@ -181,7 +183,29 @@ function EvidenceDialog({ initial, onClose }: { initial: Evidence; onClose: () =
   );
 }
 
+function CheckDialog({ id, onClose }: { id: string; onClose: () => void }) {
+  const ws = useWorkspaceId();
+  const observation = useQuery({ queryKey: ["ws", ws, "check", id], queryFn: ({ signal }) => api.get<CheckResult>(`/workspaces/${encodeURIComponent(ws)}/checks/${encodeURIComponent(id)}`, signal) });
+  const check = observation.data;
+  return <Dialog wide title={check?.title ?? "Monitoring observation"} onClose={onClose}>
+    {observation.isPending && <p role="status">Loading observation…</p>}
+    {observation.error && <div role="alert"><p>Could not load this observation. {observation.error.message}</p><button className="btn" onClick={() => void observation.refetch()}>Retry observation</button></div>}
+    {check && <div className="stack">
+      <p><strong>{check.outcome.toUpperCase()}</strong> · observed {new Date(check.observedAt).toLocaleString()}</p>
+      <p>{check.detail}</p>
+      <div className="row row--wrap">{check.requirementIds.map(id => <CodeTag key={id} id={id} />)}</div>
+      <p className="muted">This is the recorded observation. A later check may have a different outcome. Return to the overview for current attention items.</p>
+      <details><summary>Observation details</summary><pre className="panel mono wrap-anywhere" style={{ whiteSpace: "pre-wrap", maxHeight: 320, overflow: "auto" }}>{JSON.stringify(check, null, 2)}</pre></details>
+    </div>}
+  </Dialog>;
+}
+
 export function EvidencePage() {
+  const ws = useWorkspaceId();
+  return <EvidenceWorkspace key={ws} />;
+}
+
+function EvidenceWorkspace() {
   const ws = useWorkspaceId();
   const canConfigure = useCan("workspace.configure");
   const evidenceQuery = useEvidence(ws);
@@ -192,6 +216,14 @@ export function EvidencePage() {
   const [filter, setFilter] = useState<"all" | "pending" | "expiring" | "connector">("all");
   const [adding, setAdding] = useState(false);
   const [viewing, setViewing] = useState<Evidence | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const evidenceId = searchParams.get("evidence");
+  const checkId = searchParams.get("check");
+  const selectedEvidence = viewing ?? evidence.find(e => e.id === evidenceId);
+  const closeLinked = () => {
+    setViewing(null);
+    setSearchParams(params => { params.delete("evidence"); params.delete("check"); return params; }, { replace: true });
+  };
   const [uploading, setUploading] = useState(false);
   useEffect(() => { setViewing(null); setUploading(false); }, [ws]);
   const canWrite = useCan("work.write");
@@ -376,7 +408,9 @@ export function EvidencePage() {
         </div>
       </div>
       {adding && canConfigure && <AddConnector onClose={() => setAdding(false)} />}
-      {viewing && <EvidenceDialog key={`${ws}:${viewing.id}`} initial={viewing} onClose={() => setViewing(null)} />}
+      {selectedEvidence && <EvidenceDialog key={`${ws}:${selectedEvidence.id}`} initial={selectedEvidence} onClose={closeLinked} />}
+      {evidenceId && !selectedEvidence && !evidenceQuery.isPending && <Dialog title="Evidence unavailable" onClose={closeLinked}><p role="alert">This evidence is no longer available in this workspace.</p><button className="btn" onClick={() => void evidenceQuery.refetch()}>Retry evidence</button></Dialog>}
+      {checkId && !evidenceId && !viewing && <CheckDialog key={`${ws}:${checkId}`} id={checkId} onClose={closeLinked} />}
       {uploading && canWrite && <UploadEvidence key={ws} onClose={() => setUploading(false)} onUploaded={item => { setUploading(false); setViewing(item); }} />}
     </div>
   );

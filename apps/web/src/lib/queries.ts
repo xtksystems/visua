@@ -88,9 +88,9 @@ export function useWorkspaceRoute(route: string) {
     enabled: !!route,
   });
 }
-export const useWorkspace = (ws: string | undefined) => {
+export const useWorkspace = (ws: string | undefined, options: { refetchInterval?: number } = {}) => {
   ws = useResolvedWorkspaceId(ws);
-  return useQuery({ queryKey: keys.workspace(ws ?? ""), queryFn: () => api.get<WorkspaceSummary>(`/workspaces/${enc(ws!)}`), enabled: !!ws });
+  return useQuery({ queryKey: keys.workspace(ws ?? ""), queryFn: () => api.get<WorkspaceSummary>(`/workspaces/${enc(ws!)}`), enabled: !!ws, refetchInterval: options.refetchInterval });
 };
 export const useGraph = (fw: string | undefined) =>
   useQuery({ queryKey: keys.graph(fw ?? ""), queryFn: () => api.get<LeanGraph>(`/frameworks/${enc(fw!)}`), enabled: !!fw, staleTime: Infinity });

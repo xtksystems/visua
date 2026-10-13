@@ -40,6 +40,9 @@ import {
   type Policy,
   type Priority,
   type Proposal,
+  type ProposalPreview,
+  type ProposalBatchPreview,
+  type ProposalBatchResult,
   type RequirementNode,
   type RequirementState,
   type Risk,
@@ -59,6 +62,7 @@ import { canonical, chainHash, GENESIS } from "../audit.ts";
 import { artifactHash, evidenceAuditSnapshot, evidenceMetadata, type EvidencePatch, type FileEvidenceInput } from "./evidence.ts";
 import { MAX_BLOB_BYTES, MemoryBlobStore, type BlobScope, type BlobStore } from "../blobs/index.ts";
 import { isWorkDate, requirementWorkSnapshot, taskWorkSnapshot, type RequirementPatch, type TaskPatch } from "./work.ts";
+import { buildProposalPreview, proposalBatchPreview, ProposalReviewConflict } from "./proposal-review.ts";
 export { chainHash } from "../audit.ts";
 import type { EventBus, VisuaEventType } from "../bus.ts";
 import { CONNECTOR_KINDS, FRAMEWORK_OF_REF, connectorKind, type ConnectorKind, type RequirementRefs } from "../connectors/index.ts";
@@ -1776,6 +1780,9 @@ export class VisuaService {
       case "create-risk":
         this.linkedRequirements(payload["requirementIds"] as string[] | undefined);
         return;
+      case "set-rmf":
+        if (Object.hasOwn(payload, "authorization")) throw new ValidationError("Agents cannot propose authorization decisions; use the system authorization workflow");
+        return;
       default:
         return;
     }
@@ -1811,11 +1818,80 @@ export class VisuaService {
     });
   }
 
-  async decideProposal(workspaceId: string, proposalId: string, decision: "approved" | "rejected", actor = "user", edits?: Record<string, unknown>): Promise<Proposal> {
+  /** Preview and token construction share the same lock as approval. */
+  async previewProposal(workspaceId: string, proposalId: string): Promise<ProposalPreview> {
+    return this.mutate(workspaceId, async (ws) => this.proposalPreviewIn(ws, proposalId));
+  }
+
+  private async proposalPreviewIn(ws: Workspace, proposalId: string): Promise<ProposalPreview> {
+    const proposal = await this.store.proposals.get(proposalId);
+    if (!proposal || proposal.workspaceId !== ws.id) throw new NotFoundError(`Proposal '${proposalId}' not found`);
+    return buildProposalPreview(this, ws, proposal, async () => {
+      await this.checkProposal(ws, proposal);
+      await this.applyProposal(proposal, "approving user");
+    });
+  }
+
+  private async proposalRunIn(ws: Workspace, runId: string): Promise<void> {
+    const run = await this.store.runs.get(runId);
+    if (!run || run.workspaceId !== ws.id) throw new NotFoundError("Run not found");
+  }
+
+  async previewRunProposals(workspaceId: string, runId: string): Promise<ProposalBatchPreview> {
+    return this.mutate(workspaceId, async (ws) => {
+      await this.proposalRunIn(ws, runId);
+      const pending = (await this.store.proposals.list(ws.id)).filter((p) => p.runId === runId && p.status === "pending").sort((a, b) => a.id.localeCompare(b.id));
+      if (pending.length > 200) throw new ValidationError("This run has more than 200 pending proposals; review proposals individually");
+      const previews: ProposalPreview[] = [];
+      for (const proposal of pending) previews.push(await this.proposalPreviewIn(ws, proposal.id));
+      return proposalBatchPreview(runId, previews, await this.store.workspaces.rev(ws.id));
+    });
+  }
+
+  async approveRunProposals(workspaceId: string, runId: string, proposalIds: string[], reviewToken: string, actor = "user"): Promise<ProposalBatchResult> {
+    return this.mutate(workspaceId, async (ws) => {
+      await this.proposalRunIn(ws, runId);
+      if (!reviewToken || !proposalIds.length || proposalIds.length > 200 || new Set(proposalIds).size !== proposalIds.length) throw new ValidationError("Approve the exact nonempty proposal set from a batch preview");
+      const previews: ProposalPreview[] = [];
+      for (const id of proposalIds) {
+        const proposal = await this.store.proposals.get(id);
+        if (!proposal || proposal.workspaceId !== ws.id || proposal.runId !== runId) throw new NotFoundError("Proposal not found in this run");
+        previews.push(await this.proposalPreviewIn(ws, id));
+      }
+      const preview = proposalBatchPreview(runId, previews, await this.store.workspaces.rev(ws.id));
+      if (preview.reviewToken !== reviewToken) throw new ProposalReviewConflict("The reviewed proposal set or workspace changed. Refresh the batch preview before approving.");
+      const conflicts = new Set(preview.conflicts.flatMap((conflict) => conflict.proposalIds));
+      const results: ProposalBatchResult["results"] = [];
+      for (const item of previews) {
+        const proposalId = item.proposal.id;
+        if (conflicts.has(proposalId) || !item.canApprove) {
+          results.push({ proposalId, status: "skipped", proposalStatus: item.proposal.status, message: conflicts.has(proposalId) ? "Overlapping target: review and approve individually." : item.unresolvedQuestions.join(" ") });
+          continue;
+        }
+        try {
+          // An audit/storage failure for one item rolls back that item's writes,
+          // while already applied independent items can still commit and be reported.
+          const decided = await this.store.transaction(() => this.decideProposal(ws.id, proposalId, "approved", actor));
+          results.push({ proposalId, status: decided.status === "applied" ? "applied" : "failed", proposalStatus: decided.status, ...(decided.status === "failed" ? { message: decided.rationale.split("Apply failed: ").at(-1) } : {}) });
+        } catch (error) {
+          results.push({ proposalId, status: "failed", proposalStatus: "pending", message: `${error instanceof Error ? error.message : "Approval failed"}. The proposal remains pending.` });
+        }
+      }
+      return { total: results.length, applied: results.filter((r) => r.status === "applied").length, failed: results.filter((r) => r.status === "failed").length, skipped: results.filter((r) => r.status === "skipped").length, results };
+    });
+  }
+
+  async decideProposal(workspaceId: string, proposalId: string, decision: "approved" | "rejected", actor = "user", edits?: Record<string, unknown>, reviewToken?: string): Promise<Proposal> {
     return this.mutate(workspaceId, async (ws) => {
       const prev = await this.store.proposals.get(proposalId);
       if (!prev || prev.workspaceId !== ws.id) throw new NotFoundError(`Proposal '${proposalId}' not found`);
       if (prev.status !== "pending") throw new ValidationError(`Proposal already ${prev.status}`);
+      if (decision === "approved" && reviewToken !== undefined) {
+        if (edits && Object.keys(edits).length) throw new ValidationError("Approval must apply the inspected payload; edits require a new proposal and preview");
+        const preview = await this.proposalPreviewIn(ws, proposalId);
+        if (preview.reviewToken !== reviewToken) throw new ProposalReviewConflict("The proposal or workspace changed since inspection. Refresh the preview before approving.");
+        if (!preview.canApprove) throw new ValidationError(preview.unresolvedQuestions.join(" "));
+      }
       let next: Proposal = { ...prev, payload: { ...prev.payload, ...(edits ?? {}) }, status: decision, decidedBy: actor, decidedAt: now() };
       if (decision === "approved") {
         try {

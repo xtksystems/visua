@@ -31,16 +31,57 @@ message appears and its unsaved input remains available to correct or retry.
 
 ## Review program health
 
-**Overview** shows readiness for the primary framework, open gaps, evidence
-coverage, and decisions awaiting approval. Framework cards show readiness,
-status distribution, scope, and evidence coverage. Choose **Program** to open
-the framework's 2D view or **View in 3D** to explore it in the Observatory.
+**Overview** separates recorded implementation from accepted proof. Choose
+**Metric scope** to inspect an enabled framework. **Implementation progress**
+measures priority-weighted progress toward its targets. **Valid evidence
+coverage** counts requirements with accepted, currently valid evidence.
+**Requirements at risk** counts requirements whose current status is at risk.
+Each metric names its scope or denominator. **Pending agent decisions** covers
+the entire workspace. Open **How these metrics are calculated** for the
+formulas, exclusions, and update time.
 
-![Overview with labeled navigation, program metrics, and framework cards](images/home.jpg)
+Framework cards show implementation progress, status distribution, scope, and
+valid evidence coverage. Choose **Program** to open the framework's 2D view or
+**View in 3D** to explore it in the Observatory.
 
-Use **Next best actions** to open a requirement that needs work. If agent
-drafts are waiting, the approval panel links to the review queue. While the
-overview loads, placeholders show where its content will appear.
+![Overview with scoped implementation and evidence metrics above the attention queue](images/home.jpg)
+
+**Needs attention** appears above the framework cards. It includes overdue
+tasks, current failing checks, expired or expiring evidence, pending reviews,
+and implementation gaps across all enabled frameworks. Each issue shows its
+reason, linked work, owner or reviewing role, and a direct next action.
+Use **Queue scope** or the issue filters to narrow the complete queue; choose
+**Show more issues** to reveal further results in urgency order.
+
+Review status and validity are separate. A pending artifact can already be
+expired. Expiry messages identify other evidence that is valid now; they do
+not forecast future coverage. Links to requirement groups do not establish
+evidence coverage for their individual requirements. Metrics and the queue
+refresh every minute and after relevant workspace changes. Failed loads offer
+retry instead of reporting that no work remains.
+
+## Review agent changes
+
+Open a proposal from **Needs attention**, an agent run, or the **Approvals
+inbox**, then choose **Review changes**. Compare **Current** and **Proposed**
+values, affected requirements, supporting sources, and unknowns before making
+a decision. Agent confidence is a qualitative assessment, not verification.
+The flight recorder remains below the proposals; runtime and token counts are
+under **Run details**.
+
+An approver, admin, or owner can choose **Approve and apply** or **Reject
+proposal**. The review stays fixed while open. If the proposal or workspace
+changes before approval, choose **Refresh preview**, inspect it again, and
+retry. Generated identifiers and decision timestamps are marked as values set
+when the proposal is applied. File evidence is reviewed through its artifact
+detail screen, where bytes are verified.
+
+For a run with multiple pending proposals, **Review all** opens a batch summary
+and every proposed change. **Approve reviewed** processes only the proposals
+in that review. New arrivals are excluded. Conflicting changes to the same
+target are skipped and remain pending for individual review. The result reports
+the actual applied, failed, and skipped counts; a failure is never reported as
+an applied change.
 
 ## Move work forward
 

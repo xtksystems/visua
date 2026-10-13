@@ -62,13 +62,13 @@ function watchErrors(page: Page): string[] {
   return errors;
 }
 
-test("home shows the workspace, its frameworks and next best actions", async ({ page }) => {
+test("home shows the workspace, its frameworks and attention queue", async ({ page }) => {
   await signIn(page);
   const errors = watchErrors(page);
   await page.goto(WS);
   await expect(page.getByRole("heading", { level: 1, name: "Northwind Health" })).toBeVisible();
-  for (const name of ["CSF 2.0", "SOC 2", "SP 800-53", "RMF"]) await expect(page.getByRole("main").getByText(name).first()).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Next best actions" })).toBeVisible();
+  for (const name of ["CSF 2.0", "SOC 2", "SP 800-53", "RMF"]) await expect(page.locator(".home__framework-grid").getByText(name).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Needs attention" })).toBeVisible();
   expect(errors).toEqual([]);
 });
 

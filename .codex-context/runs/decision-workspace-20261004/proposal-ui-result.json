@@ -1,0 +1,17 @@
+{
+  "run_id": "decision-workspace-20261004",
+  "node_id": "proposal-ui",
+  "input_sha256": "dfaf646cb73d872f3aa267740b9394de5d3e7eb52068307c0946464504fdb655",
+  "summary": "Implemented proposal review and batch decision UI with server-derived Current/Proposed changes, actual affected requirements, supporting sources, unknowns, qualified confidence, frozen snapshot/token approval, explicit stale refresh, capability gates, pending guards, deep-link recovery and selection identity validation. Authored seven browser cases and updated page-role review assertions.",
+  "limitations": [
+    "Browser tests and full build not run by this worker to avoid resource contention. Lead started integrated browser lane after source freeze.",
+    "The late-arrival/partial-outcome browser case uses mocked live run and batch-result responses; other approval/staleness cases use real API/storage.",
+    "No commits, pushes, deployments, full suites, or changes outside assigned product/test files and this result envelope."
+  ],
+  "status": "complete",
+  "evidence": [
+    "proposal-ui-worker-report.json: commands, source hashes, coverage and limitations; inspected by lead.",
+    "proposal-ui-correction-report.json: technical field disclosure polish, Home role assertion correction, and fresh passing web typecheck.",
+    "proposal-ui-focus-report.json: inactive document focus diagnosis and passing isolated mobile keyboard regression; no product code changes."
+  ]
+}

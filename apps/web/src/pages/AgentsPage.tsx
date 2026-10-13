@@ -2,10 +2,10 @@
  * Agents: glass-box flight recorders, the approvals inbox and the launcher.
  */
 import { AlertTriangle, ArrowLeft, BookOpen, Brain, CheckCheck, Compass, MessageSquare, Play, Square, Wrench } from "lucide-react";
-import { useEffect, useId, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import type { AgentStep } from "@visua/core";
-import { ProposalCard } from "../components/agents/Proposals.tsx";
+import { ProposalCard, ProposalReviewDialog, ReviewAllProposals } from "../components/agents/Proposals.tsx";
 import { AgentBadge, CitationBlock, CodeTag, Empty, TabPanel, Tabs, toast } from "../components/ui/index.tsx";
 import { useWorkspaceId } from "../lib/workspace.ts";
 import { api } from "../lib/api.ts";
@@ -100,11 +100,18 @@ function StepView({ step }: { step: AgentStep }) {
 
 function FlightRecorder({ runId }: { runId: string }) {
   const ws = useWorkspaceId();
-  const { data: run } = useRun(ws, runId);
+  const { data: run, isError, error, refetch, isFetching } = useRun(ws, runId);
+  const [search, setSearch] = useSearchParams();
+  const proposalId = search.get("proposal");
+  const heading = useRef<HTMLHeadingElement>(null);
+  const previousProposal = useRef(proposalId);
   const cancel = useWsMutation(ws, () => api.post(`/workspaces/${encodeURIComponent(ws)}/runs/${runId}/cancel`));
-  const approveAll = useWsMutation(ws, () => api.post(`/workspaces/${encodeURIComponent(ws)}/runs/${runId}/approve-all`));
   const canWrite = useCan("work.write");
-  const canDecide = useCan("work.approve");
+  useEffect(() => {
+    if (previousProposal.current && !proposalId) heading.current?.focus({ preventScroll: true });
+    previousProposal.current = proposalId;
+  }, [proposalId]);
+  if (isError && !run) return <div role="alert" className="panel"><p>Could not load this run: {error.message}</p><button className="btn" disabled={isFetching} onClick={() => void refetch()}>Retry loading run</button></div>;
   if (!run) return <div className="muted">Loading run…</div>;
   const pending = run.proposals.filter((p) => p.status === "pending");
   const duration = run.startedAt && run.finishedAt ? Math.max(0, (new Date(run.finishedAt).getTime() - new Date(run.startedAt).getTime()) / 1000) : undefined;
@@ -116,29 +123,31 @@ function FlightRecorder({ runId }: { runId: string }) {
             <div className="row row--wrap" style={{ gap: 8 }}>
               <AgentBadge label={run.agent} />
               <RunStatus status={run.status} />
-              <span className="muted mono" style={{ fontSize: 11 }}>
-                {run.mode === "claude" ? run.model : "offline playbook"}
-                {duration !== undefined ? ` · ${duration.toFixed(1)}s` : ""}
-                {run.usage ? ` · ${run.usage.inputTokens.toLocaleString()} in / ${run.usage.outputTokens.toLocaleString()} out tokens` : ""}
-              </span>
             </div>
-            <h2 className="section-title" style={{ marginTop: 10, marginBottom: 0 }}>
+            <h2 ref={heading} tabIndex={-1} className="section-title" style={{ marginTop: 10, marginBottom: 0 }}>
               {run.goal}
             </h2>
+            <p className="muted" style={{ marginTop: 8 }}>{pending.length ? `${pending.length} proposal${pending.length === 1 ? " needs" : "s need"} a decision. Review the changes and sources before approving.` : run.status === "running" || run.status === "queued" ? "The agent is working. Proposals will appear here when they are ready to review." : "No proposals are waiting for a decision."}</p>
           </div>
           {canWrite && (run.status === "running" || run.status === "queued") && (
-            <button className="btn btn--sm" disabled={cancel.isPending} onClick={() => cancel.mutate(undefined)}>
+            <button className="btn btn--sm" disabled={cancel.isPending} onClick={() => cancel.mutate(undefined, { onError: (cause) => toast(cause.message, "error") })}>
               <Square size={12} /> Stop
             </button>
           )}
-          {pending.length > 1 && canDecide && (
-            <button className="btn btn--agent btn--sm" onClick={() => approveAll.mutate(undefined, { onSuccess: () => toast(`Approved ${pending.length} proposals`) })}>
-              <CheckCheck size={13} /> Approve all {pending.length}
-            </button>
-          )}
+          <ReviewAllProposals runId={run.id} count={pending.length} />
         </div>
         {run.error && <div className="toast toast--error" style={{ marginTop: 12 }}>{run.error}</div>}
       </div>
+      {proposalId && !run.proposals.some((p) => p.id === proposalId) && <div className="panel" role="alert"><p>This proposal is not available in this run. It may have been removed, or the link may refer to another run.</p><button className="btn" disabled={isFetching} onClick={() => void refetch()}>Retry loading proposal</button></div>}
+      {proposalId && run.proposals.some((p) => p.id === proposalId) && <ProposalReviewDialog
+        key={`${ws}:${run.id}:${proposalId}`}
+        target={{ workspaceId: ws, proposalId, expectedRunId: run.id }}
+        onClose={() => {
+          const next = new URLSearchParams(search);
+          next.delete("proposal");
+          setSearch(next, { replace: true });
+        }}
+      />}
       {run.proposals.length > 0 && (
         <section>
           <div className="eyebrow" style={{ marginBottom: 8 }}>
@@ -151,6 +160,10 @@ function FlightRecorder({ runId }: { runId: string }) {
           </div>
         </section>
       )}
+      <details className="agent-run-details">
+        <summary>Run details</summary>
+        <dl><dt>Runtime</dt><dd>{run.mode === "claude" ? run.model : "Offline playbook"}</dd>{duration !== undefined && <><dt>Duration</dt><dd>{duration.toFixed(1)} seconds</dd></>}{run.usage && <><dt>Tokens</dt><dd>{run.usage.inputTokens.toLocaleString()} input / {run.usage.outputTokens.toLocaleString()} output</dd></>}</dl>
+      </details>
       <section>
         <div className="eyebrow" style={{ marginBottom: 8 }}>
           Flight recorder · {run.steps.length} steps
@@ -306,7 +319,7 @@ export function AgentsPage() {
         <Link to={`/w/${ws}/agents`} className="btn btn--quiet btn--sm master-detail__back">
           <ArrowLeft size={14} aria-hidden /> All runs and approvals
         </Link>
-        {selected ? <FlightRecorder runId={selected} /> : <Empty title="Select a run" />}
+        {selected ? <FlightRecorder key={`${ws}:${selected}`} runId={selected} /> : <Empty title="Select a run" />}
       </section>
     </div>
   );

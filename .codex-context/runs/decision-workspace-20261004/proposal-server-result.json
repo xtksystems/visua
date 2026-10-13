@@ -1,0 +1,19 @@
+{
+  "run_id": "decision-workspace-20261004",
+  "node_id": "proposal-server",
+  "input_sha256": "19069ec6e9edf0cc6603bc99f03b40d610cf4aab808bf91a63710ce72d0c91b2",
+  "summary": "Implemented authoritative proposal previews and snapshot-bound approval for all ten ProposalTypes. Independent review corrections expose narrative validity duration/no-expiry semantics and preserve requirement identities when assessment rows are absent, preventing conflicting batch overwrites.",
+  "limitations": [
+    "Tokens conservatively invalidate on any audited workspace change or UTC day rollover; no expiry persistence or migration was added.",
+    "Preview computation runs existing database-only mutations in a savepoint that is always rolled back. Returned fields exclude listed runtime-generated identifiers, reviewer fields, and timestamps.",
+    "File evidence review remains in the dedicated byte-verifying evidence workflow; proposal previews report it as blocked.",
+    "Batch previews are limited to 200 pending proposals and conservatively skip overlapping targets. Individual approval plus refreshed previews resolves overlaps.",
+    "Focused proposal suites ran on SQLite and isolated PostgreSQL, plus server typecheck. Full suite, browser checks, and builds remain lead-owned.",
+    "Changes are uncommitted. Core index exports and integration changes are lead-owned."
+  ],
+  "status": "complete",
+  "evidence": [
+    "proposal-server-worker-report.json: commands, source hashes, coverage and limitations; inspected by lead.",
+    "PostgreSQL ordering correction: worker report updated with final 21/21 SQLite and PostgreSQL tests, unchanged nested-array validation, and real query-plan reproduction evidence."
+  ]
+}

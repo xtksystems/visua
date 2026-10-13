@@ -1,0 +1,52 @@
+{
+  "run_id": "decision-workspace-20261004",
+  "node_id": "attention-server",
+  "input_sha256": "34fb67d8c0b72e153cf228d162806135a49e768d4cd991fcd884757b31969637",
+  "status": "complete",
+  "summary": "Added a read-only cross-framework attention queue with complete deterministic counts, scoped direct and group links, concrete reasons, resolved owners and actionable destinations. Eligible group reviews stay visible without inheriting artifact coverage or inflating assessed counts. Nine focused tests pass.",
+  "evidence": [
+    {
+      "command": "pnpm exec vitest run apps/server/test/attention.test.ts",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "result": "9 tests passed on SQLite; final run 2026-10-04 04:32:47 UTC, duration 1.87s"
+    },
+    {
+      "command": "pnpm --filter @visua/server typecheck",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check -- packages/core/src/attention.ts apps/server/src/services/attention.ts apps/server/test/attention.test.ts",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "owned_files": {
+        "packages/core/src/attention.ts": "20774bb77358d3254899bcaf78bc48291fb0e9e79a3792417b7fe1bbc2d03175",
+        "apps/server/src/services/attention.ts": "8673655da5b26de410cf399681780518c224a335b8a229948d9b908521c197de",
+        "apps/server/test/attention.test.ts": "f46c7c2bb6519a03e4842b042df2b85ea36dc28679e926d9f50c1bf8385eac37"
+      }
+    },
+    {
+      "checks": [
+        "non-primary framework failure and implementation gap",
+        "disabled/threat/withdrawn/excluded/upcoming/ended/configuration-scope exclusions",
+        "per-requirement latest checks and multi-link deduplication",
+        "artifact expiry with valid evidence alternatives",
+        "metadata-only reads and unchanged revision/audit head",
+        "pending and unbound evidence; proposal entity links; unlinked workspace work",
+        "current member, external, agent, departed and multiple owner labels",
+        "UTC due-day boundaries and intra-hour expiry without score cache",
+        "complete 57-item queue with deterministic urgency ordering",
+        "eligible group evidence/proposal reviews remain visible; disabled/empty-scope groups excluded; group-only links do not inherit coverage or inflate assessed requirement counts; mixed links count only direct units"
+      ]
+    }
+  ],
+  "limitations": [
+    "Endpoint integration and core index exports are owned by the lead; no endpoint/auth or browser tests were run in this work unit.",
+    "Full test suites, PostgreSQL, builds, commits, pushes and deployment were not run."
+  ]
+}

@@ -1,77 +1,29 @@
 /** Overview: where the program stands and what to do next. */
 import { ArrowRight, Bot, ShieldCheck, Telescope } from "lucide-react";
-import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import type { Recommendation } from "@visua/core";
 import { useQuery } from "@tanstack/react-query";
-import { useRunAgent } from "../components/inspector/Inspector.tsx";
-import { AgentBadge, CodeTag, FrameworkBadge, Metric, StatusBar } from "../components/ui/index.tsx";
+import { AgentBadge, FrameworkBadge, StatusBar } from "../components/ui/index.tsx";
 import { useWorkspaceId } from "../lib/workspace.ts";
-import { useCan } from "../lib/auth.ts";
 import { api } from "../lib/api.ts";
 import { pct, relativeTime, truncate } from "../lib/format.ts";
-import { frameworkMeta, programPath } from "../lib/frameworks.ts";
-import { useActivity, useAuditVerification, useFrameworkState, useGraph, useProposals, useRuns, useWorkspace } from "../lib/queries.ts";
+import { programPath } from "../lib/frameworks.ts";
+import { useActivity, useAuditVerification, useRuns, useWorkspace } from "../lib/queries.ts";
 import { split } from "../lib/media.ts";
-
-const PRIORITY_WEIGHT = { critical: 4, high: 3, medium: 2, low: 1 } as const;
-
-function NextBestActions({ ws, frameworkId }: { ws: string; frameworkId: string }) {
-  const graph = useGraph(frameworkId);
-  const state = useFrameworkState(ws, frameworkId);
-  const run = useRunAgent();
-  const canWrite = useCan("work.write");
-  const items = useMemo(() => {
-    if (!graph.data || !state.data) return [];
-    return graph.data.nodes
-      .filter((n) => n.assessable)
-      .map((n) => ({ n, u: state.data!.units[n.id] }))
-      .filter((x) => x.u && x.u.applicable && x.u.target > x.u.current)
-      .sort((a, b) => PRIORITY_WEIGHT[b.u!.priority] * (b.u!.target - b.u!.current) - PRIORITY_WEIGHT[a.u!.priority] * (a.u!.target - a.u!.current) || (a.u!.openTasks - b.u!.openTasks))
-      .slice(0, 6);
-  }, [graph.data, state.data]);
-  return (
-    <div className="panel home__actions-panel">
-      <div className="panel__head">
-        <div>
-          <div className="eyebrow">Where to focus</div>
-          <h2>Next best actions</h2>
-        </div>
-        <span className="spacer" />
-        <button className="btn btn--agent btn--sm" disabled={!canWrite} onClick={() => run("planner", "Plan the next sprint of work for our highest-priority gaps", { framework: frameworkId })}>
-          <Bot size={13} /> Plan with agent
-        </button>
-      </div>
-      <div className="home__action-list">
-        {items.map(({ n, u }) => (
-          <div key={n.id} className="home__action-row">
-            <CodeTag id={n.id} />
-            <div className="home__action-copy">
-              <div>{truncate(n.text, 140)}</div>
-              <div className="muted home__action-meta">
-                {u!.priority} priority · level {u!.current} → {u!.target}
-                {u!.openTasks ? ` · ${u!.openTasks} open task(s)` : " · no task yet"}
-              </div>
-            </div>
-            <Link className="btn btn--quiet btn--sm" aria-label={`Open ${n.id} in the Observatory`} to={`/w/${ws}/observatory/${frameworkId}?select=${encodeURIComponent(n.id)}`}>
-              Open <ArrowRight size={13} />
-            </Link>
-          </div>
-        ))}
-        {!items.length && <div className="muted">Every in-scope requirement meets its target. Consider raising targets or adding a framework.</div>}
-      </div>
-    </div>
-  );
-}
+import { OverviewMetrics } from "../components/work/OverviewMetrics.tsx";
+import { AttentionQueue } from "../components/work/AttentionQueue.tsx";
+import { QueryError } from "../components/ui/QueryError.tsx";
+import "../components/work/overview.css";
 
 export function HomePage() {
   const ws = useWorkspaceId();
-  const { data } = useWorkspace(ws);
+  const workspace = useWorkspace(ws, { refetchInterval: 60_000 });
+  const { data } = workspace;
   const runs = useRuns(ws);
-  const pending = useProposals(ws, "pending");
   const activity = useActivity(ws, 12);
   const audit = useAuditVerification(ws);
   const rec = useQuery({ queryKey: ["ws", ws, "recommendation"], queryFn: () => api.get<Recommendation>(`/workspaces/${encodeURIComponent(ws)}/recommendation`), enabled: !!ws });
+  if (workspace.error) return <QueryError title="Could not load workspace overview" error={workspace.error} retry={() => workspace.refetch()} />;
   if (!data) {
     return (
       <div className="page home home__loading" aria-busy="true">
@@ -84,7 +36,6 @@ export function HomePage() {
       </div>
     );
   }
-  const primary = data.frameworks[0];
   const p = data.workspace.profile;
   return (
     <div className="page home">
@@ -107,14 +58,8 @@ export function HomePage() {
         </div>
       </header>
 
-      {primary && (
-        <div className="grid grid--4 home__metrics">
-          <Metric label={`${primary.shortName} readiness`} value={Math.round(primary.readiness * 100)} unit="%" sub={`${primary.total} in-scope ${frameworkMeta(primary.id)?.unitLabelPlural ?? "requirements"}`} />
-          <Metric label="Open gaps" value={primary.gaps} sub={`${data.tasks.open} open tasks · ${data.tasks.overdue} overdue`} />
-          <Metric label="Evidence coverage" value={Math.round(primary.evidenceCoverage * 100)} unit="%" sub={`${pct(primary.verifiedShare)} verified`} />
-          <Metric label="Awaiting your decision" value={data.approvals} sub={`${data.agents.running} agent run(s) active`} />
-        </div>
-      )}
+      <OverviewMetrics key={ws} data={data} />
+      <AttentionQueue key={ws} ws={ws} />
 
       <div className="grid split home__body" style={split(1.6, 1)}>
         <div className="stack" style={{ gap: 16 }}>
@@ -128,12 +73,12 @@ export function HomePage() {
                 <div className="panel__head home__framework-head">
                   <FrameworkBadge frameworkId={f.id} />
                   <span className="spacer" />
-                  <span className="home__framework-value">{Math.round(f.readiness * 100)}<small>%</small></span>
+                  <span className="home__framework-value" aria-label={f.total ? `Implementation progress ${Math.round(f.readiness * 100)}%` : "No in-scope requirements"}>{f.total ? Math.round(f.readiness * 100) : "—"}{f.total ? <small>%</small> : null}</span>
                 </div>
                 <h3 className="home__framework-name">{f.shortName}</h3>
                 <StatusBar counts={f.counts} />
                 <div className="muted home__framework-meta">
-                  {f.upcoming ? `${f.total} in force · ${f.upcoming.total} upcoming` : `${f.total} in scope`} · {f.gaps} gaps · evidence {pct(f.evidenceCoverage)}
+                  {f.upcoming ? `${f.total} in force · ${f.upcoming.total} upcoming` : `${f.total} in scope`} · {f.gaps} implementation gaps · valid evidence {pct(f.evidenceCoverage)}
                   {f.settings.soc2 ? ` · ${f.settings.soc2.reportType === "type1" ? "Type 1" : "Type 2"}` : ""}
                   {f.settings.rmf ? ` · ${f.settings.rmf.baseline?.toUpperCase()} baseline` : ""}
                 </div>
@@ -148,7 +93,6 @@ export function HomePage() {
               </div>
             ))}
           </div>
-          {primary && <NextBestActions ws={data.workspace.id} frameworkId={primary.id} />}
           <div className="panel">
             <div className="panel__head">
               <h2>Recent agent runs</h2>
@@ -173,24 +117,6 @@ export function HomePage() {
         </div>
 
         <div className="stack" style={{ gap: 16 }}>
-          {pending.data && pending.data.length > 0 && (
-            <div className="panel home__approvals">
-              <div className="panel__head">
-                <AgentBadge label="Awaiting approval" />
-                <span className="spacer" />
-                <Link to={`/w/${ws}/agents`} className="btn btn--agent btn--sm">
-                  Review {pending.data.length}
-                </Link>
-              </div>
-              <div className="stack home__approval-list">
-                {pending.data.slice(0, 5).map((pr) => (
-                  <div key={pr.id} className="home__approval-item">
-                    <span className="home__approval-dot" aria-hidden />{truncate(pr.title, 90)}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
           {rec.data && (
             <div className="panel">
               <div className="panel__head">

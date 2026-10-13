@@ -1,0 +1,45 @@
+.overview-metrics { margin-bottom: var(--space-xl); }
+.overview-metrics__scope, .attention__head, .attention__scope { display: flex; align-items: center; gap: var(--space-md); }
+.overview-metrics__scope { flex-wrap: wrap; margin-bottom: var(--space-md); font-size: var(--font-body-sm-size); }
+.overview-metrics__scope label, .attention__scope label { font-weight: 500; }
+.overview-metrics__scope .select { width: auto; max-width: 100%; }
+.overview-metrics .home__metrics { margin-bottom: var(--space-sm); }
+.overview-metrics__definitions { font-size: var(--font-body-sm-size); line-height: var(--font-body-md-line-height); }
+.overview-metrics__definitions summary { cursor: pointer; color: var(--color-primary); padding-block: var(--space-sm); }
+.overview-metrics__definitions dl { display: grid; grid-template-columns: minmax(160px, 1fr) 4fr; gap: var(--space-md); padding: var(--space-lg); border: 1px solid var(--color-outline); border-radius: var(--radius-md); background: var(--color-surface); }
+.overview-metrics__definitions dt { font-weight: 600; }
+.overview-metrics__definitions dd { margin: 0; color: var(--color-on-surface-muted); }
+.attention { margin-bottom: var(--space-xl); }
+.attention__head { justify-content: space-between; align-items: flex-start; flex-wrap: wrap; margin-bottom: var(--space-lg); }
+.attention__head h2 { font-size: var(--font-headline-md-size); margin-block: var(--space-xs); }
+.attention__head p { margin: 0; font-size: var(--font-body-md-size); }
+.attention__scope { font-size: var(--font-body-sm-size); flex-wrap: wrap; max-width: 100%; }
+.attention__scope .select { width: auto; max-width: 100%; }
+.attention__filters { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
+.attention__filters .chip { gap: var(--space-sm); height: auto; min-height: 32px; padding-block: var(--space-xs); }
+.attention__filters .chip span { font-variant-numeric: tabular-nums; }
+.attention__count, .attention__asof { font-size: var(--font-body-sm-size); margin-block: var(--space-md); }
+.attention__asof { margin-bottom: 0; }
+.attention__list { list-style: none; margin: 0; padding: 0; }
+.attention__item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: var(--space-md); border-top: 1px solid var(--color-outline); padding-block: var(--space-lg); }
+.attention__icon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-sm); color: var(--color-status-at-risk); background: var(--color-status-at-risk-container); }
+.attention__item[data-kind="implementation-gap"] .attention__icon { color: var(--color-primary); background: var(--color-primary-container); }
+.attention__item[data-kind="proposal-review"] .attention__icon, .attention__item[data-kind="evidence-review"] .attention__icon { color: var(--color-tertiary); background: var(--color-tertiary-container); }
+.attention__item[data-kind="expiring-evidence"] .attention__icon { color: var(--color-status-in-progress); background: var(--color-status-in-progress-container); }
+.attention__kind { color: var(--color-on-surface-muted); font-size: var(--font-body-sm-size); margin-bottom: var(--space-xs); }
+.attention__copy { overflow-wrap: anywhere; }
+.attention__copy h3 { font-size: var(--font-title-md-size); font-weight: 500; line-height: var(--font-body-md-line-height); }
+.attention__copy p { margin-block: var(--space-xs); font-size: var(--font-body-md-size); color: var(--color-on-surface-muted); }
+.attention__owner { font-size: var(--font-body-sm-size); margin-block: var(--space-xs); }
+.attention__requirements, .attention__more-links { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-sm); font-size: var(--font-body-sm-size); }
+.attention__requirements summary { cursor: pointer; color: var(--color-primary); }
+.attention__more-links { padding-top: var(--space-sm); }
+.attention__action { align-self: center; }
+@media (max-width: 700px) {
+  .overview-metrics__definitions dl { grid-template-columns: minmax(0, 1fr); }
+  .overview-metrics__definitions dd { margin-bottom: var(--space-sm); }
+  .attention__item { grid-template-columns: auto minmax(0, 1fr); }
+  .attention__action { grid-column: 2; justify-self: start; white-space: normal; height: auto; min-height: 32px; }
+  .attention__scope { width: 100%; }
+  .attention__scope .select { flex: 1; min-width: 0; }
+}

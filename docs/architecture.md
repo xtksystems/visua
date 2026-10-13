@@ -229,6 +229,23 @@ tool call, citation, proposal, message) is written to the run's **flight recorde
 streamed over SSE. The 3D scene shows agent activity in terracotta on the
 requirements being touched.
 
+Interactive decisions use server-derived proposal previews. The preview runs
+the existing mutation path inside a savepoint that always rolls back, including
+audit writes and deferred events. It returns current and proposed fields,
+actual affected requirements, source observations, and explicit unknowns.
+Generated identifiers, timestamps, and actor fields are marked separately.
+External file bytes are not read by a preview; file evidence still requires
+the direct byte-verifying review path.
+
+Approval requests carry the preview's review token. The service checks it
+inside the workspace mutation lock before applying a change. The token binds
+the proposal, current workspace records, source observations, revision, and
+date-sensitive inputs. HTTP clients must obtain a preview before approval;
+approval edits require a new proposal and preview. Internal autonomy retains
+its existing service path. Batch previews freeze the proposal IDs, detect
+overlapping targets, and report each actual outcome. Stale batches change
+nothing; overlapping proposals remain pending for individual review.
+
 **Agents.** Copilot, Assessor, Planner, Policy Author, Evidence Collector, Crosswalk
 Analyst, Audit Prep and Task Executor. They share 16 tools:
 
@@ -523,6 +540,17 @@ resource close; a timeout forces remaining sockets closed and exits with code
 
 The web client presents a light workspace with labeled navigation, readable
 status colors and a 2D path through every spatial view.
+
+The overview names the selected framework for implementation progress, valid
+evidence coverage, and risk counts. Its summary computes all framework scores
+from one fresh metadata snapshot and clock instead of the hourly scene cache.
+The attention endpoint returns a complete queue across enabled frameworks,
+with scope filtering, latest-check semantics, ownership, and typed destinations.
+Evidence alternatives describe current coverage; group links never grant
+descendant coverage. The client filters before limiting displayed rows and
+refreshes clock-dependent data every minute. Evidence and check deep links
+open the exact workspace-scoped record, including observations older than the
+recent-check list.
 
 - **Shell.** A 220px labeled sidebar groups the primary destinations under
   Workspace, Explore and Manage. It includes Overview, My work, Action plan, Evidence,

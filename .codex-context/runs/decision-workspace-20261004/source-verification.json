@@ -1,0 +1,81 @@
+{
+  "status": "passed",
+  "updated_utc": "2026-10-04T09:13:27+00:00",
+  "cwd": "/Users/artem/visua",
+  "branch": "feat/light-workspace-design",
+  "head": "833c0eb424e078d06bc01ad235efb5aa97be75db",
+  "changes": "unstaged, uncommitted; no deployment",
+  "runtime": {
+    "node": "v26.0.0",
+    "pnpm": "10.33.0"
+  },
+  "source": {
+    "pinned_inputs": 273,
+    "unchanged_after_final_browser": true,
+    "non_browser_pins": "final-verification-source.json",
+    "browser_pins": "final-browser-source.json",
+    "delivery_files": "delivery-files.json",
+    "note": "Only the mobile browser test page activation changed after non-browser checks started; it was pinned before the browser run. README/context/doc image updates do not affect tested application inputs."
+  },
+  "checks": [
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL -u VISUA_AUTH_MODE -u VISUA_SEED pnpm check --no-e2e",
+      "exit_code": 0,
+      "sqlite_passed": 505,
+      "sqlite_backend_specific_skipped": 2,
+      "postgres_passed": 507,
+      "other_passes": [
+        "typecheck",
+        "licensing guard",
+        "corpus hashes",
+        "design lint"
+      ],
+      "duration_seconds": 178,
+      "log": "check-complete-no-e2e.log"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL VISUA_AUTH_MODE=dev VISUA_SEED=1 pnpm test:e2e",
+      "exit_code": 0,
+      "passed": 110,
+      "failed": 0,
+      "duration_minutes": 17.8,
+      "log": "e2e-complete.log",
+      "note": "One complete final browser run. No concurrent screenshot browser."
+    },
+    {
+      "command": "node .screens/decision-workspace-20261004/capture.mjs",
+      "exit_code": 0,
+      "report": "visual-report.json",
+      "captures_inspected": 6,
+      "horizontal_overflow": 0,
+      "page_errors": 0,
+      "data": "Ephemeral seeded offline demo; no production data or application database mutated.",
+      "artifact_directory": ".screens/decision-workspace-20261004",
+      "docs_image": "docs/images/home.jpg"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "review": {
+    "original_findings": 2,
+    "integration_findings": 1,
+    "unresolved": 0,
+    "reports": [
+      "independent-review.json",
+      "independent-review-recheck.json",
+      "independent-review-order-recheck.json"
+    ],
+    "reproduction_archive": [
+      "review-reproductions",
+      "token-order-reproduction"
+    ]
+  },
+  "history": "Initial passing no-e2e predates fixes; an interrupted full browser attempt and a failed focused browser run are retained as historical evidence, not final passes. A second no-e2e failure led to the PostgreSQL ordering fix.",
+  "limitations": [
+    "Priority-two redesigns and historical score snapshots are outside this task.",
+    "Changes are not committed, pushed, or deployed.",
+    "Batch reviews conservatively require refresh after workspace changes and are limited to 200 proposals; overlapping targets remain pending."
+  ]
+}

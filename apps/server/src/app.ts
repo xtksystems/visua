@@ -45,11 +45,13 @@ import { overlayMeta, overlaySummary } from "./services/overlays.ts";
 import { crosswalkOverview, crosswalkRows } from "./services/crosswalk.ts";
 import { soc2Description } from "./services/soc2.ts";
 import { frameworkState, leanGraph, nodeDetail, workspaceSummary } from "./services/views.ts";
+import { workspaceAttention } from "./services/attention.ts";
 import { NotFoundError, ValidationError, type VisuaService } from "./services/visua.ts";
 import { ConnectorCapacityError } from "./connectors/limits.ts";
 import { isWorkDate } from "./services/work.ts";
 import { BlobStoreError, MAX_BLOB_BYTES } from "./blobs/index.ts";
 import { EvidenceUploadError, evidenceDisposition, evidenceUpload, withEvidenceUpload } from "./evidence-http.ts";
+import { ProposalReviewConflict } from "./services/proposal-review.ts";
 
 const Level = z.number().int().min(0).max(4);
 const Priority = z.enum(["critical", "high", "medium", "low"]);
@@ -215,7 +217,8 @@ const Schemas = {
   }),
   connector: z.object({ kind: z.string(), name: z.string().max(120).optional(), config: z.record(z.string(), z.unknown()) }),
   run: z.object({ agent: AgentKindSchema, goal: z.string().max(4000).default(""), input: z.record(z.string(), z.unknown()).optional() }),
-  decision: z.object({ decision: z.enum(["approved", "rejected"]), edits: z.record(z.string(), z.unknown()).optional() }),
+  decision: z.object({ decision: z.enum(["approved", "rejected"]), edits: z.record(z.string(), z.unknown()).optional(), reviewToken: z.string().min(1).max(200).optional() }).strict(),
+  batchDecision: z.object({ proposalIds: z.array(z.string().min(1)).min(1).max(200), reviewToken: z.string().min(1).max(200) }).strict(),
   plan: z.object({ framework: z.string().default("nist-csf-2.0"), maxTasks: z.number().int().min(1).max(200).default(15) }),
   tiers: z.object({ answers: z.record(z.string(), z.number().int().min(1).max(4)) }),
   categorize: z.object({
@@ -263,6 +266,7 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
   const databaseReady = readinessProbe(svc.store);
 
   app.onError((err, c) => {
+    if (err instanceof ProposalReviewConflict) return c.json({ error: err.message }, 409);
     if (err instanceof EvidenceUploadError) return c.json({ error: err.message }, err.status);
     if (err instanceof BlobStoreError) return c.json({ error: "The evidence file is unavailable or could not be verified. Try again or contact your administrator." }, 503);
     if (err instanceof ConnectorCapacityError) return c.json({ error: err.message }, 503);
@@ -547,6 +551,11 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
     return c.body(null, 204);
   });
 
+  app.get("/api/workspaces/:ws/attention", async (c) => {
+    c.header("Cache-Control", "private, no-store");
+    return c.json(await workspaceAttention(svc, wsOf(c)));
+  });
+
   // ---------------------------------------------------------------- tasks
   app.get("/api/workspaces/:ws/tasks", async (c) => c.json(await svc.store.tasks.list(wsId(c))));
   app.post("/api/workspaces/:ws/tasks", async (c) => {
@@ -639,6 +648,12 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
   });
   app.post("/api/workspaces/:ws/connectors/:id/run", async (c) => c.json(await svc.runConnector(wsId(c), c.req.param("id"), actorOf(c))));
   app.get("/api/workspaces/:ws/checks", async (c) => c.json(await svc.store.checks.recent(wsId(c), 200)));
+  app.get("/api/workspaces/:ws/checks/:id", async (c) => {
+    const check = await svc.store.checks.get(c.req.param("id"));
+    if (!check || check.workspaceId !== wsId(c)) throw new NotFoundError("Observation not found");
+    c.header("Cache-Control", "private, no-store");
+    return c.json(check);
+  });
 
   // ---------------------------------------------------------------- agents
   app.get("/api/workspaces/:ws/runs", async (c) =>
@@ -660,19 +675,20 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
     return c.json({ ...run, proposals });
   });
   app.post("/api/workspaces/:ws/runs/:id/cancel", async (c) => c.json(await svc.cancelRun(wsId(c), c.req.param("id"), actorOf(c))));
+  app.get("/api/workspaces/:ws/runs/:id/approval-preview", async (c) => { c.header("Cache-Control", "private, no-store"); return c.json(await svc.previewRunProposals(wsId(c), c.req.param("id"))); });
   app.post("/api/workspaces/:ws/runs/:id/approve-all", need("work.approve"), async (c) => {
-    const pending = (await svc.store.proposals.list(wsId(c))).filter((p) => p.runId === c.req.param("id") && p.status === "pending");
-    const decided = [];
-    for (const p of pending) decided.push(await svc.decideProposal(wsId(c), p.id, "approved", actorOf(c)));
-    return c.json(decided);
+    const input = await body(c, Schemas.batchDecision);
+    return c.json(await svc.approveRunProposals(wsId(c), c.req.param("id"), input.proposalIds, input.reviewToken, actorOf(c)));
   });
   app.get("/api/workspaces/:ws/proposals", async (c) => {
     const status = c.req.query("status");
     return c.json((await svc.store.proposals.list(wsId(c))).filter((p) => !status || p.status === status));
   });
+  app.get("/api/workspaces/:ws/proposals/:id/preview", async (c) => { c.header("Cache-Control", "private, no-store"); return c.json(await svc.previewProposal(wsId(c), c.req.param("id"))); });
   app.post("/api/workspaces/:ws/proposals/:id/decision", need("work.approve"), async (c) => {
     const input = await body(c, Schemas.decision);
-    return c.json(await svc.decideProposal(wsId(c), c.req.param("id"), input.decision, actorOf(c), input.edits));
+    if (input.decision === "approved" && !input.reviewToken) throw new ValidationError("Inspect a proposal preview before approving; reviewToken is required");
+    return c.json(await svc.decideProposal(wsId(c), c.req.param("id"), input.decision, actorOf(c), input.edits, input.reviewToken));
   });
 
   // ---------------------------------------------------------------- crosswalk, SOC 2 description, activity & events

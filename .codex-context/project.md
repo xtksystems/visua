@@ -116,3 +116,16 @@ full-lane passes and 19 final affected reruns. No single final full-check comman
 passed. Next is explicit collection origin, assurance scope, and supersession.
 Other reviewed defects and phase packages remain open. Local Docker includes
 the completed packages at source commit `7806309`.
+
+The approved [decision workspace package](tasks/decision-workspace-20261004.md)
+adds scoped implementation/evidence/risk metrics, attention across enabled
+frameworks, and exact proposal and batch reviews. HTTP approvals require the
+server preview's token; changed inputs require renewed review. Unordered
+database rows do not change tokens, but nested artifact order remains bound.
+The overview reads fresh metadata so expiry and coverage agree. See the
+[workspace guide](../docs/workspace.md) and
+[verification record](runs/decision-workspace-20261004/source-verification.json):
+505 SQLite, 507 PostgreSQL and all 110 browser tests pass, with desktop/mobile
+captures inspected. These changes are uncommitted and are not deployed in the
+existing Docker service. Priority-two visualization work and historical trends
+remain outside this package.

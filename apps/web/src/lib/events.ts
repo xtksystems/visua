@@ -26,6 +26,9 @@ export function useWorkspaceEvents(ws: string | undefined): void {
           if (g === "all") void qc.invalidateQueries({ queryKey: ["ws", ws] });
           else void qc.invalidateQueries({ queryKey: ["ws", ws, g] });
         }
+        if (groups.some(g => ["state", "tasks", "evidence", "proposals", "checks", "my-work"].includes(g))) {
+          void qc.invalidateQueries({ queryKey: ["ws", ws, "attention"] });
+        }
         void qc.invalidateQueries({ queryKey: keys.workspace(ws), exact: true });
         void qc.invalidateQueries({ queryKey: keys.workspaces });
       }, 250);

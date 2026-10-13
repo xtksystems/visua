@@ -430,10 +430,13 @@ describe("assessment guardrails: threat catalogs, enabled frameworks and scope",
       await expect(svc.createProposal(gw, "run_test", { type, title: type, rationale: "test", payload, citations: [], confidence: "low", nodeIds: [threat] })).rejects.toThrow(/threat/);
     }
     expect(await svc.store.proposals.list(gw)).toHaveLength(0);
-    // A proposal already waiting (stored before this rule existed) fails on approval and changes nothing.
+    // A legacy proposal fails preview validation and cannot be approved or change state.
     await svc.store.proposals.put({ id: "prop_legacy", runId: "run_test", workspaceId: gw, type: "set-level", title: "legacy", rationale: "legacy", payload: { nodeId: threat, current: 3 }, citations: [], confidence: "low", status: "pending", nodeIds: [threat], createdAt: new Date().toISOString() });
-    const decided = await api<{ status: string }>("POST", `/api/workspaces/${gw}/proposals/prop_legacy/decision`, { decision: "approved" });
-    expect(decided.json.status).toBe("failed");
+    const preview = await api<{ canApprove: boolean; reviewToken: string }>("GET", `/api/workspaces/${gw}/proposals/prop_legacy/preview`);
+    expect(preview.json.canApprove).toBe(false);
+    const decided = await api<{ error: string }>("POST", `/api/workspaces/${gw}/proposals/prop_legacy/decision`, { decision: "approved", reviewToken: preview.json.reviewToken });
+    expect(decided.status).toBe(400);
+    expect(decided.json.error).toMatch(/threat catalog/);
     expect(await svc.store.states.list(gw, "mitre-atlas")).toHaveLength(0);
     // Tasks and evidence link requirements, never threats; threat catalogs are not planned.
     expect((await api("POST", `/api/workspaces/${gw}/tasks`, { title: "Threat task", requirementIds: [threat] })).status).toBe(400);
@@ -647,7 +650,8 @@ describe("agents (offline playbooks) with human-in-the-loop proposals", () => {
     expect(r.status).toBe("awaiting-approval");
     expect(r.proposals.length).toBe(4);
     const before = (await api<unknown[]>("GET", `/api/workspaces/${wsId}/tasks`)).json.length;
-    const decided = await api<{ status: string }>("POST", `/api/workspaces/${wsId}/proposals/${r.proposals[0]!.id}/decision`, { decision: "approved" });
+    const preview = await api<{ reviewToken: string }>("GET", `/api/workspaces/${wsId}/proposals/${r.proposals[0]!.id}/preview`);
+    const decided = await api<{ status: string }>("POST", `/api/workspaces/${wsId}/proposals/${r.proposals[0]!.id}/decision`, { decision: "approved", reviewToken: preview.json.reviewToken });
     expect(decided.json.status).toBe("applied");
     const after = (await api<unknown[]>("GET", `/api/workspaces/${wsId}/tasks`)).json.length;
     expect(after).toBe(before + 1);
@@ -779,10 +783,13 @@ describe("evidence, monitoring and exports", () => {
     expect(proposed.length).toBeGreaterThan(0);
     expect(proposed.every((p) => p.status === "pending")).toBe(true);
     // Edits on approval cannot change what the check observed or what it is linked to.
-    const decided = await api<{ status: string }>("POST", `/api/workspaces/${cw}/proposals/${proposed[0]!.id}/decision`, {
-      decision: "approved",
+    const preview = await api<{ reviewToken: string }>("GET", `/api/workspaces/${cw}/proposals/${proposed[0]!.id}/preview`);
+    const edited = await api("POST", `/api/workspaces/${cw}/proposals/${proposed[0]!.id}/decision`, {
+      decision: "approved", reviewToken: preview.json.reviewToken,
       edits: { content: "Everything is perfect.", requirementIds: ["nist-csf-2.0:GV.OC-01"] },
     });
+    expect(edited.status).toBe(400);
+    const decided = await api<{ status: string }>("POST", `/api/workspaces/${cw}/proposals/${proposed[0]!.id}/decision`, { decision: "approved", reviewToken: preview.json.reviewToken });
     expect(decided.json.status).toBe("applied");
     const filed = (await evidence()).filter((e) => e.source === "connector");
     expect(filed).toHaveLength(1);

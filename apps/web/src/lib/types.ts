@@ -66,6 +66,7 @@ export interface FrameworkSummary {
 }
 
 export interface WorkspaceSummary {
+  asOf: string;
   workspace: Workspace;
   frameworks: FrameworkSummary[];
   tasks: { total: number; open: number; done: number; overdue: number; byStatus: Record<string, number> };

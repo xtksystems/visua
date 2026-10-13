@@ -1,0 +1,16 @@
+{
+  "status": "complete",
+  "verdict": "pass",
+  "summary": "Focused adjudication of both accepted first-pass findings: both corrected and independently verified. No remaining supported finding in the changed proposal preview/batch paths reviewed.",
+  "coverage": [
+    "Read final changesBetween projection and new requirement entity identity, proposal token inputs and approval path, unchanged generic PreviewContent rendering, and new validity-duration/missing-state regression cases. Inspected source SHA-256: {\"apps/server/src/services/proposal-review.ts\": \"9a25cf077d8aa420374429fb4dbcadc92ce982d6db9fd1ed93a161bbee581af3\", \"apps/server/src/services/visua.ts\": \"962e8baa9b1026ceafb707db57201ba00e8d9590998ff19b3d27dc53da691588\", \"apps/server/test/proposal-review.test.ts\": \"19acac3bb4aec5866adc4e8336e8de390a6ff71da682a2ef3e152d80df1b3363\", \"apps/web/src/components/agents/Proposals.tsx\": \"8c59229c6fd6195500ebd2e6e195ce986553da189e18d067509a7fdb13f9d807\"}",
+    "Reran the original node .check/independent-review/repro.ts against explicit :memory: SQLite. Preserved original output and captured correction output in .check/independent-review/recheck-output.txt. Narrative evidence now shows collectionTime plus distinct validityPeriod values of 1 day from approval and 730 days from approval. Same-node missing-state proposals now have entityId=nodeId, one conflict, zero applied, two skipped/pending, and no persisted requirement state.",
+    "Verified the payload remains in the review token inputs and checked the new regression cases for 1 day, 730 days and no expiry; changing the duration after inspection invalidates the token without deciding or creating evidence.",
+    "Executed env -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/proposal-review.test.ts in /Users/artem/visua: 1 file and 19 tests passed in 15.03 seconds. Rechecked the supplied initial ten-path digests: only proposal-review.ts and proposal-review.test.ts changed, matching the accepted correction scope. Unaffected attention/metrics coverage remains in the original report."
+  ],
+  "findings": [],
+  "limitations": [
+    "This is a focused follow-up informed by the accepted first-pass findings, not another independent first pass. The original report and reproduction remain unchanged as historical evidence.",
+    "The final follow-up exercised SQLite and source-traced frontend rendering. PostgreSQL, full-suite, browser, build and visual acceptance checks belong to the lead and were not independently rerun here."
+  ]
+}

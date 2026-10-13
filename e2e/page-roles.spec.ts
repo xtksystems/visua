@@ -88,7 +88,8 @@ for (const role of Object.keys(PERSONAS) as TestRole[]) {
 
     await open("");
     await expect(page.getByRole("heading", { level: 1, name: fixture.name })).toBeVisible();
-    await expectWriteControl(page.getByRole("button", { name: "Plan with agent", exact: true }), canWrite);
+    await expect(page.getByRole("region", { name: "Needs attention", exact: true })).toBeVisible();
+    await expect(page.getByRole("combobox", { name: "Queue scope", exact: true })).toBeEnabled();
     await expect(page.getByRole("link", { name: /Explore Observatory/ })).toBeEnabled();
 
     await open("/plan");
@@ -148,12 +149,17 @@ for (const role of Object.keys(PERSONAS) as TestRole[]) {
     await expect(page.getByRole("heading", { name: "Launch an agent" })).toHaveCount(canWrite ? 1 : 0);
     if (canWrite) await expect(page.getByRole("button", { name: "Run Copilot", exact: true })).toBeEnabled();
     await expect(page.getByRole("button", { name: "Stop", exact: true })).toHaveCount(canWrite ? 1 : 0);
-    await expect(page.getByRole("button", { name: /Approve all/ })).toHaveCount(canApprove ? 1 : 0);
+    await expect(page.getByRole("button", { name: /Review all/ })).toHaveCount(1);
     await page.getByRole("tab", { name: /Approvals inbox/ }).click();
     await expect(page.getByRole("tab", { name: /Approvals inbox/ })).toHaveAttribute("aria-selected", "true");
     const inbox = page.locator(".master-detail__master");
-    if (canApprove) await expect(inbox.getByRole("button", { name: "Approve", exact: true }).first()).toBeEnabled();
-    else await expect(inbox.getByRole("button", { name: "Approve", exact: true })).toHaveCount(0);
+    await expect(inbox.getByRole("button", { name: "Approve", exact: true })).toHaveCount(0);
+    await inbox.getByRole("button", { name: "Review changes", exact: true }).first().click();
+    const proposalReview = page.getByRole("dialog");
+    await expect(proposalReview.getByRole("heading", { name: "Changes to apply", exact: true })).toBeVisible();
+    await expect(proposalReview.getByRole("button", { name: "Approve and apply", exact: true })).toHaveCount(canApprove ? 1 : 0);
+    await expect(proposalReview.getByRole("button", { name: "Reject proposal", exact: true })).toHaveCount(canApprove ? 1 : 0);
+    await proposalReview.getByRole("button", { name: "Close", exact: true }).click();
 
     await open("/profile");
     await expect(page.getByRole("heading", { name: "Organizational Profile & Tiers" })).toBeVisible();
