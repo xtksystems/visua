@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "commit": "3c85ef4476f055ae6c925fd7f04631235dee88fa",
+  "pushed": true,
+  "url": "http://localhost:8787",
+  "completed_at": "2026-10-13T08:59:23.251686+00:00",
+  "container": "visua-visua-1",
+  "volume": "visua_visua-data",
+  "source": {
+    "checked": 190,
+    "result": "docker-source-result.json"
+  },
+  "preservation": {
+    "before_smoke": "docker-preservation-result.json",
+    "after_smoke": "docker-after-data.json",
+    "original_rows_preserved": true,
+    "additional_activity": "One tenant-scoped workspace-deletion event from synthetic smoke cleanup; all original112 rows unchanged."
+  },
+  "live_smoke": "live-lifecycle-result.json",
+  "screenshots_inspected": [
+    ".screens/evidence-lifecycle-delivery-20261013/lineage-desktop.png",
+    ".screens/evidence-lifecycle-delivery-20261013/artifact-phone.png"
+  ],
+  "backup": "docker-backup.json",
+  "test_result": "source-verification.json",
+  "limitations": [
+    "Local offline Docker deployment; not hosted pilot validation."
+  ]
+}

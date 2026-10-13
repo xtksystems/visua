@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "checks": [
+    "File upload, original source, rejection, compatible replacement, acceptance, exact download, CSF/SOC2 lineage and stale-review refusal passed",
+    "Desktop lineage and 390px artifact detail render; audit chain remains valid"
+  ],
+  "browserErrors": [],
+  "syntheticWorkspaceRemoved": true
+}

@@ -70,3 +70,9 @@ proposal validation; corpus claims work is finishing focused tests.
 
 Continue the remaining automation and auditor packages after delivery. Actual
 hosted pilot setup remains an external prerequisite, not a passed local gate.
+
+M2 delivered: `3c85ef4` pushed and deployed locally. Source190 pins, original
+rows, live lifecycle workflow, desktop/phone inspection and cleanup passed.
+See `../runs/evidence-operations-20261013/lifecycle-delivery.json`. M3 continues
+in the isolated checkout; independent review found scheduler scan starvation
+and lost publisher notifications, both assigned for correction before its gate.

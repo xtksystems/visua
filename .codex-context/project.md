@@ -187,3 +187,9 @@ through full-lane plus targeted reruns. No single final full-check command passe
 Independent review findings and the collapsed-details keyboard defect are fixed.
 Source is verified; commit/push and local deployment are pending at this checkpoint.
 Milestone 3 is under implementation in an isolated checkout; milestone 4 follows.
+
+Evidence lifecycle delivery completed on October 13, 2026: source `3c85ef4`
+is pushed and running in the local Docker service. All 190 source pins match;
+existing workspace state is preserved. The live CSF/SOC2 review/replacement,
+withdrawal, download, lineage, and desktop/phone smoke passed and cleaned up.
+See [delivery evidence](runs/evidence-operations-20261013/lifecycle-delivery.json).

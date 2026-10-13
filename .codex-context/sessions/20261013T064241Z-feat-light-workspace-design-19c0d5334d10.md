@@ -63,3 +63,10 @@ legacy test fixtures to strict contract, test combined changes. No root M3 edits
 After M2 deployment: integrate M3 owned deltas, complete monitoring/limits and
 real two-instance PG gates, review/test/commit/deploy. Then frozen auditor bundle,
 exports/access/restore. Keep original scope/invariants; no live test database.
+
+M2 delivery checkpoint: `3c85ef4` committed/pushed and Docker healthy. Exact
+190 source pins, preservation and live smoke passed; screenshots inspected.
+After cleanup all original entity digests unchanged; one expected tenant
+workspace-deletion audit entry added. See lifecycle-delivery.json. Next remains
+M3 isolated integration: public-measures lifecycle_ui active, relay-recovery
+stream_auth active, independent review complete with two supported findings.
