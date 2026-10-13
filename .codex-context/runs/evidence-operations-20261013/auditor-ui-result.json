@@ -1,0 +1,70 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "auditor-ui",
+  "status": "complete",
+  "worktree": "/Users/artem/visua/.check/evidence-auditor-20261013",
+  "input_brief_sha256": "317f679d967618173c450f06334d0bd34f2c570266365caf20953a7e9ea66880",
+  "report": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/auditor-ui-report.json",
+  "report_sha256": "cfe553abc351c8f6bb3ed2440c3c57477f504534de85ba15bb5e6669646907e1",
+  "files": [
+    {
+      "path": "apps/server/src/app.ts",
+      "before_sha256": "85e8867657d3e974328fb7304c9743a07268229f9fcaba794a7c4b3ab69995ba",
+      "after_sha256": "0cb9b481dcfc0be25a460aa17389bd70ef25a080d651235f00e1b7312262f330"
+    },
+    {
+      "path": "apps/web/src/components/AuditorPanel.tsx",
+      "before_sha256": null,
+      "after_sha256": "3e20982cf1dba30a1367abbd538e7a6b6451c0f7b86ede7457c329d4ba690706"
+    },
+    {
+      "path": "apps/web/src/pages/ReportsPage.tsx",
+      "before_sha256": "592205f52c741fb9370374a0a0e697d64a359a38ab41552441280bea1b8511ac",
+      "after_sha256": "990c95802582e40a2a99afc744befb03c05d10052d34a59e5a8cbe57cfdbb0cd"
+    },
+    {
+      "path": "apps/web/src/lib/api.ts",
+      "before_sha256": "d08f44989a91526075fa4540e3bac31dc27f03ac14c8fe0de18d8c31d813269e",
+      "after_sha256": "3d2b009200f695a7178a4f4e5d5fca8ad4e42053c3ac46d1c0c52ad6813e8de9"
+    },
+    {
+      "path": "apps/server/test/auditor-http.test.ts",
+      "before_sha256": null,
+      "after_sha256": "ad3248f290e931ec0fecc06fca67b80dbda7c7db8379d44b25bfce4488fab33d"
+    },
+    {
+      "path": "e2e/auditor-handoff.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "60b74390bef057d3ff5228de08e09652aa6ecfaddc9bdf0ac5d5e39445545e5c"
+    },
+    {
+      "path": "apps/server/src/storage/access.ts",
+      "before_sha256": "c071c0488dcca2d862565e06c7db31b71911e96ee3c5ab13a92042822408c681",
+      "after_sha256": "0a19c3efb29656e746ee3cf205df9cef38f7a8f093697abd8ff31968ae2ee31c"
+    },
+    {
+      "path": "apps/server/src/storage/migrations.ts",
+      "before_sha256": "1268c6f09857192912b2b9d915bf740444313086cd718051e405c149b516af07",
+      "after_sha256": "732fb0397c8aebbe20b8f65bdff61c00dda0fcc516d2a14c737bdec3e98818e0"
+    },
+    {
+      "path": "apps/server/test/access-audit.test.ts",
+      "before_sha256": "43cad2a8fc6010fec26c8f0b4c9f19eeb9e17a6b945325ed6a9b95b849ecd9be",
+      "after_sha256": "76e712f4468a90f9e9d0eb31c138bdff0eabdab6f7b8003060c76cbf7ba99b3f"
+    }
+  ],
+  "validation": {
+    "unique_focused_cases": 21,
+    "sqlite": "21 passed; final maximal-label case rerun passed",
+    "server_typecheck": "passed",
+    "web_typecheck": "passed",
+    "browser_authoring": "3 cases authored and typechecked; no execution",
+    "postgres": "not run; lead owned"
+  },
+  "pending_worker_edits": false,
+  "integration_notes": [
+    "Uses exported exportScoreInput from auditor_export_corrections.",
+    "Authorized 512-character label cap supersedes the prior access report; old reports preserved.",
+    "Browser execution and root M3 delivery remained separate."
+  ]
+}

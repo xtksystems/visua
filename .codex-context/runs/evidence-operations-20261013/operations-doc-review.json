@@ -1,0 +1,270 @@
+{
+  "status": "no-findings",
+  "reviewed_at_utc": "2026-10-13T10:31:34.004088+00:00",
+  "repository": "/Users/artem/visua",
+  "head": "de3d02cab4112615f9abbc1ddbf7eef0d71ded90",
+  "review_type": "One bounded read-only operational documentation accuracy review",
+  "summary": "No concrete, supported operational documentation errors found in docs/operations.md against the inspected current source. The shown local deployment, backup, verification and restore commands match their source entry points and flags. Recovery and receipt claims remain explicitly limited to local SQLite/referenced-file evidence and the distinct coverage of independently retained pins.",
+  "findings": [],
+  "supported_checks": [
+    {
+      "claim": "Compose deployment and local backup commands use valid runtime paths and entry points.",
+      "evidence": [
+        "docs/operations.md:19-24,71-78",
+        "compose.yaml:3-20",
+        "Dockerfile:23-29",
+        "scripts/backup-local.ts:4-17"
+      ],
+      "assessment": "Compose supplies /app/data/visua.db and /app/data/blobs; the runtime working directory is /app; node command overrides CMD; create/verify/restore flags are accepted. The pinned revision is passed as the declared build argument."
+    },
+    {
+      "claim": "New-path restore, quiescence, sidecar refusal and backup retention limitations match implementation.",
+      "evidence": [
+        "docs/operations.md:43-67,81-111",
+        "apps/server/src/operations/local-backup.ts:34-46,74-104,107-164",
+        "apps/server/test/local-backup.test.ts:34-151"
+      ],
+      "assessment": "Quiescence is an assertion rather than a lock. SQLite is snapshotted with VACUUM INTO; only currently referenced local blobs are copied. Existing output/restore paths and adjacent SQLite backup/restore sidecars are refused. Restore validates before creating destinations, copies exclusively, validates restored data, and cleans its own partial outputs. The guide preserves old data, uses fresh rollback paths and does not promise migration reversal from a code rollback."
+    },
+    {
+      "claim": "Secret retention and isolated recovery caveats reflect authentication storage.",
+      "evidence": [
+        "docs/operations.md:32-39,97-111",
+        "README.md:183-247",
+        "apps/server/src/auth/config.ts:60-95",
+        "apps/server/src/auth/crypto.ts:14-29",
+        "apps/server/src/auth/service.ts:479,538,699"
+      ],
+      "assessment": "Production developer sign-in is refused. The matching VISUA_SECRET-derived key is needed to decrypt sealed organization SSO secrets, while platform-provider registration and external configuration are separately retained. The guide marks database/session material as sensitive and does not claim live IdP recovery."
+    },
+    {
+      "claim": "SQLite/local-file and PostgreSQL/object-store recovery are distinguished without a hosted verification claim.",
+      "evidence": [
+        "docs/operations.md:3-8,109-135",
+        "apps/server/src/operations/local-backup.ts:75-90",
+        "apps/server/test/local-backup.test.ts:19-52"
+      ],
+      "assessment": "The helper is SQLite/local-adapter-specific. The fixture contains a closed synthetic SQLite source, referenced binary and inline evidence, reviews, audit history and post-restore bundle generation. Hosted database/object pairing, key recovery, provider version retention and production RTO/RPO are explicitly left to operator validation."
+    },
+    {
+      "claim": "Prepared access records and separate receipt pins have honestly scoped semantics.",
+      "evidence": [
+        "docs/operations.md:137-152",
+        "apps/server/src/app.ts:647-650,803-816,843-873",
+        "apps/server/src/services/visua.ts:244-264",
+        "apps/server/src/storage/migrations.ts:270-289",
+        "apps/server/src/services/bundle-verifier.mjs:55-75,102-109,138-158",
+        "apps/web/src/components/AuditorPanel.tsx:76-111"
+      ],
+      "assessment": "Access records are awaited before returning bytes, record preparation rather than delivery, and cascade on workspace deletion. A separately retained manifest pin binds listed files; an exact checkpoint binds its audit prefix. The guide neither treats the bundled verifier as self-authenticating nor claims auditor agreement or certification."
+    }
+  ],
+  "reviewed_files": [
+    {
+      "path": "docs/operations.md",
+      "sha256": "7168d76e881a3884d9b7fb1a92721a2b46bb448eca7b37266d3a457a6b31f327",
+      "bytes": 9567,
+      "scope": "Full file; sole documentation under review."
+    },
+    {
+      "path": "scripts/backup-local.ts",
+      "sha256": "4b9757faf0b65ccfb6a3bb8a099ffaaa437bfacba0e13bc65e20bfb5dea68f58",
+      "bytes": 1589,
+      "scope": "Full file; CLI commands, options, required paths, result and error behavior."
+    },
+    {
+      "path": "apps/server/src/operations/local-backup.ts",
+      "sha256": "a05cdfdc7cf18833d51b941c4c8719860284d8fe5d739d2afba4a600e3f05f1e",
+      "bytes": 10094,
+      "scope": "Full file; snapshot, verification, referenced-file closure, permissions, new destinations, sidecars and cleanup."
+    },
+    {
+      "path": "compose.yaml",
+      "sha256": "db69a9995822fe82fb68ea748c9090b362719959fdc728590e448508e762a8d1",
+      "bytes": 889,
+      "scope": "Full file; service command, mount, configured paths, loopback port, development authentication, offline agents and healthcheck."
+    },
+    {
+      "path": "Dockerfile",
+      "sha256": "ac72e727e331af0cff014d4681c78aba382d84a0e8b6d47947df495ace6d9c9f",
+      "bytes": 876,
+      "scope": "Full file; runtime working directory, source inclusion, runtime user, revision label and CMD."
+    },
+    {
+      "path": ".dockerignore",
+      "sha256": "fa43a592d91042786c65ddcf94352ef38251f46e23df891fbac3e278a2bf9f05",
+      "bytes": 413,
+      "scope": "Full file; backup helper source and runtime dependency inclusion."
+    },
+    {
+      "path": "package.json",
+      "sha256": "9c039485e240321449eff8db06de41cb73c5a2e6056118e54059c4d41987d453",
+      "bytes": 1289,
+      "scope": "Package manager, engine and local check script declarations."
+    },
+    {
+      "path": "README.md",
+      "sha256": "81fb5a3d8f6d7d629658bddbf6c15fc1ea33bd8e506031ece64dbea524ae528c",
+      "bytes": 26709,
+      "scope": "Setup, Compose, evidence-storage, runtime and authentication settings sections."
+    },
+    {
+      "path": "apps/server/src/services/bundle-verifier.mjs",
+      "sha256": "747260d69efe77f057213edab338ff976a65caf6f35dbab7288d16f3452c29d3",
+      "bytes": 11924,
+      "scope": "Full file; verifier entry point, CLI pins, audit-prefix and manifest coverage, trust limitations."
+    },
+    {
+      "path": "apps/server/src/services/auditor-bundle.ts",
+      "sha256": "02ff6b6ccd70e770b96ce1d223bb91f0919b5f2133b6961376384c8087da3e32",
+      "bytes": 19494,
+      "scope": "Relevant receipt fields, bundled instructions and verifier inclusion, package manifest and result."
+    },
+    {
+      "path": "apps/server/test/local-backup.test.ts",
+      "sha256": "4c98dbcd7168d195c986f561c8a7fafd3c9843a51fdcfaac2b6fedcb9f19e4b6",
+      "bytes": 10490,
+      "scope": "Full file; inspected assertions only, no execution."
+    },
+    {
+      "path": "apps/server/src/auth/config.ts",
+      "sha256": "209c74005e490d18393ecd71f51ac84914f8b345ebcfb7a5615f9eacf70da2f7",
+      "bytes": 5455,
+      "scope": "Full file; production/dev mode refusal, VISUA_SECRET and provider configuration."
+    },
+    {
+      "path": "apps/server/src/auth/crypto.ts",
+      "sha256": "fe01496dfd2f1bfa357407d5fb6bf13baa98f031efff6c3021e24c0fde2fad81",
+      "bytes": 1567,
+      "scope": "Full file; secret-derived SSO encryption/decryption key."
+    },
+    {
+      "path": "apps/server/src/auth/service.ts",
+      "sha256": "71bb1be021f0110af7992b16937e0f9cd37ba7b620d5de1bd5c76ee550298f97",
+      "bytes": 53352,
+      "scope": "SSO secret storage and unseal call sites only."
+    },
+    {
+      "path": "apps/server/src/app.ts",
+      "sha256": "4af73282bcd03c66925604c4600e6bbfb55a0f7b668abc1d97ccdcf51dbee211",
+      "bytes": 53233,
+      "scope": "Health/readiness, file download, preparedAccess, auditor/access/export and receipt-header routes."
+    },
+    {
+      "path": "apps/server/src/services/visua.ts",
+      "sha256": "86695095898e4d7efd50fe4c8fb315a649c9978a3249a24fba95504e8bc6612a",
+      "bytes": 138063,
+      "scope": "recordAccess/readAccess and assessment revision/audit event distinction."
+    },
+    {
+      "path": "apps/server/src/storage/access.ts",
+      "sha256": "0a19c3efb29656e746ee3cf205df9cef38f7a8f093697abd8ff31968ae2ee31c",
+      "bytes": 3224,
+      "scope": "Full file; prepared metadata, bounded listing and SQL storage."
+    },
+    {
+      "path": "apps/server/src/storage/migrations.ts",
+      "sha256": "732fb0397c8aebbe20b8f65bdff61c00dda0fcc516d2a14c737bdec3e98818e0",
+      "bytes": 18914,
+      "scope": "Migration 8 access-record foreign key and migration entry point."
+    },
+    {
+      "path": "apps/server/src/storage/store.ts",
+      "sha256": "90df8df0bb7a7c9c7c6711aa1637df5c174107558fb769f843043f283dc62093",
+      "bytes": 23510,
+      "scope": "Initial repository definitions and storage behavior excerpt; no full storage audit."
+    },
+    {
+      "path": "apps/server/src/storage/index.ts",
+      "sha256": "2a804e9a6490508a8518d03be900937c71135dc235c7becb1295b2641d74ca82",
+      "bytes": 1497,
+      "scope": "Startup migrate invocation only."
+    },
+    {
+      "path": "apps/server/src/context.ts",
+      "sha256": "175b33033c0b5e8d043daf3e88d829c5e9aa8f1b190d1f4dc59a3e318a0bf757",
+      "bytes": 2173,
+      "scope": "Database environment-variable precedence and service setup references."
+    },
+    {
+      "path": "apps/server/src/blobs/local.ts",
+      "sha256": "9964a2f6aa8570ac9ec8e571929246ffdfdc1fdf3ffd9f6793aef48afb6e76be",
+      "bytes": 6862,
+      "scope": "Full file; private canonical directory/file rules and artifact reads."
+    },
+    {
+      "path": "apps/server/src/blobs/shared.ts",
+      "sha256": "29f74295fc9686c4b4a40631228f283c1b879c805b47b730f6d08f690684bd18",
+      "bytes": 7352,
+      "scope": "VerifiedBlobStore.get digest verification call path."
+    },
+    {
+      "path": "apps/web/src/components/AuditorPanel.tsx",
+      "sha256": "5a641317fd59c28ade504124777c2f56526481d95d3b3cc7a1da72276ea205dc",
+      "bytes": 13345,
+      "scope": "Receipt presence checks, separate receipt copy/save instructions and checkpoint display."
+    },
+    {
+      "path": "apps/server/src/diagnostics.ts",
+      "sha256": "116bc150c428e247098d173f9dc0a2d7750ea130a0c225b86b959d24806ff17a",
+      "bytes": 4978,
+      "scope": "Aggregate-only diagnostic labels and log output references."
+    },
+    {
+      "path": "apps/server/src/request-controls.ts",
+      "sha256": "1bc425d48f78f182215a899593849d96f820df4f9f5c10c7cdf1186a9f48b5cb",
+      "bytes": 12873,
+      "scope": "Per-instance controls and aggregate diagnostics references."
+    },
+    {
+      "path": "docs/architecture.md",
+      "sha256": "44a4e86df25e940e7cf7b9252bf48c2371a37868ba423abb95233b1c827d0f28",
+      "bytes": 74460,
+      "scope": "Operations cross-reference and documented request/automation bound references."
+    },
+    {
+      "path": "scripts/check.ts",
+      "sha256": "bd2720e33a2a0400328f2db509a6087ea4f0a35854d394a8d149435978c6df1b",
+      "bytes": 8531,
+      "scope": "Check stages and disposable/supplied PostgreSQL behavior."
+    }
+  ],
+  "instruction_context": [
+    {
+      "path": "/Users/artem/visua/AGENTS.md",
+      "sha256": "79b0d193cc2456596c657ceb3ca30482bc9eb11f80b0eb5e585409c158e23258"
+    },
+    {
+      "path": "/Users/artem/visua/CLAUDE.md",
+      "sha256": "f07489e80dd75e51209f766e954d46239fe79809451bffd33defd6269ad3ba1e"
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/system.json",
+      "sha256": "c0ea908c97255295fe0a9efb63ee98fb68b550eaee5c4bdfa44ce5f85133c6d7"
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/project.md",
+      "sha256": "e398228aa4c1c14a938e37cd7220ac8b9c186c029f65d7ad2fd70092a0ca1042"
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/workflow.md",
+      "sha256": "48e432dfadc888e793a9cd4417c92da3213c5d14c41870b43e5173e9bb5929f7"
+    },
+    {
+      "path": "/Users/artem/.agents/skills/docs-writer/SKILL.md",
+      "sha256": "a7e5c1e5ed154e698c5f688f4a33f98c6c69558d99c4ec2dd49231c4ea915921"
+    },
+    {
+      "path": "/Users/artem/.agents/skills/docs-writer/references/docs-auditing.md",
+      "sha256": "5f965450047b0b2311f526334af7c23ae5d8854fd7d408026eea7305d4cef406"
+    }
+  ],
+  "limits": [
+    "This is source inspection, not execution evidence: no deployment, backup, restore, verifier CLI, test, PostgreSQL, Docker or browser command was run.",
+    "The local recovery test was read, not rerun; this review does not certify the current full test or browser outcome, live image contents, deployed data preservation, or production recovery.",
+    "No external PostgreSQL reference page, hosted environment, identity provider, object-storage provider, retention policy or production capacity was independently validated.",
+    "Inspection was bounded to operational documentation accuracy and directly relevant source dependencies; it was not a product security review, full code review, or audit of unrelated documentation.",
+    "Exact hashes pin complete current files, while scope strings distinguish full-file review from relevant excerpts.",
+    "The only written file is this requested review artifact. No source/documentation edits, Git mutations, dependency changes, external-provider dispatch or delegation occurred."
+  ]
+}

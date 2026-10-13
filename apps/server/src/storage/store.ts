@@ -10,6 +10,7 @@
 import type { ActivityEvent, AgentRun, CheckResult, Connector, Evidence, Policy, Proposal, RequirementState, Risk, Task, Workspace, ScoreObservation, ScoreHistory } from "@visua/core";
 import { parseJson, txContext, type Dialect, type SqlDriver, type TxContext } from "./driver.ts";
 import { IdentityStore } from "./identity.ts";
+import { AccessTable } from "./access.ts";
 import { Repo, type StoreContext } from "./repo.ts";
 import { evidenceMetadata } from "../services/evidence.ts";
 
@@ -391,6 +392,7 @@ export class Store implements StoreContext {
   readonly runs: RunCollection;
   readonly proposals: Collection<Proposal>;
   readonly activity: ActivityLog;
+  readonly access: AccessTable;
   readonly scoreHistory: ScoreHistoryTable;
   readonly identity: IdentityStore;
   private savepoints = 0;
@@ -409,6 +411,7 @@ export class Store implements StoreContext {
     this.runs = new RunCollection(this);
     this.proposals = new Collection<Proposal>(this, "proposals");
     this.activity = new ActivityLog(this);
+    this.access = new AccessTable(this);
     this.scoreHistory = new ScoreHistoryTable(this);
     this.identity = new IdentityStore(this);
   }

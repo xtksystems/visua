@@ -181,7 +181,7 @@ it("migration 7 upgrades an existing database without fabricating history or cha
     });
     const json = driver.dialect === "postgres" ? "?::jsonb" : "?";
     await driver.execute(`INSERT INTO workspaces (id, slug, data, updated_at, rev) VALUES (?, ?, ${json}, ?, ?)`, ["old", "old", JSON.stringify({ id: "old", name: "Old" }), NOW, 17]);
-    expect(await migrate(driver)).toEqual([7]); expect(await migrate(driver)).toEqual([]);
+    expect(await migrate(driver)).toEqual([7, 8]); expect(await migrate(driver)).toEqual([]);
     expect(await driver.query(`SELECT id, rev FROM workspaces`)).toEqual([{ id: "old", rev: 17 }]);
     expect(await driver.query(`SELECT id FROM score_snapshots`)).toEqual([]);
   } finally { await driver.close(); await target.cleanup(); }

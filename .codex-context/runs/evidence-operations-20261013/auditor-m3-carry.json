@@ -1,0 +1,75 @@
+{
+  "at": "2026-10-13T10:09:01.371279+00:00",
+  "changes": [
+    {
+      "path": "apps/server/src/app.ts",
+      "old": "cb24d7eaa22611d53092bf6295becc5fb307abdf059970b43267cacc13480c57",
+      "root_m3": "85e8867657d3e974328fb7304c9743a07268229f9fcaba794a7c4b3ab69995ba",
+      "isolated": "0cb9b481dcfc0be25a460aa17389bd70ef25a080d651235f00e1b7312262f330",
+      "action": "M4 overlap retained"
+    },
+    {
+      "path": "apps/server/src/services/visua.ts",
+      "old": "62cc2d38b884cce656dd78c96727c700188785781b60c40b111624beadbe3d69",
+      "root_m3": "a7f83b88b4d6b1c0fa7b13a2b93a18fa926ed073b87e45f545d17523200b4ba7",
+      "isolated": "86695095898e4d7efd50fe4c8fb315a649c9978a3249a24fba95504e8bc6612a",
+      "action": "M4 overlap retained"
+    },
+    {
+      "path": "apps/server/src/workspace-events.ts",
+      "old": "e8a831589f30c4a69558c7016a0c9ae547ad4982f7808c507f0335e208206755",
+      "root_m3": "f79eb96c07b64319fbe38c4450ed24595125632fa8fb150db7c3dec845987d79",
+      "isolated": "f79eb96c07b64319fbe38c4450ed24595125632fa8fb150db7c3dec845987d79",
+      "action": "already carried final M3"
+    },
+    {
+      "path": "apps/server/test/agent-stages.test.ts",
+      "old": "52566f281c7cb0eef19ab1ef0ef2946743add1e5a80b69e332c28073ca8bbfc4",
+      "root_m3": "9711e5c61f5069cf67b01c621f65f590af6228fb133c18102c03fbf2010bcb55",
+      "isolated": "9711e5c61f5069cf67b01c621f65f590af6228fb133c18102c03fbf2010bcb55",
+      "action": "already carried final M3"
+    },
+    {
+      "path": "apps/server/test/request-controls.test.ts",
+      "old": "f0fd9e6133e70dd0f2c15844fc8dfb942a0a275bf80654e9c7d269030618a00a",
+      "root_m3": "4893c770eba3e1ec7a094fa3134399f8db69002c1d38ba4f20eb60843c9b33d1",
+      "isolated": "4893c770eba3e1ec7a094fa3134399f8db69002c1d38ba4f20eb60843c9b33d1",
+      "action": "already carried final M3"
+    },
+    {
+      "path": "apps/server/test/run-reliability.test.ts",
+      "old": "77d6495ccba2f7b91f28de2b79d945135eb1eb331a6bf6830c5aec51f4e666e8",
+      "root_m3": "fbbe61901265977fff27dfe6dc144152b9a93379a2ed732b4b8556ce3a72cb1c",
+      "isolated": "fbbe61901265977fff27dfe6dc144152b9a93379a2ed732b4b8556ce3a72cb1c",
+      "action": "already carried final M3"
+    },
+    {
+      "path": "apps/server/test/workspace-events.test.ts",
+      "old": "b53ff6cfb5aff81f38352552a32f5bfa43f202dff47d9b11d4da994eea9a94da",
+      "root_m3": "068351b455a47ec2730f93caa5a93846e29b08a6d3906251bf944867e0a3c775",
+      "isolated": "068351b455a47ec2730f93caa5a93846e29b08a6d3906251bf944867e0a3c775",
+      "action": "already carried final M3"
+    },
+    {
+      "path": "apps/web/src/pages/TrustPage.tsx",
+      "old": "63ddbad61743048221788472827465964442002498b386e274dd4f31faf01fba",
+      "root_m3": "4706d01302b43e8ee5a03664879ada1acccb593a18bd42e94f84b576602e1aad",
+      "isolated": "4706d01302b43e8ee5a03664879ada1acccb593a18bd42e94f84b576602e1aad",
+      "action": "already carried final M3"
+    },
+    {
+      "path": "e2e/visua.spec.ts",
+      "old": "9c7f46595212f32ca5bf41b2346b2ceaa892f9fee890dd5e93aeef31e35bcf9a",
+      "root_m3": "47eb268b566aab174219636af0b9f44fde9e5cffc39658c4618fb6f2692bd862",
+      "isolated": "9c7f46595212f32ca5bf41b2346b2ceaa892f9fee890dd5e93aeef31e35bcf9a",
+      "action": "copied final M3"
+    },
+    {
+      "path": "e2e/workspace-recovery.spec.ts",
+      "old": "d5987ce5c6ad0d6bf7e4cebe0aa3dac750bffae7cb2a6d4f1b01caab8b3de0f0",
+      "root_m3": "bd9b03462f2d7631d6ea077b21a80338d7a60346efb376e2cafa8c7fc52a3577",
+      "isolated": "d5987ce5c6ad0d6bf7e4cebe0aa3dac750bffae7cb2a6d4f1b01caab8b3de0f0",
+      "action": "copied final M3"
+    }
+  ]
+}

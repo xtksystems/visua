@@ -16,6 +16,7 @@
     "@visua/agents": "workspace:*",
     "@visua/core": "workspace:*",
     "@visua/frameworks": "workspace:*",
+    "fflate": "0.8.3",
     "hono": "^4.13.9",
     "openid-client": "^6.8.8",
     "pg": "^8.23.0",
@@ -23,6 +24,8 @@
   },
   "devDependencies": {
     "@types/node": "^22.19.0",
-    "@types/pg": "^8.23.1"
+    "@types/pg": "^8.23.1",
+    "ajv": "8.17.1",
+    "ajv-formats": "3.0.1"
   }
 }

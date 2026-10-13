@@ -1,0 +1,92 @@
+{
+  "status": "passed",
+  "at": "2026-10-13T10:38:36.166526+00:00",
+  "base_head": "de3d02cab4112615f9abbc1ddbf7eef0d71ded90",
+  "scope": "M4 frozen auditor handoff and local recovery",
+  "files": {
+    "README.md": "81fb5a3d8f6d7d629658bddbf6c15fc1ea33bd8e506031ece64dbea524ae528c",
+    "apps/server/package.json": "fdae1311de9c3b97be463619a642f18424200f6b815011cdcb0e83b886d6e898",
+    "apps/server/src/app.ts": "4af73282bcd03c66925604c4600e6bbfb55a0f7b668abc1d97ccdcf51dbee211",
+    "apps/server/src/operations/local-backup.ts": "a05cdfdc7cf18833d51b941c4c8719860284d8fe5d739d2afba4a600e3f05f1e",
+    "apps/server/src/services/auditor-bundle.ts": "02ff6b6ccd70e770b96ce1d223bb91f0919b5f2133b6961376384c8087da3e32",
+    "apps/server/src/services/bundle-verifier.mjs": "747260d69efe77f057213edab338ff976a65caf6f35dbab7288d16f3452c29d3",
+    "apps/server/src/services/export-snapshot.ts": "2d185bc312573a53c1da2a87c5e1785fef5a9c4491483e0d624519b1ca8606c6",
+    "apps/server/src/services/exports.ts": "edbbc096e66c57bc188c834c56cb955e4579e65a8815c7dda6affc23b4cac3d8",
+    "apps/server/src/services/visua.ts": "86695095898e4d7efd50fe4c8fb315a649c9978a3249a24fba95504e8bc6612a",
+    "apps/server/src/storage/access.ts": "0a19c3efb29656e746ee3cf205df9cef38f7a8f093697abd8ff31968ae2ee31c",
+    "apps/server/src/storage/migrations.ts": "732fb0397c8aebbe20b8f65bdff61c00dda0fcc516d2a14c737bdec3e98818e0",
+    "apps/server/src/storage/store.ts": "90df8df0bb7a7c9c7c6711aa1637df5c174107558fb769f843043f283dc62093",
+    "apps/server/test/access-audit.test.ts": "76e712f4468a90f9e9d0eb31c138bdff0eabdab6f7b8003060c76cbf7ba99b3f",
+    "apps/server/test/auditor-bundle.test.ts": "944da09a72563db29a216f92e1434e8a26040ed46e164656be1672d6e1b64b59",
+    "apps/server/test/auditor-http.test.ts": "7d411d9796c72c54a09d318d345806eb26a7274ae25b90e9874e328751b8f606",
+    "apps/server/test/evidence-binding.test.ts": "e42cb68fbb28d2d2eef02f7d19454b6896662538c91acc5dbe3f3ed21178afb8",
+    "apps/server/test/evidence-content.test.ts": "369192b8e7f5b6cd0f30473181b534a4fbf3c3878635b6c9f2f0ec5b9eed59b9",
+    "apps/server/test/export-snapshot.test.ts": "6b1a5f87a95ec186c1c079e171d3b694145755151efc11c140c8d3d1dcd7f741",
+    "apps/server/test/exports.test.ts": "6a1299d9f80f12f330d353ec94425e26ccc77373d69f84c150e6ed01fc088233",
+    "apps/server/test/fixtures/oscal/LICENSE.md": "63407ac41abc46911bc9759fc0c19fd0ba7f66c59bb6746e51d85e2f2f3244b1",
+    "apps/server/test/fixtures/oscal/oscal_poam_schema.json": "906725163d767036c6189aec51252109b203214e121fc1acaff494b4d2dfbc04",
+    "apps/server/test/fixtures/oscal/oscal_ssp_schema.json": "08d3faeb12f0fab7705dec15fb648c72400c7ab6ac0056222d49d21507e02a69",
+    "apps/server/test/fixtures/oscal/sources.json": "52c8f0606df8ff325d982474cd8443677a41a8ab7aabae10ad371001a1cf27db",
+    "apps/server/test/local-backup.test.ts": "4c98dbcd7168d195c986f561c8a7fafd3c9843a51fdcfaac2b6fedcb9f19e4b6",
+    "apps/server/test/score-history.test.ts": "30f83ff5d815914bd5b05bad46431806bad37307c568879d9fc519d030be105f",
+    "apps/web/src/components/AuditorPanel.tsx": "5a641317fd59c28ade504124777c2f56526481d95d3b3cc7a1da72276ea205dc",
+    "apps/web/src/lib/api.ts": "3d2b009200f695a7178a4f4e5d5fca8ad4e42053c3ac46d1c0c52ad6813e8de9",
+    "apps/web/src/pages/ReportsPage.tsx": "990c95802582e40a2a99afc744befb03c05d10052d34a59e5a8cbe57cfdbb0cd",
+    "docs/architecture.md": "44a4e86df25e940e7cf7b9252bf48c2371a37868ba423abb95233b1c827d0f28",
+    "docs/development-phase-2.md": "59db6294b2c96250d88d9495ea15d3eb17c4faf1c8738efa23d14db396361cc3",
+    "docs/operations.md": "7168d76e881a3884d9b7fb1a92721a2b46bb448eca7b37266d3a457a6b31f327",
+    "docs/workspace.md": "ad57673f502ea3a84292985c9c90ba4613d69d7679b64cb499cff06bac30fc79",
+    "e2e/auditor-handoff.spec.ts": "22f6335c284d2c882f8e44b7d88f51a02a62610b27b04e823fef364d33c0c3ff",
+    "e2e/automation-claims.spec.ts": "8f4ad7178de6d75840ad4b069202ce4de1d4e68763352e928e759205fca8c9f9",
+    "pnpm-lock.yaml": "cd6f0a2c4595b1b6f211c86a6912842aa368425caa2ee5b3ef09d1125d92626b",
+    "scripts/backup-local.ts": "4b9757faf0b65ccfb6a3bb8a099ffaaa437bfacba0e13bc65e20bfb5dea68f58"
+  },
+  "checks": {
+    "database": {
+      "command": "pnpm check --no-e2e",
+      "log": "auditor-check-final.log",
+      "sqlite_passed": 883,
+      "sqlite_pg_only_skipped": 9,
+      "postgres_lane_passed": 892,
+      "typecheck": "passed",
+      "licensing": "passed",
+      "corpus": "passed",
+      "design": "passed"
+    },
+    "browser": {
+      "full_run": {
+        "command": "pnpm test:e2e",
+        "log": "auditor-browser.log",
+        "passed": 151,
+        "failed": 1
+      },
+      "final_targeted": {
+        "command": "pnpm exec playwright test e2e/automation-claims.spec.ts",
+        "log": "auditor-browser-correction.log",
+        "passed": 2,
+        "failed": 0
+      },
+      "unique_cases_verified": 152,
+      "single_final_full_command_passed": false,
+      "diagnosis": "auditor-browser-teardown-diagnosis.json",
+      "product_source_unchanged": true
+    }
+  },
+  "reviews": [
+    "auditor-snapshot-review.json",
+    "auditor-export-corrections.json",
+    "auditor-integrity-review.json",
+    "auditor-integrity-corrections.json",
+    "auditor-access-review.json",
+    "auditor-access-corrections.json",
+    "operations-doc-review.json"
+  ],
+  "recovery": "Actual SQLite plus reviewed binary/inline evidence restore and re-export fixture, genuine WAL overlay refusal, missing/tampered artifact checks pass in final gate. Hosted PG/object-store recovery not executed.",
+  "limits": [
+    "Current recorded state evaluated at asOf; no historical replay or continuous-period assurance.",
+    "Unsigned hashes require independently retained pins and a trusted verifier for rewrite detection.",
+    "Local deployment, live package, operational backup/restore and image checks are recorded separately after delivery.",
+    "Hosted identity/storage/retention/capacity and pilot-user validation require operator configuration."
+  ],
+  "whitespace_check": "Passed for authored files. Vendored official OSCAL schemas/LICENSE retain upstream whitespace and exact pinned bytes; raw git diff --check flags upstream trailing whitespace."
+}

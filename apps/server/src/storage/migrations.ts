@@ -267,7 +267,32 @@ const scoreHistory: Migration = {
   },
 };
 
-export const MIGRATIONS: Migration[] = [baseline, tenantSettings, ssoDomainVerification, ssoDomainRecheck, evidenceApprovalBinding, evidenceContentSeparation, scoreHistory];
+/** Begin recording access now; prior assessment events are not access history. */
+const workspaceAccess: Migration = {
+  version: 8,
+  name: "separate prepared auditor access and export records",
+  async up(db) {
+    await run(db, [
+      `CREATE TABLE workspace_access (
+        id TEXT PRIMARY KEY,
+        workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+        tenant_id TEXT NOT NULL,
+        at TEXT NOT NULL,
+        principal_id TEXT NOT NULL CHECK (length(principal_id) BETWEEN 1 AND 200),
+        principal_label TEXT NOT NULL CHECK (length(principal_label) BETWEEN 1 AND 512),
+        kind TEXT NOT NULL CHECK (kind IN ('auditor-view', 'export', 'evidence-download')),
+        outcome TEXT NOT NULL CHECK (outcome = 'prepared'),
+        resource TEXT CHECK (resource IS NULL OR length(resource) BETWEEN 1 AND 200),
+        revision BIGINT CHECK (revision IS NULL OR revision BETWEEN 0 AND 9007199254740991),
+        manifest_sha256 TEXT CHECK (manifest_sha256 IS NULL OR length(manifest_sha256) = 64),
+        bytes BIGINT CHECK (bytes IS NULL OR bytes BETWEEN 0 AND 9007199254740991)
+      )`,
+      `CREATE INDEX workspace_access_ws_time ON workspace_access(workspace_id, at, id)`,
+    ]);
+  },
+};
+
+export const MIGRATIONS: Migration[] = [baseline, tenantSettings, ssoDomainVerification, ssoDomainRecheck, evidenceApprovalBinding, evidenceContentSeparation, scoreHistory, workspaceAccess];
 
 export async function migrate(driver: SqlDriver): Promise<number[]> {
   await driver.execute(`CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL)`);

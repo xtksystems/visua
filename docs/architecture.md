@@ -613,6 +613,50 @@ resource close; a timeout forces remaining sockets closed and exits with code
   - action plan, evidence index and SOC 2 PBC list (CSV)
   - readiness report (Markdown)
   - OSCAL 1.1.2 SSP and POA&M (JSON)
+  - frozen auditor ZIP with original artifact bytes, snapshot, source metadata,
+    access receipt, offline presentation, and a standalone verifier
+
+Export preparation captures workspace revision, current records, complete audit
+chain/checkpoint, and evidence dependencies in one workspace-locked SQL transaction.
+Blob reads happen after that transaction. The capture is detached from later edits.
+A selected `asOf` evaluates current records at that time, including verification,
+review acceptance, expiry, supersession, and law timing; it does not replay old
+revisions. `periodStart` records the requested window without claiming period-wide
+assurance. Complete workspace audit history can extend outside selected frameworks
+and dates. Missing dependency records and unavailable historical policy bytes are
+explicit. Capture preflight bounds are 20,000 workspace records, 1,000 evidence
+records, and 32 MiB of inline content.
+
+Every report uses the captured context. CSV values neutralize spreadsheet formula
+prefixes. OSCAL 1.1.2 output uses stable UUIDv5 identifiers and is tested against
+pinned official schemas. SSP profile identity follows the configured baseline;
+security impacts retain the separate categorization. Source profile/catalog pins
+are disclosed, including their version differences; generated output is not a
+resolved OSCAL profile or a compliance assertion. Empty required OSCAL structures
+are unavailable instead of filled with invented entities. SOC 2 PBC prompts stay
+Visua-authored and do not reproduce licensed criterion text.
+
+The ZIP is bounded to 64 MiB uncompressed and 256 binary artifacts, with two
+concurrent preparations per process and a checked 60-second work budget. Sorted
+entries and fixed ZIP metadata make identical captures reproducible. Inline/file
+artifact bytes, reviews, scope, targets, exclusions, exports, and provenance are
+covered by the manifest. The offline verifier rejects unsafe paths, special files,
+symlinks, oversized reads, missing references, digest mismatches, and broken audit
+chains. Internal hashes establish consistency only; independent manifest and/or
+checkpoint pins plus a separately trusted verifier are needed to detect rewriting.
+
+Auditor views, exports, and evidence downloads recheck current access after
+preparation and record `prepared` responses in migration 8's separate
+`workspace_access` table. These records bind the server principal and bounded
+metadata, without changing assessment revision, its hash chain, or bus activity.
+They do not prove receipt. The latest-records endpoint defaults to 100 and caps at
+200; workspace deletion cascades to these records. API responses are private and
+not cached. Auditor capability remains read/export only.
+
+See [operations](operations.md) for offline SQLite/local-file backup and restore,
+upgrade handling, separately retained receipts, hosted prerequisites, and retention
+responsibilities. The recovery helper validates referenced bytes and uses fresh
+destinations; it is not a PostgreSQL or object-store backup service.
 
 ## 5. Web (`apps/web`)
 

@@ -198,3 +198,17 @@ is pushed and running in the local Docker service. All 190 source pins match;
 existing workspace state is preserved. The live CSF/SOC2 review/replacement,
 withdrawal, download, lineage, and desktop/phone smoke passed and cleaned up.
 See [delivery evidence](runs/evidence-operations-20261013/lifecycle-delivery.json).
+
+
+Milestone 4's auditor handoff is implemented and verified, pending local delivery.
+One detached SQL capture drives scope/date-aware exports and the read-only auditor
+view; the ZIP contains original artifacts, reviews, sources, entity digests, and
+an audit checkpoint. A trusted offline verifier supports separately retained pins.
+Migration 8 adds access records without altering assessment history or revision.
+SQLite/local-file backup and isolated restore preserve reviewed bytes and the
+chain. See [operations](../docs/operations.md) and
+[verification](runs/evidence-operations-20261013/auditor-source-verification.json):
+883 SQLite passes plus nine PostgreSQL-only skips, 892 PostgreSQL-lane passes,
+and 152 browser cases through a full run plus targeted teardown correction.
+Six independent review findings are corrected. Hosted configuration, retention
+ownership, capacity and pilot measurements remain unverified prerequisites.

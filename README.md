@@ -129,7 +129,8 @@ Once publication begins, failures retain bytes because a lost commit
 acknowledgement can hide a successful database commit. These failures and failed
 cleanup can leave orphan bytes. Workspace deletion removes SQL records;
 physical file retention and garbage collection remain operator-managed. See
-[the storage architecture](docs/architecture.md#4-server-appsserver).
+[the storage architecture](docs/architecture.md#4-server-appsserver) and the
+[backup, restore, upgrade, and retention runbook](docs/operations.md).
 
 ### AI engine
 
@@ -308,7 +309,11 @@ pnpm ingest          # rebuild framework data from the corpus
 Version 0.1: a working foundation across CSF 2.0, SOC 2, NIST RMF / SP 800-53, the
 NIST AI RMF with NIST's AI security overlays, the U.S. state AI laws, and AI threat views
 (MITRE ATLAS, OWASP, NIST AI 100-2). It includes the 3D Observatory and Nexus, eight
-agents, an evidence engine, exports and a trust center, with organizations, roles, SSO
-and PostgreSQL storage for multi-tenant hosting. See the
-roadmap, and [`docs/research/ai-governance-landscape.md`](docs/research/ai-governance-landscape.md)
-for the AI governance options that come next.
+agents, reviewed evidence with provenance and supersession, bounded automation,
+frozen auditor packages with offline verification, and a trust center, with
+organizations, roles, SSO, and PostgreSQL storage. The local SQLite/file recovery
+fixture is verified; hosted identity, object-storage recovery, retention ownership,
+and pilot-user measurements require the selected operator environment. See the
+[phase plan and remaining prerequisites](docs/development-phase-2.md),
+[operations runbook](docs/operations.md), and
+[AI governance research](docs/research/ai-governance-landscape.md).

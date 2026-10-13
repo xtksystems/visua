@@ -55,7 +55,7 @@ its claims.
 
 | Direction | Decision and basis |
 | --- | --- |
-| Evidence and team workflow | Lead this phase. Owned work, file storage, provenance, bound reviews, supersession, and lineage are implemented; auditor packaging remains incomplete. |
+| Evidence and team workflow | Lead this phase. Owned work, file storage, provenance, bound reviews, supersession, and lineage are implemented; auditor packaging is implemented and awaiting its final integration gate. |
 | Safe hosting and reliable agents | Required pilot foundations. Startup, egress, stream revocation, cancellation, and multi-instance SSO cache issues directly affect the hosted workflow. |
 | More connectors | Prove one API connector after evidence, provenance, egress, and credential contracts work. Avoid simultaneous provider expansion. |
 | SAML and SCIM | Schedule after a concrete buyer requirement. OIDC already supports the pilot; protocol breadth does not fix current evidence defects. |
@@ -174,6 +174,16 @@ as a pilot extension, not a requirement to expand across every provider.
 
 ## Milestone 4: Verifiable auditor handoff
 
+All five packages are implemented and verified. The final database gate passes
+883 SQLite tests plus nine PostgreSQL-only skips, and 892 tests in the PostgreSQL
+lane. All 152 browser cases are verified through 151 full-run passes and two
+final targeted passes after a test-teardown correction; no single final full-check
+command passed. Six independent review findings were corrected, and the operations
+guide review found no supported errors. Local delivery is underway. See
+[verification](../.codex-context/runs/evidence-operations-20261013/auditor-source-verification.json)
+and [operations](operations.md) for recovery boundaries and hosted prerequisites.
+
+
 Deliver a frozen package for a chosen scope and period, with a read-only
 auditor presentation. Start from the existing export capability instead of
 creating a second assessment engine.
@@ -235,9 +245,9 @@ completion-rate measurement exists yet.
 
 ## Next action
 
-Milestone 3 is delivered. Integrate and verify milestone 4 next.
-Snapshot-backed exports, separate access records, the offline auditor package,
-and isolated database/blob restore work are underway. The
+Milestone 3 is delivered. Finish milestone 4 local deployment and its live
+package/receipt verification. All required software packages are implemented;
+pilot-team acceptance and hosted operations remain external prerequisites. The
 [evidence operations task](../.codex-context/tasks/evidence-operations-20261013.md)
 records verification and remaining dependencies. A hosted pilot still needs a
 selected operator target, identity configuration, retention policy, and users.

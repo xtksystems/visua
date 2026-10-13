@@ -17,13 +17,13 @@ work that already satisfies its acceptance criteria.
 | 2 | Fixed review detail, rejection reasons, and withdrawal | Complete; latest decision and artifact scope bound |
 | 3 | Explicit/series supersession and shared effective evidence state | Complete; accepted replacements checked per requirement |
 | 4 | Metadata-only 2D lineage and full CSF/SOC 2 lifecycle journey | Complete; CSF/SOC2 browser journeys passed |
-| 5 | Durable agent ownership, leases, cancellation, and concurrency | Implemented in isolated checkout; integration/review pending |
-| 6 | Stream authorization, bounded queues, reconnect, and current OIDC settings | Implemented in isolated checkout; integration/review pending |
-| 7 | Typed proposals, supported citations/claims, and monitoring identity | In progress in isolated checkout; service validation and corpus claims |
-| 8 | Request limits and operational diagnostics | Queued; expose measured facts without invented capacity claims |
-| 9 | Frozen auditor package, manifest, chain checkpoint, and offline verification | Queued; depends on effective evidence and immutable source references |
-| 10 | Period-correct exports, schema validation, and read-only auditor access | Queued; preserve stable identifiers and licensed content restrictions |
-| 11 | Database/blob backup and restore plus operator runbook | Queued; use isolated fixtures and keep live data intact |
+| 5 | Durable agent ownership, leases, cancellation, and concurrency | Complete; tested, pushed and locally deployed |
+| 6 | Stream authorization, bounded queues, reconnect, and current OIDC settings | Complete; tested, pushed and locally deployed |
+| 7 | Typed proposals, supported citations/claims, and monitoring identity | Complete; strict payloads, verified quotes, deterministic projections and distinct monitoring |
+| 8 | Request limits and operational diagnostics | Complete; bounded requests and private aggregate diagnostics, capacity unmeasured |
+| 9 | Frozen auditor package, manifest, chain checkpoint, and offline verification | Implemented and verified; local delivery pending |
+| 10 | Period-correct exports, schema validation, and read-only auditor access | Isolated implementation;35 export tests pass, HTTP/UI integration running |
+| 11 | Database/blob backup and restore plus operator runbook | Isolated implementation;7 SQLite/local-blob recovery tests pass, runbook pending |
 | 12 | Full phase acceptance, commit/push, and local Docker delivery | Queued; independent review and applicable checks before delivery |
 
 The broader roadmap retains explicitly deferred SAML/SCIM, catalog expansion,
@@ -59,20 +59,30 @@ cover every case; no single final full-check command passed. The final database
 lane, typecheck, corpus verification, and design lint passed after all product
 corrections. Independent review and desktop/phone inspection are complete.
 
-M2 commit/push/local delivery is next; prior deployed source remains `783ed28`.
-A consistent backup and identical ignored local copy are already verified. Root
-application source is frozen for delivery. Automation workers use isolated
-`.check/evidence-automation-20261013`; integrate only their owned changes against
-the recorded M2 overlay, preserving later lead corrections. Durable runs and
-stream/auth workers returned focused passes; independent boundary review and
-combined PostgreSQL/browser verification remain open. Lead is integrating strict
-proposal validation; corpus claims work is finishing focused tests.
+M2 delivered: `3c85ef4` is pushed and deployed locally. All 190 runtime source
+pins match, original rows are preserved, and the live lifecycle workflow and
+desktop/phone inspection passed. See the
+[delivery record](../runs/evidence-operations-20261013/lifecycle-delivery.json).
 
-Continue the remaining automation and auditor packages after delivery. Actual
-hosted pilot setup remains an external prerequisite, not a passed local gate.
+M3 is delivered: source `dc5e68c`, delivery docs `de3d02c` pushed; Docker source
+matches all 196 pins. Final checks passed 798 SQLite plus seven PostgreSQL-only
+skips, 805 PostgreSQL, and 148 unique browser cases through full and targeted runs.
+Synthetic events were corrected to carry canonical IDs. Live autonomy/public
+measures, original assessment preservation, and desktop/phone checks passed.
+Expected smoke effects are one sign-in session/timestamps and workspace deletion
+event. See [source verification](../runs/evidence-operations-20261013/automation-source-verification.json)
+and [delivery](../runs/evidence-operations-20261013/automation-delivery.json).
 
-M2 delivered: `3c85ef4` pushed and deployed locally. Source190 pins, original
-rows, live lifecycle workflow, desktop/phone inspection and cleanup passed.
-See `../runs/evidence-operations-20261013/lifecycle-delivery.json`. M3 continues
-in the isolated checkout; independent review found scheduler scan starvation
-and lost publisher notifications, both assigned for correction before its gate.
+M4 is integrated and verified in root. Final checks pass 883 SQLite tests plus
+nine PostgreSQL-only skips and 892 PostgreSQL-lane tests. All 152 browser cases
+are verified: 151 in the full run and two final targeted passes after draining
+pending mock responses before fixture teardown. Product source stayed unchanged.
+Three independent reviews produced six supported findings, now fixed; the runbook
+review found no errors. See [verification](../runs/evidence-operations-20261013/auditor-source-verification.json).
+Next: commit/push, build candidate image, stop writers, capture and verify a fresh
+SQLite+referenced-blob backup, redeploy, verify migration/data/source preservation,
+and download/verify the live package as an auditor on desktop and phone.
+
+Actual hosted pilot setup and representative capacity/user measurements remain
+external prerequisites, not passed local gates. Explicitly deferred expansions
+and the optional GitHub connector are outside these required phase packages.

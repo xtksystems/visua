@@ -29,6 +29,8 @@ import {
   TIER_SOURCE,
   ROLE_CAPABILITIES,
   can,
+  effectiveEvidenceState,
+  obligationTiming,
   type Capability,
   recommend,
   type AgentKind,
@@ -40,7 +42,11 @@ import { loadAuthConfig } from "./auth/config.ts";
 import { actorOf, authenticate, authRoutes, cookieName, csrfProtection, limitParam, need, principalOf, requireCapability, requireSignIn, securityHeaders, workspaceAccess, type AppEnv } from "./auth/http.ts";
 import { AuthService, ForbiddenError, UnauthorizedError } from "./auth/service.ts";
 import { CONNECTOR_KINDS } from "./connectors/index.ts";
-import { actionPlanCsv, aiRmfProfileCsv, csfProfileCsv, evidenceIndexCsv, oscalPoam, oscalSsp, readinessMarkdown, soc2PbcCsv } from "./services/exports.ts";
+import { actionPlanCsv, aiRmfProfileCsv, csfProfileCsv, evidenceIndexCsv, exportScoreInput, oscalPoam, oscalSsp, readinessMarkdown, soc2PbcCsv } from "./services/exports.ts";
+import { buildAuditorBundle } from "./services/auditor-bundle.ts";
+import { captureExportSnapshot, EXPORT_SNAPSHOT_BASIS, type ExportSelection } from "./services/export-snapshot.ts";
+import { evidenceMetadata } from "./services/evidence.ts";
+import type { AccessInput } from "./storage/access.ts";
 import { aiOverview } from "./services/ai.ts";
 import { lawsOverview } from "./services/laws.ts";
 import { parseMinStatus, threatCatalogState, threatRing, threatsOverview } from "./services/threats.ts";
@@ -640,6 +646,7 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
   }));
   app.get("/api/workspaces/:ws/evidence/:id/file", async (c) => {
     const { evidence, bytes } = await svc.getEvidenceFile(wsId(c), c.req.param("id"), evidenceAccess(c, "workspace.read"));
+    await preparedAccess(c, "workspace.read", { kind: "evidence-download", resource: evidence.id, bytes: bytes.byteLength });
     return new Response(bytes as Uint8Array<ArrayBuffer>, { headers: {
       "Content-Type": "application/octet-stream",
       "Content-Disposition": evidenceDisposition(evidence.fileName ?? "evidence"),
@@ -782,28 +789,106 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
   });
 
   // ---------------------------------------------------------------- exports & trust
+  function exportSelection(c: Context<AppEnv>): ExportSelection {
+    const query = new URL(c.req.url).searchParams;
+    if ([...query.keys()].some(key => !["framework", "asOf", "periodStart"].includes(key)) || query.getAll("asOf").length > 1 || query.getAll("periodStart").length > 1) {
+      throw new ValidationError("Use only framework, asOf and periodStart export parameters; dates may appear once");
+    }
+    return {
+      ...(query.has("framework") ? { frameworkIds: query.getAll("framework") } : {}),
+      ...(query.has("asOf") ? { asOf: query.get("asOf")! } : {}),
+      ...(query.has("periodStart") ? { periodStart: query.get("periodStart")! } : {}),
+    };
+  }
+  async function preparedAccess(c: Context<AppEnv>, capability: Capability, input?: AccessInput): Promise<void> {
+    if (c.req.raw.signal.aborted) throw new ValidationError("The request was interrupted");
+    const bearer = c.req.header("authorization");
+    const credential = bearer?.toLowerCase().startsWith("bearer ")
+      ? { kind: "token" as const, value: bearer.slice(7).trim() }
+      : { kind: "user" as const, value: getCookie(c, cookieName(auth)) ?? "" };
+    await svc.store.atomic(async () => {
+      // Finish any access-record lock wait before checking current credentials.
+      // recordAccess joins this transaction and reuses its workspace lock.
+      await svc.store.lock(`ws:${wsId(c)}`);
+      if (c.req.raw.signal.aborted) throw new ValidationError("The request was interrupted");
+      await auth.assertWorkspaceAccess(credential, principalOf(c), wsId(c), wsOf(c).tenantId, capability);
+      if (input) await svc.recordAccess(wsId(c), input);
+    });
+  }
+
+  app.get("/api/workspaces/:ws/auditor", need("workspace.export"), async c => {
+    const snapshot = await captureExportSnapshot(svc, wsOf(c), exportSelection(c));
+    const at = new Date(snapshot.asOf), states = new Map(snapshot.states.map(state => [state.nodeId, state]));
+    const input = exportScoreInput(snapshot);
+    const frameworks = snapshot.frameworkIds.map(id => {
+      const index = svc.registry.framework(id)!;
+      const score = svc.scoreOf(index, input, at);
+      return {
+        id, name: index.graph.framework.shortName, overall: score.overall, upcoming: score.upcoming?.overall,
+        requirements: index.assessable.map(node => {
+          const state = states.get(node.id), derived = score.statuses.get(node.id)!;
+          const timing = index.graph.framework.family === "law" ? obligationTiming(node, snapshot.asOf.slice(0, 10)) : "in-force";
+          const exclusion = node.withdrawn ? "Withdrawn from source catalog" : !state ? "Assessment state not recorded" : !state.applicable ? state.applicabilityRationale ?? state.userExclusion?.rationale ?? "Not applicable; rationale not recorded" : timing !== "in-force" ? timing === "upcoming" ? "Not yet in effect" : "No longer in effect" : undefined;
+          return { id: node.id, code: node.code, current: state?.current ?? 0, target: state?.target ?? 0, applicable: !exclusion, status: derived.status, reasons: derived.reasons, rationale: exclusion, owner: state?.owner, evidenceIds: snapshot.evidence.filter(evidence => evidence.requirementIds.includes(node.id)).map(evidence => evidence.id) };
+        }),
+      };
+    });
+    const content = JSON.stringify({
+      workspaceId: snapshot.workspace.id, workspaceName: snapshot.workspace.name, asOf: snapshot.asOf, capturedAt: snapshot.capturedAt,
+      revision: snapshot.revision, periodStart: snapshot.periodStart, frameworkIds: snapshot.frameworkIds, basis: EXPORT_SNAPSHOT_BASIS,
+      checkpoint: { workspaceId: snapshot.workspace.id, ...snapshot.auditCheckpoint }, frameworks,
+      evidence: snapshot.evidence.map(evidence => ({ evidence: evidenceMetadata(evidence), effective: effectiveEvidenceState(evidence, snapshot.evidence, at), dependency: snapshot.dependencies.evidenceIds.includes(evidence.id) })),
+      dependencies: snapshot.dependencies,
+    });
+    await preparedAccess(c, "workspace.export", { kind: "auditor-view", resource: "auditor", revision: snapshot.revision, bytes: Buffer.byteLength(content) });
+    return new Response(content, { headers: { "Content-Type": "application/json", "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
+  });
+  app.get("/api/workspaces/:ws/access", need("workspace.export"), async c => {
+    const query = new URL(c.req.url).searchParams;
+    const limit = z.coerce.number().int().min(1).max(200).safeParse(query.get("limit") ?? 100);
+    if (!limit.success || [...query.keys()].some(key => key !== "limit") || query.getAll("limit").length > 1) throw new ValidationError("Access limit must be an integer between 1 and 200");
+    const records = await svc.readAccess(wsId(c), limit.data);
+    await preparedAccess(c, "workspace.export");
+    c.header("Cache-Control", "private, no-store");
+    return c.json(records);
+  });
   app.get("/api/workspaces/:ws/exports/:kind", need("workspace.export"), async (c) => {
     const ws = wsOf(c);
     const kind = c.req.param("kind");
-    const file = (content: string, type: string, name: string) =>
-      new Response(content, { headers: { "content-type": type, "content-disposition": `attachment; filename="${ws.slug}-${name}"` } });
+    const selection = exportSelection(c);
+    if (kind === "auditor-bundle.zip") {
+      const bundle = await buildAuditorBundle(svc, ws, selection);
+      await preparedAccess(c, "workspace.export", { kind: "export", resource: kind, revision: bundle.snapshot.revision, manifestSha256: bundle.manifestSha256, bytes: bundle.bytes.byteLength });
+      return new Response(bundle.bytes as Uint8Array<ArrayBuffer>, { headers: {
+        "Content-Type": "application/zip", "Content-Disposition": evidenceDisposition(bundle.filename), "Content-Length": String(bundle.bytes.byteLength),
+        "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff",
+        "X-Visua-Manifest-SHA256": bundle.manifestSha256,
+        "X-Visua-Audit-Checkpoint": `${bundle.snapshot.workspace.id}:${bundle.snapshot.auditCheckpoint.seq}:${bundle.snapshot.auditCheckpoint.hash}`,
+      } });
+    }
+    if (!["csf-profile.csv", "action-plan.csv", "evidence-index.csv", "ai-rmf-profile.csv", "soc2-pbc.csv", "readiness.md", "oscal-ssp.json", "oscal-poam.json"].includes(kind)) throw new NotFoundError(`Unknown export '${kind}'`);
+    const snapshot = await captureExportSnapshot(svc, ws, selection);
+    const file = async (content: string, type: string, name: string) => {
+      await preparedAccess(c, "workspace.export", { kind: "export", resource: kind, revision: snapshot.revision, bytes: Buffer.byteLength(content) });
+      return new Response(content, { headers: { "Content-Type": type, "Content-Disposition": evidenceDisposition(`${ws.slug}-${name}`), "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
+    };
     switch (kind) {
       case "csf-profile.csv":
-        return file(await csfProfileCsv(svc, ws), "text/csv; charset=utf-8", "csf-2.0-organizational-profile.csv");
+        return file(await csfProfileCsv(svc, ws, snapshot), "text/csv; charset=utf-8", "csf-2.0-organizational-profile.csv");
       case "action-plan.csv":
-        return file(await actionPlanCsv(svc, ws), "text/csv; charset=utf-8", "action-plan.csv");
+        return file(await actionPlanCsv(svc, ws, snapshot), "text/csv; charset=utf-8", "action-plan.csv");
       case "evidence-index.csv":
-        return file(await evidenceIndexCsv(svc, ws), "text/csv; charset=utf-8", "evidence-index.csv");
+        return file(await evidenceIndexCsv(svc, ws, snapshot), "text/csv; charset=utf-8", "evidence-index.csv");
       case "ai-rmf-profile.csv":
-        return file(await aiRmfProfileCsv(svc, ws), "text/csv; charset=utf-8", "nist-ai-rmf-profile.csv");
+        return file(await aiRmfProfileCsv(svc, ws, snapshot), "text/csv; charset=utf-8", "nist-ai-rmf-profile.csv");
       case "soc2-pbc.csv":
-        return file(await soc2PbcCsv(svc, ws), "text/csv; charset=utf-8", "soc2-pbc-request-list.csv");
+        return file(await soc2PbcCsv(svc, ws, snapshot), "text/csv; charset=utf-8", "soc2-pbc-request-list.csv");
       case "readiness.md":
-        return file(await readinessMarkdown(svc, ws), "text/markdown; charset=utf-8", "readiness-report.md");
+        return file(await readinessMarkdown(svc, ws, snapshot), "text/markdown; charset=utf-8", "readiness-report.md");
       case "oscal-ssp.json":
-        return file(JSON.stringify(await oscalSsp(svc, ws), null, 2), "application/json", "oscal-ssp.json");
+        return file(JSON.stringify(await oscalSsp(svc, ws, snapshot), null, 2), "application/json", "oscal-ssp.json");
       case "oscal-poam.json":
-        return file(JSON.stringify(await oscalPoam(svc, ws), null, 2), "application/json", "oscal-poam.json");
+        return file(JSON.stringify(await oscalPoam(svc, ws, snapshot), null, 2), "application/json", "oscal-poam.json");
       default:
         throw new NotFoundError(`Unknown export '${kind}'`);
     }

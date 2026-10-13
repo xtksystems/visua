@@ -1,0 +1,167 @@
+{
+  "at": "2026-10-13T10:23:10.806905+00:00",
+  "root_head": "de3d02cab4112615f9abbc1ddbf7eef0d71ded90",
+  "files": [
+    {
+      "path": "apps/server/package.json",
+      "before": "2498a1a82883414c01ad2bfeaa5fbeffc8b156786084940f26ee58feeb6ad351",
+      "integrated": "fdae1311de9c3b97be463619a642f18424200f6b815011cdcb0e83b886d6e898"
+    },
+    {
+      "path": "apps/server/src/app.ts",
+      "before": "85e8867657d3e974328fb7304c9743a07268229f9fcaba794a7c4b3ab69995ba",
+      "integrated": "4af73282bcd03c66925604c4600e6bbfb55a0f7b668abc1d97ccdcf51dbee211"
+    },
+    {
+      "path": "apps/server/src/operations/local-backup.ts",
+      "before": null,
+      "integrated": "a05cdfdc7cf18833d51b941c4c8719860284d8fe5d739d2afba4a600e3f05f1e"
+    },
+    {
+      "path": "apps/server/src/services/auditor-bundle.ts",
+      "before": null,
+      "integrated": "02ff6b6ccd70e770b96ce1d223bb91f0919b5f2133b6961376384c8087da3e32"
+    },
+    {
+      "path": "apps/server/src/services/bundle-verifier.mjs",
+      "before": null,
+      "integrated": "747260d69efe77f057213edab338ff976a65caf6f35dbab7288d16f3452c29d3"
+    },
+    {
+      "path": "apps/server/src/services/export-snapshot.ts",
+      "before": null,
+      "integrated": "2d185bc312573a53c1da2a87c5e1785fef5a9c4491483e0d624519b1ca8606c6"
+    },
+    {
+      "path": "apps/server/src/services/exports.ts",
+      "before": "c5c130dc397a5cc3a364972b5a338bf6bac750090a9836ded7424ee0dd25c5b2",
+      "integrated": "edbbc096e66c57bc188c834c56cb955e4579e65a8815c7dda6affc23b4cac3d8"
+    },
+    {
+      "path": "apps/server/src/services/visua.ts",
+      "before": "a7f83b88b4d6b1c0fa7b13a2b93a18fa926ed073b87e45f545d17523200b4ba7",
+      "integrated": "86695095898e4d7efd50fe4c8fb315a649c9978a3249a24fba95504e8bc6612a"
+    },
+    {
+      "path": "apps/server/src/storage/access.ts",
+      "before": null,
+      "integrated": "0a19c3efb29656e746ee3cf205df9cef38f7a8f093697abd8ff31968ae2ee31c"
+    },
+    {
+      "path": "apps/server/src/storage/migrations.ts",
+      "before": "04d478d10854db7c0d2ad21065d5a7695cefad61208e3d639442c3c5393b4b05",
+      "integrated": "732fb0397c8aebbe20b8f65bdff61c00dda0fcc516d2a14c737bdec3e98818e0"
+    },
+    {
+      "path": "apps/server/src/storage/store.ts",
+      "before": "28123725a4f8e82e2ac0fef1bc6ccf5391725fcfa1a3d62456ba6efab9514515",
+      "integrated": "90df8df0bb7a7c9c7c6711aa1637df5c174107558fb769f843043f283dc62093"
+    },
+    {
+      "path": "apps/server/test/access-audit.test.ts",
+      "before": null,
+      "integrated": "76e712f4468a90f9e9d0eb31c138bdff0eabdab6f7b8003060c76cbf7ba99b3f"
+    },
+    {
+      "path": "apps/server/test/auditor-bundle.test.ts",
+      "before": null,
+      "integrated": "944da09a72563db29a216f92e1434e8a26040ed46e164656be1672d6e1b64b59"
+    },
+    {
+      "path": "apps/server/test/auditor-http.test.ts",
+      "before": null,
+      "integrated": "4d6aec5abf9165cad0f474269f1d08381d50e76a9b3000ba917927be4e62c43c"
+    },
+    {
+      "path": "apps/server/test/export-snapshot.test.ts",
+      "before": null,
+      "integrated": "6b1a5f87a95ec186c1c079e171d3b694145755151efc11c140c8d3d1dcd7f741"
+    },
+    {
+      "path": "apps/server/test/exports.test.ts",
+      "before": null,
+      "integrated": "6a1299d9f80f12f330d353ec94425e26ccc77373d69f84c150e6ed01fc088233"
+    },
+    {
+      "path": "apps/server/test/fixtures/oscal/LICENSE.md",
+      "before": null,
+      "integrated": "63407ac41abc46911bc9759fc0c19fd0ba7f66c59bb6746e51d85e2f2f3244b1"
+    },
+    {
+      "path": "apps/server/test/fixtures/oscal/oscal_poam_schema.json",
+      "before": null,
+      "integrated": "906725163d767036c6189aec51252109b203214e121fc1acaff494b4d2dfbc04"
+    },
+    {
+      "path": "apps/server/test/fixtures/oscal/oscal_ssp_schema.json",
+      "before": null,
+      "integrated": "08d3faeb12f0fab7705dec15fb648c72400c7ab6ac0056222d49d21507e02a69"
+    },
+    {
+      "path": "apps/server/test/fixtures/oscal/sources.json",
+      "before": null,
+      "integrated": "52c8f0606df8ff325d982474cd8443677a41a8ab7aabae10ad371001a1cf27db"
+    },
+    {
+      "path": "apps/server/test/local-backup.test.ts",
+      "before": null,
+      "integrated": "4c98dbcd7168d195c986f561c8a7fafd3c9843a51fdcfaac2b6fedcb9f19e4b6"
+    },
+    {
+      "path": "apps/server/test/score-history.test.ts",
+      "before": "05e96df2c28e858eb8359df2b4794273c6c241abc14854d8a6645a379355336f",
+      "integrated": "30f83ff5d815914bd5b05bad46431806bad37307c568879d9fc519d030be105f"
+    },
+    {
+      "path": "apps/web/src/components/AuditorPanel.tsx",
+      "before": null,
+      "integrated": "5a641317fd59c28ade504124777c2f56526481d95d3b3cc7a1da72276ea205dc"
+    },
+    {
+      "path": "apps/web/src/lib/api.ts",
+      "before": "d08f44989a91526075fa4540e3bac31dc27f03ac14c8fe0de18d8c31d813269e",
+      "integrated": "3d2b009200f695a7178a4f4e5d5fca8ad4e42053c3ac46d1c0c52ad6813e8de9"
+    },
+    {
+      "path": "apps/web/src/pages/ReportsPage.tsx",
+      "before": "592205f52c741fb9370374a0a0e697d64a359a38ab41552441280bea1b8511ac",
+      "integrated": "990c95802582e40a2a99afc744befb03c05d10052d34a59e5a8cbe57cfdbb0cd"
+    },
+    {
+      "path": "docs/architecture.md",
+      "before": "5aa3b7e2bd7d323c9539ce699d8478cbe4c3088674a1be657d76a6fa8be11bd4",
+      "integrated": "44a4e86df25e940e7cf7b9252bf48c2371a37868ba423abb95233b1c827d0f28"
+    },
+    {
+      "path": "docs/development-phase-2.md",
+      "before": "ebad9c244935814bfe08afe5bbe66a76f02bef0408501be569f088bf4f2a5f54",
+      "integrated": "218264c0a8b9999c161a5b1c05c64b7a32b38c12c1a2f81bc8bf8ce1eb602e40"
+    },
+    {
+      "path": "docs/operations.md",
+      "before": null,
+      "integrated": "7168d76e881a3884d9b7fb1a92721a2b46bb448eca7b37266d3a457a6b31f327"
+    },
+    {
+      "path": "docs/workspace.md",
+      "before": "6a7af6f86b7978769bdb62754e8a00393f327ffd4156569e84807b123aa3efa1",
+      "integrated": "ad57673f502ea3a84292985c9c90ba4613d69d7679b64cb499cff06bac30fc79"
+    },
+    {
+      "path": "e2e/auditor-handoff.spec.ts",
+      "before": null,
+      "integrated": "60b74390bef057d3ff5228de08e09652aa6ecfaddc9bdf0ac5d5e39445545e5c"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "before": "dfd1ab612f67a60be973f36cac109b47bc9f22b40bb3448120d85b2f4cd04a0e",
+      "integrated": "cd6f0a2c4595b1b6f211c86a6912842aa368425caa2ee5b3ef09d1125d92626b"
+    },
+    {
+      "path": "scripts/backup-local.ts",
+      "before": null,
+      "integrated": "4b9757faf0b65ccfb6a3bb8a099ffaaa437bfacba0e13bc65e20bfb5dea68f58"
+    }
+  ],
+  "overlap_review": "app.ts and visua.ts retain finalM3 exactly outside auditor additions; docs copied finalroot then M4 lead edits; test-only correction followup remains."
+}

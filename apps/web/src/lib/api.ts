@@ -40,6 +40,25 @@ async function request<T>(method: string, path: string, body?: unknown, signal?:
   return data as T;
 }
 
+export interface DownloadResponse {
+  blob: Blob;
+  filename: string;
+  manifestSha256: string | null;
+  auditCheckpoint: string | null;
+}
+
+/** Binary responses share the same cookie, cancellation and sign-in failure handling. */
+async function downloadResponse(path: string, signal?: AbortSignal): Promise<DownloadResponse> {
+  const res = await fetch(`/api${path}`, { credentials: "same-origin", signal });
+  if (!res.ok) {
+    if (res.status === 401) for (const fn of unauthorizedListeners) fn();
+    const data = await res.json().catch(() => undefined) as { error?: string } | undefined;
+    throw new ApiError(res.status, data?.error ?? "The download failed. Try again.");
+  }
+  const filename = /filename="([^"]+)"/.exec(res.headers.get("content-disposition") ?? "")?.[1] ?? "download";
+  return { blob: await res.blob(), filename: filename.replace(/[\\/\u0000-\u001f\u007f]/g, "_"), manifestSha256: res.headers.get("x-visua-manifest-sha256"), auditCheckpoint: res.headers.get("x-visua-audit-checkpoint") };
+}
+
 export const api = {
   get: <T>(path: string, signal?: AbortSignal) => request<T>("GET", path, undefined, signal),
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, body ?? {}),
@@ -55,15 +74,8 @@ export const api = {
     }
     return data;
   },
-  download: async (path: string): Promise<Blob> => {
-    const res = await fetch(`/api${path}`, { credentials: "same-origin" });
-    if (!res.ok) {
-      if (res.status === 401) for (const fn of unauthorizedListeners) fn();
-      const data = await res.json().catch(() => undefined) as { error?: string } | undefined;
-      throw new ApiError(res.status, data?.error ?? "The download failed. Try again.");
-    }
-    return res.blob();
-  },
+  download: async (path: string): Promise<Blob> => (await downloadResponse(path)).blob,
+  downloadResponse,
 };
 
 export const corpusFileUrl = (path: string, page?: number) => `/api/corpus/file/${path.split("/").map(encodeURIComponent).join("/")}${page ? `#page=${page}` : ""}`;

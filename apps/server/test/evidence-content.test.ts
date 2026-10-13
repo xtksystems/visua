@@ -332,7 +332,7 @@ describe(`evidence content migration 6 (${database.dialect})`, () => {
       })))).rejects.toThrow("metadata write unavailable");
       const raw = (await driver.query<{ data: unknown }>("SELECT data FROM evidence WHERE id = ?", [e.id]))[0]!;
       expect(parseJson<Evidence>(raw.data)).toEqual(e);
-      expect(await migrate(driver)).toEqual([6, 7]);
+      expect(await migrate(driver)).toEqual([6, 7, 8]);
       expect(await legacyStore.evidence.get(e.id)).toEqual(e);
       expect(hasCurrentEvidenceReview((await legacyStore.evidence.get(e.id))!)).toBe(true);
       expect((await legacyStore.evidence.metadataList(ws.id))[0]).not.toHaveProperty("content");

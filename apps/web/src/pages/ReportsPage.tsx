@@ -10,6 +10,7 @@ import { useCan } from "../lib/auth.ts";
 import { relativeTime, truncate } from "../lib/format.ts";
 import { useActivity, useAuditVerification, useWorkspace, useWsMutation } from "../lib/queries.ts";
 import { split } from "../lib/media.ts";
+import { AuditorPanel } from "../components/AuditorPanel.tsx";
 
 interface ManifestDoc {
   id: string;
@@ -125,6 +126,7 @@ export function ReportsPage() {
           <p>Readiness exports prepare you for an independent assessment. Visua never issues audit opinions, reports on controls or certifications.</p>
         </div>
       </header>
+      {canExport && workspace.data && <AuditorPanel key={workspace.data.workspace.id} workspace={workspace.data} />}
       <div className="grid grid--3" style={{ marginBottom: 20 }}>
         {!canExport && (
           <div className="panel muted" role="note" style={{ gridColumn: "1 / -1" }}>
@@ -159,7 +161,7 @@ export function ReportsPage() {
             )}
           </div>
           <p className="muted" style={{ fontSize: 12.5, padding: "8px 16px 12px" }}>
-            Each event stores the SHA-256 of the previous one. Editing, deleting or reordering any past event breaks the chain, and verification pinpoints where.
+            Each event stores the SHA-256 of the previous one. Verification detects internal edits and reordering. Detecting a removed tail requires a separately retained expected checkpoint; an internally consistent chain alone does not prove completeness or authenticity.
           </p>
           <div className="table-box" style={{ maxHeight: 520 }}>
             <table className="table table--audit">

@@ -17,7 +17,11 @@ const test = base.extend<{ workspace: { id: string; slug: string; csrf: string }
     const summary = await write<WorkspaceSummary>(page.request, "post", "/workspaces", me.csrf!, { name: `Claims ${randomUUID()}`, frameworks: ["nist-csf-2.0"], planInitialTasks: false, profile: { industry: "saas", size: "11-50" } });
     const { id, slug } = summary.workspace;
     try { await use({ id, slug, csrf: me.csrf! }); }
-    finally { expect((await page.request.delete(`/api/workspaces/${id}`, { headers: { "x-visua-csrf": me.csrf! } })).ok()).toBe(true); }
+    finally {
+      // Drain mock response transforms before deleting the fixture or closing its page.
+      await page.unrouteAll({ behavior: "wait" });
+      expect((await page.request.delete(`/api/workspaces/${id}`, { headers: { "x-visua-csrf": me.csrf! } })).ok()).toBe(true);
+    }
   },
 });
 

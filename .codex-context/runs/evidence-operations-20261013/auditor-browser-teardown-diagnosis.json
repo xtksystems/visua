@@ -1,0 +1,7 @@
+{
+  "failure": "automation autonomy browser fixture route.fetch after context closed",
+  "evidence": "Trace test assertions through final note-count assertion all completed. After-hooks delete workspace succeeded. Closing context rejected still-active route.fetch callback. No product assertion failed.",
+  "source": "e2e/automation-claims.spec.ts workspace fixture finally",
+  "correction": "await page.unrouteAll({behavior:wait}) before cleanup DELETE/context close",
+  "verification": "Targeted rerun pending after full browser lane; product source unchanged."
+}

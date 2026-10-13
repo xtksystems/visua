@@ -1,0 +1,140 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "auditor-access",
+  "status": "complete",
+  "updated_utc": "2026-10-13T09:49:47.042237+00:00",
+  "worktree": "/Users/artem/visua/.check/evidence-auditor-20261013",
+  "base_head": "2f82c73",
+  "input_brief": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/auditor-access-brief.txt",
+  "input_brief_sha256": "e516b82b5f62088f19a4a51691db84fcfd0fbc4f7763bd7ec6cd0471d04d8212",
+  "baseline": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/auditor-worktree-baseline.json",
+  "files": [
+    {
+      "path": "apps/server/src/storage/access.ts",
+      "before_sha256": null,
+      "after_sha256": "c071c0488dcca2d862565e06c7db31b71911e96ee3c5ab13a92042822408c681"
+    },
+    {
+      "path": "apps/server/src/storage/store.ts",
+      "before_sha256": "28123725a4f8e82e2ac0fef1bc6ccf5391725fcfa1a3d62456ba6efab9514515",
+      "after_sha256": "90df8df0bb7a7c9c7c6711aa1637df5c174107558fb769f843043f283dc62093"
+    },
+    {
+      "path": "apps/server/src/storage/migrations.ts",
+      "before_sha256": "04d478d10854db7c0d2ad21065d5a7695cefad61208e3d639442c3c5393b4b05",
+      "after_sha256": "1268c6f09857192912b2b9d915bf740444313086cd718051e405c149b516af07"
+    },
+    {
+      "path": "apps/server/src/services/visua.ts",
+      "before_sha256": "62cc2d38b884cce656dd78c96727c700188785781b60c40b111624beadbe3d69",
+      "after_sha256": "86695095898e4d7efd50fe4c8fb315a649c9978a3249a24fba95504e8bc6612a"
+    },
+    {
+      "path": "apps/server/test/access-audit.test.ts",
+      "before_sha256": null,
+      "after_sha256": "43cad2a8fc6010fec26c8f0b4c9f19eeb9e17a6b945325ed6a9b95b849ecd9be"
+    }
+  ],
+  "ownership": {
+    "apps/server/src/storage/access.ts": "Entire new file",
+    "apps/server/test/access-audit.test.ts": "Entire new focused test file",
+    "apps/server/src/storage/store.ts": "AccessTable import, readonly access property, constructor initialization only",
+    "apps/server/src/storage/migrations.ts": "New migration8 and migration-list append only; migrations1\u20137 unchanged",
+    "apps/server/src/services/visua.ts": "Access schema/type import plus recordAccess/readAccess methods beside log/verifyAuditTrail only; whole-file hash includes lead-owned final M3 scheduler correction"
+  },
+  "implementation": {
+    "storage": "workspace_access append-only repository; relational bounded metadata; workspace FK ON DELETE CASCADE; index(workspace_id,at,id)",
+    "migration": "Both dialects use compatible DDL; migration8 adds table/index only. No retrofit of prior assessment/export history. SQLite migration and idempotence tested; PostgreSQL execution deferred to lead.",
+    "identity": "recordAccess requires server-owned principalContext, strict unknown-field rejection. Canonical workspace/tenant resolved under existing transactional workspace lock. Missing tenant/identity rejects. No actor argument or fallback.",
+    "integrity": "No assessment activity append, revision bump, timestamp change or bus event. Append joins SQL transaction; late failure rolls back.",
+    "meaning": "outcome prepared records successful server preparation, never proof client receipt. Lead must call after preparation succeeds and before returning response.",
+    "read": "readAccess resolves canonical id/slug; newest at DESC,id DESC; default100,max200,min1; finite limits floored and clamped; nonfinite limits default100. No implicit view logging."
+  },
+  "contract": {
+    "module": "apps/server/src/storage/access.ts",
+    "exports": [
+      "AccessInput",
+      "AccessRecord",
+      "AccessInputSchema",
+      "AccessPrincipalSchema",
+      "AccessTable"
+    ],
+    "recordAccess": "recordAccess(workspaceId:string,input:AccessInput):Promise<AccessRecord>",
+    "readAccess": "readAccess(workspaceId:string,limit?:number):Promise<AccessRecord[]>",
+    "input": {
+      "kind": [
+        "auditor-view",
+        "export",
+        "evidence-download"
+      ],
+      "resource": "Optional ASCII opaque id/kind token,1\u2013200 chars, starts alphanumeric, remainder alphanumeric . _ : -; no slash/backslash/query strings/whitespace",
+      "revision": "Optional nonnegative safe integer, max9007199254740991",
+      "manifestSha256": "Optional lowercase hex64",
+      "bytes": "Optional nonnegative safe integer, max9007199254740991"
+    },
+    "record_fields": [
+      "id",
+      "workspaceId",
+      "tenantId",
+      "at",
+      "principalId",
+      "principalLabel",
+      "kind",
+      "outcome:prepared",
+      "optional input metadata"
+    ],
+    "principal_bounds": "id1\u2013200 ASCII opaque token; label1\u2013240 chars, no ASCII control characters",
+    "count_or_resourceKind": "Not added; exact brief signature uses kind + optional resource only",
+    "http_integration": "Lead owns current session/capability/workspace authorization; protected POST for explicit auditor view with CSRF. No app route changes made here."
+  },
+  "verification": [
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/access-audit.test.ts",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "exit_code": 0,
+      "outcome": "9 SQLite tests passed",
+      "log": "/Users/artem/visua/.check/evidence-auditor-20261013/.codex-context/runs/evidence-operations-20261013/auditor-access-tests.log",
+      "log_sha256": "7c557c074faae566e055a881661492d1a76118246b0e79271c5c57347e5965c1"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec tsc --noEmit -p apps/server/tsconfig.json",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "exit_code": 1,
+      "outcome": "Intermediate concurrent exports.ts edits had undefined randomUUID; no access-owned errors",
+      "log": "/Users/artem/visua/.check/evidence-auditor-20261013/.codex-context/runs/evidence-operations-20261013/auditor-access-typecheck.log",
+      "log_sha256": "471cd624866cfb23e48ddf76349e5694e50bdd923528674c32fda5ce832d389e"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec tsc --noEmit -p apps/server/tsconfig.json",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "exit_code": 0,
+      "outcome": "Final server typecheck passed after export worker completed rewrite",
+      "log": "/Users/artem/visua/.check/evidence-auditor-20261013/.codex-context/runs/evidence-operations-20261013/auditor-access-typecheck-final.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "coverage": [
+    "Server context wins and injected actor/tenant/timestamp/content/token/cookie keys rejected",
+    "Missing/malformed identity and tenant fail closed",
+    "Concurrent principal contexts and distinct tenant/workspace records remain isolated",
+    "Enum/hash/resource/byte/revision bounds including UTF/control/path rejection and safe integer edge",
+    "Read/write leaves assessment chain/revision/timestamps and event bus unchanged",
+    "Insert followed by late append failure rolls back and later insert recovers",
+    "205-record cap/default/stable tie-id order and nonfinite limits",
+    "Workspace cascade, orphan refusal, immutable duplicate-id rejection and DB enum/outcome checks",
+    "Migration8 preserves existing workspace/evidence/content/activity/score rows, starts empty, reapplication no-op"
+  ],
+  "limits": [
+    "No PostgreSQL execution; testDatabase supports both and lead owns PostgreSQL gate",
+    "No routes/HTTP authorization/browser/full-suite/build/install/git/deploy/live-data operations",
+    "Access log is separate append-only storage, not cryptographically chained. It is deleted with workspace and does not survive workspace deletion.",
+    "Authorization and preparation-success sequencing remain lead route responsibilities",
+    "Existing service and storage conventions permit internal raw repository access; production mutations must use VisuaService",
+    "Whole shared-file hashes reflect lead integrated M3 correction and should not be used to claim ownership of entire files"
+  ],
+  "integration_notes": [
+    "Lead notified existing score-history migration7 test must expect [7,8]; lead confirmed adjustment",
+    "No pending source edits or active test sessions from this worker",
+    "Changes uncommitted; report JSONs are assigned root-run artifacts, all product edits remain in new isolated checkout"
+  ]
+}

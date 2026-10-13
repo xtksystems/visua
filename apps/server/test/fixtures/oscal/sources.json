@@ -1,0 +1,21 @@
+{
+  "version": "1.1.2",
+  "schemas": [
+    {
+      "file": "oscal_ssp_schema.json",
+      "url": "https://github.com/usnistgov/OSCAL/releases/download/v1.1.2/oscal_ssp_schema.json",
+      "sha256": "08d3faeb12f0fab7705dec15fb648c72400c7ab6ac0056222d49d21507e02a69"
+    },
+    {
+      "file": "oscal_poam_schema.json",
+      "url": "https://github.com/usnistgov/OSCAL/releases/download/v1.1.2/oscal_poam_schema.json",
+      "sha256": "906725163d767036c6189aec51252109b203214e121fc1acaff494b4d2dfbc04"
+    }
+  ],
+  "license": {
+    "file": "LICENSE.md",
+    "url": "https://raw.githubusercontent.com/usnistgov/OSCAL/v1.1.2/LICENSE.md",
+    "sha256": "63407ac41abc46911bc9759fc0c19fd0ba7f66c59bb6746e51d85e2f2f3244b1"
+  },
+  "modifications": "None. Official schema and license bytes preserved."
+}

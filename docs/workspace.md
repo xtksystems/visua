@@ -375,3 +375,40 @@ basis** or **Scope and limitations** for the calculation and time boundary.
 Organization-authored headlines are labeled separately from computed measures.
 Monitoring retains different targets and recorded configurations even when their
 outcomes disagree. An old observation is not a guarantee of current performance.
+
+
+## Prepare an auditor handoff
+
+In **Reports & trust**, select enabled frameworks and, optionally, a UTC review
+window. **Open auditor view** prepares a read-only view of requirements, current
+and target levels, exclusions, evidence validity, and recorded review status.
+It does not fetch artifact content into the preview. Changing workspace clears
+its capture. Failed preparation preserves the inputs for another attempt.
+
+**Download auditor package** creates one ZIP containing the frozen assessment,
+actual evidence bytes, supporting records, reports, source metadata, and an
+offline presentation. The end date evaluates the current recorded data at that
+instant; it does not reconstruct how records looked before later edits or prove
+continuous assurance across a period. Missing source records and unavailable
+historical policy bytes are identified. Review status and effective validity stay
+separate.
+
+Save the displayed **Download receipt** outside the ZIP. It contains the manifest
+SHA-256 and audit checkpoint. Extract the package into a private directory and run
+a separately trusted verifier with the retained receipt values:
+
+```sh
+node /trusted/bundle-verifier.mjs /path/to/extracted-package \
+  --manifest-sha256 MANIFEST_HASH --checkpoint WORKSPACE_ID:SEQUENCE:CHAIN_HASH
+```
+
+A bundled verifier and bundled hashes alone establish internal consistency, not
+independent authenticity. A retained manifest digest binds file content; a retained
+checkpoint binds the audit chain. Verification never constitutes certification or
+an auditor opinion. See [operations](operations.md) for recovery and retention.
+
+**Load recent access records** displays separate records for prepared auditor
+views, exports, and file downloads. The server supplies the actor; “Prepared” does
+not establish that a person received or read a response. Viewing these records
+does not change the assessment's audit chain. Auditors have no assessment write
+controls, and all downloads still require current access.

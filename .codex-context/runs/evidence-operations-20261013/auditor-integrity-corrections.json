@@ -1,0 +1,89 @@
+{
+  "status": "complete",
+  "summary": "Corrected the two reproduced auditor-integrity findings in the isolated auditor checkout. Backup verification and restore reject all SQLite sidecar paths before database reads or destination mutation. The standalone verifier rejects special files before open and uses nonblocking open with handle checks.",
+  "checkout": "/Users/artem/visua/.check/evidence-auditor-20261013",
+  "completedAt": "2026-10-13T10:15:55.924Z",
+  "review": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/auditor-integrity-review.json",
+  "changedFiles": [
+    "apps/server/src/operations/local-backup.ts",
+    "apps/server/src/services/bundle-verifier.mjs",
+    "apps/server/test/local-backup.test.ts",
+    "apps/server/test/auditor-bundle.test.ts"
+  ],
+  "originalSourceSha256": {
+    "apps/server/src/operations/local-backup.ts": "a1e58e3175d49570d253a9208164a84796120cf04cf627927aaaa8503792704d",
+    "apps/server/src/services/bundle-verifier.mjs": "929c480e96ae30f965bb31219eecc36b56fa33a9ebc5a8db092e6aeb702f26e0",
+    "apps/server/test/local-backup.test.ts": "eb412ed9415f60207f5565820db1c6d10afa9ced39aee61cfe7911aa35502242",
+    "apps/server/test/auditor-bundle.test.ts": "3227b3448eb1880a6f9599562697e5263372a437fe8cccb0445b84a0c2215d2e"
+  },
+  "verifiedSourceSha256": {
+    "apps/server/src/operations/local-backup.ts": "a05cdfdc7cf18833d51b941c4c8719860284d8fe5d739d2afba4a600e3f05f1e",
+    "apps/server/src/services/bundle-verifier.mjs": "747260d69efe77f057213edab338ff976a65caf6f35dbab7288d16f3452c29d3",
+    "apps/server/test/local-backup.test.ts": "4c98dbcd7168d195c986f561c8a7fafd3c9843a51fdcfaac2b6fedcb9f19e4b6",
+    "apps/server/test/auditor-bundle.test.ts": "944da09a72563db29a216f92e1434e8a26040ed46e164656be1672d6e1b64b59"
+  },
+  "reviewResolution": [
+    {
+      "finding": "SQLite sidecars can change SQL-visible state without changing the main database digest",
+      "severity": "medium",
+      "status": "corrected",
+      "implementation": "absentDatabaseSidecars() uses lstat absence checks for -wal, -shm, and -journal. verifyLocalBackup checks before digest(database) and artifacts(database). restoreLocalBackup checks the destination namespace before verifying or creating any destination. Rejection performs no cleanup or deletion of existing files. The module contract states that operator-owned parent directories remain quiesced throughout.",
+      "sourceLocations": [
+        "apps/server/src/operations/local-backup.ts:1",
+        "apps/server/src/operations/local-backup.ts:38",
+        "apps/server/src/operations/local-backup.ts:117",
+        "apps/server/src/operations/local-backup.ts:141"
+      ],
+      "regressionEvidence": [
+        "Two parameterized genuine-WAL regressions demonstrate that copied WAL/SHM change a retained non-artifact SQL row from expected to unexpected-stale-wal while the copied main database bytes remain identical to the backup.",
+        "Both backup-side and restore-destination WAL overlays are rejected; original sidecar bytes and backup main bytes remain identical and no restore main database or blob directory is created.",
+        "Independent -shm and -journal cases cover both backup and destination namespaces, preserving existing sidecar bytes and leaving destinations absent.",
+        "Existing round-trip, corruption, manifest/path, missing-blob, and existing-destination refusal tests continue to pass."
+      ]
+    },
+    {
+      "finding": "FIFO input can block the trusted verifier before regular-file checks",
+      "severity": "low",
+      "status": "corrected",
+      "implementation": "read() rejects a non-regular final component before open; open uses O_RDONLY | O_NOFOLLOW | O_NONBLOCK. The opened handle must still be regular, match the preflight device/inode/size, and meet existing byte bounds. Existing post-read size and bounded-read checks remain.",
+      "sourceLocations": [
+        "apps/server/src/services/bundle-verifier.mjs:33"
+      ],
+      "regressionEvidence": [
+        "Separate FIFO manifest.json and listed snapshot.json tests execute the trusted verifier as child processes with a 1500 ms timeout and SIGKILL fallback.",
+        "Before the fix, both children blocked and were killed with no error output. After the fix, both exit with code 1, killed=false, and an Expected a regular file diagnostic.",
+        "These Unix FIFO tests skip Windows, where mkfifo is unavailable."
+      ]
+    }
+  ],
+  "tests": [
+    {
+      "phase": "regressions before production correction",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL -u DATABASE_URL -u VISUA_DB pnpm exec vitest run apps/server/test/auditor-bundle.test.ts apps/server/test/local-backup.test.ts --maxWorkers=1 -t 'genuine WAL|isolated .*sidecar|FIFO'",
+      "exitCode": 1,
+      "result": "Expected red baseline: all 6 new cases failed, 16 existing cases skipped. FIFO children were killed at the configured bound. Valid WAL backup and restore unexpectedly succeeded; isolated SHM unexpectedly succeeded; journal reached SQLite instead of being refused by preflight.",
+      "durationSeconds": 7.41
+    },
+    {
+      "phase": "final focused SQLite suite",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL -u DATABASE_URL -u VISUA_DB pnpm exec vitest run apps/server/test/auditor-bundle.test.ts apps/server/test/local-backup.test.ts --maxWorkers=1",
+      "exitCode": 0,
+      "result": "2 test files passed; 22 tests passed, including all 6 new regressions.",
+      "durationSeconds": 15.51
+    },
+    {
+      "phase": "final server typecheck",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL -u DATABASE_URL -u VISUA_DB pnpm --filter @visua/server typecheck",
+      "exitCode": 0,
+      "result": "Passed."
+    }
+  ],
+  "limitations": [
+    "The backup/restore contract still requires trusted, operator-owned, quiesced parent directories. No hostile ancestor replacement or concurrent operator mutation test was performed.",
+    "This is a bounded implementation correction and focused verification record, not a new independent review, audit conclusion, or certification.",
+    "No Git operation, dependency change/install, live data, PostgreSQL, Docker, browser, full-suite run, external provider, or subdelegation was used. The parent owns integration and broader verification."
+  ]
+}

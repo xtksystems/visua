@@ -74,6 +74,7 @@ import type { EventBus, VisuaEventType } from "../bus.ts";
 import { CONNECTOR_KINDS, FRAMEWORK_OF_REF, connectorKind, type ConnectorKind, type RequirementRefs } from "../connectors/index.ts";
 import { txContext } from "../storage/driver.ts";
 import type { Store } from "../storage/index.ts";
+import { AccessInputSchema, AccessPrincipalSchema, type AccessInput, type AccessRecord } from "../storage/access.ts";
 
 export class NotFoundError extends Error {}
 
@@ -238,6 +239,29 @@ export class VisuaService {
       this.emit(workspaceId, "activity", event);
       return event;
     });
+  }
+
+  /** Record a successfully prepared response without changing assessment revision or activity. */
+  async recordAccess(workspaceId: string, input: AccessInput): Promise<AccessRecord> {
+    const parsed = AccessInputSchema.safeParse(input);
+    if (!parsed.success) throw new ValidationError("Invalid access record metadata");
+    const principal = AccessPrincipalSchema.safeParse(principalContext.getStore());
+    if (!principal.success) throw new ValidationError("An authenticated principal is required to record access");
+    return this.mutate(workspaceId, async ws => {
+      if (!ws.tenantId) throw new ValidationError("An organization is required to record workspace access");
+      const record: AccessRecord = {
+        ...parsed.data, id: newId("acc"), workspaceId: ws.id, tenantId: ws.tenantId, at: now(),
+        principalId: principal.data.id, principalLabel: principal.data.label, outcome: "prepared",
+      };
+      await this.store.access.append(record);
+      return record;
+    });
+  }
+
+  /** Access history does not itself record another view; protected routes enforce capability. */
+  async readAccess(workspaceId: string, limit = 100): Promise<AccessRecord[]> {
+    const ws = await this.workspace(workspaceId);
+    return this.store.access.recent(ws.id, limit);
   }
 
   /** Recompute every link of the audit trail; any edit, deletion or reordering breaks the chain. */
