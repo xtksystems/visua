@@ -15,16 +15,16 @@ separately from implementation so local previews don't imply a live release.
 | Implementation progress, valid evidence coverage, and requirements at risk | Complete, with scope and calculation details | Pushed and locally deployed in `e867494` |
 | Overview attention queue across enabled frameworks | Complete | Pushed and locally deployed in `e867494` |
 | Exact proposal changes and batch approval preview | Complete | Pushed and locally deployed in `e867494` |
-| Evidence renewal and coverage impact | Complete | Pushed in `9755c01`; not deployed |
-| Observatory presets, labeled legend, and selection context | Complete and verified | Uncommitted; not deployed |
+| Evidence renewal and coverage impact | Complete | Pushed in `9755c01`; locally deployed in `783ed28` |
+| Observatory presets, labeled legend, and selection context | Complete and verified | Pushed and locally deployed in `783ed28` |
 
 The [Observatory record](../.codex-context/tasks/observatory-20261013.md) links
 its final validation. Existing changes form the starting point for this plan.
 
 ## Execution order and results
 
-All six packages below are implemented and verified in the working tree.
-They remain uncommitted and undeployed. The order records their dependencies.
+All six packages below are implemented, verified, committed, pushed, and locally
+deployed in `783ed28`. The order records their dependencies.
 
 | Order | Package | Status | Acceptance criteria |
 | --- | --- | --- | --- |
@@ -75,8 +75,9 @@ local scrolling. No single final full-check command passed. Typechecking,
 licensing, corpus hashes, and design lint passed. Desktop and touch-phone
 captures were inspected, and five independent-review findings were resolved.
 
-Remaining delivery is to commit, push, and deploy the uncommitted Observatory
-and follow-through packages. Evidence renewal is already pushed but also
-awaits deployment. The recorded local deployment remains `e867494`; this work
-did not change its database. History begins with real observations after
-capture is enabled; migration 7 does not backfill earlier scores.
+Delivery is complete at <http://localhost:8787>, including evidence renewal and
+Observatory. The [delivery record](../.codex-context/runs/visual-delivery-20261013/deployment-verification.json)
+verifies the `783ed28` image, 182 runtime source hashes, migration 7, original
+data preservation, scheduled and manual capture, and desktop/phone smoke checks.
+A consistent SQLite backup is retained. History begins with actual observations;
+migration 7 does not backfill earlier scores.

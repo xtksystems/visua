@@ -114,7 +114,7 @@ framework state read metadata; inspection explicitly loads inline detail.
 SQLite and 476 PostgreSQL tests; 98 unique browser cases combine 79 unchanged
 full-lane passes and 19 final affected reruns. No single final full-check command
 passed. Collection origin, assurance scope, and supersession remain on the development roadmap.
-Other reviewed defects and phase packages remain open. Local Docker now includes the decision workspace package at `e867494`.
+Other reviewed defects and phase packages remain open. Local Docker now includes the visual-review packages at `783ed28`.
 
 The approved [decision workspace package](tasks/decision-workspace-20261004.md)
 adds scoped implementation/evidence/risk metrics, attention across enabled
@@ -130,7 +130,7 @@ at localhost:8787. A fresh [delivery check](runs/decision-delivery-20261012/sour
 passed all 110 browser tests, 505 SQLite and 507 PostgreSQL tests; live API and
 desktop/mobile smoke checks passed, with the original data and audit chain
 verified. The next approved [evidence renewal task](tasks/evidence-renewal-20261012.md)
-is complete, committed and pushed as `9755c01`. It remains undeployed. It adds cumulative
+is complete, pushed as `9755c01`, and deployed within `783ed28`. It adds cumulative
 expiry windows, separate review and validity labels, and requirement impact
 using accepted alternatives through the first coverage gap.
 [Verification](runs/evidence-renewal-20261012/source-verification.json) passes
@@ -142,15 +142,15 @@ also passed. Provenance/supersession remain on the broader development roadmap;
 subsequent snapshot-backed history is recorded below.
 
 The next visual-review package, [Observatory presets](tasks/observatory-20261013.md),
-is complete and uncommitted, with current-scope attention/evidence/assignment
+is complete, pushed and deployed within `783ed28`, with current-scope attention/evidence/assignment
 filters, a persistent labeled legend, and outline/inspector selection context.
 [Verification](runs/observatory-20261013/source-verification.json) passes 540
 SQLite and 542 PostgreSQL tests. All 123 browser cases passed in the full run;
 13 affected cases passed again after the final focus corrections. Typechecking,
 independent review corrections and desktop/touch-phone captures are complete.
-It is not deployed.
+Its live deployment is verified below.
 
-The autonomous visual-review follow-through is complete and uncommitted. The
+The autonomous visual-review follow-through is complete, pushed and deployed. The
 [implementation plan](../docs/visual-review-plan.md) records all six completed
 packages: Crosswalk comparison, Plan urgency, CSF profile, actual agent stages,
 visual/accessibility consistency, and immutable snapshots with observed trends.
@@ -164,6 +164,13 @@ unchanged after the full check. Three independent reviews and desktop/touch-phon
 captures are complete; all five supported findings were fixed. Snapshot capture
 is transactional, audited and isolated by workspace; migration 7 never backfills
 old scores. It samples daily by default, with manual capture for contributors.
-Commit/push/deployment remain separate; local Docker is still recorded at
-`e867494`, and its database was not touched. Broader evidence provenance,
+On October 13, 2026 UTC, source commit `783ed28` was pushed and deployed to
+<http://localhost:8787>. The [delivery record](runs/visual-delivery-20261013/deployment-verification.json)
+confirms a healthy image and 182 matching runtime source hashes. Migration 7
+preserved every original database row against a consistent SQLite backup. After
+live smoke cleanup, the original workspace, 1,487 requirement states, 18 tasks,
+18 evidence items and their content/reviews, two tenants, and nine memberships
+still match. The first scheduled score observation is recorded; the audit chain
+is valid. Manual capture, exact batch approval, and desktop/phone checks passed.
+Two temporary smoke workspaces were removed. Broader evidence provenance,
 supersession, hosted operations, and connector expansion remain on the roadmap.

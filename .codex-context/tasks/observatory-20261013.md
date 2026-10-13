@@ -1,6 +1,6 @@
 # Observatory investigation and selection
 
-Status: complete; uncommitted and not deployed
+Status: complete; committed, pushed, and locally deployed as `783ed28`
 
 ## Outcome and acceptance
 
@@ -33,8 +33,7 @@ final focus corrections, all 13 affected browser cases passed again. Desktop
 and touch-phone captures were inspected; phone selection stays above the sheet
 without horizontal overflow. Independent findings were reproduced and fixed.
 
-Observatory remains uncommitted. No deployment was performed for this package.
-Next: Crosswalk comparison matrix with source/target selection, mapping counts,
-relationship authority and evidence links, preserving mapping versus proof.
-Then Plan urgency list, CSF profile refinement, full agent stages and broader
-visual/accessibility polish. Historical trends depend on reliable snapshots.
+Observatory and the subsequent visual-review packages are complete and locally
+deployed in `783ed28`. The [follow-through task](visual-followthrough-20261013.md)
+records implementation; the [delivery record](../runs/visual-delivery-20261013/deployment-verification.json)
+records the pushed source, preserved database, and passing live checks.

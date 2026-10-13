@@ -1,17 +1,17 @@
 # Complete the visual review backlog
 
-Status: complete and verified; uncommitted and undeployed
+Status: complete; committed, pushed, and locally deployed as `783ed28`
 
 The user requested a documented backlog and autonomous implementation in logical
 order. All six packages in the [plan](../../docs/visual-review-plan.md) are complete:
 Crosswalk comparison, Plan urgency, CSF profile, actual agent stages, visual and
 accessibility consistency, and immutable snapshots with observed trends.
 
-HEAD and origin remain `9755c01873444647c30821ac1d0b88aa16023632` on
-`feat/light-workspace-design`. Prior verified Observatory changes remain in the
-working tree. Old untracked diagnostics and the original concept were preserved.
-This implementation step did not stage, commit, push, deploy, or touch the live
-Docker database. Its recorded deployment remains `e867494`.
+The implementation and Observatory were committed and pushed as `783ed28` on
+`feat/light-workspace-design`, then deployed to local Docker after the user
+explicitly requested delivery. Old diagnostics and the original concept remain
+local and untracked. The [delivery record](../runs/visual-delivery-20261013/deployment-verification.json)
+verifies backup, migration, data preservation, runtime hashes, and live checks.
 
 ## Verification
 
@@ -38,11 +38,9 @@ accounts for all eight implementation/review results.
 
 ## Remaining work
 
-No implementation work remains in this visual-review scope. Commit/push and
-redeployment are separate delivery work. Preserve the verified working tree and
-use the source manifest before delivery; never stage unrelated diagnostics or
-licensed corpus files. Broader evidence provenance, supersession, hosted
-operations, and connector expansion remain on the development roadmap.
+No implementation or delivery work remains in this visual-review scope.
+Broader evidence provenance, supersession, hosted operations, and connector
+expansion remain on the development roadmap.
 
 History starts with actual captures. Migration 7 creates storage without
 backfilling past scores; the UI displays the latest 60 observations and retains
