@@ -180,6 +180,9 @@ test("reduced-motion Observatory keeps a static agent cue and still idle scenes"
     Object.defineProperty(window, "EventSource", { value: SceneEvents });
   });
   await signIn(page);
+  const response = await page.request.get("/api/workspaces/northwind-health");
+  expect(response.ok()).toBe(true);
+  const { workspace } = await response.json() as { workspace: { id: string } };
   const errors = watchErrors(page);
   await page.goto(`${WS}/observatory/nist-csf-2.0`);
   await expect(page.locator('.scene-label--sector[data-shown="true"]').first()).toBeVisible();
@@ -190,11 +193,11 @@ test("reduced-motion Observatory keeps a static agent cue and still idle scenes"
   const idle = await frame();
   expect(await frame()).toBe(idle);
   // No hot nodes: activity must remain visible at the core, even without comets.
-  await page.evaluate(() => {
+  await page.evaluate((workspaceId) => {
     (window as unknown as { sceneEvents: EventTarget }).sceneEvents.dispatchEvent(new MessageEvent("visua", {
-      data: JSON.stringify({ type: "agent.run.updated", data: { id: "visual-fixture", agent: "copilot", status: "running" } }),
+      data: JSON.stringify({ workspaceId, type: "agent.run.updated", data: { id: "visual-fixture", agent: "copilot", status: "running" } }),
     }));
-  });
+  }, workspace.id);
   const active = await frame();
   expect(active).not.toBe(idle);
   expect(await frame()).toBe(active);
@@ -223,6 +226,9 @@ test("3D views sleep when idle and wake for selection, layout and agent activity
     Object.defineProperty(window, "EventSource", { value: SceneEvents });
   });
   await signIn(page);
+  const response = await page.request.get("/api/workspaces/northwind-health");
+  expect(response.ok()).toBe(true);
+  const { workspace } = await response.json() as { workspace: { id: string } };
   const errors = watchErrors(page);
   const frames = () => page.evaluate(() => (window as unknown as { renderedFrames: number }).renderedFrames);
   const sleep = async () => {
@@ -259,24 +265,24 @@ test("3D views sleep when idle and wake for selection, layout and agent activity
   expect(await sleep()).toBeGreaterThan(constellation);
   await page.getByRole("button", { name: "Terrain", exact: true }).click();
   expect(await sleep()).toBeGreaterThan(constellation);
-  await page.evaluate(() => {
+  await page.evaluate((workspaceId) => {
     const events = (window as unknown as { sceneEvents: EventTarget }).sceneEvents;
     for (const event of [
-      { type: "agent.run.updated", data: { id: "wake-fixture", agent: "copilot", status: "running" } },
-      { type: "agent.step", data: { runId: "wake-fixture", agent: "copilot", step: { id: "wake-step", at: new Date().toISOString(), type: "thought", title: "Checking", nodeIds: ["nist-csf-2.0:PR.AA-01"] } } },
+      { workspaceId, type: "agent.run.updated", data: { id: "wake-fixture", agent: "copilot", status: "running" } },
+      { workspaceId, type: "agent.step", data: { runId: "wake-fixture", agent: "copilot", step: { id: "wake-step", at: new Date().toISOString(), type: "thought", title: "Checking", nodeIds: ["nist-csf-2.0:PR.AA-01"] } } },
     ]) events.dispatchEvent(new MessageEvent("visua", { data: JSON.stringify(event) }));
-  });
+  }, workspace.id);
   const active = await frames();
   await expect.poll(frames).toBeGreaterThan(active + 3);
   await page.emulateMedia({ reducedMotion: "reduce" });
   const reduced = await sleep();
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await expect.poll(frames).toBeGreaterThan(reduced + 3);
-  await page.evaluate(() => {
+  await page.evaluate((workspaceId) => {
     (window as unknown as { sceneEvents: EventTarget }).sceneEvents.dispatchEvent(new MessageEvent("visua", {
-      data: JSON.stringify({ type: "agent.run.updated", data: { id: "wake-fixture", agent: "copilot", status: "completed" } }),
+      data: JSON.stringify({ workspaceId, type: "agent.run.updated", data: { id: "wake-fixture", agent: "copilot", status: "completed" } }),
     }));
-  });
+  }, workspace.id);
   await sleep();
   expect(errors).toEqual([]);
 });

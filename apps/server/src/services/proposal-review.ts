@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import type { Proposal, ProposalBatchPreview, ProposalChange, ProposalPreview, ProposalReviewSource, Workspace } from "@visua/core";
 import { canonical } from "../audit.ts";
+import { parseProposalPayload } from "./proposal-validation.ts";
+import type { ProjectedLevel } from "@visua/core";
 import type { VisuaService } from "./visua.ts";
 
 export class ProposalReviewConflict extends Error {}
@@ -109,6 +111,17 @@ export async function buildProposalPreview(svc: VisuaService, ws: Workspace, pro
       addLinks(check["requirementIds"]);
     }
   }
+  if (proposal.type === "set-level" && payload["projection"] !== undefined) {
+    try {
+      const projection = parseProposalPayload(proposal.type, payload)["projection"] as ProjectedLevel;
+      questions.push(...projection.reasons);
+      for (const source of projection.sources) sources.push({
+        kind: "requirement", id: source.nodeId,
+        label: `Mapping from ${source.nodeId} · ${source.authority}`,
+        detail: { ...source, basis: "Implementation projection from a recorded assessment and publisher mapping", targetRequirement: projection.nodeId, targetFamily: projection.targetFamily, suggestedLevel: projection.suggested },
+      });
+    } catch { /* The apply validation below explains malformed legacy proposals. */ }
+  }
   if (typeof payload["evidenceId"] === "string") {
     const evidence = await svc.store.evidence.get(payload["evidenceId"]);
     if (evidence?.workspaceId === ws.id) {
@@ -144,6 +157,7 @@ export async function buildProposalPreview(svc: VisuaService, ws: Workspace, pro
   }
   if (proposal.type === "set-rmf") sources.push({ kind: "workspace", id: ws.id, label: "Current RMF settings", detail: row(svc.frameworkSettings(ws, "nist-sp-800-53-r5")?.rmf ?? {}) });
   const citations = [...proposal.citations];
+  if (citations.length) questions.push("Quoted passages identify the corpus source. A matching quote does not verify this organization or prove the proposed conclusion.");
   for (const id of affected) {
     const node = svc.registry.node(id)!;
     const framework = svc.registry.framework(node.frameworkId)!.graph.framework;

@@ -1,0 +1,158 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "stream-auth",
+  "status": "complete",
+  "acceptance": "implementation and allowed local verification complete; lead acceptance/integration pending",
+  "recorded_at": "2026-10-13T08:34:42.605406+00:00",
+  "worktree": "/Users/artem/visua/.check/evidence-automation-20261013",
+  "baseline": "automation-worktree-baseline.json",
+  "changed_files": {
+    "apps/server/src/app.ts": {
+      "sha256": "0a66015e20cff8485136b19a2d93abebeec6af383c1129efea681bf8f526b2ec",
+      "baseline_sha256": "ff2ab11f2f81fe7c97e0b42b58d0a88ba1b1677693391fdc9f5c1b27dfb14502",
+      "status": "modified"
+    },
+    "apps/server/src/auth/service.ts": {
+      "sha256": "71bb1be021f0110af7992b16937e0f9cd37ba7b620d5de1bd5c76ee550298f97",
+      "baseline_sha256": "cee5feeb04f5693b5b9a1777d73c7d40669bbfcc1892956826a3d3bfdc6eb08f",
+      "status": "modified"
+    },
+    "apps/server/src/bus.ts": {
+      "sha256": "6ea4c5b06b7429f0a52db557b6c09b9d3e98951b0bcd138f8df5c9890f2e4a50",
+      "baseline_sha256": "36f2b9a2e2fc9d9c10912569732dd97a755ea8512adf58c71c3a49f48452426e",
+      "status": "modified"
+    },
+    "apps/server/src/storage/events.ts": {
+      "sha256": "5e96843f519621c34330e2274053d8bf4906b42b1d7d0c41b6cbbdfacedb293b",
+      "baseline_sha256": "0538bf546b8a072cc88fef0d3f947efd27892195a2053746b18c9d8fc93bddbc",
+      "status": "modified"
+    },
+    "apps/server/src/storage/identity.ts": {
+      "sha256": "509feec94a2abb93d972c86ef49ff8f5b8691346d5e7d8330088b0b5564ad184",
+      "baseline_sha256": "d287e809b71e878825b3193ce9b2fb550c454ab0d51c7e332c5d437681d93d1d",
+      "status": "modified"
+    },
+    "apps/server/src/workspace-events.ts": {
+      "sha256": "a9712fb684b0c3ccfcd81d3ba9338352aaf06afe2d7db9bcde9e5fc9b4ee3648",
+      "baseline_sha256": null,
+      "status": "added"
+    },
+    "apps/server/test/mock-idp.ts": {
+      "sha256": "ed13db8850b8dfe643849d879fea870a0b9b00b7594ce69c9c5fcc5f322809ea",
+      "baseline_sha256": "8feff328a439efe53100dff2a7c0ee18cf537824383efd1af503cdec87d855c6",
+      "status": "modified"
+    },
+    "apps/server/test/relay.test.ts": {
+      "sha256": "43e9a4809bd2dca9c165aee6b8f271b8fe6da0f6d539844020c2754119521976",
+      "baseline_sha256": "b5453258e87ecf1c95a3166384fc96279733f2bab5479efdea24c26eac1e1efc",
+      "status": "modified"
+    },
+    "apps/server/test/workspace-events.test.ts": {
+      "sha256": "b53ff6cfb5aff81f38352552a32f5bfa43f202dff47d9b11d4da994eea9a94da",
+      "baseline_sha256": null,
+      "status": "added"
+    },
+    "apps/server/test/stream-auth.test.ts": {
+      "sha256": "987cc84a1ba33074f77a4715f5ddba25925dc1cd10749d3c7b3672e03e45d9a2",
+      "baseline_sha256": null,
+      "status": "added"
+    },
+    "apps/server/test/oidc-current.test.ts": {
+      "sha256": "22ba86a2bd535a8b962f829800432b7a5f5b3a86d14a89ce16b41d269cbbea54",
+      "baseline_sha256": null,
+      "status": "added"
+    },
+    "apps/web/src/lib/events.ts": {
+      "sha256": "f94758268be187ef131533e67b8dc1789b805568562cdd25372d49f0d78bc083",
+      "baseline_sha256": "4e57038566452d231e14e2f64c1eb3d38454cf069df94bb68933915327afd4eb",
+      "status": "modified"
+    },
+    "apps/web/test/events.test.ts": {
+      "sha256": "3ddb8c16f613daacdca1f531957ca9e202a25bde5aec222e9f076f981c7e0727",
+      "baseline_sha256": null,
+      "status": "added"
+    }
+  },
+  "summary": [
+    "Every stream payload (ready, event, resync and ping) checks the current original session/token without touching usage metadata, canonical workspace identity/ownership, tenant existence, role and SSO policy.",
+    "Pull-driven native ReadableStream has highWaterMark 0; pending queue limited to 128 events and 256 KiB, compacted event data to 7500 bytes. Overflow causes explicit resync. Independent checks every 5 seconds fail closed; storage timeout also 5 seconds. All listeners/subscriptions/queue/timers are cleared on abort/revocation/shutdown/cancel.",
+    "Relay reconnect emits local bus resync; browser invalidates all canonical workspace queries and discards stale transient agent activity. Compacted events also resync. State/evidence/tasks/checks changes invalidate evidence-lineage.",
+    "Stored OIDC connection changes rotate a non-secret provider generation; warm caches bind generation, current issuer/client and sealed secret identity. Flows pin generation. Callback rereads enabled connection/current admission policy under locks after network exchange; identity and session creation commit together.",
+    "Required-SSO role lookup now fails closed if no enabled own connection matches; RunQueueFullError maps to HTTP429."
+  ],
+  "interfaces": [
+    "AuthService.assertWorkspaceAccess({kind:user|token,value}, {kind,id}, canonicalWorkspaceId, expectedTenantId, capability=workspace.read): Promise<void>. Throws existing authorization/not-found errors; reads inside a short transaction and releases it before stream enqueue.",
+    "SsoConnection.providerGeneration?: string and LoginFlow.providerGeneration?: string added only in storage/identity.ts. Existing connection rows need no migration; existing login flows without generation restart cleanly. No core type edits.",
+    "EventBus.resync(): void and subscribeResync(listener): unsubscribe added for instance-wide ephemeral-delivery gaps.",
+    "workspaceEventStream({bus,workspaceId,authorize,signals?,stopping?,recheckMs?}) returns a pull-driven ReadableStream<Uint8Array>. The HTTP event framing still uses ready/visua/ping; adds resync with canonical workspaceId. No durable replay guarantee.",
+    "Pg LISTEN connection application_name now visua-events:<bus.instanceId>, enabling exact test-connection termination and distinguishing instances.",
+    "OIDC callback lock order: sso-domains, ws:<tenant>, identity:<issuer>|<subject>; no network exchange while locked. Existing SSO writers already take sso-domains; membership changes take ws:<tenant>."
+  ],
+  "verification": [
+    {
+      "command": "env -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/workspace-events.test.ts apps/server/test/relay.test.ts apps/server/test/stream-auth.test.ts apps/server/test/oidc-current.test.ts apps/server/test/auth.test.ts apps/web/test/events.test.ts",
+      "exit_code": 0,
+      "result": "68 passed across six focused files",
+      "log": "stream-auth-final-tests.log",
+      "scope_note": "Before final relay application-name change and addition of PostgreSQL-only kill/reconnect case; unchanged tests remain valid; affected relay/auth tests rerun below.",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "log_sha256": "4ae4366e7e3d62e6a3f4d1b3713e0e9a87eaa02a9136cc671169f38e9b6da755"
+    },
+    {
+      "command": "env -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/stream-auth.test.ts apps/server/test/relay.test.ts",
+      "exit_code": 0,
+      "result": "14 passed; 1 PostgreSQL-only kill/reconnect case skipped",
+      "log": "stream-relay-final-tests.log",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "log_sha256": "555628bc2f3372774d0850008f51327590efd5cf48724077c2570d1aab1ba4a0"
+    },
+    {
+      "command": "env -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/startup.test.ts -t 'closes a live event stream'",
+      "exit_code": 0,
+      "result": "1 passed, 13 unrelated cases skipped; real local HTTP stream closes on shutdown",
+      "log": "stream-shutdown-test.log",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "log_sha256": "c48152db0ec83d0f0abbcacf8fe7304fb872f9ff1356bd40660b66a4aa40e526"
+    },
+    {
+      "command": "pnpm exec tsc --noEmit -p apps/server/tsconfig.json",
+      "exit_code": 0,
+      "result": "passed after final changes",
+      "log": "stream-server-typecheck.log",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "pnpm exec tsc --noEmit -p apps/web/tsconfig.json",
+      "exit_code": 0,
+      "result": "passed after final web changes",
+      "log": "stream-web-typecheck.log",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "test_coverage": [
+    "Two SQLite services sharing a temp DB: member/session revocation, expiry/idle expiry, disabled account, canonical workspace deletion/transfer, SSO policy change, API token revocation, no last-used or last-seen writes, HTTP route canonical slug/session behavior.",
+    "Queue count/byte overflow, large multi-byte user-controlled fields, pending authorization abort/failure/timeout, idle revocation and listener/timer cleanup, resync while browser remains connected.",
+    "Two SQLite services and mock IdPs: warm cache replacement, old callback refusal, same-provider secret rotation, provider change during network token exchange and changed JIT admission before identity/session creation.",
+    "Client open/resync/partial-event full invalidation and activity clearing, evidence-lineage invalidation, foreign/stale workspace callback isolation.",
+    "PostgreSQL-only real relay-kill/reconnect test authored in stream-auth.test.ts. It targets only visua-events:<test bus UUID>. Not executed locally in this lane."
+  ],
+  "prior_failed_checks": [
+    "Initial auth.test run loaded lifecycle worker intermediate class and failed missing appendRunStep/stopRuns; rerun after worker coherent checkpoint passed.",
+    "First new OIDC tests used relative mock callback paths as absolute URLs; fixed fixtures by resolving against redirectUri. First typechecks found two new-test type declarations; corrected. Final checks above pass."
+  ],
+  "limitations": [
+    "No PostgreSQL execution, browser run, full suite, build, deploy, git actions or live database changes were performed. Lead must execute PostgreSQL two-instance gate (including authored kill/reconnect case) and browser recovery/role paths.",
+    "Only local mock IdP behavior was exercised; no hosted authentication, capacity or load claim.",
+    "One already-started storage query may finish after a stream closes because the storage API has no cancellation primitive. The stream releases listeners/timers/queue immediately, schedules no additional checks and cannot deliver its eventual result.",
+    "Authorization is checked immediately before enqueue after its read transaction ends. Bytes already accepted by the HTTP/socket transport cannot be recalled on later revocation.",
+    "Provider generation covers stored organization connections. The operator-configured platform provider remains runtime configuration; changing that configuration across instances requires coordinated operator rollout.",
+    "The event relay remains ephemeral; explicit resync repairs reconnect/queue/partial-event gaps through canonical refetch, without replaying event IDs."
+  ],
+  "next_actions": [
+    "Lead inspect owned delta and report hashes; integrate after M2 delivery boundary.",
+    "Run focused PostgreSQL files stream-auth.test.ts and oidc-current.test.ts in their isolated schemas, then combined milestone gate.",
+    "Run browser workspace recovery/session isolation and full required checks only in lead-owned lane."
+  ]
+}

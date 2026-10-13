@@ -23,6 +23,7 @@ export async function startMockIdp(clientId = "visua-test", clientSecret = "test
   const codes = new Map<string, { user: IdpUser; nonce: string; challenge: string; redirect: string }>();
   let next: IdpUser | undefined;
   let issuer = "";
+  let beforeToken: (() => Promise<void>) | undefined;
 
   const send = (res: ServerResponse, status: number, body: unknown) => {
     res.writeHead(status, { "content-type": "application/json" });
@@ -75,6 +76,7 @@ export async function startMockIdp(clientId = "visua-test", clientSecret = "test
       if (form.get("redirect_uri") !== entry.redirect) return send(res, 400, { error: "invalid_grant", error_description: "redirect_uri mismatch" });
       const verifier = form.get("code_verifier") ?? "";
       if (createHash("sha256").update(verifier).digest("base64url") !== entry.challenge) return send(res, 400, { error: "invalid_grant", error_description: "PKCE verification failed" });
+      await beforeToken?.();
       const now = Math.floor(Date.now() / 1000);
       return send(res, 200, {
         access_token: randomBytes(16).toString("hex"),
@@ -90,6 +92,7 @@ export async function startMockIdp(clientId = "visua-test", clientSecret = "test
 
   return {
     issuer,
+    beforeToken: (hook: (() => Promise<void>) | undefined) => { beforeToken = hook; },
     clientId,
     clientSecret,
     /** The identity the next authorization request signs in. */

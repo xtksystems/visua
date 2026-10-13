@@ -35,6 +35,7 @@ import {
   resolveNode,
   threatBrief,
   proposeAssessment,
+  proposeCrosswalkAssessment,
   proposePolicy,
   proposeTask,
   runChecks,
@@ -425,13 +426,17 @@ const assessor: Playbook = async (host, _goal, input) => {
       continue;
     }
     const citations = citeFor(host, node, 1);
-    await proposeAssessment.run(host, {
+    const result = await proposeAssessment.run(host, {
       nodeId: node.id,
       current: level,
       rationale: `Proposed ${levelLabel(family, level)}: ${reasons.join("; ")}.`,
       confidence: valid.length >= 2 ? "high" : valid.length ? "medium" : "low",
-      citations: citations.map((c) => ({ documentId: c.documentId, page: c.page, locator: c.locator, quote: c.quote })),
+      citations: citations.map((c) => ({ chunkId: c.chunkId, chunkSha256: c.chunkSha256, documentId: c.documentId, page: c.page, locator: c.locator, quote: c.quote })),
     });
+    if (result && typeof result === "object" && "error" in result) {
+      rows.push(`- ${node.code}: no assessment proposed — ${String(result.error)}`);
+      continue;
+    }
     proposed++;
     rows.push(`- ${node.code}: ${levelLabel(family, s.current)} → **${levelLabel(family, level)}** — ${reasons.join("; ")}`);
   }
@@ -486,26 +491,33 @@ const planner: Playbook = async (host, _goal, input) => {
 // ---------------------------------------------------------------------------
 
 const policyAuthor: Playbook = async (host, _goal, input) => {
+  const refused = unusableFramework(host, input);
+  if (refused) return refused;
   let nodes = scopeNodes(host, input, 0);
-  if (!nodes.length) {
-    const code = typeof input["category"] === "string" ? (input["category"] as string) : "GV.PO";
+  if (!nodes.length && (Array.isArray(input["nodeIds"]) || typeof input["taskId"] === "string")) return "No applicable policy template: the requested scope has no known, enabled assessable requirements.";
+  if (!nodes.length && typeof input["category"] === "string") {
+    const code = input["category"];
     const node = host.registry.node(code);
-    nodes = node ? host.registry.framework(node.frameworkId)!.assessableUnder(node.id) : [];
+    nodes = node && frameworkEnabled(host, node.frameworkId) && !isThreat(host, node.id)
+      ? host.registry.framework(node.frameworkId)!.assessableUnder(node.id).filter(candidate => host.state(candidate.id)?.applicable !== false) : [];
   }
-  if (!nodes.length) return "Tell me which requirements or category the policy should cover.";
+  if (!nodes.length) return "No applicable policy template: identify known requirements or a supported category for the requested topic. No policy was proposed.";
   const template = templateFor(nodes[0]!);
+  if (!template) return `No applicable policy template for ${nodes.map(node => node.code).join(", ")}. No policy was proposed.`;
+  const unsupported = nodes.filter(node => templateFor(node)?.id !== template.id);
+  if (unsupported.length) return `No single applicable policy template covers this scope. Split ${unsupported.map(node => node.code).join(", ")} into a separate policy request. No policy was proposed.`;
   // Pull in sibling outcomes the same template governs so the policy is complete.
   const index = host.registry.framework(nodes[0]!.frameworkId)!;
   const parent = nodes[0]!.parentId ? index.byId.get(nodes[0]!.parentId) : undefined;
   if (parent && nodes.length < 3) {
-    for (const sibling of index.assessableUnder(parent.id)) if (!nodes.some((n) => n.id === sibling.id)) nodes.push(sibling);
+    for (const sibling of index.assessableUnder(parent.id)) if (templateFor(sibling)?.id === template.id && !nodes.some((n) => n.id === sibling.id)) nodes.push(sibling);
   }
   host.step({ type: "plan", title: `Draft “${template.title}”`, detail: `Covering ${nodes.map((n) => n.code).join(", ")}`, nodeIds: nodes.map((n) => n.id) });
   const ws = host.workspace();
   const mappings = new Map<string, string[]>();
   for (const n of nodes) {
     const related = host.registry.crosswalk.related(n.id).filter((e) => frameworkOf(e.to) !== n.frameworkId);
-    mappings.set(n.id, related.map((e) => `${codeOf(e.to)} (${frameworkLabel(frameworkOf(e.to))})`));
+    mappings.set(n.id, related.map((e) => `${codeOf(e.to)} (${frameworkLabel(frameworkOf(e.to))}; ${e.relationship}; ${e.authority || "authority not recorded"}; ${e.status ?? "publication status not recorded"}; ${e.citation.documentId})`));
   }
   const citations = citeFor(host, nodes[0]!, 2);
   if (citations.length) host.step({ type: "citation", title: "Official basis", citations });
@@ -519,12 +531,13 @@ const policyAuthor: Playbook = async (host, _goal, input) => {
     citations: citations.map((c) => ({ title: c.documentTitle, page: c.page })),
     effectiveDate: new Date().toISOString().slice(0, 10),
   });
-  await proposePolicy.run(host, {
+  const result = await proposePolicy.run(host, {
     title: template.title,
     requirementIds: nodes.map((n) => n.id),
     body,
-    citations: citations.map((c) => ({ documentId: c.documentId, page: c.page, quote: c.quote })),
+    citations: citations.map((c) => ({ chunkId: c.chunkId, chunkSha256: c.chunkSha256, documentId: c.documentId, page: c.page, locator: c.locator, quote: c.quote })),
   });
+  if (result && typeof result === "object" && "error" in result) return `No policy was proposed: ${String(result.error)}`;
   if (typeof input["taskId"] === "string") {
     await updateTask.run(host, { taskId: input["taskId"] as string, status: "in-review", note: `Draft “${template.title}” proposed — approve the policy to complete this task.` });
   }
@@ -618,36 +631,32 @@ const crosswalkAnalyst: Playbook = async (host, _goal, input) => {
   const refused = unusableFramework(host, input);
   if (refused) return refused;
   const targets = (typeof input["framework"] === "string" ? [input["framework"] as string] : enabledFrameworks(host).filter((f) => f !== "nist-csf-2.0")).filter((f) => !isThreatFramework(host, f));
-  const allStates = new Map(host.states().map((s) => [s.nodeId, s]));
+  const allStates = new Map(host.states().filter(state => frameworkEnabled(host, frameworkOf(state.nodeId))).map((s) => [s.nodeId, s]));
   const lines: string[] = [];
-  host.step({ type: "plan", title: "Project progress across frameworks", detail: `Targets: ${targets.map(frameworkLabel).join(", ") || "none"} · ${host.registry.crosswalk.size} authoritative mappings loaded` });
+  host.step({ type: "plan", title: "Project progress across frameworks", detail: `Targets: ${targets.map(frameworkLabel).join(", ") || "none"} · ${host.registry.crosswalk.size} recorded mappings loaded` });
   let total = 0;
   for (const fw of targets) {
     const index = host.registry.framework(fw);
     if (!index) continue;
-    const projections = projectLevels(host.registry.crosswalk as CrosswalkIndex, index.assessable.map((n) => n.id), allStates);
+    const projections = projectLevels(host.registry.crosswalk as CrosswalkIndex, index.assessable.map((n) => n.id), allStates, id => host.registry.framework(id)?.graph.framework.family);
     const candidates = projections
       .filter((p) => {
         const s = host.state(p.nodeId);
         return s?.applicable && p.suggested > s.current && p.confidence !== "low";
       })
       .slice(0, Number(input["maxProposals"] ?? 15));
-    lines.push(`**${frameworkLabel(fw)}** — ${projections.length} requirement(s) have mapped progress; ${candidates.length} can be raised with medium/high confidence.`);
+    lines.push(`**${frameworkLabel(fw)}** — ${projections.length} requirement(s) have recorded mapping inputs; ${candidates.length} proposed implementation assessments need review. Mappings do not provide observed evidence.`);
     for (const p of candidates) {
       const node = index.byId.get(p.nodeId)!;
       const family = index.graph.framework.family;
-      const sources = p.sources.slice(0, 5).map((s) => `${codeOf(s.nodeId)} at level ${s.level} (${s.relationship})`).join(", ");
-      await proposeAssessment.run(host, {
-        nodeId: p.nodeId,
-        current: p.suggested,
-        rationale: `Crosswalk projection: ${sources}. Suggested ${levelLabel(family, p.suggested)}; confirm with evidence before audit.`,
-        confidence: p.confidence,
-      });
-      lines.push(`- ${node.code} → ${levelLabel(family, p.suggested)} (${p.confidence}) via ${sources}`);
+      const sources = p.sources.slice(0, 5).map((source) => `${codeOf(source.nodeId)} at ${source.levelLabel} (${source.family}; ${source.relationship}; ${source.authority || "authority not recorded"}; ${source.status ?? "publication status not recorded"}; mapping ${source.mappingSetId})`).join(", ");
+      const result = await proposeCrosswalkAssessment(host, p.nodeId);
+      if ("error" in result) { lines.push(`- ${node.code}: ${result.error}`); continue; }
+      lines.push(`- ${node.code} → proposed ${levelLabel(family, result.projection.suggested)} (${result.projection.confidence}) via ${sources}`);
       total++;
     }
   }
-  if (!total) lines.push("No projections strong enough to propose — progress in the source framework or more mappings are needed.");
+  if (!total) lines.push("No projections strong enough to propose. Weak links, unknown publication status or unsupported family scales require a human assessment; adding weak links does not increase confidence.");
   return lines.join("\n");
 };
 

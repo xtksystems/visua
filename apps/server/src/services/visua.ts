@@ -1,3 +1,4 @@
+import { processDiagnostics as diagnostics } from "../diagnostics.ts";
 /**
  * Application service: the single place where workspace state changes.
  * Every mutation is validated and runs in one transaction, serialized per
@@ -19,6 +20,7 @@ import {
   obligationTiming,
   overlayPriority,
   planTasks,
+  projectLevels,
   recommend,
   scoreFramework,
   slugify,
@@ -59,12 +61,14 @@ import {
 import { executeAgent, type AgentHost, type ProposalInput } from "@visua/agents";
 import type { FrameworkRegistry } from "@visua/frameworks";
 import { AsyncLocalStorage } from "node:async_hooks";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
+import { ownsRun, runExecutionOptions, RunLeaseLostError, type RunExecutionOptions, type RunFence } from "./run-execution.ts";
 import { canonical, chainHash, GENESIS } from "../audit.ts";
 import { artifactHash, evidenceAuditSnapshot, evidenceMetadata, type EvidencePatch, type FileEvidenceInput } from "./evidence.ts";
 import { MAX_BLOB_BYTES, MemoryBlobStore, type BlobScope, type BlobStore } from "../blobs/index.ts";
 import { isWorkDate, requirementWorkSnapshot, taskWorkSnapshot, type RequirementPatch, type TaskPatch } from "./work.ts";
 import { buildProposalPreview, proposalBatchPreview, ProposalReviewConflict } from "./proposal-review.ts";
+import { mayApplyAutonomously, parseAutonomy, parseProposalEnvelope, parseProposalPayload } from "./proposal-validation.ts";
 export { chainHash } from "../audit.ts";
 import type { EventBus, VisuaEventType } from "../bus.ts";
 import { CONNECTOR_KINDS, FRAMEWORK_OF_REF, connectorKind, type ConnectorKind, type RequirementRefs } from "../connectors/index.ts";
@@ -81,6 +85,7 @@ export interface Principal {
 export const principalContext = new AsyncLocalStorage<Principal>();
 
 export class ValidationError extends Error {}
+export class RunQueueFullError extends ValidationError {}
 
 const PRIORITY_ORDER: Priority[] = ["low", "medium", "high", "critical"];
 const STATE_LAWS = "us-state-ai-laws";
@@ -121,42 +126,36 @@ interface AgentSnapshot {
   score(frameworkId: string): FrameworkScore;
 }
 
-/**
- * The flight recorder of one agent run. Steps stream to the bus immediately
- * and are persisted in order, off the caller's transaction, through a queue.
- */
+/** Persist each bounded, ordered step before publishing it to observers. */
 class RunRecorder {
-  private chain: Promise<unknown> = Promise.resolve();
+  private chain: Promise<void> = Promise.resolve();
+  private failure: unknown;
+  private pending = 0;
+  readonly fence: RunFence;
   private readonly svc: VisuaService;
-  private readonly workspaceId: string;
-  private readonly run: Pick<AgentRun, "id" | "agent">;
+  private readonly signal: AbortSignal;
 
-  constructor(svc: VisuaService, workspaceId: string, run: Pick<AgentRun, "id" | "agent">) {
-    this.svc = svc;
-    this.workspaceId = workspaceId;
-    this.run = run;
+  constructor(svc: VisuaService, fence: RunFence, signal: AbortSignal) {
+    this.svc = svc; this.fence = fence; this.signal = signal;
   }
 
   step(step: Omit<AgentStep, "id" | "at">): AgentStep {
     const full: AgentStep = { ...step, id: newId("stp"), at: now() };
-    this.svc.bus.publish(this.workspaceId, "agent.step", { runId: this.run.id, agent: this.run.agent, step: full });
+    if (this.signal.aborted || this.failure) return full;
+    if (this.pending >= 256) throw new Error("Agent step queue is full");
+    this.pending++;
     txContext.exit(() => {
-      this.chain = this.chain
-        .then(() =>
-          this.svc.store.runs.update(this.run.id, (r) => ({
-            ...r,
-            steps: [...r.steps, full],
-            focusNodeIds: step.nodeIds?.length ? [...new Set([...r.focusNodeIds, ...step.nodeIds])].slice(-60) : r.focusNodeIds,
-          })),
-        )
-        .catch((err: unknown) => console.error("[visua] could not record agent step", err));
+      this.chain = this.chain.then(async () => {
+        if (this.signal.aborted || this.failure) return;
+        await this.svc.appendRunStep(this.fence, full);
+      }).catch((error: unknown) => { this.failure ??= error; }).finally(() => { this.pending--; });
     });
     return full;
   }
 
-  /** Resolves when every recorded step is persisted. */
-  flush(): Promise<unknown> {
-    return this.chain;
+  async flush(): Promise<void> {
+    await this.chain;
+    if (this.failure) throw this.failure;
   }
 }
 
@@ -169,13 +168,23 @@ export class VisuaService {
   private readonly running = new Map<string, AbortController>();
   private readonly executions = new Set<Promise<void>>();
   private readonly connectorKinds: readonly ConnectorKind[];
+  private readonly runOwnerId = randomUUID();
+  private readonly runOptions: ReturnType<typeof runExecutionOptions>;
+  private readonly runFences = new Map<string, RunFence>();
+  private runTimer?: ReturnType<typeof setInterval>;
+  private runPump?: Promise<void>;
+  private runScanCursor?: { after: number; through: number };
+  private runsStopping = false;
+  private runStop?: Promise<void>;
 
-  constructor(store: Store, registry: FrameworkRegistry, bus: EventBus, connectorKinds: readonly ConnectorKind[] = CONNECTOR_KINDS, blobs: BlobStore = new MemoryBlobStore()) {
+  constructor(store: Store, registry: FrameworkRegistry, bus: EventBus, connectorKinds: readonly ConnectorKind[] = CONNECTOR_KINDS, blobs: BlobStore = new MemoryBlobStore(), runOptions: RunExecutionOptions = {}) {
     this.store = store;
     this.connectorKinds = connectorKinds;
     this.registry = registry;
     this.bus = bus;
     this.blobs = blobs;
+    this.runOptions = runExecutionOptions(runOptions);
+    this.store.onClose(() => this.stopRuns());
   }
 
   // -------------------------------------------------------------------------
@@ -550,6 +559,10 @@ export class VisuaService {
     patch: Partial<Pick<Workspace, "name" | "description" | "profile" | "autonomy">> & { trustCenter?: Partial<TrustCenterSettings> },
     actor = "user",
   ): Promise<Workspace> {
+    if (patch.autonomy !== undefined) {
+      try { patch = { ...patch, autonomy: parseAutonomy(patch.autonomy) }; }
+      catch (error) { throw new ValidationError((error as Error).message); }
+    }
     return this.mutate(id, async (ws) => {
       // Trust center settings merge: saving the headline never drops the publishing choices.
       let trustCenter = ws.trustCenter;
@@ -1529,24 +1542,32 @@ export class VisuaService {
    * accepted, machine-verified evidence; an agent's run (`fileEvidence: false`) only
    * records the checks, and the agent proposes the evidence (see `evidenceFromCheck`).
    */
-  async runConnector(workspaceId: string, connectorId: string, actor = "user", opts: { fileEvidence?: boolean } = {}): Promise<CheckResult[]> {
+  async runConnector(workspaceId: string, connectorId: string, actor = "user", opts: { fileEvidence?: boolean; signal?: AbortSignal; runFence?: RunFence } = {}): Promise<CheckResult[]> {
+    if (opts.signal?.aborted || (opts.runFence && this.runsStopping)) throw new RunLeaseLostError();
     const ws = await this.workspace(workspaceId);
     const connector = await this.store.connectors.get(connectorId);
     if (!connector || connector.workspaceId !== ws.id) throw new NotFoundError(`Connector '${connectorId}' not found`);
     const kind = connectorKind(connector.kind, this.connectorKinds);
     if (!kind) throw new ValidationError(`Unknown connector kind '${connector.kind}'`);
+    if (opts.runFence) await this.mutate(ws.id, async () => { await this.assertRunFence(opts.runFence!); });
     // The external call happens outside any transaction.
     let outputs;
     try {
-      outputs = await kind.run(connector.config);
+      outputs = await kind.run(connector.config, opts.signal);
     } catch (err) {
+      if (opts.signal?.aborted || (opts.runFence && this.runsStopping)) throw new RunLeaseLostError();
       await this.mutate(ws.id, async () => {
+        if (opts.runFence) await this.assertRunFence(opts.runFence);
         await this.store.connectors.update(connector.id, (c) => ({ ...c, status: "error", lastRunAt: now() }));
         await this.log(ws.id, actor, "failed", "connector", connector.id, `Connector “${connector.name}” failed: ${(err as Error).message.slice(0, 200)}`);
       });
+      diagnostics.increment("connector.failed");
       throw err;
     }
+    if (opts.signal?.aborted || (opts.runFence && this.runsStopping)) throw new RunLeaseLostError();
     return this.mutate(ws.id, async (ws) => {
+      if (opts.runFence) await this.assertRunFence(opts.runFence);
+      if (opts.signal?.aborted) throw new RunLeaseLostError();
       await this.store.connectors.update(connector.id, (c) => ({ ...c, status: "active", lastRunAt: now() }));
       const observedAt = now();
       const results: CheckResult[] = outputs.map((o) => ({
@@ -1565,6 +1586,7 @@ export class VisuaService {
       for (const r of results) await this.store.checks.put(r, observedAt);
       // Passing checks are machine-verified evidence, valid for 30 days.
       if (opts.fileEvidence !== false) for (const r of results.filter((x) => x.outcome === "pass" && x.requirementIds.length)) await this.evidenceFromCheck(ws.id, connector, r, "system:connector");
+      this.store.afterCommit(() => diagnostics.increment("connector.completed"));
       this.emit(ws.id, "check.completed", { connectorId: connector.id, results });
       const passed = results.filter((r) => r.outcome === "pass").length;
       await this.log(ws.id, actor, "ran", "connector", connector.id, `${connector.name}: ${passed}/${results.length} checks passing`);
@@ -1620,54 +1642,203 @@ export class VisuaService {
   // -------------------------------------------------------------------------
 
   async startRun(workspaceId: string, input: { agent: AgentKind; goal: string; input?: Record<string, unknown> }, actor = "user"): Promise<AgentRun> {
+    if (this.runsStopping) throw new ValidationError("Run worker is stopping");
     return this.mutate(workspaceId, async (ws) => {
+      if (this.runsStopping) throw new ValidationError("Run worker is stopping");
+      const queued = (await this.store.runs.active(ws.id, 1024)).filter((run) => run.status === "queued").length;
+      if (queued >= this.runOptions.maxQueuedPerWorkspace) throw new RunQueueFullError("This workspace's run queue is full; wait for active work to finish");
       const principal = principalContext.getStore();
       const run: AgentRun = {
-        id: newId("run"),
-        workspaceId: ws.id,
-        agent: input.agent,
-        goal: input.goal.trim() || `Run ${input.agent}`,
-        input: input.input ?? {},
-        status: "queued",
-        mode: "offline",
-        steps: [],
-        stageHistory: [],
-        focusNodeIds: [],
-        taskId: typeof input.input?.["taskId"] === "string" ? (input.input["taskId"] as string) : undefined,
-        ...(principal ? { startedBy: principal.id } : {}),
-        createdAt: now(),
+        id: newId("run"), workspaceId: ws.id, agent: input.agent,
+        goal: input.goal.trim() || `Run ${input.agent}`, input: input.input ?? {},
+        status: "queued", mode: "offline", steps: [], stageHistory: [], focusNodeIds: [], executionEpoch: 0,
+        taskId: typeof input.input?.["taskId"] === "string" ? input.input["taskId"] : undefined,
+        ...(principal ? { startedBy: principal.id } : {}), createdAt: now(),
       };
       await this.store.runs.put(run, run.createdAt);
       this.emit(ws.id, "agent.run.created", run);
-      await this.log(ws.id, actor, "started", "agent-run", run.id, `${input.agent} started: ${run.goal.slice(0, 120)}`);
-      // Launch only once the run is committed, detached from the request.
-      this.store.afterCommit(() => this.launch(run.id));
+      await this.log(ws.id, actor, "queued", "agent-run", run.id, `${input.agent} queued: ${run.goal.slice(0, 120)}`);
+      this.store.afterCommit(() => this.wakeRuns());
       return run;
     });
   }
 
-  private launch(runId: string): void {
-    const controller = new AbortController();
-    this.running.set(runId, controller);
-    principalContext.exit(() =>
-      txContext.exit(() => {
-        const execution = this.executeRun(runId, controller.signal)
-          .catch((err: unknown) => console.error(`[visua] agent run ${runId} crashed`, err))
-          .finally(() => {
-            this.running.delete(runId);
-            this.executions.delete(execution);
+  /** Start durable recovery on server startup, and lazily for service/test callers. */
+  async startRunScheduler(): Promise<void> {
+    if (this.runsStopping) return;
+    if (!this.runTimer) {
+      this.runTimer = setInterval(() => this.wakeRuns(), this.runOptions.heartbeatMs);
+      this.runTimer.unref?.();
+    }
+    await this.reconcileRuns();
+  }
+
+  private wakeRuns(): void {
+    if (this.runsStopping) return;
+    principalContext.exit(() => txContext.exit(() => {
+      void this.startRunScheduler().catch((error: unknown) => console.error("[visua] run scheduler failed", error));
+    }));
+  }
+
+  /** The persisted lease and epoch are checked while the workspace write lock is held. */
+  private async assertRunFence(fence: RunFence): Promise<AgentRun> {
+    if (this.runsStopping || fence.ownerId !== this.runOwnerId || this.running.get(fence.runId)?.signal.aborted) throw new RunLeaseLostError();
+    const run = await this.store.runs.get(fence.runId);
+    if (!ownsRun(run, fence)) throw new RunLeaseLostError();
+    return run;
+  }
+
+  async appendRunStep(fence: RunFence, step: AgentStep): Promise<void> {
+    if (this.runsStopping) throw new RunLeaseLostError();
+    await this.mutate(fence.workspaceId, async (ws) => {
+      const current = await this.assertRunFence(fence);
+      if (current.steps.length >= 4096) throw new ValidationError("Run step limit exceeded");
+      const next = { ...current, steps: [...current.steps, step], focusNodeIds: step.nodeIds?.length ? [...new Set([...current.focusNodeIds, ...step.nodeIds])].slice(-60) : current.focusNodeIds };
+      await this.store.runs.put(next);
+      this.emit(ws.id, "agent.step", { runId: current.id, agent: current.agent, step });
+      await this.log(ws.id, `agent:${current.agent}`, "recorded", "agent-run", current.id, `Agent step: ${step.title.slice(0, 160)}`, { stepId: step.id, type: step.type, epoch: fence.epoch });
+    });
+  }
+
+  private async saveRun(fence: RunFence, patch: Partial<AgentRun>, observations: NonNullable<AgentRun["stageHistory"]> = []): Promise<AgentRun> {
+    if (this.runsStopping) throw new RunLeaseLostError();
+    return this.mutate(fence.workspaceId, async (ws) => {
+      const current = await this.assertRunFence(fence);
+      const next: AgentRun = { ...current, ...patch, ...(observations.length ? { stageHistory: [...(current.stageHistory ?? []), ...observations] } : {}) };
+      await this.store.runs.put(next);
+      this.emit(ws.id, "agent.run.updated", { ...next, steps: undefined });
+      if (patch.status === "completed" || patch.status === "awaiting-approval" || patch.status === "failed") this.store.afterCommit(() => diagnostics.increment(patch.status === "failed" ? "run.failed" : "run.completed"));
+      const action = patch.status === "completed" || patch.status === "awaiting-approval" ? "finished" : patch.status === "failed" ? "failed" : "progressed";
+      await this.log(ws.id, `agent:${current.agent}`, action, "agent-run", current.id, `${current.agent} ${action}${patch.error ? `: ${patch.error.slice(0, 160)}` : ""}`, { epoch: fence.epoch, status: next.status });
+      return next;
+    });
+  }
+
+  /** Serialize queue claims across instances; never infer success from Collection.update. */
+  private async claimRun(candidate: AgentRun): Promise<{ run: AgentRun; fence: RunFence } | undefined> {
+    if (this.runsStopping) return;
+    return this.mutate(candidate.workspaceId, async (ws) => {
+      if (this.runsStopping) return;
+      const current = await this.store.runs.get(candidate.id);
+      if (!current || current.workspaceId !== ws.id || current.status !== "queued") return;
+      const active = (await this.store.runs.active(ws.id, 1024)).filter((r) => r.status === "running" && r.execution && Date.parse(r.execution.leaseExpiresAt) > Date.now());
+      if (active.length >= this.runOptions.workspaceConcurrency) return;
+      const epoch = (current.executionEpoch ?? 0) + 1;
+      const fence: RunFence = { runId: current.id, workspaceId: ws.id, ownerId: this.runOwnerId, attemptId: randomUUID(), epoch };
+      const at = now();
+      const next: AgentRun = { ...current, status: "running", startedAt: at, executionEpoch: epoch, execution: { ownerId: fence.ownerId, attemptId: fence.attemptId, epoch, heartbeatAt: at, leaseExpiresAt: new Date(Date.now() + this.runOptions.leaseMs).toISOString() } };
+      await this.store.runs.put(next);
+      this.emit(ws.id, "agent.run.updated", { ...next, steps: undefined });
+      await this.log(ws.id, "system:runs", "claimed", "agent-run", next.id, `${next.agent} execution claimed`, { ownerId: fence.ownerId, attemptId: fence.attemptId, epoch });
+      return { run: next, fence };
+    });
+  }
+
+  private async interruptRun(candidate: AgentRun, reason: "owner-expired" | "server-stopped"): Promise<void> {
+    await this.mutate(candidate.workspaceId, async (ws) => {
+      const current = await this.store.runs.get(candidate.id);
+      if (!current || current.workspaceId !== ws.id || current.status !== "running") return;
+      if (reason === "server-stopped" && current.execution?.ownerId !== this.runOwnerId) return;
+      if (reason === "owner-expired" && current.execution && Date.parse(current.execution.leaseExpiresAt) > Date.now()) return;
+      const next: AgentRun = { ...current, status: "failed", interruptionReason: reason, executionEpoch: (current.executionEpoch ?? 0) + 1, finishedAt: now(), error: reason === "owner-expired" ? "Execution interrupted: worker lease expired. Review existing proposals before starting another run." : "Execution interrupted: server stopped. Review existing proposals before starting another run." };
+      await this.store.runs.put(next);
+      this.store.afterCommit(() => { this.running.get(next.id)?.abort(); diagnostics.increment("run.interrupted"); if (reason === "owner-expired") diagnostics.increment("run.lease_expired"); });
+      this.emit(ws.id, "agent.run.updated", { ...next, steps: undefined });
+      await this.log(ws.id, "system:runs", "interrupted", "agent-run", next.id, next.error!, { reason, epoch: next.executionEpoch });
+    });
+  }
+
+  /** Bounded sweep: renew local leases, fence abandoned work, then fill local slots. */
+  reconcileRuns(): Promise<void> {
+    if (this.runsStopping) return Promise.resolve();
+    if (this.store.inTransaction) return Promise.reject(new ValidationError("Run scheduling cannot execute inside a transaction"));
+    if (this.runPump) return this.runPump;
+    const pump = (async () => {
+      diagnostics.setGauge("run.queued", await this.store.runs.queuedCount());
+      for (const fence of this.runFences.values()) {
+        if (this.runsStopping) return;
+        try {
+          await this.mutate(fence.workspaceId, async (ws) => {
+            const current = await this.assertRunFence(fence);
+            const at = now();
+            await this.store.runs.put({ ...current, execution: { ...current.execution!, heartbeatAt: at, leaseExpiresAt: new Date(Date.now() + this.runOptions.leaseMs).toISOString() } });
+            await this.log(ws.id, "system:runs", "heartbeat", "agent-run", current.id, "Execution lease renewed", { epoch: fence.epoch });
           });
-        this.executions.add(execution);
-      }),
-    );
+        } catch (error) {
+          this.running.get(fence.runId)?.abort();
+          if (!(error instanceof RunLeaseLostError) && !(error instanceof NotFoundError)) throw error;
+        }
+      }
+      const page = await this.store.runs.scanActive(this.runScanCursor);
+      const candidates = page.runs;
+      for (const candidate of candidates) {
+        if (this.runsStopping) return;
+        if (candidate.status === "running" && (!candidate.execution || !Number.isFinite(Date.parse(candidate.execution.leaseExpiresAt)) || Date.parse(candidate.execution.leaseExpiresAt) <= Date.now())) await this.interruptRun(candidate, "owner-expired");
+      }
+      const deferredWorkspaces = new Set<string>();
+      for (const candidate of candidates) {
+        if (this.runsStopping || this.executions.size >= this.runOptions.concurrency) break;
+        if (candidate.status !== "queued" || deferredWorkspaces.has(candidate.workspaceId)) continue;
+        const claimed = await this.claimRun(candidate);
+        if (claimed) this.launch(claimed.run, claimed.fence);
+        // A busy workspace needs one admission check per page, not one per queued
+        // item. Races that invalidate a candidate defer its peers until the next
+        // sweep; the insertion cursor still advances and eventually wraps.
+        else deferredWorkspaces.add(candidate.workspaceId);
+      }
+      this.runScanCursor = page.cursor;
+    })().finally(() => { if (this.runPump === pump) this.runPump = undefined; });
+    this.runPump = pump;
+    return pump;
   }
 
-  /** Drain this instance's detached work before closing storage. Durable recovery is separate. */
+  private launch(run: AgentRun, fence: RunFence): void {
+    if (this.runsStopping) return;
+    const controller = new AbortController();
+    this.running.set(run.id, controller);
+    this.runFences.set(run.id, fence);
+    diagnostics.increment("run.started");
+    diagnostics.adjustGauge("run.running", 1);
+    const started = performance.now();
+    principalContext.exit(() => txContext.exit(() => {
+      const execution = this.executeRun(run, fence, controller.signal)
+        .catch((err: unknown) => { if (!(err instanceof RunLeaseLostError)) console.error(`[visua] agent run ${run.id} crashed`, err); })
+        .finally(() => {
+          diagnostics.adjustGauge("run.running", -1);
+          diagnostics.observe("run_ms", performance.now() - started);
+          this.running.delete(run.id); this.runFences.delete(run.id); this.executions.delete(execution);
+          this.wakeRuns();
+        });
+      this.executions.add(execution);
+    }));
+  }
+
+  /** Wait for this instance's current work; shutdown uses the bounded stop method. */
   async drainRuns(): Promise<void> {
-    while (this.executions.size) await Promise.all([...this.executions]);
+    while (this.runPump || this.executions.size) {
+      await this.runPump;
+      await Promise.all([...this.executions]);
+    }
   }
 
-  /** Resolves when the run finishes (used by tests and synchronous API callers). */
+  /** Fence active writes before a bounded drain, even if external work ignores abort. */
+  stopRuns(timeoutMs = 5_000): Promise<void> {
+    if (this.runStop) return this.runStop;
+    this.runsStopping = true;
+    clearInterval(this.runTimer); this.runTimer = undefined;
+    for (const controller of this.running.values()) controller.abort();
+    this.runStop = (async () => {
+      await this.runPump?.catch(() => undefined);
+      const active = await this.store.runs.owned(this.runOwnerId);
+      for (const run of active) await this.interruptRun(run, "server-stopped");
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      try { await Promise.race([Promise.allSettled([...this.executions]), new Promise<void>((resolve) => { timer = setTimeout(resolve, Math.max(0, timeoutMs)); })]); }
+      finally { clearTimeout(timer); }
+    })();
+    return this.runStop;
+  }
+
+  /** Resolves when execution finishes; awaiting approval is no longer active work. */
   async waitForRun(runId: string, timeoutMs = 120_000): Promise<AgentRun> {
     const started = Date.now();
     for (;;) {
@@ -1683,62 +1854,50 @@ export class VisuaService {
     return this.mutate(workspaceId, async (ws) => {
       const run = await this.store.runs.get(runId);
       if (!run || run.workspaceId !== ws.id) throw new NotFoundError(`Run '${runId}' not found`);
-      const next = (await this.store.runs.update(runId, (r) => ({ ...r, status: "cancelled", finishedAt: now() })))!;
-      this.store.afterCommit(() => this.running.get(runId)?.abort());
+      if (run.status !== "queued" && run.status !== "running") return run;
+      const next: AgentRun = { ...run, status: "cancelled", executionEpoch: (run.executionEpoch ?? 0) + 1, finishedAt: now() };
+      await this.store.runs.put(next);
+      this.store.afterCommit(() => { this.running.get(runId)?.abort(); diagnostics.increment("run.cancelled"); });
       this.emit(ws.id, "agent.run.updated", { ...next, steps: undefined });
-      await this.log(ws.id, actor, "cancelled", "agent-run", runId, `${run.agent} run cancelled`);
+      await this.log(ws.id, actor, "cancelled", "agent-run", runId, `${run.agent} run cancelled`, { epoch: next.executionEpoch });
       return next;
     });
   }
 
-  private async executeRun(runId: string, signal: AbortSignal): Promise<void> {
-    const initial = await this.store.runs.get(runId);
-    if (!initial) return;
-    const workspaceId = initial.workspaceId;
-    const recorder = new RunRecorder(this, workspaceId, initial);
+  private async executeRun(initial: AgentRun, fence: RunFence, signal: AbortSignal): Promise<void> {
+    const workspaceId = initial.workspaceId, runId = initial.id;
+    const recorder = new RunRecorder(this, fence, signal);
     const save = async (patch: Partial<AgentRun>, observations: NonNullable<AgentRun["stageHistory"]> = []) => {
       await recorder.flush();
-      // A cancellation wins over anything the run reports afterwards.
-      const run = await this.store.runs.update(runId, (r) => (r.status === "cancelled" ? undefined : {
-        ...r, ...patch,
-        ...(observations.length ? { stageHistory: [...(r.stageHistory ?? []), ...observations] } : {}),
-      }));
-      if (run && run.status !== "cancelled") this.emit(workspaceId, "agent.run.updated", { ...run, steps: undefined });
-      return run;
+      return this.saveRun(fence, patch, observations);
     };
-    const startedAt = now();
-    const started = await save({ status: "running", startedAt }, [{ stage: "collect", status: "started", at: startedAt }]);
-    if (!started || started.status === "cancelled" || signal.aborted) return;
     try {
+      const startedAt = now();
+      await save({}, [{ stage: "collect", status: "started", at: startedAt }]);
+      if (signal.aborted) return;
       const host = await this.hostFor(workspaceId, runId, signal, recorder);
       if (signal.aborted) return;
       const collectedAt = now();
-      const collected = await save({}, [
-        { stage: "collect", status: "completed", at: collectedAt },
-        { stage: "analyze", status: "started", at: collectedAt },
-      ]);
-      if (!collected || collected.status === "cancelled" || signal.aborted) return;
+      await save({}, [{ stage: "collect", status: "completed", at: collectedAt }, { stage: "analyze", status: "started", at: collectedAt }]);
       const result = await executeAgent(host, { agent: initial.agent, goal: initial.goal, input: initial.input });
       if (signal.aborted) return;
-      const pending = (await this.store.proposals.list(workspaceId)).filter((p) => p.runId === runId && p.status === "pending").length;
-      const finishedAt = now();
-      await save({
-        status: pending ? "awaiting-approval" : "completed",
-        summary: result.summary,
-        mode: result.mode,
-        model: result.model,
-        usage: result.usage,
-        finishedAt,
-      }, [{ stage: "analyze", status: "completed", at: finishedAt }]);
-      await this.log(workspaceId, `agent:${initial.agent}`, "finished", "agent-run", runId, `${initial.agent} finished${pending ? ` — ${pending} proposal(s) await approval` : ""}`);
-    } catch (err) {
-      if (signal.aborted) return;
-      const message = err instanceof Error ? err.message : String(err);
-      recorder.step({ type: "error", title: "Run failed", detail: message });
-      await save({ status: "failed", error: message, finishedAt: now() });
-      await this.log(workspaceId, `agent:${initial.agent}`, "failed", "agent-run", runId, `${initial.agent} failed: ${message.slice(0, 160)}`);
-    } finally {
       await recorder.flush();
+      await this.mutate(workspaceId, async () => {
+        await this.assertRunFence(fence);
+        const pending = (await this.store.proposals.list(workspaceId)).some((p) => p.runId === runId && p.status === "pending");
+        const finishedAt = now();
+        await this.saveRun(fence, { status: pending ? "awaiting-approval" : "completed", summary: result.summary, mode: result.mode, model: result.model, usage: result.usage, finishedAt }, [{ stage: "analyze", status: "completed", at: finishedAt }]);
+      });
+    } catch (err) {
+      if (signal.aborted || err instanceof RunLeaseLostError) return;
+      const message = err instanceof Error ? err.message : String(err);
+      try {
+        recorder.step({ type: "error", title: "Run failed", detail: message });
+        await recorder.flush().catch(() => undefined);
+        await this.saveRun(fence, { status: "failed", error: message, finishedAt: now() });
+      } catch (failure) { if (!(failure instanceof RunLeaseLostError)) throw failure; }
+    } finally {
+      await recorder.flush().catch((error: unknown) => { if (!(error instanceof RunLeaseLostError)) console.error("[visua] run step persistence failed", error); });
     }
   }
 
@@ -1798,11 +1957,13 @@ export class VisuaService {
       connectors: () => snap.connectors,
       // Agents observe; evidence from the checks goes through proposals like everything else.
       runConnector: async (connectorId: string) => {
-        const results = await this.runConnector(workspaceId, connectorId, `agent:${runId}`, { fileEvidence: false });
+        if (signal.aborted || this.runsStopping) throw new RunLeaseLostError();
+        const results = await this.runConnector(workspaceId, connectorId, `agent:${runId}`, { fileEvidence: false, signal, runFence: recorder.fence });
         await refresh();
         return results;
       },
       propose: async (input: ProposalInput) => {
+        if (signal.aborted || this.runsStopping) throw new RunLeaseLostError();
         const proposal = await this.createProposal(workspaceId, runId, input, recorder);
         if (proposal.status !== "pending") await refresh();
         return proposal;
@@ -1816,8 +1977,22 @@ export class VisuaService {
    * approvals inbox: no threat nodes, no frameworks the workspace has not enabled, no
    * levels on requirements out of scope. Applying it checks again (state can change).
    */
-  private async checkProposal(ws: Workspace, input: ProposalInput): Promise<void> {
+  private async checkProposal(ws: Workspace, input: ProposalInput, runId?: string): Promise<void> {
+    try { parseProposalPayload(input.type, input.payload); }
+    catch (error) { throw new ValidationError((error as Error).message); }
+    for (const citation of input.citations) {
+      if (!this.registry.documents.has(citation.documentId)) throw new ValidationError("Citation document is not in the current corpus");
+      const resolved = this.registry.search.resolveCitation(citation);
+      if (!resolved.ok) throw new ValidationError(resolved.error);
+    }
     const payload = input.payload;
+    if (input.type === "set-level" && runId && (await this.store.runs.get(runId))?.agent === "crosswalk-analyst" && payload["projection"] === undefined) throw new ValidationError("Crosswalk Analyst assessments require a recorded mapping projection; create a new proposal");
+    if (input.type === "set-level" && payload["projection"] !== undefined) {
+      const enabled = new Set(ws.frameworks.filter(framework => framework.enabled).map(framework => framework.frameworkId));
+      const states = new Map((await this.store.states.list(ws.id)).filter(state => enabled.has(frameworkOf(state.nodeId))).map(state => [state.nodeId, state]));
+      const [projection] = projectLevels(this.registry.crosswalk, [String(payload["nodeId"])], states, id => this.registry.framework(id)?.graph.framework.family);
+      if (!projection || projection.confidence === "low" || canonical(projection) !== canonical(payload["projection"]) || payload["current"] !== projection.suggested || input.confidence !== projection.confidence) throw new ValidationError("Crosswalk projection no longer matches the recorded mappings and current source assessments; create a new proposal");
+    }
     switch (input.type) {
       case "set-level":
       case "set-target":
@@ -1882,8 +2057,23 @@ export class VisuaService {
   }
 
   async createProposal(workspaceId: string, runId: string, input: ProposalInput, recorder?: RunRecorder): Promise<Proposal> {
+    if (recorder && this.runsStopping) throw new RunLeaseLostError();
+    try {
+      input = parseProposalEnvelope(input);
+      const payload = { ...input.payload };
+      if (input.type === "review-evidence") { delete payload["expectedScope"]; delete payload["expectedReviewId"]; }
+      input = { ...input, payload: parseProposalPayload(input.type, payload) };
+      input.citations = input.citations.map(citation => {
+        if (!this.registry.documents.has(citation.documentId)) throw new Error("Citation document is not in the current corpus");
+        const resolved = this.registry.search.resolveCitation(citation);
+        if (!resolved.ok) throw new Error(resolved.error);
+        return resolved.citation;
+      });
+    } catch (error) { throw new ValidationError((error as Error).message); }
     return this.mutate(workspaceId, async (ws) => {
-      await this.checkProposal(ws, input);
+      // Runtime agents always carry a recorder/fence. Direct service calls are trusted fixtures.
+      if (recorder) await this.assertRunFence(recorder.fence);
+      await this.checkProposal(ws, input, runId);
       const reviewedEvidence = input.type === "review-evidence" ? await this.store.evidence.get(String(input.payload["evidenceId"])) : undefined;
       const proposal: Proposal = {
         id: newId("prop"),
@@ -1907,7 +2097,7 @@ export class VisuaService {
         recorder?.step({ type: "proposal", title: proposal.title, detail: proposal.rationale, data: { proposalId: proposal.id, type: proposal.type }, nodeIds: proposal.nodeIds, citations: proposal.citations }),
       );
       this.emit(ws.id, "proposal.created", proposal);
-      if (ws.autonomy[proposal.type]) return this.decideProposal(ws.id, proposal.id, "approved", "autonomy");
+      if (mayApplyAutonomously(proposal.type, proposal.payload, ws.autonomy)) return this.decideProposal(ws.id, proposal.id, "approved", "autonomy");
       return proposal;
     });
   }
@@ -1921,7 +2111,7 @@ export class VisuaService {
     const proposal = await this.store.proposals.get(proposalId);
     if (!proposal || proposal.workspaceId !== ws.id) throw new NotFoundError(`Proposal '${proposalId}' not found`);
     return buildProposalPreview(this, ws, proposal, async () => {
-      await this.checkProposal(ws, proposal);
+      await this.checkProposal(ws, proposal, proposal.runId);
       await this.applyProposal(proposal, "approving user");
     });
   }
@@ -1992,8 +2182,9 @@ export class VisuaService {
           // A savepoint: a change that fails half-way leaves nothing behind.
           await this.store.transaction(async () => {
             if (prev.type === "create-evidence" && typeof prev.payload["checkResultId"] === "string" && next.payload["checkResultId"] !== prev.payload["checkResultId"]) throw new ValidationError("A connector evidence proposal must retain its original check reference");
+            if (prev.type === "set-level" && prev.payload["projection"] !== undefined && canonical(next.payload["projection"]) !== canonical(prev.payload["projection"])) throw new ValidationError("A crosswalk proposal must retain its original mapping projection; create a new proposal");
             if (prev.type === "review-evidence" && (next.payload["evidenceId"] !== prev.payload["evidenceId"] || canonical(next.payload["expectedScope"]) !== canonical(prev.payload["expectedScope"]) || next.payload["expectedReviewId"] !== prev.payload["expectedReviewId"])) throw new ValidationError("A review proposal must retain its original evidence, inspected scope and review decision");
-            await this.checkProposal(ws, { ...next, payload: next.payload });
+            await this.checkProposal(ws, { ...next, payload: next.payload }, next.runId);
             await this.applyProposal(next, actor);
           });
           next = { ...next, status: "applied" };

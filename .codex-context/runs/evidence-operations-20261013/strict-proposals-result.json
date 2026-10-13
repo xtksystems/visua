@@ -1,0 +1,37 @@
+{
+  "status": "implemented",
+  "integrated": false,
+  "worktree": "/Users/artem/visua/.check/evidence-automation-20261013",
+  "files": {
+    "apps/server/src/services/proposal-validation.ts": "bb90630e85a16522b17ac07edeb38486ba012e99e83e985d3a9292e0203a20b6",
+    "apps/server/src/services/proposal-review.ts": "0dd28f5483806c141c5d084ae45b4bc4c27312c3c062ab65317ae87f84179823",
+    "apps/server/src/services/visua.ts": "2b5baac6c0dbc39cc67e3e7a2bd005371158e2c3fa866e249db32f1900610151",
+    "apps/server/test/proposal-validation.test.ts": "97c9a41276315fed4f2095d858a6fd1660f696aac4193a0040f59a9928586249",
+    "apps/server/test/proposal-review.test.ts": "5dedc89fb145b7919625c8c139fe44010635f4b985f07c90f6995963439e284d",
+    "apps/server/test/api.test.ts": "95387c887e82b11796d72f1404a596fbd815e9f9c5a12dafda27056020d85b02",
+    "apps/server/test/attention.test.ts": "a994a650191b6bc3d98a888e43612505ef3ab1c2bc1e55932abbb51015f8458f",
+    "packages/agents/src/tools.ts": "fc2bea66f3c9c15fb28390d81189a0530d1b135f468b1d766e8227cdac181dca",
+    "packages/agents/test/evidence-provenance.test.ts": "f10b9cb69d3604a1e2e333064c997e8bbef8781d3885ec68a8858ebeffbb2c7f",
+    "apps/web/src/pages/SettingsPage.tsx": "5892ab67ccb4106eb5282fcaf38524ca3a9bbcf0c9de50bbe7e5956c2c2d485d",
+    "e2e/automation-claims.spec.ts": "4c9291b8e7e81fdb42ad3937e6a62884470fc4d5147ce5e8cc827568b4354072"
+  },
+  "tests": [
+    {
+      "log": "strict-final-focused.log",
+      "result": "90passed before added legacy-autonomy service regression"
+    },
+    {
+      "log": "strict-policy-final.log",
+      "result": "29passed including legacy-autonomy regression"
+    },
+    {
+      "log": "automation-typecheck.log",
+      "result": "passed before latest diagnostics/controls and new browser source"
+    }
+  ],
+  "limits": [
+    "Fresh claims review pending",
+    "Full combined gate and browser test not run",
+    "Shared visua/tools carry other workers and diagnostic hooks; use overlay baseline for ownership"
+  ]
+}

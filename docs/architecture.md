@@ -241,18 +241,20 @@ Approval requests carry the preview's review token. The service checks it
 inside the workspace mutation lock before applying a change. The token binds
 the proposal, current workspace records, source observations, revision, and
 date-sensitive inputs. HTTP clients must obtain a preview before approval;
-approval edits require a new proposal and preview. Internal autonomy retains
-its existing service path. Batch previews freeze the proposal IDs, detect
+approval edits require a new proposal and preview. Internal autonomy uses the
+same payload/provenance checks and only permits configured task creation or
+filing an immutable recorded check. Batch previews freeze the proposal IDs, detect
 overlapping targets, and report each actual outcome. Stale batches change
 nothing; overlapping proposals remain pending for individual review.
 
 **Agents.** Copilot, Assessor, Planner, Policy Author, Evidence Collector, Crosswalk
-Analyst, Audit Prep and Task Executor. They share 16 tools:
+Analyst, Audit Prep and Task Executor. They share 17 tools:
 
 - Read tools: `workspace_overview`, `search_corpus`, `get_requirement`,
   `list_requirements`, `crosswalk`, `list_tasks`, `list_evidence`, `focus`
 - Proposal tools: `propose_assessment`, `propose_target`, `propose_applicability`,
-  `propose_task`, `propose_policy`, `propose_evidence`, `update_task` (a task update)
+  `propose_task`, `propose_policy`, `propose_evidence`, `update_task` (a task update),
+  and `propose_crosswalk_assessment` (a server-calculated mapping projection)
 - `run_checks` runs the workspace's connectors, records their checks and proposes each
   passing check as evidence
 
@@ -262,6 +264,37 @@ apply only to the roles an organization recorded); and *threat catalogs are view
 `get_requirement` on a threat returns the requirements publishers link to it, grouped
 by publication with each link's status, and proposal tools refuse threats, frameworks
 the workspace has not enabled, and levels on requirements out of scope.
+
+**Proposal provenance.** The service validates strict per-type envelopes and
+payloads at creation and revalidates payloads when previewing or applying. Check
+proposals contain only an immutable check-result reference. Narrative proposals
+cannot claim connector observations, human attestations or approved policies.
+Existing unsupported autonomy grants stay in historical storage but are ignored;
+saving Settings replaces them with the two supported choices. Narratives and
+assessment, scope, target, policy and task-update changes always require review.
+
+Quoted citations resolve to one corpus chunk and its SHA-256, document, page and
+locator. The quote must occur contiguously after whitespace normalization. A
+matching passage establishes provenance, not the truth of the proposed conclusion.
+Model licensing gates still apply. Mapping references are distinct from quotes.
+Crosswalk proposals use current enabled source assessments, relationship direction,
+publisher authority/status and conservative family-scale conversion. Weak mappings
+stay low confidence regardless of their count. Both offline and provider-backed
+Crosswalk Analysts use the deterministic proposal tool, and the service refuses
+crosswalk assessments without their original mapping projection. Approval rechecks
+source state and mapping identity; the review shows authority and limitations.
+
+**Run ownership.** A durable owner, attempt ID, epoch, heartbeat and lease bind an
+execution. Default bounds are two local executions, one active execution per
+workspace, 32 queued runs per workspace, a 30-second lease and 5-second heartbeat.
+Claims and every runtime write are fenced under the workspace lock. Reconciliation
+uses bounded insertion-order pages with a fixed sweep ceiling so older blocked
+queues cannot hide later work. A declined claim defers other queued items from
+that workspace until the next page, avoiding repeated admission checks. SQL
+scan cost still depends on stored history; these bounds are not a capacity test.
+Expired attempts become interrupted failures and
+are not replayed automatically. Cancellation from another instance fences writes
+immediately; local abort observation and shutdown release underlying resources.
 
 **Claude runtime.** A streamed, manual tool loop on `client.beta.messages.stream`:
 
@@ -280,7 +313,8 @@ exercise.
 - The Task Executor records implementation guides as task notes and never files them
   as evidence.
 - Marking something not applicable requires a written rationale.
-- Evidence proposals are restricted, and the trust center publishes computed facts only.
+- Evidence proposals are restricted. Public measures disclose their calculation
+  basis; free-text headlines are labeled as organization-authored statements.
 
 **Licensed text gate.** When agents run on Claude, AICPA criterion text, points of
 focus and AICPA corpus passages are replaced in tool results with Visua's summary and a
@@ -510,14 +544,23 @@ resource close; a timeout forces remaining sockets closed and exits with code
     [storage environment settings](../README.md#evidence-file-storage).
 - **Live events across instances.** On Postgres, every instance LISTENs on one channel
   per schema and NOTIFYs it with each event it publishes, so a browser connected to any
-  instance sees changes made through any other. Events over NOTIFY's 8,000-byte limit
-  travel with their identifying fields only (`partial: true`).
+  instance can refetch changes made through any other. Oversized events travel
+  with identifying fields only (`partial: true`). Each stream rechecks current
+  credentials, user, membership, tenant policy and workspace before delivery and
+  while idle; it never extends session lifetime. Streams hold at most 128 events
+  or 256 KiB and request canonical refetch on overflow. Client reconnects and relay
+  reconnects also trigger refetch. Publisher failures retain a gap flag and retry
+  a remote resync notification, with a 64-event first-delivery queue. This is an
+  ephemeral invalidation channel, not durable event replay; a publisher crash
+  cannot recover its in-memory pending notification.
 - **Derived caches.** Each audited change bumps the workspace's revision counter;
   readiness scores are cached per revision, so every instance sees fresh scores.
 - **Agent host.** Agents read from a snapshot of the workspace taken when the run starts
   and refreshed after every change their own actions apply. `propose()` is async and
-  goes through the service; run steps stream to the bus at once and are persisted in
-  order through a queue, outside the caller's transaction.
+  goes through the service. Run steps persist in order with a valid execution
+  lease and publish only after commit; cancelled or stale attempts cannot append
+  steps, observations or proposals. Work never holds a transaction over a network
+  call.
 - **API.** A Hono app with about 55 routes. They cover:
   - metadata, the recommendation engine and framework graphs
   - corpus search and corpus files (path-traversal safe; `.local/` never served)
@@ -932,3 +975,36 @@ preserve edited fields, while switching tasks discards them.
   re-download them; the committed copies are hash-checked.
 - State AI laws change often. The corpus records what was retrieved and when; Visua
   tracks obligations and is not legal advice.
+
+### Public measures and operational boundaries
+
+Public trust measures evaluate current recorded metadata at one `asOf` time and
+include scope counts, weighted implementation numerator/denominator, valid proof
+coverage, formula version and catalog version. They are not historical replay.
+Monitoring selects the latest observation for each connector/configuration/check
+across stored history; target changes cannot erase previous outcomes. Public
+labels distinguish sources without publishing configuration values. Custom
+headlines are explicitly organization-authored; policy approval and monitoring
+are separate from accepted evidence and implementation progress.
+
+JSON body reads enforce streamed bytes, declared size, concurrency, timeout and
+caller cancellation. Authentication and admission cover the same API routes;
+static pages do not resolve credentials. Health and readiness bypass admission
+and authentication. Defaults are 16 MiB, four active readers and 30 seconds. Uploads
+retain their separate file/form limits. Per-instance request controls use direct
+socket peers and authenticated principal IDs; forwarded address headers confer no
+new identity. Bounds are 1200 peer requests/minute, 600 principal requests/minute,
+120 auth requests/minute and 300 public requests/minute, with 10000 rate buckets.
+They are local operational defaults, not measured capacity or distributed quotas.
+
+`VISUA_JSON_MAX_BYTES`, `VISUA_JSON_CONCURRENCY`, `VISUA_BODY_TIMEOUT_MS`,
+`VISUA_RATE_PEER_PER_MINUTE`, `VISUA_RATE_PRINCIPAL_PER_MINUTE`,
+`VISUA_RATE_AUTH_PER_MINUTE`, `VISUA_RATE_PUBLIC_PER_MINUTE`, and
+`VISUA_RATE_MAX_BUCKETS` configure these bounds. `VISUA_DIAGNOSTICS_INTERVAL_MS`
+controls aggregate operator logs (60000 by default; 0 disables periodic logging).
+Diagnostics use fixed counters, resource gauges and latency buckets; they contain
+no actor IDs, raw URLs, goals, evidence, error strings or credentials. The queued
+run gauge is the last scheduler observation of its connected database, while
+active resource gauges describe the process. There is no tenant-facing diagnostic
+endpoint. Pilot capacity and time-to-first-accepted-artifact baselines still need
+representative users and an agreed measurement period.

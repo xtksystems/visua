@@ -3,6 +3,7 @@ import { FrameworkRegistry, REPO_ROOT } from "@visua/frameworks";
 import { EventBus } from "./bus.ts";
 import { PgEventRelay } from "./storage/events.ts";
 import { openStore } from "./storage/index.ts";
+import type { RunExecutionOptions } from "./services/run-execution.ts";
 import { VisuaService } from "./services/visua.ts";
 import { createConnectorKinds } from "./connectors/index.ts";
 import { createBlobStore, S3BlobStore, type BlobStore } from "./blobs/index.ts";
@@ -15,6 +16,7 @@ export interface ServiceOptions {
   connectorRoots?: readonly string[];
   /** Private artifact storage. In-memory tests default to a disposable memory store. */
   blobs?: BlobStore;
+  runOptions?: RunExecutionOptions;
 }
 
 /** The database URL: VISUA_DATABASE_URL (Postgres or SQLite), then VISUA_DB (SQLite path), then <repo>/data/visua.db. */
@@ -33,7 +35,7 @@ export async function createService(options: ServiceOptions = {}): Promise<Visua
     if (store.dialect === "postgres") await PgEventRelay.start(url, bus, store);
     const blobs = options.blobs ?? createBlobStore(process.env, { memory: url === ":memory:" });
     if (blobs instanceof S3BlobStore) store.onClose(async () => { blobs.destroy(); });
-    return new VisuaService(store, registry, bus, connectors, blobs);
+    return new VisuaService(store, registry, bus, connectors, blobs, options.runOptions);
   } catch (err) {
     await store.close().catch(() => undefined);
     throw err;

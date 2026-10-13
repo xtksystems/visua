@@ -87,6 +87,51 @@ export class Collection<T extends Entity> extends Repo {
   }
 }
 
+/** Read only active execution metadata; terminal history never needs backfilling. */
+export class RunCollection extends Collection<AgentRun> {
+  constructor(store: StoreContext) { super(store, "agent_runs"); }
+
+  /** A bounded sweep in insertion order, unaffected by heartbeats or other updates. */
+  async scanActive(cursor?: { after: number; through: number }, limit = 256): Promise<{ runs: AgentRun[]; cursor?: { after: number; through: number } }> {
+    const through = cursor?.through ?? Number((await this.db.query<{ through: number | null }>(`SELECT MAX(${this.pos}) AS through FROM agent_runs`))[0]?.through ?? 0);
+    const size = Math.max(1, Math.min(1024, Math.floor(limit)));
+    const status = this.store.dialect === "postgres" ? "data->>'status'" : "json_extract(data, '$.status')";
+    const rows = await this.db.query<DataRow & { position: number }>(
+      `SELECT data, ${this.pos} AS position FROM agent_runs WHERE ${this.pos} > ? AND ${this.pos} <= ? AND ${status} IN ('queued', 'running') ORDER BY ${this.pos} ASC LIMIT ?`,
+      [cursor?.after ?? 0, through, size],
+    );
+    const after = rows.at(-1)?.position;
+    return {
+      runs: rows.map((row) => parseJson<AgentRun>(row.data)),
+      // New inserts wait for the next sweep, so a busy producer cannot prevent wraparound.
+      cursor: rows.length === size && after !== undefined && after < through ? { after, through } : undefined,
+    };
+  }
+
+  /** Aggregate only; diagnostic collection never hydrates goals or event payloads. */
+  async queuedCount(): Promise<number> {
+    const status = this.store.dialect === "postgres" ? "data->>'status'" : "json_extract(data, '$.status')";
+    const [row] = await this.db.query<{ count: number | string }>(`SELECT COUNT(*) AS count FROM agent_runs WHERE ${status} = 'queued'`);
+    return Number(row?.count ?? 0);
+  }
+
+  async owned(ownerId: string): Promise<AgentRun[]> {
+    const owner = this.store.dialect === "postgres" ? "data->'execution'->>'ownerId'" : "json_extract(data, '$.execution.ownerId')";
+    const status = this.store.dialect === "postgres" ? "data->>'status'" : "json_extract(data, '$.status')";
+    const rows = await this.db.query<DataRow>(`SELECT data FROM agent_runs WHERE ${owner} = ? AND ${status} = 'running'`, [ownerId]);
+    return rows.map((row) => parseJson<AgentRun>(row.data));
+  }
+
+  async active(workspaceId?: string, limit = 256): Promise<AgentRun[]> {
+    const status = this.store.dialect === "postgres" ? "data->>'status'" : "json_extract(data, '$.status')";
+    const where = workspaceId === undefined ? "" : " AND workspace_id = ?";
+    const params: unknown[] = workspaceId === undefined ? [] : [workspaceId];
+    params.push(Math.max(1, Math.min(1024, Math.floor(limit))));
+    const rows = await this.db.query<DataRow>(`SELECT data FROM agent_runs WHERE ${status} IN ('queued', 'running')${where} ORDER BY updated_at ASC, ${this.pos} ASC LIMIT ?`, params);
+    return rows.map((row) => parseJson<AgentRun>(row.data));
+  }
+}
+
 /** Append-only observations: callers cannot overwrite an existing snapshot. */
 export class ScoreHistoryTable extends Repo {
   async append(observation: ScoreObservation): Promise<void> {
@@ -343,7 +388,7 @@ export class Store implements StoreContext {
   readonly risks: Collection<Risk>;
   readonly connectors: Collection<Connector>;
   readonly checks: Collection<CheckResult>;
-  readonly runs: Collection<AgentRun>;
+  readonly runs: RunCollection;
   readonly proposals: Collection<Proposal>;
   readonly activity: ActivityLog;
   readonly scoreHistory: ScoreHistoryTable;
@@ -361,7 +406,7 @@ export class Store implements StoreContext {
     this.risks = new Collection<Risk>(this, "risks");
     this.connectors = new Collection<Connector>(this, "connectors");
     this.checks = new Collection<CheckResult>(this, "check_results");
-    this.runs = new Collection<AgentRun>(this, "agent_runs");
+    this.runs = new RunCollection(this);
     this.proposals = new Collection<Proposal>(this, "proposals");
     this.activity = new ActivityLog(this);
     this.scoreHistory = new ScoreHistoryTable(this);

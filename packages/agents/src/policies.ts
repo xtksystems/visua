@@ -200,17 +200,26 @@ export const POLICY_TEMPLATES: PolicyTemplate[] = [
   },
 ];
 
-export function templateFor(node: RequirementNode): PolicyTemplate {
+export function templateFor(node: RequirementNode): PolicyTemplate | undefined {
+  // Code vocabularies are scoped to their published framework, never matched across unrelated catalogs.
+  const vocabulary: Record<string, RegExp> = {
+    "nist-csf-2.0": /^(GV|ID|PR|DE|RS|RC)\./,
+    "aicpa-tsc-2017": /^(CC\d|A1|C1|PI1|P[1-8])(?:\.|$)/,
+    "nist-sp-800-53-r5": /^[A-Z]{2}(?:-\d+)?$/,
+    "nist-ai-rmf": /^(GOVERN|MAP|MEASURE|MANAGE)$/,
+  };
+  const allowed = vocabulary[node.frameworkId];
+  if (!allowed) return undefined;
   const code = node.code.toUpperCase();
   let best: { t: PolicyTemplate; len: number } | undefined;
   for (const t of POLICY_TEMPLATES) {
     for (const m of t.matches) {
-      if ((code === m || code.startsWith(`${m}.`) || code.startsWith(`${m}-`) || code.startsWith(m)) && (!best || m.length > best.len)) {
+      if (allowed.test(m) && (code === m || code.startsWith(`${m}.`) || code.startsWith(`${m}-`) || code.startsWith(`${m} `) || code.startsWith(`${m}(`)) && (!best || m.length > best.len)) {
         best = { t, len: m.length };
       }
     }
   }
-  return best?.t ?? POLICY_TEMPLATES[0]!;
+  return best?.t;
 }
 
 /** "Share the organization's mission…" → "The organization shall share the organization's mission…" */
@@ -300,7 +309,9 @@ export function composePolicy(input: ComposeInput): string {
   lines.push("");
   lines.push("## 8. Requirements mapping");
   lines.push("");
-  lines.push("| Requirement | Framework | Also satisfies |");
+  lines.push("Published mappings identify related requirements; they do not establish satisfaction, implementation or accepted evidence. Assess each target requirement before relying on this draft.");
+  lines.push("");
+  lines.push("| Requirement | Framework | Related requirements and mapping basis |");
   lines.push("|---|---|---|");
   for (const node of input.nodes) {
     const mapped = input.mappings.get(node.id) ?? [];

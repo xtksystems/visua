@@ -133,6 +133,12 @@ tests; do not use a manual status override to hide expired history.
 Make current agents and monitoring reliable enough to support the workflow.
 This milestone depends on the evidence definitions from milestone 2.
 
+All six packages are implemented. The database integration gate passes 798
+SQLite tests (seven PostgreSQL-only skips) and 805 PostgreSQL tests, including
+the two-instance HTTP cases. All 148 browser cases are verified through the
+full run and targeted fixture corrections; local delivery is underway;
+operator capacity and pilot-user baselines remain unmeasured.
+
 1. Add durable run ownership/leases, heartbeat, bounded concurrency, startup
    reconciliation, and graceful cancellation. Refuse steps/proposals after
    cancellation. A cancelled connector call must not keep creating proposals.
@@ -228,12 +234,12 @@ completion-rate measurement exists yet.
 
 ## Next action
 
-Continue milestone 3: durable run ownership and cancellation, current stream
-and OIDC authorization, strict proposal payloads and safe autonomy, corpus-backed
-citations and projections, monitoring identity, and bounded operations. The
+Finish milestone 3's local delivery, then integrate milestone 4.
+Snapshot-backed exports, separate access records, the offline auditor package,
+and isolated database/blob restore work are underway. The
 [evidence operations task](../.codex-context/tasks/evidence-operations-20261013.md)
-records the dependency order; the first automation packages are under development
-in an isolated checkout. Milestone 4 follows the automation gate.
+records verification and remaining dependencies. A hosted pilot still needs a
+selected operator target, identity configuration, retention policy, and users.
 
 All milestone 1 and milestone 2 packages are implemented and verified.
 [Lifecycle verification](../.codex-context/runs/evidence-operations-20261013/source-verification.json)

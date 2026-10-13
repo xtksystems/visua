@@ -101,7 +101,7 @@ const resolveTxtWithTimeout: ResolveTxt = (name) => new Resolver({ timeout: 5000
 export class AuthService {
   readonly svc: VisuaService;
   readonly config: AuthConfig;
-  private readonly oidcConfigs = new Map<string, { config: oidc.Configuration; at: number }>();
+  private readonly oidcConfigs = new Map<string, { config: oidc.Configuration; at: number; generation: string; sealedSecret?: string }>();
   private readonly resolveTxt: ResolveTxt;
 
   constructor(svc: VisuaService, config: AuthConfig, deps: { resolveTxt?: ResolveTxt } = {}) {
@@ -294,9 +294,32 @@ export class AuthService {
     const tenant = await this.ids.tenants.get(tenantId);
     if (tenant?.settings.requireSso) {
       const own = (await this.ids.sso.forTenant(tenantId)).filter((c) => c.enabled).map((c) => `oidc:${c.id}`);
-      if (own.length && !own.includes(principal.session.method)) return undefined;
+      if (!own.includes(principal.session.method)) return undefined;
     }
     return m.role;
+  }
+
+  /** Revalidate a long-lived request against canonical, current storage without extending its session. */
+  async assertWorkspaceAccess(
+    credential: { kind: "user" | "token"; value: string },
+    expected: Pick<Principal, "kind" | "id">,
+    workspaceId: string,
+    tenantId: string | undefined,
+    capability: Capability = "workspace.read",
+  ): Promise<void> {
+    await this.svc.store.atomic(async () => {
+      const principal = credential.kind === "token"
+        ? await this.resolveApiToken(credential.value, { touch: false })
+        : await this.resolveSession(credential.value, { touch: false });
+      if (!principal || principal.kind !== expected.kind || principal.id !== expected.id) throw new UnauthorizedError("Sign in to continue");
+      const workspace = await this.svc.store.workspaces.get(workspaceId);
+      if (!workspace || workspace.id !== workspaceId || !tenantId || workspace.tenantId !== tenantId || !await this.ids.tenants.get(tenantId)) {
+        throw new NotFoundError("Workspace not found");
+      }
+      const role = await this.roleIn(principal, tenantId);
+      if (!role) throw new NotFoundError("Workspace not found");
+      if (!can(role, capability)) throw new ForbiddenError("Your current role does not permit this action");
+    });
   }
 
   async can(principal: Principal | undefined, tenantId: string | undefined, capability: Capability): Promise<boolean> {
@@ -511,6 +534,7 @@ export class AuthService {
         name: input.name.trim() || "Single sign-on",
         issuer: issuerUrl,
         clientId: input.clientId.trim(),
+        providerGeneration: providerChanged ? randomToken(18) : existing?.providerGeneration,
         clientSecretSealed: input.clientSecret ? seal(input.clientSecret, this.config.secret) : samePartner ? existing.clientSecretSealed : undefined,
         domains,
         verification,
@@ -661,23 +685,33 @@ export class AuthService {
     return `${this.config.publicUrl}/api/auth/oidc/callback`;
   }
 
-  private async oidcFor(connectionId: string): Promise<{ config: oidc.Configuration; connection?: SsoConnection }> {
+  /** Only non-secret configuration identity is stored in a login flow. Legacy rows fail closed after their next edit. */
+  private providerGeneration(connection?: SsoConnection): string {
+    return JSON.stringify(connection
+      ? [connection.id, connection.tenantId, connection.providerGeneration ?? connection.updatedAt, connection.issuer, connection.clientId]
+      : [PLATFORM, this.config.platform?.issuer, this.config.platform?.clientId]);
+  }
+
+  private async oidcFor(connectionId: string): Promise<{ config: oidc.Configuration; connection?: SsoConnection; generation: string }> {
     const connection = connectionId === PLATFORM ? undefined : await this.ids.sso.get(connectionId);
     if (connectionId !== PLATFORM && (!connection || !connection.enabled)) throw new UnauthorizedError("This SSO connection is not available");
     const settings = connection
       ? { issuer: connection.issuer, clientId: connection.clientId, clientSecret: connection.clientSecretSealed ? unseal(connection.clientSecretSealed, this.config.secret) : undefined }
       : this.config.platform;
     if (!settings) throw new UnauthorizedError("No identity provider is configured");
+    const generation = this.providerGeneration(connection);
     const cached = this.oidcConfigs.get(connectionId);
-    if (cached && Date.now() - cached.at < 3_600_000) return { config: cached.config, connection };
+    if (cached && cached.generation === generation && cached.sealedSecret === connection?.clientSecretSealed && Date.now() - cached.at < 3_600_000) {
+      return { config: cached.config, connection, generation };
+    }
     const execute = this.config.allowHttpIssuers ? [oidc.allowInsecureRequests] : [];
     const auth = settings.clientSecret ? oidc.ClientSecretPost(settings.clientSecret) : oidc.None();
     // An organization's provider is chosen by its owner: its requests may not reach private
     // addresses. The platform provider is the operator's own configuration.
     const fetchOptions = connection ? { [oidc.customFetch]: guardedFetch(privateHostAllowed(this.config.privateIssuerHosts)) } : {};
     const config = await explained(oidc.discovery(new URL(settings.issuer), settings.clientId, undefined, auth, { execute, ...fetchOptions }));
-    this.oidcConfigs.set(connectionId, { config, at: Date.now() });
-    return { config, connection };
+    this.oidcConfigs.set(connectionId, { config, at: Date.now(), generation, sealedSecret: connection?.clientSecretSealed });
+    return { config, connection, generation };
   }
 
   /**
@@ -687,12 +721,12 @@ export class AuthService {
    */
   async startLogin(connectionId: string, returnTo = "/", browser = ""): Promise<URL> {
     if (!browser) throw new UnauthorizedError("Sign-in could not be started in this browser");
-    const { config } = await this.oidcFor(connectionId);
+    const { config, generation } = await this.oidcFor(connectionId);
     const state = oidc.randomState();
     const nonce = oidc.randomNonce();
     const codeVerifier = oidc.randomPKCECodeVerifier();
     await this.ids.loginFlows.purgeExpired();
-    await this.ids.loginFlows.put(sha256(state), { connection: connectionId, codeVerifier, nonce, returnTo: safeReturnTo(returnTo), binding: sha256(browser), createdAt: now() }, addMinutes(10));
+    await this.ids.loginFlows.put(sha256(state), { connection: connectionId, providerGeneration: generation, codeVerifier, nonce, returnTo: safeReturnTo(returnTo), binding: sha256(browser), createdAt: now() }, addMinutes(10));
     return oidc.buildAuthorizationUrl(config, {
       redirect_uri: this.redirectUri,
       scope: "openid email profile",
@@ -713,7 +747,8 @@ export class AuthService {
     if (!flow.binding || !browser || !safeEqual(flow.binding, sha256(browser))) throw new UnauthorizedError("This sign-in was started in another browser. Start again.");
     const idpError = callback.searchParams.get("error");
     if (idpError) throw new UnauthorizedError(`The identity provider refused the sign-in (${idpError})`);
-    const { config, connection } = await this.oidcFor(flow.connection);
+    const { config, connection, generation } = await this.oidcFor(flow.connection);
+    if (!flow.providerGeneration || flow.providerGeneration !== generation) throw new UnauthorizedError("The sign-in provider changed. Start again.");
     const tokens = await explained(
       oidc.authorizationCodeGrant(
         config,
@@ -733,9 +768,21 @@ export class AuthService {
       [claims["given_name"], claims["family_name"]].filter((x) => typeof x === "string").join(" ") ||
       email?.split("@")[0] ||
       "Member";
-    const user = await this.svc.store.atomic(() => this.resolveIdentity({ issuer: claims.iss, subject: claims.sub, email, emailVerified, name: displayName }, connection));
-    const method = connection ? `oidc:${connection.id}` : `oidc:${PLATFORM}`;
-    const { token } = await this.createSession(user, method, { tenantScope: connection?.tenantId, userAgent });
+    const { token } = await this.svc.store.atomic(async () => {
+      // Network exchange is complete. Serialize with provider/domain changes and member removal,
+      // then use current admission policy and create the session in this same transaction.
+      if (connection) await this.svc.store.lock("sso-domains");
+      const current = connection ? await this.ids.sso.get(connection.id) : undefined;
+      if ((connection && (!current?.enabled || current.clientSecretSealed !== connection.clientSecretSealed)) || this.providerGeneration(current) !== flow.providerGeneration) {
+        throw new UnauthorizedError("The sign-in provider changed. Start again.");
+      }
+      if (current) {
+        await this.svc.store.lock(`ws:${current.tenantId}`);
+        if (!await this.ids.tenants.get(current.tenantId)) throw new UnauthorizedError("This organization is no longer available");
+      }
+      const user = await this.resolveIdentity({ issuer: claims.iss, subject: claims.sub, email, emailVerified, name: displayName }, current);
+      return this.createSession(user, `oidc:${current?.id ?? PLATFORM}`, { tenantScope: current?.tenantId, userAgent });
+    });
     return { token, returnTo: flow.returnTo };
   }
 

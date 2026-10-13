@@ -46,13 +46,8 @@ export const DRIVERS: [OrganizationProfile["drivers"][number], string][] = [
 ];
 
 const AUTONOMY: [ProposalType, string, string][] = [
-  ["create-task", "Create tasks", "Low risk: planned work items grounded in official guidance."],
-  ["update-task", "Update tasks", "Checklist progress and status changes proposed by agents."],
-  ["set-target", "Set targets", "Changes to the Target Profile."],
-  ["set-level", "Set implementation levels", "Changes to the Current Profile. Recommended: keep human approval."],
-  ["create-policy", "Create policy drafts", "Drafts land as in-review; approval is always separate."],
-  ["create-evidence", "Create evidence", "Recommended: keep human approval. Evidence must reflect reality."],
-  ["set-applicability", "Scope decisions", "Marking requirements not applicable. Recommended: keep human approval."],
+  ["create-task", "Create tasks", "Adds proposed work without completing tasks or changing assessments."],
+  ["create-evidence", "File recorded checks", "Files passing immutable connector observations. Generated narratives still require human approval."],
 ];
 
 /** A switch; agent autonomy switches use the terracotta agent tone. */
@@ -84,7 +79,8 @@ export function SettingsPage() {
   const remove = useWsMutation(ws, () => api.del(`/workspaces/${encodeURIComponent(ws)}`));
   const canConfigure = useCan("workspace.configure");
   if (!data || !profile) return <div className="page muted">Loading…</div>;
-  const autonomy = data.workspace.autonomy;
+  const autonomy: Partial<Record<ProposalType, boolean>> = { "create-task": !!data.workspace.autonomy["create-task"], "create-evidence": !!data.workspace.autonomy["create-evidence"] };
+  const retiredAutonomy = Object.entries(data.workspace.autonomy).some(([type, enabled]) => enabled && !AUTONOMY.some(([supported]) => supported === type));
   const toggleList = <T extends string>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
   return (
     <div className="page">
@@ -225,8 +221,9 @@ export function SettingsPage() {
               <AgentBadge label="human-in-the-loop" />
             </div>
             <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
-              By default every agent change waits for approval. Grant autonomy per change type; every applied change is still recorded in the audit trail with the run that produced it.
+              By default every agent change waits for approval. You can allow task creation and filing recorded checks. Assessment, scope, target, policy, narrative evidence and task updates always require human approval. Every applied change stays in the audit trail.
             </p>
+            {retiredAutonomy && <p role="note" className="muted">Earlier grants for other change types are no longer applied automatically. Saving these settings replaces those grants with the two choices below.</p>}
             <div className="stack" style={{ gap: 12 }}>
               {AUTONOMY.map(([type, label, hint]) => (
                 <div key={type} className="row" style={{ gap: 12, alignItems: "flex-start" }}>

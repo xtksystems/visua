@@ -171,10 +171,11 @@ test("live agent activity stays within its workspace and signed-in session", asy
     window.EventSource = TestEventSource as unknown as typeof EventSource;
   });
   const send = async (title: string) => page.evaluate((title) => {
-    const sources = (window as unknown as { sources: EventTarget[] }).sources;
+    const sources = (window as unknown as { sources: (EventTarget & { url: string })[] }).sources;
     for (const source of sources) {
-      source.dispatchEvent(new MessageEvent("visua", { data: JSON.stringify({ type: "agent.run.updated", data: { id: "private-run", agent: "copilot", status: "running" } }) }));
-      source.dispatchEvent(new MessageEvent("visua", { data: JSON.stringify({ type: "agent.step", data: { runId: "private-run", agent: "copilot", step: { type: "thinking", title, nodeIds: ["nist-csf-2.0:PR.AA-01"] } } }) }));
+      const workspaceId = decodeURIComponent(new URL(source.url, location.href).pathname.split("/")[3]!);
+      source.dispatchEvent(new MessageEvent("visua", { data: JSON.stringify({ workspaceId, type: "agent.run.updated", data: { id: "private-run", agent: "copilot", status: "running" } }) }));
+      source.dispatchEvent(new MessageEvent("visua", { data: JSON.stringify({ workspaceId, type: "agent.step", data: { runId: "private-run", agent: "copilot", step: { type: "thinking", title, nodeIds: ["nist-csf-2.0:PR.AA-01"] } } }) }));
     }
   }, title);
   await page.goto(`/w/${workspace.slug}/plan`);
@@ -189,9 +190,9 @@ test("live agent activity stays within its workspace and signed-in session", asy
   });
   await expect(page.getByRole("combobox", { name: "Workspace", exact: true })).toHaveValue("northwind-health");
   await expect(page.locator(".topbar__pulse")).toHaveCount(0);
-  await page.evaluate(() => {
-    (window as unknown as { previousSource: EventTarget }).previousSource.dispatchEvent(new MessageEvent("visua", { data: JSON.stringify({ type: "agent.step", data: { runId: "old-run", agent: "copilot", step: { type: "thinking", title: "Closed workspace activity" } } }) }));
-  });
+  await page.evaluate((workspaceId) => {
+    (window as unknown as { previousSource: EventTarget }).previousSource.dispatchEvent(new MessageEvent("visua", { data: JSON.stringify({ workspaceId, type: "agent.step", data: { runId: "old-run", agent: "copilot", step: { type: "thinking", title: "Closed workspace activity" } } }) }));
+  }, workspace.id);
   await expect(page.locator(".topbar__pulse")).toHaveCount(0);
   await send("Private owner session activity");
   await expect(page.locator(".topbar__pulse")).toContainText("Private owner session activity");

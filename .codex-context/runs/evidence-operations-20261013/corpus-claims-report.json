@@ -1,0 +1,181 @@
+{
+  "task": "M3.4 corpus-backed claims, family-aware crosswalk projections, applicable policy templates",
+  "worker": "/root/lifecycle_ui",
+  "status": "complete",
+  "scope": "Complete for bounded isolated implementation; root-owned service validation/integration remains.",
+  "checkout": "/Users/artem/visua/.check/evidence-automation-20261013",
+  "root_source_edited": false,
+  "changes": [
+    "CorpusSearch.resolveCitation validates a unique chunk, exact contiguous quote after whitespace normalization, supplied page/locator/document, and optional source hash; fills canonical provenance.",
+    "Search hits and stored proposal citations preserve stable chunk ID and SHA-256 binding original chunk identity, title, framework, location and text.",
+    "Assessment/policy tools reject the entire citation set on invalid provenance or restricted model licensing; errors reach offline summaries.",
+    "Fixed pre-existing bestQuote identifier corruption and generated truncation ellipses; installed-corpus passages round trip through strict resolution.",
+    "Crosswalks preserve publisher mapping references, authority, publication status, publisher strength and source-to-target direction; explicit family-stage conversion caps inferred suggestions below operating/assured/adaptive/legal-met statuses.",
+    "Weak, editorial, unknown-publication or unknown-strength mappings stay low confidence regardless of count; conflicting strong source assessments are surfaced.",
+    "Crosswalk assessment proposals carry canonical structured projection metadata separately from quoted citations; readouts and generated policy mapping text do not claim satisfaction or observed evidence.",
+    "Policy templates match published framework-specific code vocabularies; unsupported/unknown/mixed scopes return explicit no-applicable result with no proposal or task advancement.",
+    "Updated the single authorized demo seed projectLevels call with registry family resolver."
+  ],
+  "verification": [
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run packages/frameworks/test/search-citations.test.ts packages/core/test/crosswalk-projections.test.ts packages/agents/test/corpus-claims.test.ts",
+      "outcome": "passed",
+      "tests": 56,
+      "note": "Initial focused behavioral checkpoint."
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run packages/core/test/core.test.ts packages/agents/test/licensing.test.ts packages/agents/test/evidence-renewal.test.ts packages/agents/test/evidence-provenance.test.ts",
+      "outcome": "passed",
+      "tests": 32,
+      "note": "Affected existing behavior; protected licensing/title guards remain."
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run packages/frameworks/test/search-citations.test.ts packages/core/test/crosswalk-projections.test.ts packages/agents/test/corpus-claims.test.ts packages/agents/test/tools.test.ts",
+      "outcome": "passed",
+      "tests": 65,
+      "note": "Final corpus/excerpt fix checkpoint includes 60 actual corpus passages. Subsequently added one unsupported-task test; agent suite rerun below."
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run packages/agents/test/corpus-claims.test.ts",
+      "outcome": "passed",
+      "tests": 24,
+      "note": "Final agent source/test state after unsupported-task assertion and clearer mapping-input wording."
+    },
+    {
+      "command": "pnpm exec tsc -p packages/agents/tsconfig.json",
+      "outcome": "passed",
+      "note": "Final relevant package state."
+    },
+    {
+      "command": "pnpm exec tsc -p packages/core/tsconfig.json",
+      "outcome": "passed",
+      "note": "Final relevant package state."
+    },
+    {
+      "command": "pnpm exec tsc -p packages/frameworks/tsconfig.json",
+      "outcome": "passed",
+      "note": "Final relevant package state."
+    }
+  ],
+  "test_accounting": {
+    "unique_passing_tests_across_focused_suites": 98,
+    "full_suite": false,
+    "build": false,
+    "browser": false,
+    "live_database": false,
+    "external_model_calls": false
+  },
+  "corrected_failures": [
+    {
+      "command": "pnpm exec tsc -p packages/agents/tsconfig.json",
+      "finding": "Tool return is unknown and synthetic RequirementNode lacked parentId.",
+      "resolution": "Narrowed object/error before reading; added required parentId to synthetic fixture; final typecheck passes."
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run packages/frameworks/test/search-citations.test.ts",
+      "finding": "Installed-corpus round trip failed because old bestQuote regex silently omitted text around identifiers like PR.AA.",
+      "resolution": "Split only at punctuation followed by whitespace, preserving every source fragment; targeted identifier regression and all 60 installed-corpus sample passages now pass."
+    }
+  ],
+  "contracts": {
+    "citation_resolver": "registry.search.resolveCitation({documentId,quote,chunkId?,chunkSha256?,page?,locator?}) -> {ok:true,citation:{documentId,documentTitle,quote,chunkId,chunkSha256,page?,locator?}} | {ok:false,error}",
+    "citation_semantics": "Provenance validation only. Quote matching does not establish semantic entailment, completeness, evidence acceptance, compliance or truth of the attached conclusion.",
+    "quoted_vs_mapping": "Citation[] carries quoted chunk-backed passages. Official mapping origins are unquoted CorpusCitation values inside Edge.citation and ProjectedLevel.sources[].citation; they retain document/page/locator and publisher metadata and must not be represented as resolved quotations.",
+    "projection_api": "projectLevels(crosswalk,targetNodeIds,sourceStates,familyForFrameworkId) requires a family resolver. ProjectedLevel.version=1, kind=implementation-projection, targetFamily, suggested, confidence, reasons and structured sources.",
+    "proposal_payload": "Trusted offline helper proposeCrosswalkAssessment(host,nodeId) recomputes from registry mappings/current enabled source states and stages set-level payload {nodeId,current,projection}, citations:[], confidence from canonical projection."
+  },
+  "limitations": [
+    "Resolver verifies current installed chunk provenance only; it does not reconstruct unavailable old editions or judge semantic entailment.",
+    "Existing Citation records remain loadable because new chunk fields are optional; no backfill silently upgrades legacy citations.",
+    "Whitespace differences are normalized; case and punctuation changes are rejected. Repeated quotes need disambiguating chunk/location; duplicate chunk identities fail closed.",
+    "Family-stage conversion is a conservative Visua product convention, not a publisher-certified equivalence. Missing mapping publication status stays low confidence, so some existing mappings produce no automatic proposal.",
+    "No change to licensed source data, ingest artifacts or corpus manifests. Model licensing remains a separate gate and must also be enforced at service boundary.",
+    "No full suites, browser/build, live database, deploy, Git commands or external providers executed."
+  ],
+  "integration_points": [
+    "Root owns service-boundary strict-proposal validation. Call resolver for every supplied quoted citation at staging/approval and reject errors instead of trusting document membership or agent title.",
+    "Root must explicitly validate/recompute set-level payload.projection using current authoritative mapping/state/family inputs, retain mapping references separately from quotes, and prevent treating the mapping basis as observed or accepted evidence.",
+    "Root integrates these isolated changes and performs combined source review and broader required checks. Only the Citation block in shared core/types.ts belongs to this lane; concurrent AgentRun fields belong to run-reliability."
+  ],
+  "remaining_within_assignment": [],
+  "parent_remaining_work": [
+    "Strict service validation integration",
+    "Combined review/typecheck/test delivery after isolated changes are integrated"
+  ],
+  "baseline": {
+    "packages/frameworks/src/search.ts": {
+      "sha256": "4b709b81e7b0195cd9927656ae5bbd5955a50f206038db3af72d76a450ba05a1",
+      "source": "captured isolated overlay before lane edits"
+    },
+    "packages/frameworks/src/index.ts": {
+      "sha256": "a6a6909e080d4377a23b79b532c20e1a11d51a2a14d1815aa2ba3adc8f5a6edd",
+      "source": "captured isolated overlay before lane edits"
+    },
+    "packages/agents/src/tools.ts": {
+      "sha256": "8f51116f6fa9bcd092b9bc6fe918f96fed85deb0d0699d8e65f375b637436cca",
+      "source": "captured isolated overlay before lane edits"
+    },
+    "packages/agents/src/offline.ts": {
+      "sha256": "9fd45a837a839e48a32895263dbbc892322b67a1aa2b438cc752e979609a6aa2",
+      "source": "captured isolated overlay before lane edits"
+    },
+    "packages/agents/src/policies.ts": {
+      "sha256": "43377066e739248aa2660969217857ec5db68c1fdb41203b418d8d3f84eeeae5",
+      "source": "captured isolated overlay before lane edits"
+    },
+    "packages/core/src/crosswalk.ts": {
+      "sha256": "2d28065612fc08dd51d509ee81d2b3462ff90e2efcd63f46defe67ae2a80395c",
+      "source": "captured isolated overlay before lane edits"
+    },
+    "packages/core/test/core.test.ts": {
+      "sha256": "76c56c24410dfb536febb723bcdb3489c3d317d803a77037221ab2140979c448",
+      "source": "captured isolated overlay before lane edits"
+    }
+  },
+  "ownership_exceptions": [
+    {
+      "path": "packages/core/src/types.ts",
+      "scope": "Only additive optional Citation.chunkId and Citation.chunkSha256 fields and comments; permission from lifecycle_backend."
+    },
+    {
+      "path": "apps/server/src/seed/demo.ts",
+      "scope": "Only fourth family-resolver argument on existing projectLevels call; explicitly authorized by root."
+    }
+  ],
+  "completed_at": "2026-10-13T08:51:49.346470+00:00",
+  "input_sha256": {
+    ".codex-context/runs/evidence-operations-20261013/corpus-claims-brief.txt": "45e683d0993da6cd5464129130de7fe9b4895ff5f959660b7f7a6c314dab5240",
+    "docs/development-phase-2.md": "026bb894267c5d65116bae32cf33087a68d62c1f29d6356b225c575ae18de7aa",
+    ".codex-context/runs/evidence-operations-20261013/remaining-inventory.json": "08850c3f6238c35fca4997f7477a945184022644e15bcd7a3ef80650a57a8150"
+  },
+  "changed_paths": [
+    "apps/server/src/seed/demo.ts",
+    "packages/agents/src/offline.ts",
+    "packages/agents/src/policies.ts",
+    "packages/agents/src/tools.ts",
+    "packages/agents/test/corpus-claims.test.ts",
+    "packages/core/src/crosswalk.ts",
+    "packages/core/src/types.ts",
+    "packages/core/test/core.test.ts",
+    "packages/core/test/crosswalk-projections.test.ts",
+    "packages/frameworks/src/index.ts",
+    "packages/frameworks/src/search.ts",
+    "packages/frameworks/test/search-citations.test.ts"
+  ],
+  "final_sha256": {
+    "apps/server/src/seed/demo.ts": "5f0d533019b96c60865d3807b83aba6bbd26eacf80c8e777ef99bfc21e3d52cb",
+    "packages/agents/src/offline.ts": "3b9ee46121b9a29d85b481a2466db89741f2fb7ea5aecc9243c764e727f33044",
+    "packages/agents/src/policies.ts": "0a9b4f46d83031a651360e51f578131d1df290c9b6ceb05c4b4618dcb2c0c9f2",
+    "packages/agents/src/tools.ts": "56c857c09939e6ea1b8681a4e43a440770efc3adaf48047f0fcd78cf39ef6c7b",
+    "packages/agents/test/corpus-claims.test.ts": "2f0a8983b1d7363182b855d0abe885e9351d4355e6a783fdecfae65889371094",
+    "packages/core/src/crosswalk.ts": "36bdba35f0e93cb5a4982d11ce1f835a5e5617914927bb46c1cb2919e0359f05",
+    "packages/core/src/types.ts": "b091929edfe13e5dcdeef47e0390a528d1ddfbe47fa83188cbbdbaa568429072",
+    "packages/core/test/core.test.ts": "e9f8dff53b86cfcc2a2c0f84194b6b9b1a0862d9442e58a05a71e5ac5374178f",
+    "packages/core/test/crosswalk-projections.test.ts": "31e4e747e565c925021f6afbf6518c0be84227f39874b4f8faebb2f4488f8211",
+    "packages/frameworks/src/index.ts": "5c587e023602ccae83a8416848ec8d2ce4a62e902bf25943a3e945d28d130abb",
+    "packages/frameworks/src/search.ts": "ea966c8b96e8f50232bb6fcfeaf9ad149e32b1d2895e0d085dd1647717259bc0",
+    "packages/frameworks/test/search-citations.test.ts": "afa5a96bc9e5591c46d63461a3ca7b31afeb7f2ffaf5073590b5815f8edac837"
+  },
+  "source_identity_sha256": "099675c94ae8ed50fff6976a4b583c43fb8464e9bb8fb8800deaeb833cd362a8",
+  "verification_cwd": "/Users/artem/visua/.check/evidence-automation-20261013"
+}

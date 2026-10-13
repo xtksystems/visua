@@ -175,7 +175,7 @@ describe(`workspace attention (${db.dialect})`, () => {
     const unlinkedEvidence = await artifact(ws.id, [], "2027-01-01", false);
     const unbound = await artifact(ws.id, [B], "2027-01-01");
     await svc.store.evidence.put({ ...unbound, reviewHistory: [] });
-    const review = await proposal(ws.id, [], { type: "review-evidence", payload: { evidenceId: pending.id } });
+    const review = await proposal(ws.id, [], { type: "review-evidence", payload: { evidenceId: pending.id, decision: "accepted" } });
     const workspaceProposal = await proposal(ws.id, [], { type: "set-rmf" });
     await proposal(ws.id, [D], { status: "applied" });
     const unlinkedTask = await task(ws.id, []);
@@ -193,7 +193,7 @@ describe(`workspace attention (${db.dialect})`, () => {
   it("keeps eligible group review links visible without counting or inheriting individual evidence coverage", async () => {
     const ws = await fixture();
     const pending = await artifact(ws.id, [GROUP, GROUP], "2027-01-01", false);
-    const review = await proposal(ws.id, [GROUP], { type: "review-evidence", payload: { evidenceId: pending.id } });
+    const review = await proposal(ws.id, [GROUP], { type: "review-evidence", payload: { evidenceId: pending.id, decision: "accepted" } });
     await artifact(ws.id, [GROUP], "2027-01-01");
     await artifact(ws.id, [socGroup.id], "2027-01-01", false);
     await proposal(ws.id, [socGroup.id]);

@@ -105,9 +105,10 @@ describe(`agent stage lifecycle (${db.dialect})`, () => {
 
   it("preserves autonomy as the decision source without inventing human review", async () => {
     const ws = await fixture();
-    await svc.updateWorkspace(ws.id, { autonomy: { "set-level": true } });
-    execute.mockImplementationOnce(async (host) => { await host.propose(change); return done; });
-    const queued = await svc.startRun(ws.id, { agent: "assessor", goal: "Granted autonomy" });
+    await svc.updateWorkspace(ws.id, { autonomy: { "create-task": true } });
+    const task = { ...change, type: "create-task" as const, payload: { title: "Review access", requirementIds: change.nodeIds } };
+    execute.mockImplementationOnce(async (host) => { await host.propose(task); return done; });
+    const queued = await svc.startRun(ws.id, { agent: "planner", goal: "Granted autonomy" });
     const completed = await svc.waitForRun(queued.id);
     expect(completed.status).toBe("completed");
     expect((await svc.store.proposals.list(ws.id))[0]).toMatchObject({ status: "applied", decidedBy: "autonomy" });

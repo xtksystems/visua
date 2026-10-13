@@ -14,6 +14,8 @@ import { initializeWorkspace, loadStartupConfig } from "./startup.ts";
 import { captureDueScoreObservations } from "./services/score-history.ts";
 import { startScoreHistory } from "./services/score-history-ticker.ts";
 import { loadScanRoots } from "./connectors/repo-scan.ts";
+import { loadRequestControlConfig } from "./request-controls.ts";
+import { processDiagnostics, startDiagnosticsLogging } from "./diagnostics.ts";
 
 async function withinShutdownDeadline(work: Promise<void>, milliseconds: number, force = () => {}): Promise<void> {
   let timeout: ReturnType<typeof setTimeout> | undefined;
@@ -37,17 +39,20 @@ export async function startServer({ env = process.env, ...options }: ServiceOpti
   // Reject invalid authentication before opening or migrating a database.
   const authConfig = loadAuthConfig(env);
   const config = loadStartupConfig(env, authConfig.mode);
+  const requestConfig = loadRequestControlConfig(env);
   const connectorRoots = options.connectorRoots ?? loadScanRoots(env);
   const svc = await createService({ ...options, connectorRoots, database: options.database ?? databaseUrl(env) });
   let stopRechecks = async () => {};
   let stopScoreHistory = async () => {};
+  let stopDiagnostics = () => {};
   try {
     if (!svc.registry.indexes.size) throw new Error("No framework data found. Run `pnpm ingest` to build it from the local corpus.");
     const auth = new AuthService(svc, authConfig);
     await initializeWorkspace(svc, auth, config.seed);
+    await svc.startRunScheduler();
     const shutdown = new AbortController();
     const lifecycle = { stopping: false, signal: shutdown.signal };
-    const app = createApp(svc, auth, lifecycle);
+    const app = createApp(svc, auth, lifecycle, { config: requestConfig, diagnostics: processDiagnostics });
     const webDist = resolve(REPO_ROOT, "apps/web/dist");
     if (existsSync(webDist)) {
       app.use("/assets/*", async (c, next) => {
@@ -97,30 +102,34 @@ export async function startServer({ env = process.env, ...options }: ServiceOpti
     if (env["VISUA_SCORE_HISTORY"] !== "off") {
       stopScoreHistory = startScoreHistory(() => captureDueScoreObservations(svc, { stopped: () => lifecycle.stopping }));
     }
+    stopDiagnostics = startDiagnosticsLogging(processDiagnostics, requestConfig.diagnosticsIntervalMs);
     let stopped: Promise<void> | undefined;
     const stop = () => {
       if (stopped) return stopped;
       lifecycle.stopping = true;
+      stopDiagnostics();
       shutdown.abort();
       const rechecks = stopRechecks();
       const scoreHistory = stopScoreHistory();
+      const runs = svc.stopRuns(Math.min(5_000, config.shutdownMs));
       const requests = new Promise<void>((done, reject) => server.close((err) => err ? reject(err) : done()));
       server.closeIdleConnections();
       stopped = withinShutdownDeadline((async () => {
-        await Promise.all([requests, rechecks, scoreHistory]);
+        await Promise.all([requests, rechecks, scoreHistory, runs]);
         // A disconnected client does not mean its handler has stopped writing.
         while (handlers.size) await Promise.allSettled([...handlers]);
-        await svc.drainRuns();
+
         await svc.store.close();
       })(), config.shutdownMs, () => server.closeAllConnections());
       return stopped;
     };
     return { svc, auth, app, server, config, stop };
   } catch (err) {
+    stopDiagnostics();
     try {
       await withinShutdownDeadline((async () => {
         await Promise.all([stopRechecks(), stopScoreHistory()]);
-        await svc.drainRuns();
+        await svc.stopRuns(Math.min(5_000, config.shutdownMs));
         await svc.store.close();
       })(), config.shutdownMs);
     } catch (cleanupError) {

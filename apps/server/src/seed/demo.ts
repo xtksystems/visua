@@ -141,7 +141,7 @@ export async function seedDemo(svc: VisuaService, auth: AuthService): Promise<st
   const csfStates = await svc.store.states.map(ws.id, "nist-csf-2.0");
   for (const fw of frameworks.filter((f) => f !== "nist-csf-2.0")) {
     const index = svc.registry.framework(fw)!;
-    const projected = projectLevels(svc.registry.crosswalk as CrosswalkIndex, index.assessable.map((n) => n.id), csfStates);
+    const projected = projectLevels(svc.registry.crosswalk as CrosswalkIndex, index.assessable.map((n) => n.id), csfStates, id => svc.registry.framework(id)?.graph.framework.family);
     const byId = new Map(projected.map((p) => [p.nodeId, p]));
     await seedStates(fw, (node, prev) => {
       if (!prev.applicable) return undefined;

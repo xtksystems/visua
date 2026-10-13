@@ -3,9 +3,11 @@ import { once } from "node:events";
 import { createConnection, type AddressInfo } from "node:net";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FrameworkRegistry, REPO_ROOT } from "@visua/frameworks";
+import type { AgentRun } from "@visua/core";
 import { createApp } from "../src/app.ts";
 import { loadAuthConfig } from "../src/auth/config.ts";
 import { VisuaService } from "../src/services/visua.ts";
+import type { RunFence } from "../src/services/run-execution.ts";
 import { Store } from "../src/storage/store.ts";
 import { initializeWorkspace, loadStartupConfig } from "../src/startup.ts";
 import { startServer } from "../src/server.ts";
@@ -105,22 +107,29 @@ describe("empty production installation", () => {
 
   it("drains a seeded execution before storage cleanup when startup fails", async () => {
     let release!: () => void;
+    let entered!: () => void;
     const held = new Promise<void>((done) => { release = done; });
+    const executing = new Promise<void>((done) => { entered = done; });
     let finished = false;
     // Hold the real execution at its entry to reproduce a waitForRun timeout cheaply.
-    const prototype = VisuaService.prototype as unknown as { executeRun: (runId: string, signal: AbortSignal) => Promise<void> };
+    const prototype = VisuaService.prototype as unknown as { executeRun: (run: AgentRun, fence: RunFence, signal: AbortSignal) => Promise<void> };
     const original = prototype.executeRun;
     vi.spyOn(prototype, "executeRun").mockImplementation(async function(this: VisuaService, ...args) {
+      entered();
       await held;
       await this.store.driver.query("SELECT 1");
       await original.apply(this, args);
       finished = true;
     });
-    const wait = vi.spyOn(VisuaService.prototype, "waitForRun").mockRejectedValue(new Error("injected startup timeout"));
+    const wait = vi.spyOn(VisuaService.prototype, "waitForRun").mockImplementation(async () => {
+      await executing;
+      throw new Error("injected startup timeout");
+    });
     const close = vi.spyOn(Store.prototype, "close");
     const starting = startServer({ env: { VISUA_PORT: "0", VISUA_SEED: "1", VISUA_SHUTDOWN_MS: "5000" }, database: ":memory:", registry, connectorRoots: [] }).catch((err: unknown) => err);
     cleanup.push(async () => { release(); await starting; });
     await vi.waitFor(() => expect(wait).toHaveBeenCalled(), { timeout: 10_000 });
+    await executing;
     expect(close).not.toHaveBeenCalled();
     release();
     expect(await starting).toMatchObject({ message: "injected startup timeout" });
@@ -211,12 +220,13 @@ describe("server lifecycle", () => {
     let entered!: () => void;
     const writing = new Promise<void>((done) => { entered = done; });
     const held = new Promise<void>((done) => { release = done; });
-    const original = started.svc.store.runs.update.bind(started.svc.store.runs);
+    const original = started.svc.store.runs.put.bind(started.svc.store.runs);
     let first = true;
-    vi.spyOn(started.svc.store.runs, "update").mockImplementation(async (...args) => {
-      if (first) { first = false; entered(); await held; }
+    vi.spyOn(started.svc.store.runs, "put").mockImplementation(async (...args) => {
+      if (first && args[0].status === "running") { first = false; entered(); await held; }
       return original(...args);
     });
+    cleanup.push(async () => { release(); });
     const close = vi.spyOn(started.svc.store, "close");
     await started.svc.startRun(created.json.workspace.id, { agent: "planner", goal: "Plan initial work" });
     await writing;

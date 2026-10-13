@@ -204,7 +204,7 @@ export function ReportsPage() {
               </label>
             </div>
             <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
-              Publishes only computed facts — readiness, evidence coverage, approved policies and live monitoring results. No free-text claims.
+              Publishes scoped readiness and evidence measures, approved policy titles, and recorded monitoring outcomes. Your headline is labeled as an organization-authored statement; it is not independently verified by Visua.
             </p>
             <p style={{ fontSize: 13, marginBottom: 12 }}>
               Readiness published for:{" "}
@@ -214,7 +214,7 @@ export function ReportsPage() {
             {!canConfigure && <p className="muted" role="note">Only admins and owners configure the trust center. You can review its settings here.</p>}
             <div className="stack" style={{ gap: 10 }}>
               <div className="field">
-                <label>Headline</label>
+                <label>Organization-authored headline</label>
                 <input className="input" disabled={!canConfigure} aria-label="Trust center headline" value={headline ?? tc?.headline ?? ""} onChange={(e) => setHeadline(e.target.value)} />
               </div>
               <div className="field">

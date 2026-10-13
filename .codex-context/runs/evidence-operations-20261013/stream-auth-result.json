@@ -1,0 +1,39 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "stream-auth",
+  "input_sha256": "b314deea2d1f496bd0117f3a5512718a0ae932d5fc886e17b617b41e3dbd64ff",
+  "status": "complete",
+  "summary": "Implemented current SSE authorization, bounded pull-driven delivery/resync, client invalidation, and OIDC provider generations/current callback admission in isolated checkout. Allowed focused SQLite/mock/HTTP checks pass; PostgreSQL/browser integration remains lead-owned.",
+  "evidence": [
+    "stream-auth-report.json",
+    "stream-auth-final-tests.log: 68 passed",
+    "stream-relay-final-tests.log: 14 passed, 1 PostgreSQL-only skip",
+    "stream-shutdown-test.log: 1 passed",
+    "stream-server-typecheck.log: exit 0",
+    "stream-web-typecheck.log: exit 0"
+  ],
+  "limitations": [
+    "No PostgreSQL execution, browser run, full suite, build, deploy, git actions or live database changes were performed. Lead must execute PostgreSQL two-instance gate (including authored kill/reconnect case) and browser recovery/role paths.",
+    "Only local mock IdP behavior was exercised; no hosted authentication, capacity or load claim.",
+    "One already-started storage query may finish after a stream closes because the storage API has no cancellation primitive. The stream releases listeners/timers/queue immediately, schedules no additional checks and cannot deliver its eventual result.",
+    "Authorization is checked immediately before enqueue after its read transaction ends. Bytes already accepted by the HTTP/socket transport cannot be recalled on later revocation.",
+    "Provider generation covers stored organization connections. The operator-configured platform provider remains runtime configuration; changing that configuration across instances requires coordinated operator rollout.",
+    "The event relay remains ephemeral; explicit resync repairs reconnect/queue/partial-event gaps through canonical refetch, without replaying event IDs."
+  ],
+  "changed_files": {
+    "apps/server/src/app.ts": "0a66015e20cff8485136b19a2d93abebeec6af383c1129efea681bf8f526b2ec",
+    "apps/server/src/auth/service.ts": "71bb1be021f0110af7992b16937e0f9cd37ba7b620d5de1bd5c76ee550298f97",
+    "apps/server/src/bus.ts": "6ea4c5b06b7429f0a52db557b6c09b9d3e98951b0bcd138f8df5c9890f2e4a50",
+    "apps/server/src/storage/events.ts": "5e96843f519621c34330e2274053d8bf4906b42b1d7d0c41b6cbbdfacedb293b",
+    "apps/server/src/storage/identity.ts": "509feec94a2abb93d972c86ef49ff8f5b8691346d5e7d8330088b0b5564ad184",
+    "apps/server/src/workspace-events.ts": "a9712fb684b0c3ccfcd81d3ba9338352aaf06afe2d7db9bcde9e5fc9b4ee3648",
+    "apps/server/test/mock-idp.ts": "ed13db8850b8dfe643849d879fea870a0b9b00b7594ce69c9c5fcc5f322809ea",
+    "apps/server/test/relay.test.ts": "43e9a4809bd2dca9c165aee6b8f271b8fe6da0f6d539844020c2754119521976",
+    "apps/server/test/workspace-events.test.ts": "b53ff6cfb5aff81f38352552a32f5bfa43f202dff47d9b11d4da994eea9a94da",
+    "apps/server/test/stream-auth.test.ts": "987cc84a1ba33074f77a4715f5ddba25925dc1cd10749d3c7b3672e03e45d9a2",
+    "apps/server/test/oidc-current.test.ts": "22ba86a2bd535a8b962f829800432b7a5f5b3a86d14a89ce16b41d269cbbea54",
+    "apps/web/src/lib/events.ts": "f94758268be187ef131533e67b8dc1789b805568562cdd25372d49f0d78bc083",
+    "apps/web/test/events.test.ts": "3ddb8c16f613daacdca1f531957ca9e202a25bde5aec222e9f076f981c7e0727"
+  },
+  "report_sha256": "ef392206798ab2a1c64f76a35fefe4e06f6ab1bed910b5430a6a883ae7473e54"
+}

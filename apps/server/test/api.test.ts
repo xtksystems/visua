@@ -686,7 +686,11 @@ describe("agents (offline playbooks) with human-in-the-loop proposals", () => {
     const rw = created.json.workspace.id;
     await api("PATCH", `/api/workspaces/${rw}`, { autonomy: { "create-task": true } });
     const steps: { data?: { proposalId?: string } }[] = [];
-    const recorder = { step: (s: (typeof steps)[number]) => steps.push(s) };
+    // Exercise the actual durable claim before passing a runtime recorder.
+    const queued = { id: "run_rec", workspaceId: rw, agent: "planner" as const, goal: "Review access", input: {}, status: "queued" as const, mode: "offline" as const, steps: [], focusNodeIds: [], createdAt: new Date().toISOString() };
+    await svc.store.runs.put(queued);
+    const claim = await (svc as unknown as { claimRun(run: typeof queued): Promise<{ fence: import("../src/services/run-execution.ts").RunFence }> }).claimRun(queued);
+    const recorder = { fence: claim.fence, step: (s: (typeof steps)[number]) => steps.push(s) };
     const input = { type: "create-task" as const, title: "Review access", rationale: "Quarterly review", payload: { title: "Review access", requirementIds: ["nist-csf-2.0:PR.AA-05"] }, citations: [], confidence: "low" as const, nodeIds: ["nist-csf-2.0:PR.AA-05"] };
     // Applying it under autonomy fails at the audit entry: the whole proposal rolls back, and nothing was recorded.
     const append = svc.store.activity.append.bind(svc.store.activity);

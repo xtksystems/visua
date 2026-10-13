@@ -6,6 +6,13 @@ import { keys } from "./queries.ts";
 import type { AgentStep } from "@visua/core";
 import type { VisuaEvent } from "./types.ts";
 
+/** A gap invalidates every canonical query and discards transient activity from the old delivery epoch. */
+export function resyncWorkspaceEvents(ws: string, invalidate: () => void): void {
+  if (useAgentActivity.getState().workspaceId !== ws) return;
+  useAgentActivity.setState({ steps: [], running: {}, hot: {} });
+  invalidate();
+}
+
 export function useWorkspaceEvents(ws: string | undefined): void {
   const qc = useQueryClient();
   useEffect(() => {
@@ -29,6 +36,9 @@ export function useWorkspaceEvents(ws: string | undefined): void {
         if (groups.some(g => ["state", "tasks", "evidence", "proposals", "checks", "my-work"].includes(g))) {
           void qc.invalidateQueries({ queryKey: ["ws", ws, "attention"] });
         }
+        if (groups.some(g => ["state", "evidence", "tasks", "checks"].includes(g))) {
+          void qc.invalidateQueries({ queryKey: ["ws", ws, "evidence-lineage"] });
+        }
         if (groups.some(g => ["state", "evidence"].includes(g))) {
           void qc.invalidateQueries({ queryKey: ["ws", ws, "evidence-renewal"] });
         }
@@ -37,10 +47,23 @@ export function useWorkspaceEvents(ws: string | undefined): void {
       }, 250);
     };
     // A reconnect can miss events; refresh id-keyed state after every connection.
-    source.addEventListener("open", () => invalidate("all"));
+    const resync = () => {
+      if (!closed) resyncWorkspaceEvents(ws, () => invalidate("all"));
+    };
+    source.addEventListener("open", resync);
+    source.addEventListener("resync", (msg) => {
+      if (closed) return;
+      try {
+        if (JSON.parse((msg as MessageEvent<string>).data).workspaceId === ws) resync();
+      } catch { resync(); }
+    });
     source.addEventListener("visua", (msg) => {
       if (closed || useAgentActivity.getState().workspaceId !== ws) return;
-      const event = JSON.parse((msg as MessageEvent<string>).data) as VisuaEvent;
+      let event: VisuaEvent & { partial?: boolean };
+      try { event = JSON.parse((msg as MessageEvent<string>).data) as VisuaEvent; }
+      catch { resync(); return; }
+      if (event.workspaceId !== ws) return;
+      if (event.partial) { resync(); return; }
       const activity = useAgentActivity.getState();
       switch (event.type) {
         case "agent.step": {

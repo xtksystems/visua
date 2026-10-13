@@ -98,6 +98,21 @@ retry. Generated identifiers and decision timestamps are marked as values set
 when the proposal is applied. File evidence is reviewed through its artifact
 detail screen, where bytes are verified.
 
+Under **Settings → Agent autonomy**, you can allow **Create tasks** and
+**File recorded checks**. Filing checks uses their immutable recorded observation.
+Generated narratives and assessment, scope, target, policy and task-update changes
+still require human review. Earlier grants for other change types no longer apply;
+saving these settings replaces them with the two supported choices.
+
+Crosswalk proposals display the source assessment, mapping authority, relationship
+and calculated suggestion. A mapping does not establish accepted proof. Weak or
+conflicting mappings require direct assessment, and changes to source assessments
+invalidate the earlier projection. Quoted passages identify their corpus source;
+they do not verify the organization or prove an attached conclusion.
+
+Cancelled runs cannot continue writing proposals. If a worker lease expires, the
+run shows an interruption; inspect any existing proposals before starting again.
+
 For a run with multiple pending proposals, **Review all** opens a batch summary
 and every proposed change. **Approve reviewed** processes only the proposals
 in that review. New arrivals are excluded. Conflicting changes to the same
@@ -351,3 +366,12 @@ proof. The matrix is available to readers and makes no assessment changes.
 
 For implementation details, see the [web architecture](architecture.md#5-web-appsweb)
 and the [design system](../DESIGN.md).
+
+## Public trust measures
+
+The trust center shows when its measures were evaluated, the selected framework
+scope, and the implementation and evidence denominators. Open **Calculation
+basis** or **Scope and limitations** for the calculation and time boundary.
+Organization-authored headlines are labeled separately from computed measures.
+Monitoring retains different targets and recorded configurations even when their
+outcomes disagree. An old observation is not a guarantee of current performance.

@@ -1,0 +1,201 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "run-reliability",
+  "worker": "/root/lifecycle_backend",
+  "recorded_at": "2026-10-13T08:39:58.878099+00:00",
+  "status": "complete",
+  "worktree": "/Users/artem/visua/.check/evidence-automation-20261013",
+  "baseline_manifest": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/automation-worktree-baseline.json",
+  "baseline_manifest_sha256": "aa80a0adc12d83ec0bbb4df46987a51c12872d950c9dce7c49564f484d4fd7ed",
+  "summary": [
+    "Implemented durable execution ownership with random owner/attempt identities, monotone epoch and expiring leases; every agent mutation is fenced inside its workspace transaction.",
+    "Cross-instance cancellation and expired/shutdown owners cannot append steps, proposals, connector check artifacts or terminal results, including when network work ignores AbortSignal.",
+    "Queued runs survive process loss; local execution and durable per-workspace queue/concurrency are bounded. RunQueueFullError is exported and the stream/auth lane added HTTP 429 mapping.",
+    "Startup recovers queued work and visibly interrupts abandoned running work without replay or historical backfill. Shutdown aborts/fences active work and drains execution promises within a configured bound.",
+    "Agent step events publish only after durable append and audit commit."
+  ],
+  "changed_files": [
+    {
+      "path": "packages/core/src/types.ts",
+      "absolute_path": "/Users/artem/visua/.check/evidence-automation-20261013/packages/core/src/types.ts",
+      "sha256": "b091929edfe13e5dcdeef47e0390a528d1ddfbe47fa83188cbbdbaa568429072",
+      "baseline_sha256": "dc00306b7062726d4ea92c0ea5c3a77a97f5f9847d09db376bcc431e13cc01d9",
+      "change": "modified",
+      "owned_scope": "Only AgentRun executionEpoch, execution owner/attempt/epoch/heartbeat/lease metadata, and interruptionReason. Citation fields belong to the claims worker."
+    },
+    {
+      "path": "apps/server/src/services/run-execution.ts",
+      "absolute_path": "/Users/artem/visua/.check/evidence-automation-20261013/apps/server/src/services/run-execution.ts",
+      "sha256": "13bdcf03ffd1f81f70126f86433f14ed7c286f8adc3741fd2a4ff432191168f6",
+      "baseline_sha256": null,
+      "change": "added",
+      "owned_scope": "New execution options, limits, fence identity and ownership predicate."
+    },
+    {
+      "path": "apps/server/src/services/visua.ts",
+      "absolute_path": "/Users/artem/visua/.check/evidence-automation-20261013/apps/server/src/services/visua.ts",
+      "sha256": "2a1d20c666e073ed8b9aa0ca4fec42d7ce83ca0b19758f1712d1a2bb2e383b16",
+      "baseline_sha256": "297b5fda2215ae80be7e1a93853b26519c0b76ae54c968d03fde3fdfc0508084",
+      "change": "modified",
+      "owned_scope": "Ordered durable step recording; queued admission and overload; local and durable workspace claim bounds; owner/attempt/epoch leases; renewal/reconciliation; cancellation and shutdown fencing; persisted guards for connector/proposal writes; lifecycle integration. Carried M2 proposal review binding is excluded from this ownership."
+    },
+    {
+      "path": "apps/server/src/storage/store.ts",
+      "absolute_path": "/Users/artem/visua/.check/evidence-automation-20261013/apps/server/src/storage/store.ts",
+      "sha256": "b14344b47e9cfb6e52a756e74a51c6f1a8c3f84bb7ca80dec3716fbbfb427dc2",
+      "baseline_sha256": "60e4eb9c280a9868e062772353b08befad7a92da875d3cb3053cb34c5221c9a3",
+      "change": "modified",
+      "owned_scope": "RunCollection active/owned SQL queries and Store.runs construction/type only."
+    },
+    {
+      "path": "apps/server/src/context.ts",
+      "absolute_path": "/Users/artem/visua/.check/evidence-automation-20261013/apps/server/src/context.ts",
+      "sha256": "175b33033c0b5e8d043daf3e88d829c5e9aa8f1b190d1f4dc59a3e318a0bf757",
+      "baseline_sha256": "0a400ee6179dce5e394d63392b2f6a478bd6d6fadbfb7557077f8f504ced8b2d",
+      "change": "modified",
+      "owned_scope": "ServiceOptions.runOptions and passing options to VisuaService."
+    },
+    {
+      "path": "apps/server/src/server.ts",
+      "absolute_path": "/Users/artem/visua/.check/evidence-automation-20261013/apps/server/src/server.ts",
+      "sha256": "85b4a85749e49d4468c4bb22aa09d8bd326cc6b811f5f9b611cdc037d0088b48",
+      "baseline_sha256": "b24ee5af9525faec68d68ec59a3ef389c267da8710a51bc702fcf228f44ec50a",
+      "change": "modified",
+      "owned_scope": "Start durable run scheduler; stop/fence runs and bounded drain during normal shutdown and startup cleanup."
+    },
+    {
+      "path": "apps/server/test/run-reliability.test.ts",
+      "absolute_path": "/Users/artem/visua/.check/evidence-automation-20261013/apps/server/test/run-reliability.test.ts",
+      "sha256": "bc8dde70fbffc833c463c9a76eae711a13091c3c553081599eda35695ea57070",
+      "baseline_sha256": null,
+      "change": "added",
+      "owned_scope": "Nine deterministic run reliability regression cases, reusable for lead PostgreSQL dedicated fixture."
+    },
+    {
+      "path": "apps/server/test/startup.test.ts",
+      "absolute_path": "/Users/artem/visua/.check/evidence-automation-20261013/apps/server/test/startup.test.ts",
+      "sha256": "752b5940e82f323f6e6e4a5d987c06757d9a940de2f4057e5188dcc69e7b4b72",
+      "baseline_sha256": "f843cf46b0dbc31b8ccbac5101bed50e10850bdc38b6505319e7c12adff66ff9",
+      "change": "modified",
+      "owned_scope": "Adapt two existing lifecycle fixtures to wait for a claimed execution and intercept running-state put, with release cleanup."
+    }
+  ],
+  "carried_changes_not_owned": [
+    {
+      "path": "apps/server/src/services/visua.ts",
+      "source": "Root M2 lead explicit patch",
+      "scope": "createProposal binds expectedReviewId for review-evidence; decideProposal preserves it; applyProposal passes it to reviewEvidence."
+    },
+    {
+      "path": "apps/server/test/evidence-lifecycle.test.ts",
+      "sha256": "b92e551cda0075ad8ea35e6ef60499ab8a5e2b0e1261a7f93d2b894222350bdf",
+      "source": "Root M2 lead explicit copy",
+      "scope": "Carries agent review proposal/withdrawal regression; excluded from M3 owned delta."
+    }
+  ],
+  "api_contract": {
+    "AgentRun": {
+      "executionEpoch": "optional number",
+      "execution": "optional { ownerId: string, attemptId: string, epoch: number, heartbeatAt: ISO string, leaseExpiresAt: ISO string }",
+      "interruptionReason": "optional owner-expired | server-stopped; status remains failed"
+    },
+    "RunExecutionOptions": {
+      "concurrency": 2,
+      "workspaceConcurrency": 1,
+      "maxQueuedPerWorkspace": 32,
+      "leaseMs": 30000,
+      "heartbeatMs": 5000
+    },
+    "queue_error": "RunQueueFullError extends ValidationError; app lane maps to HTTP 429",
+    "startup": "await svc.startRunScheduler()",
+    "shutdown": "await svc.stopRuns(timeoutMs); stop is idempotent and synchronously stops admission/launches; drainRuns() remains natural drain for tests",
+    "trusted_direct_service_path": "createProposal without a RunRecorder is retained; runtime host always supplies one"
+  },
+  "acceptance_evidence": [
+    {
+      "case": "B cancels A while connector ignores abort",
+      "result": "Passed: after release, zero additional steps/proposals/checks/evidence; connector lastRunAt unchanged; audit head unchanged."
+    },
+    {
+      "case": "Concurrent durable claim",
+      "result": "Passed: A/B race produces exactly one invocation and random attempt UUID with epoch 1."
+    },
+    {
+      "case": "Expired lease",
+      "result": "Passed: B visibly fails orphan; old A host proposal and append step refused; no automatic replay."
+    },
+    {
+      "case": "Concurrency and overload",
+      "result": "Passed: one local/workspace slot, durable queued successor, explicit excess rejection and successor eventually executes."
+    },
+    {
+      "case": "Startup recovery/history",
+      "result": "Passed: queued executes, legacy running interrupted, terminal history byte-equivalent, no replay."
+    },
+    {
+      "case": "Terminal cancellation",
+      "result": "Passed: completed and awaiting-approval are no-ops, pending proposals and audit history preserved."
+    },
+    {
+      "case": "Post-commit step publication",
+      "result": "Passed: event observer reads committed step; audit chain valid."
+    },
+    {
+      "case": "Lease heartbeat",
+      "result": "Passed: renewed lease retains owner attempt and epoch."
+    },
+    {
+      "case": "Bounded graceful stop",
+      "result": "Passed: ignored-abort executor is fenced; stop returns within bound; late host actions cannot write."
+    },
+    {
+      "case": "Server cleanup and entrypoint signals",
+      "result": "Passed: claimed execution startup failure drain, pending detached claim write drain, SIGINT/SIGTERM exit."
+    }
+  ],
+  "checks": [
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/run-reliability.test.ts apps/server/test/agent-stages.test.ts apps/server/test/startup.test.ts",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "outcome": "29 passed, 1 failed",
+      "log": "run-reliability-tests.log",
+      "failure": "SIGINT child loaded tools.ts during claims worker concurrent edit and reported missing proposeCrosswalkAssessment export. Both run-aware startup fixture corrections passed."
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/startup.test.ts -t 'exits cleanly'",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "outcome": "2 passed, 12 skipped",
+      "log": "run-reliability-startup-rerun.log",
+      "meaning": "Both affected entrypoint signal cases pass after module export settled. Combined final focused coverage: all 30 unique tests passing; no claim that the main command itself passed."
+    }
+  ],
+  "evidence": [
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/run-reliability-tests.log",
+      "sha256": "119ab2deec677a1bf6e0592f4c23db3d12a13b1ce72ed6fb2381cc3a21f5c020",
+      "outcome": "Main final focused run: 29 passed, 1 failed due to concurrent tools.ts export edit while startup child imported offline.ts."
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/run-reliability-startup-rerun.log",
+      "sha256": "5a6b408bef031897f880540fbd38a8d513a89b444c4a282dcb8f74895a1babfa",
+      "outcome": "Affected startup subprocess cases: 2 passed, 12 skipped. Resolves the main-run transient import failure."
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/run-reliability-stage-tests.log",
+      "sha256": "5353594264d2282ee9fc67d333798ed0bd5534450f32176c900f1176d7bf8a5c",
+      "outcome": "Earlier agent-stages focused run: 7 passed."
+    }
+  ],
+  "limitations": [
+    "Worker ran bounded SQLite focused tests only. The two-service SQLite fixture shares one Store/connection; the same fixture opens independent stores for PostgreSQL, which remains lead-owned and was not run by this worker.",
+    "No full suites, build, browser suite, migration, deployment, git action, dependency modification, live database access or external agent/model dispatch performed. Root M2 application files were not modified.",
+    "New execution metadata is optional for historical records. Startup marks only queued/running work; terminal historical runs are not backfilled. Abandoned running work is failed/interrupted and never automatically replayed.",
+    "Queue options are service configuration (defaults: 2 local executors, 1 executor per workspace, 32 queued per workspace, 30s lease, 5s heartbeat). Scheduler scans at most 256 active records per pass. This is bounded behavior, not a measured pilot capacity claim.",
+    "Uncooperative network work can continue externally after cancellation, but persisted writes require the still-valid owner/attempt/epoch lease under the workspace lock. Shutdown bounds waiting on execution promises; existing server outer deadline also bounds cleanup/database waits.",
+    "Direct recorderless createProposal remains an explicitly trusted service/fixture path. Runtime agent proposal and connector paths carry and validate persisted run fences.",
+    "Whole-file hashes snapshot shared checkout bytes at report time; owned scopes identify only this node delta. Citation type additions and other workers app/auth/claims changes are not claimed here. Lead may subsequently change shared service bytes during strict proposal-validation integration.",
+    "Full integration, independent review, PostgreSQL confirmation and final cross-worker typecheck are lead-owned and pending this report; stream/auth worker separately reported server/web typecheck and 45 auth/stream focused tests passing."
+  ],
+  "next_action": "Lead may integrate strict proposal validation into stable visua.ts, run dedicated PostgreSQL focused suite and cross-worker typecheck, then independent review/integration gate. Preserve run fences and carried M2 expectedReviewId binding.",
+  "uncommitted": true
+}

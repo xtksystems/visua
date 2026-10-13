@@ -156,8 +156,8 @@ function EvidenceWorkspace() {
   }, [evidence, filter]);
   const latestChecks = useMemo(() => {
     const seen = new Set<string>();
-    return checks.filter((c) => {
-      const key = `${c.connectorId}|${c.checkId}`;
+    return [...checks].sort((a, b) => Date.parse(b.observedAt) - Date.parse(a.observedAt) || b.id.localeCompare(a.id)).filter((c) => {
+      const key = JSON.stringify([c.connectorId, c.checkId, c.source?.configHash ?? null]);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -298,7 +298,7 @@ function EvidenceWorkspace() {
                   </button>
                 </div>
                 <div className="muted wrap-anywhere" style={{ fontSize: 12, marginBottom: 10 }}>
-                  {c.kind} · {Object.values(c.config).map(String).join(" ")} · {c.lastRunAt ? `last run ${relativeTime(c.lastRunAt)}` : "never run"}
+                  Current settings: {c.kind} · {Object.values(c.config).map(String).join(" ")} · {c.lastRunAt ? `last run ${relativeTime(c.lastRunAt)}` : "never run"}
                 </div>
                 <div className="stack" style={{ gap: 8 }}>
                   {results.map((r) => (
@@ -308,6 +308,9 @@ function EvidenceWorkspace() {
                       </span>
                       <div style={{ minWidth: 0 }}>
                         <div>{r.title}</div>
+                        <div className="muted" style={{ fontSize: 12 }}>
+                          Observed <time dateTime={r.observedAt} title={r.observedAt}>{relativeTime(r.observedAt)}</time> · <span title={r.source?.configHash}>recorded configuration {r.source?.configHash?.slice(0, 8) ?? "not recorded"}</span>
+                        </div>
                         <div className="muted" style={{ fontSize: 12 }}>
                           {truncate(r.detail, 140)}
                         </div>

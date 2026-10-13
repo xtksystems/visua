@@ -11,13 +11,16 @@ import {
   isEvidenceValid,
   levelLabel,
   obligationTiming,
+  projectLevels,
+  type ProjectedLevel,
   type Citation,
+  type CheckResult,
   type Evidence,
   type FrameworkFamily,
   type RequirementNode,
   type Task,
 } from "@visua/core";
-import { STATUS_RANK, coverageGroup, threatPaths, type SearchHit } from "@visua/frameworks";
+import { STATUS_RANK, coverageGroup, corpusChunkSha256, threatPaths, type SearchHit } from "@visua/frameworks";
 import type { AgentHost } from "./host.ts";
 import { licensedTextToModel, WITHHELD_NOTICE } from "./mode.ts";
 
@@ -34,14 +37,18 @@ const defineTool = <S extends z.ZodType>(tool: AgentTool<S>): AgentTool<S> => to
 
 const Level = z.number().int().min(0).max(4);
 const CitationInput = z.object({
+  chunkId: z.string().min(1).optional().describe("Stable chunk id returned by search_corpus"),
+  chunkSha256: z.string().regex(/^[a-f0-9]{64}$/).optional(),
   documentId: z.string().describe("Corpus document id returned by search_corpus"),
-  page: z.number().int().optional(),
+  page: z.number().int().positive().optional(),
   locator: z.string().optional(),
-  quote: z.string().describe("Short verbatim quote from the corpus passage"),
+  quote: z.string().min(1).max(600).describe("Exact contiguous quote from the corpus passage; do not invent text or add ellipses"),
 });
 
 export function hitToCitation(hit: SearchHit): Citation {
   return {
+    chunkId: hit.chunk.id,
+    chunkSha256: corpusChunkSha256(hit.chunk),
     documentId: hit.chunk.documentId,
     documentTitle: hit.chunk.documentTitle,
     locator: hit.chunk.locator,
@@ -50,16 +57,16 @@ export function hitToCitation(hit: SearchHit): Citation {
   };
 }
 
-function normalizeCitations(host: AgentHost, input: z.infer<typeof CitationInput>[] | undefined): Citation[] {
-  return (input ?? [])
-    .filter((c) => host.registry.documents.has(c.documentId))
-    .map((c) => ({
-      documentId: c.documentId,
-      documentTitle: host.registry.documentTitle(c.documentId),
-      page: c.page,
-      locator: c.locator,
-      quote: c.quote.slice(0, 600),
-    }));
+function normalizeCitations(host: AgentHost, input: z.infer<typeof CitationInput>[] | undefined): { ok: true; citations: Citation[] } | { ok: false; error: string } {
+  const citations: Citation[] = [];
+  for (const reference of input ?? []) {
+    if (!host.registry.documents.has(reference.documentId)) return { ok: false, error: "Citation document is not in the current corpus." };
+    if (!passageAllowed(host, reference.documentId)) return { ok: false, error: "Citation text from this document is unavailable to this model session." };
+    const resolved = host.registry.search.resolveCitation(reference);
+    if (!resolved.ok) return resolved;
+    citations.push(resolved.citation);
+  }
+  return { ok: true, citations };
 }
 
 function familyOf(host: AgentHost, nodeId: string): FrameworkFamily {
@@ -293,7 +300,7 @@ export function statusOf(host: AgentHost, nodeId: string) {
 export const searchCorpus = defineTool({
   name: "search_corpus",
   description:
-    "Search the local official documentation corpus (NIST CSF 2.0, NIST RMF / SP 800-53 family, AICPA SOC 2, NIST AI RMF with the Generative AI Profile, NIST AI 100-2 and NIST's AI overlays, U.S. state AI laws, and the AI threat catalogs: MITRE ATLAS and the OWASP Top 10s) and return citable passages with document id, title and page. Use it before making any claim about what a framework, law or threat catalog says.",
+    "Search the local official documentation corpus (NIST CSF 2.0, NIST RMF / SP 800-53 family, AICPA SOC 2, NIST AI RMF with the Generative AI Profile, NIST AI 100-2 and NIST's AI overlays, U.S. state AI laws, and the AI threat catalogs: MITRE ATLAS and the OWASP Top 10s) and return citable passages with stable chunk id, content hash, document id, title and location. Use it before making any claim about what a framework, law or threat catalog says.",
   schema: z.object({
     query: z.string().min(2).describe("Keywords or a question, e.g. 'backups tested restore', 'GV.SC-07 supplier risk', 'CA-SB243 suicide protocol' or 'AML.T0051 prompt injection'"),
     framework: z
@@ -307,7 +314,7 @@ export const searchCorpus = defineTool({
     const citations = hits.map(hitToCitation);
     if (citations.length) host.step({ type: "citation", title: `Corpus: “${short(input.query, 60)}”`, citations });
     return {
-      hits: citations.map((c) => ({ documentId: c.documentId, documentTitle: c.documentTitle, page: c.page, locator: c.locator, quote: passageAllowed(host, c.documentId) ? c.quote : WITHHELD_NOTICE })),
+      hits: citations.map((c) => ({ chunkId: c.chunkId, chunkSha256: c.chunkSha256, documentId: c.documentId, documentTitle: c.documentTitle, page: c.page, locator: c.locator, quote: passageAllowed(host, c.documentId) ? c.quote : WITHHELD_NOTICE })),
     };
   },
 });
@@ -482,17 +489,50 @@ export const proposeAssessment = defineTool({
     if (refused || !node) return { error: refused };
     const family = familyOf(host, node.id);
     const prev = host.state(node.id);
+    const resolved = normalizeCitations(host, input.citations);
+    if (!resolved.ok) return { error: resolved.error };
     const proposal = await host.propose({
       type: "set-level",
       title: `${node.code}: ${levelLabel(family, prev?.current ?? 0)} → ${levelLabel(family, input.current)}`,
       rationale: input.rationale,
       payload: { nodeId: node.id, current: input.current },
-      citations: normalizeCitations(host, input.citations),
+      citations: resolved.citations,
       confidence: input.confidence,
       nodeIds: [node.id],
     });
     return { proposalId: proposal.id, status: proposal.status };
   },
+});
+
+/** Trusted projection: recompute from recorded mappings/states instead of accepting a model's claimed basis. */
+export async function proposeCrosswalkAssessment(host: AgentHost, nodeId: string): Promise<{ error: string } | { proposalId: string; status: string; projection: ProjectedLevel }> {
+  const node = resolveNode(host, nodeId);
+  const refused = cannotAssess(host, node, nodeId, true);
+  if (refused || !node) return { error: refused ?? "Unknown requirement" };
+  const states = new Map(host.states().filter(state => frameworkEnabled(host, frameworkOf(state.nodeId))).map(state => [state.nodeId, state]));
+  const [projection] = projectLevels(host.registry.crosswalk, [node.id], states, id => host.registry.framework(id)?.graph.framework.family);
+  if (!projection || projection.confidence === "low") return { error: "Mappings do not support a projection above low confidence; inspect the target requirement directly." };
+  const previous = host.state(node.id);
+  if (!previous?.applicable || projection.suggested <= previous.current) return { error: "No higher in-scope implementation level is supported by the recorded mappings." };
+  const sources = projection.sources.map(source => `${source.nodeId} at ${source.levelLabel} (${source.family}; ${source.relationship}; authority: ${source.authority}; mapping: ${source.mappingSetId}; source: ${source.citation.documentId}; status: ${source.status ?? "not recorded"})`).join("; ");
+  const proposal = await host.propose({
+    type: "set-level",
+    title: `${node.code}: proposed ${levelLabel(projection.targetFamily, projection.suggested)}`,
+    rationale: `${projection.reasons.join(" ")} Mapping basis: ${sources}`,
+    payload: { nodeId: node.id, current: projection.suggested, projection },
+    citations: [],
+    confidence: projection.confidence,
+    nodeIds: [node.id],
+  });
+  return { proposalId: proposal.id, status: proposal.status, projection };
+}
+
+export const proposeCrosswalk = defineTool({
+  name: "propose_crosswalk_assessment",
+  description: "Propose a mapped implementation assessment for a target requirement. Visua computes the level, confidence and mapping sources from current source assessments; weak mappings cannot propose a level. A mapping is not accepted evidence.",
+  writes: true,
+  schema: z.object({ nodeId: z.string().min(1).max(300) }).strict(),
+  run: (host, input) => proposeCrosswalkAssessment(host, input.nodeId),
 });
 
 export const proposeTarget = defineTool({
@@ -586,12 +626,14 @@ export const proposePolicy = defineTool({
     const { nodes, error } = linkable(host, input.requirementIds);
     if (error) return { error };
     if (!nodes.length) return { error: "None of the requirementIds are known" };
+    const resolved = normalizeCitations(host, input.citations);
+    if (!resolved.ok) return { error: resolved.error };
     const proposal = await host.propose({
       type: "create-policy",
       title: `Draft: ${input.title}`,
       rationale: `Policy draft covering ${nodes.map((n) => n.code).join(", ")}`,
       payload: { title: input.title, body: input.body, requirementIds: nodes.map((n) => n.id) },
-      citations: normalizeCitations(host, input.citations),
+      citations: resolved.citations,
       confidence: "medium",
       nodeIds: nodes.map((n) => n.id),
     });
@@ -716,19 +758,22 @@ export const runChecks = defineTool({
     if (!connectors.length) return { error: "No active connectors. Ask the user to add one in Evidence → Connectors." };
     const out = [];
     // Evidence from the same check that stays valid for another week needs no new proposal.
-    const onFile = (connectorId: string, checkId: string) =>
+    const onFile = (connectorId: string, result: CheckResult) =>
       host
         .evidence()
-        .some((e) => e.connectorId === connectorId && (e.data as { checkId?: string } | undefined)?.checkId === checkId && isEvidenceValid(e, new Date(Date.now() + 7 * 86_400_000)));
+        .some((e) => e.connectorId === connectorId && (e.data as { checkId?: string } | undefined)?.checkId === result.checkId
+          && e.provenance?.check?.sourceConfigHash === result.source?.configHash
+          && result.requirementIds.every(id => e.requirementIds.includes(id))
+          && isEvidenceValid(e, new Date(Date.now() + 7 * 86_400_000)));
     for (const c of connectors) {
       const results = await host.runConnector(c.id);
       const proposed: string[] = [];
-      for (const r of results.filter((x) => x.outcome === "pass" && x.requirementIds.length && !x.evidenceId && !onFile(c.id, x.checkId))) {
+      for (const r of results.filter((x) => x.outcome === "pass" && x.requirementIds.length && !x.evidenceId && !onFile(c.id, x))) {
         const proposal = await host.propose({
           type: "create-evidence",
           title: `${c.name}: ${r.title}`,
           rationale: `Passing automated check from the ${c.name} connector, observed ${r.observedAt.slice(0, 16).replace("T", " ")} UTC: ${short(r.detail, 200)}`,
-          payload: { checkResultId: r.id, title: `${c.name}: ${r.title}`, kind: "automated-check", requirementIds: r.requirementIds, content: r.detail },
+          payload: { checkResultId: r.id },
           citations: [],
           confidence: "high",
           nodeIds: r.requirementIds,
@@ -757,9 +802,10 @@ export const crosswalk = defineTool({
     host.step({ type: "thought", title: `Crosswalk for ${node.code}: ${edges.length} mapping(s)`, nodeIds: [node.id, ...edges.slice(0, 12).map((e) => e.to)] });
     return {
       node: node.code,
+      note: "Mappings are implementation assessment references, not observed evidence or accepted proof. Family levels are not interchangeable.",
       mappings: edges.slice(0, 40).map((e) => {
         const t = host.registry.node(e.to);
-        return { id: e.to, code: codeOf(e.to), framework: frameworkOf(e.to), relationship: e.relationship, authority: e.authority, text: t ? short(modelText(t), 120) : undefined, current: host.state(e.to)?.current };
+        return { id: e.to, code: codeOf(e.to), framework: frameworkOf(e.to), relationship: e.relationship, authority: e.authority, mappingSetId: e.mappingSetId, source: e.citation, status: e.status ?? "unrecorded", strength: e.strength, text: t ? short(modelText(t), 120) : undefined, current: host.state(e.to)?.current };
       }),
     };
   },
@@ -796,6 +842,7 @@ export const ALL_TOOLS = [
   listEvidence,
   focus,
   proposeAssessment,
+  proposeCrosswalk,
   proposeTarget,
   proposeApplicability,
   proposeTask,

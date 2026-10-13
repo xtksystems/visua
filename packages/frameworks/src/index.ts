@@ -11,7 +11,7 @@ import { buildTscGraph, loadDescriptionCriteria, TSC_ID, type DescriptionCriteri
 import { ThreatLinkIndex } from "./threat-links.ts";
 
 export { CORPUS_DIR, DATA_DIR, REPO_ROOT } from "./paths.ts";
-export { CorpusSearch, tokenize, bestQuote, type CorpusChunk, type SearchHit } from "./search.ts";
+export { CorpusSearch, tokenize, bestQuote, corpusChunkSha256, type CorpusChunk, type SearchHit, type CorpusReference, type ResolvedCorpusCitation, type CitationResolution } from "./search.ts";
 export { buildTscGraph, loadDescriptionCriteria, TSC_ID, type DescriptionCriterion } from "./ingest/tsc.ts";
 export { CYBER_AI_PROFILE_ID, COSAIS_PREDICTIVE_ID } from "./ingest/ai-overlays.ts";
 export { STATE_LAWS_ID } from "./ingest/state-laws.ts";

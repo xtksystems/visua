@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
-import type { Evidence, RequirementNode } from "@visua/core";
+import { evidenceReviewScope, type Evidence, type RequirementNode, type CheckResult } from "@visua/core";
 import type { AgentHost } from "../src/host.ts";
-import { getRequirement, listEvidence, modelEvidenceTitle, proposeEvidence } from "../src/tools.ts";
+import { getRequirement, listEvidence, modelEvidenceTitle, proposeEvidence, runChecks } from "../src/tools.ts";
 
 const saved = { ...process.env };
 afterEach(() => { process.env = { ...saved }; });
@@ -73,6 +73,20 @@ describe("evidence provenance at model boundaries", () => {
     delete process.env["VISUA_AICPA_AI_USE"];
     const publicItem = { ...item, title: "Customer configuration export", restrictedContent: false, contentSourceDocumentIds: [], contentRequirementIds: [requirement.id] };
     expect(modelEvidenceTitle(host(publicItem), publicItem)).toBe(publicItem.title);
+  });
+
+  it("does not let accepted evidence from an old target configuration suppress a new check", async () => {
+    const old: Evidence = { ...item, id: "old-check", kind: "automated-check", source: "connector", connectorId: "connector", status: "accepted", sha256: "a".repeat(64), reviewedAt: "2026-10-01T00:00:00.000Z", reviewedBy: "reviewer", data: { checkId: "access" }, provenance: { origin: "connector-check", recordedBy: "connector", recordedAt: item.createdAt, originalRequirementIds: [requirement.id], sourceDocumentIds: [], restrictedContent: false, check: { resultId: "old-result", connectorId: "connector", connectorKind: "fixture", connectorName: "Fixture", checkId: "access", observedAt: item.collectedAt, sourceConfigHash: "old-config" } } };
+    old.reviewHistory = [{ id: "review", decision: "accepted", reviewedAt: old.reviewedAt!, reviewedBy: old.reviewedBy!, scope: evidenceReviewScope(old) }];
+    const result: CheckResult = { id: "new-result", workspaceId: item.workspaceId, connectorId: "connector", checkId: "access", title: "Access", outcome: "pass", detail: "Observed", requirementIds: [requirement.id], observed: {}, observedAt: new Date().toISOString(), source: { connectorKind: "fixture", connectorName: "Fixture", configHash: "new-config" } };
+    const proposed: unknown[] = [];
+    const api = { ...host(old), connectors: () => [{ id: "connector", name: "Fixture", status: "active" }], runConnector: async () => [result], propose: async (input: { payload: unknown }) => { proposed.push(input.payload); return { id: "proposal" }; } } as unknown as AgentHost;
+    await runChecks.run(api, {});
+    expect(proposed).toEqual([{ checkResultId: "new-result" }]);
+    proposed.length = 0;
+    result.source!.configHash = "old-config";
+    await runChecks.run(api, {});
+    expect(proposed).toEqual([]);
   });
 
   it("accepts withdrawal filters and refuses generated check, attestation, or approved-policy claims", () => {

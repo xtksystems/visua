@@ -11,9 +11,11 @@ import { Hono, type Context } from "hono";
 import { compress } from "hono/compress";
 import { etag } from "hono/etag";
 import { getCookie } from "hono/cookie";
-import { streamSSE } from "hono/streaming";
+import { workspaceEventStream } from "./workspace-events.ts";
 import { z } from "zod";
 import { readinessProbe } from "./readiness.ts";
+import { readJsonBody, RequestControlError, RequestControls, type RequestControlConfig } from "./request-controls.ts";
+import type { Diagnostics } from "./diagnostics.ts";
 import {
   EXAMPLE_INFORMATION_TYPES,
   LEVEL_SCALES,
@@ -50,7 +52,8 @@ import { frameworkState, leanGraph, nodeDetail, workspaceSummary } from "./servi
 import { recordScoreObservation } from "./services/score-history.ts";
 import { workspaceAttention } from "./services/attention.ts";
 import { workspaceEvidenceRenewal } from "./services/evidence-renewal.ts";
-import { NotFoundError, ValidationError, type VisuaService } from "./services/visua.ts";
+import { latestMonitoringChecks, publicTrust } from "./services/trust.ts";
+import { RunQueueFullError, NotFoundError, ValidationError, type VisuaService } from "./services/visua.ts";
 import { ConnectorCapacityError } from "./connectors/limits.ts";
 import { isWorkDate } from "./services/work.ts";
 import { BlobStoreError, MAX_BLOB_BYTES } from "./blobs/index.ts";
@@ -258,12 +261,7 @@ const Schemas = {
 };
 
 async function body<T extends z.ZodType>(c: Context, schema: T): Promise<z.infer<T>> {
-  let json: unknown;
-  try {
-    json = await c.req.json();
-  } catch {
-    throw new ValidationError("Request body must be JSON");
-  }
+  const json = await readJsonBody(c.req.raw);
   const parsed = schema.safeParse(json);
   if (!parsed.success) throw new ValidationError(z.prettifyError(parsed.error));
   return parsed.data;
@@ -282,16 +280,23 @@ const MIME: Record<string, string> = {
 /** Inside the corpus and outside every non-redistributable `.local/` folder (in any letter case). */
 const servable = (path: string) => !!path && !path.startsWith("..") && !isAbsolute(path) && !path.split(sep).some((p) => p.toLowerCase() === ".local");
 
-export function createApp(svc: VisuaService, auth: AuthService = new AuthService(svc, loadAuthConfig()), lifecycle: { stopping: boolean; signal?: AbortSignal } = { stopping: false }): Hono<AppEnv> {
+export function createApp(svc: VisuaService, auth: AuthService = new AuthService(svc, loadAuthConfig()), lifecycle: { stopping: boolean; signal?: AbortSignal } = { stopping: false }, controlsOptions: { config?: RequestControlConfig; diagnostics?: Diagnostics } = {}): Hono<AppEnv> {
   const app = new Hono<AppEnv>();
   const databaseReady = readinessProbe(svc.store);
+  const controls = new RequestControls(controlsOptions.config, controlsOptions.diagnostics, lifecycle.signal);
+  svc.store.onClose(async () => controls.close());
 
   app.onError((err, c) => {
+    if (err instanceof RequestControlError) {
+      if (err.retryAfter !== undefined) c.header("Retry-After", String(err.retryAfter));
+      return c.json({ error: err.message }, err.status);
+    }
     if (err instanceof ProposalReviewConflict) return c.json({ error: err.message }, 409);
     if (err instanceof EvidenceUploadError) return c.json({ error: err.message }, err.status);
     if (err instanceof BlobStoreError) return c.json({ error: "The evidence file is unavailable or could not be verified. Try again or contact your administrator." }, 503);
     if (err instanceof ConnectorCapacityError) return c.json({ error: err.message }, 503);
     if (err instanceof NotFoundError) return c.json({ error: err.message }, 404);
+    if (err instanceof RunQueueFullError) return c.json({ error: err.message }, 429);
     if (err instanceof ValidationError) return c.json({ error: err.message }, 400);
     if (err instanceof UnauthorizedError) return c.json({ error: err.message }, 401);
     if (err instanceof ForbiddenError) return c.json({ error: err.message }, 403);
@@ -317,7 +322,9 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
     }
     return next();
   });
-  app.use("*", authenticate(auth));
+  app.use("/api/*", controls.beforeAuth());
+  app.use("/api/*", authenticate(auth));
+  app.use("/api/*", controls.afterAuth());
   app.use("/api/*", requireSignIn());
   app.use("/api/*", csrfProtection(auth));
   authRoutes(app, auth);
@@ -686,7 +693,7 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
     return c.json(await svc.createConnector(wsId(c), input, actorOf(c)), 201);
   });
   app.post("/api/workspaces/:ws/connectors/:id/run", async (c) => c.json(await svc.runConnector(wsId(c), c.req.param("id"), actorOf(c))));
-  app.get("/api/workspaces/:ws/checks", async (c) => c.json(await svc.store.checks.recent(wsId(c), 200)));
+  app.get("/api/workspaces/:ws/checks", async (c) => c.json(latestMonitoringChecks(await svc.store.checks.list(wsId(c)), new Date())));
   app.get("/api/workspaces/:ws/checks/:id", async (c) => {
     const check = await svc.store.checks.get(c.req.param("id"));
     if (!check || check.workspaceId !== wsId(c)) throw new NotFoundError("Observation not found");
@@ -755,42 +762,22 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
 
   app.get("/api/workspaces/:ws/events", async (c) => {
     const ws = wsOf(c);
-    return streamSSE(c, async (stream) => {
-      const queue: string[] = [];
-      let wake: (() => void) | undefined;
-      const unsubscribe = svc.bus.subscribe(ws.id, (event) => {
-        queue.push(JSON.stringify(event));
-        wake?.();
-      });
-      let open = true;
-      const close = () => {
-        open = false;
-        unsubscribe();
-        wake?.();
-      };
-      stream.onAbort(close);
-      lifecycle.signal?.addEventListener("abort", close, { once: true });
-      if (lifecycle.stopping) close();
-      try {
-        if (open) await stream.writeSSE({ event: "ready", data: JSON.stringify({ workspaceId: ws.id }) });
-        while (open) {
-          while (open && queue.length) {
-            const data = queue.shift()!;
-            await stream.writeSSE({ event: "visua", data });
-          }
-          if (!open) break;
-          // Wake on the next event, or after 15 s for a keep-alive ping (one timer at a time).
-          await new Promise<void>((r) => {
-            const timer = setTimeout(r, 15_000);
-            wake = () => { clearTimeout(timer); r(); };
-          });
-          wake = undefined;
-          if (open && !queue.length) await stream.writeSSE({ event: "ping", data: String(Date.now()) });
-        }
-      } finally {
-        close();
-        lifecycle.signal?.removeEventListener("abort", close);
-      }
+    const bearer = c.req.header("authorization");
+    const credential = bearer?.toLowerCase().startsWith("bearer ")
+      ? { kind: "token" as const, value: bearer.slice(7).trim() }
+      : { kind: "user" as const, value: getCookie(c, cookieName(auth)) ?? "" };
+    const expected = principalOf(c);
+    const body = workspaceEventStream({
+      bus: svc.bus,
+      workspaceId: ws.id,
+      authorize: () => auth.assertWorkspaceAccess(credential, expected, ws.id, ws.tenantId),
+      signals: [c.req.raw.signal, lifecycle.signal],
+      stopping: lifecycle.stopping,
+    });
+    return c.newResponse(body, 200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "Connection": "keep-alive",
     });
   });
 
@@ -823,21 +810,7 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
   });
 
   app.get("/api/trust/:slug", async (c) => {
-    const ws = await svc.store.workspaces.get(c.req.param("slug"));
-    if (!ws || ws.slug !== c.req.param("slug") || !ws.trustCenter.enabled) throw new NotFoundError("Trust center not found");
-    const [summary, checks] = await Promise.all([workspaceSummary(svc, ws), svc.store.checks.recent(ws.id, 100)]);
-    return c.json({
-      name: ws.name,
-      headline: ws.trustCenter.headline ?? `${ws.name} security & compliance`,
-      contactEmail: ws.trustCenter.contactEmail,
-      // Only the frameworks the workspace publishes (state AI laws stay private unless chosen).
-      frameworks: summary.frameworks.filter((f) => f.onTrustCenter).map((f) => ({ id: f.id, name: f.shortName, readiness: Math.round(f.readiness * 100), evidenceCoverage: Math.round(f.evidenceCoverage * 100) })),
-      policies: summary.policies.filter((p) => p.status === "approved" || p.status === "published").map((p) => ({ title: p.title, version: p.version })),
-      monitoring: checks
-        .filter((ch, i, all) => all.findIndex((x) => x.checkId === ch.checkId) === i)
-        .map((ch) => ({ title: ch.title, outcome: ch.outcome, observedAt: ch.observedAt })),
-      updatedAt: ws.updatedAt,
-    });
+    return c.json(await publicTrust(svc, c.req.param("slug"), new Date()));
   });
 
   return app;

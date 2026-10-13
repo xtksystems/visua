@@ -1,5 +1,5 @@
 import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
-import { newId, type OrganizationProfile, type Proposal, type ProposalBatchPreview, type ProposalBatchResult, type ProposalPreview, type ProposalType } from "@visua/core";
+import { projectLevels, newId, type OrganizationProfile, type Proposal, type ProposalBatchPreview, type ProposalBatchResult, type ProposalPreview, type ProposalType } from "@visua/core";
 import { FrameworkRegistry } from "@visua/frameworks";
 import { createApp } from "../src/app.ts";
 import { loadAuthConfig } from "../src/auth/config.ts";
@@ -66,6 +66,73 @@ describe(`authoritative proposal review (${db.dialect})`, () => {
       if (item.type === "set-rmf") expect(inspected.affectedRequirementIds.some((id) => id.startsWith("nist-sp-800-53-r5:"))).toBe(true);
       expect((await preview(base, p)).reviewToken, `stable ${item.type} token`).toBe(inspected.reviewToken);
     }
+  });
+
+  it("binds real corpus passages and rejects fabricated or relocated quotes before storing", async () => {
+    const { ws, run } = await fixture();
+    const hit = registry.search.search("access identities", { framework: "nist-csf-2.0", limit: 1 })[0]!;
+    expect(hit).toBeDefined();
+    const citation = { documentId: hit.chunk.documentId, documentTitle: "Caller title", quote: hit.chunk.text.slice(0, 150), chunkId: hit.chunk.id, page: hit.chunk.page, locator: hit.chunk.locator };
+    const input = { type: "set-level" as const, payload: { nodeId: A, current: 1 }, title: "Review access", rationale: "Compare source and observed state", confidence: "medium" as const, nodeIds: [A], citations: [citation] };
+    await expect(svc.createProposal(ws, run, { ...input, citations: [{ ...citation, quote: "Fabricated organization certification 917638" }] })).rejects.toThrow(/does not match/);
+    await expect(svc.createProposal(ws, run, { ...input, citations: [{ ...citation, page: 99999 }] })).rejects.toThrow();
+    expect(await svc.store.proposals.list(ws)).toHaveLength(0);
+    const accepted = await svc.createProposal(ws, run, input);
+    expect(accepted.citations[0]).toMatchObject({ documentTitle: hit.chunk.documentTitle, chunkId: hit.chunk.id, chunkSha256: expect.stringMatching(/^[a-f0-9]{64}$/) });
+    const view = await svc.previewProposal(ws, accepted.id);
+    expect(view.unresolvedQuestions.join(" ")).toContain("does not verify this organization");
+  });
+
+  it("keeps mapping authority visible and rejects edited, stale, or weak projections", async () => {
+    const { ws, run } = await fixture();
+    const source = "nist-sp-800-53-r5:AC-2";
+    await svc.enableFramework(ws, "nist-sp-800-53-r5");
+    await svc.updateState(ws, source, { current: 3 });
+    const edge = { from: A, to: source, relationship: "equivalent" as const, reverseRelationship: "equivalent" as const, authority: "Synthetic publisher", mappingSetId: "synthetic-test-map", citation: { documentId: "synthetic-reference", locator: "Map row 1" }, status: "final" as const };
+    vi.spyOn(registry.crosswalk, "related").mockImplementation(id => id === A ? [edge] : []);
+    const projected = async () => projectLevels(registry.crosswalk, [A], new Map((await svc.store.states.list(ws)).map(state => [state.nodeId, state])), id => registry.framework(id)?.graph.framework.family)[0]!;
+    const projection = await projected();
+    const input = { type: "set-level" as const, title: "Projected implementation", rationale: "Compare the mapped assessment", confidence: projection.confidence, payload: { nodeId: A, current: projection.suggested, projection }, nodeIds: [A], citations: [] };
+    const proposal = await svc.createProposal(ws, run, input);
+    const view = await svc.previewProposal(ws, proposal.id);
+    expect(view.canApprove).toBe(true);
+    expect(view.sources).toContainEqual(expect.objectContaining({ kind: "requirement", id: source, detail: expect.objectContaining({ authority: "Synthetic publisher", relationship: "equivalent", level: 3, targetFamily: "csf" }) }));
+    expect(view.unresolvedQuestions.join(" ")).toContain("A mapping is not observed evidence");
+    expect((await svc.decideProposal(ws, proposal.id, "approved", "reviewer", { projection: undefined })).status).toBe("failed");
+    expect((await svc.store.states.get(ws, A))!.current).toBe(0);
+    const fresh = await svc.createProposal(ws, run, input);
+    await svc.updateState(ws, source, { current: 1 });
+    expect((await svc.previewProposal(ws, fresh.id)).canApprove).toBe(false);
+    expect((await svc.decideProposal(ws, fresh.id, "approved")).status).toBe("failed");
+    vi.mocked(registry.crosswalk.related).mockImplementation(id => id === A ? [{ ...edge, status: "draft" }] : []);
+    const weak = await projected();
+    await expect(svc.createProposal(ws, run, { ...input, confidence: weak.confidence, payload: { nodeId: A, current: weak.suggested, projection: weak } })).rejects.toThrow(/projection no longer matches/);
+  });
+
+  it("keeps old broad autonomy grants inert and narratives under human review", async () => {
+    const { ws, propose } = await fixture();
+    const current = await svc.workspace(ws);
+    // Represent an existing installation without rewriting its historical record.
+    await svc.store.workspaces.put({ ...current, autonomy: { "set-level": true, "review-evidence": true, "create-policy": true, "create-evidence": true, "create-task": true } });
+    await expect(svc.updateWorkspace(ws, { autonomy: { "set-level": true } })).rejects.toThrow(/only creating tasks/);
+    expect((await propose("set-level", { nodeId: A, current: 3 })).status).toBe("pending");
+    expect((await svc.store.states.get(ws, A))!.current).toBe(0);
+    expect((await propose("create-evidence", { title: "Generated report", content: "Narrative for review", requirementIds: [A] })).status).toBe("pending");
+    expect(await svc.store.evidence.list(ws)).toEqual([]);
+    expect((await propose("create-task", { title: "Inspect access", requirementIds: [A] })).status).toBe("applied");
+    expect((await svc.store.tasks.list(ws)).some(task => task.title === "Inspect access")).toBe(true);
+  });
+
+  it("refuses crosswalk run assessments that omit their projection, including legacy stored proposals", async () => {
+    const { ws, run, propose } = await fixture();
+    const legacy = await propose("set-level", { nodeId: A, current: 4 });
+    const record = (await svc.store.runs.get(run))!;
+    await svc.store.runs.put({ ...record, agent: "crosswalk-analyst" });
+    await expect(propose("set-level", { nodeId: A, current: 4 })).rejects.toThrow(/require a recorded mapping projection/);
+    expect((await svc.previewProposal(ws, legacy.id)).canApprove).toBe(false);
+    const decided = await svc.decideProposal(ws, legacy.id, "approved");
+    expect(decided.status).toBe("failed");
+    expect((await svc.store.states.get(ws, A))!.current).toBe(0);
   });
 
   it("preview leaves persisted rows, revision, audit and events untouched and performs no blob reads", async () => {
@@ -312,7 +379,8 @@ describe(`authoritative proposal review (${db.dialect})`, () => {
     const connector = await svc.createConnector(ws, { kind: "repo-scan", name: "Stored connector", config: { path: "." } });
     const check = { id: newId("check"), workspaceId: ws, connectorId: connector.id, checkId: "access", title: "Stored check", detail: "Observed access configuration", outcome: "pass" as const, requirementIds: [A], observedAt: "2026-01-01T00:00:00.000Z", observed: { enabled: true, id: "ev_external", at: "2026-01-01", by: "External observer", steps: ["first", "second"] } };
     await svc.store.checks.put(check);
-    const p = await propose("create-evidence", { checkResultId: check.id, title: "Ignore invented title", content: "Ignore invented content", requirementIds: [B] });
+    await expect(propose("create-evidence", { checkResultId: check.id, title: "Invented title", content: "Invented content", requirementIds: [B] })).rejects.toThrow("Invalid create-evidence proposal");
+    const p = await propose("create-evidence", { checkResultId: check.id });
     const inspected = await preview(base, p);
     expect(inspected.affectedRequirementIds).toEqual([A]);
     expect(inspected.sources[0]?.detail).toMatchObject({ ...check, connector: { id: connector.id, name: connector.name } });

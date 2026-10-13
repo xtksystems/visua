@@ -199,7 +199,8 @@ describe("crosswalk", () => {
     title: "test",
     sourceFramework: "test-csf",
     targetFramework: "test-soc2",
-    authority: "Test",
+    authority: "Test publisher",
+    status: "final",
     mappings: [
       { source: "test-csf:PR.AA-01", target: "test-soc2:CC6.1", relationship: "intersects-with", origin: { documentId: "d", authority: "Test" } },
       { source: "test-csf:PR.AA-03", target: "test-soc2:CC6.1", relationship: "equivalent", origin: { documentId: "d", authority: "Test" } },
@@ -217,9 +218,11 @@ describe("crosswalk", () => {
 
   it("projects progress with confidence", () => {
     const states = new Map([state("PR.AA-01", 2, 3), state("PR.AA-03", 3, 3)].map((s) => [s.nodeId, s]));
-    const [p] = projectLevels(cw, ["test-soc2:CC6.1"], states);
+    const [p] = projectLevels(cw, ["test-soc2:CC6.1"], states, id => id === "test-csf" ? "csf" : "soc2");
     expect(p?.sources).toHaveLength(2);
     expect(p?.suggested).toBeGreaterThanOrEqual(2);
-    expect(p?.confidence).toBe("high");
+    expect(p?.confidence).toBe("medium");
+    expect(p?.targetFamily).toBe("soc2");
+    expect(p?.suggested).toBe(2);
   });
 });

@@ -1,0 +1,234 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "request-controls",
+  "status": "complete",
+  "acceptance": "Bounded implementation and allowed verification complete; lead integration and milestone gates remain pending.",
+  "input_sha256": "6d7e2133cb0c808c2b00887af4ba760c23317e092059195cc957a24931a4fda5",
+  "recorded_at": "2026-10-13T09:29:27.682586+00:00",
+  "worktree": "/Users/artem/visua/.check/evidence-automation-20261013",
+  "changed_files": {
+    "apps/server/src/request-controls.ts": {
+      "before_sha256": null,
+      "after_sha256": "1bc425d48f78f182215a899593849d96f820df4f9f5c10c7cdf1186a9f48b5cb",
+      "status": "added"
+    },
+    "apps/server/src/diagnostics.ts": {
+      "before_sha256": null,
+      "after_sha256": "116bc150c428e247098d173f9dc0a2d7750ea130a0c225b86b959d24806ff17a",
+      "status": "added"
+    },
+    "apps/server/src/auth/http.ts": {
+      "before_sha256": "f9f6cd220902c6ed6beb5a53f0d0ce7e5240a7e7b2cccc7e7468ff05106e1408",
+      "after_sha256": "39aaef9c85ac8c630f62cc96da2dc4a5b66247d0f9451327d912bd4ccbb063a8",
+      "status": "modified"
+    },
+    "apps/server/src/app.ts": {
+      "before_sha256": "0316530c7de4bb3337bfb74737168eec6d02c8a5324d8635534eb0b4e00b0e21",
+      "after_sha256": "cb24d7eaa22611d53092bf6295becc5fb307abdf059970b43267cacc13480c57",
+      "status": "modified"
+    },
+    "apps/server/src/server.ts": {
+      "before_sha256": "85b4a85749e49d4468c4bb22aa09d8bd326cc6b811f5f9b611cdc037d0088b48",
+      "after_sha256": "b9b5e304ab6ab8b78567e5a7ae8d8e5ca3182cd5e2c32d360068e9341dab06ec",
+      "status": "modified"
+    },
+    "apps/server/test/request-controls.test.ts": {
+      "before_sha256": null,
+      "after_sha256": "f0fd9e6133e70dd0f2c15844fc8dfb942a0a275bf80654e9c7d269030618a00a",
+      "status": "added"
+    },
+    "apps/server/test/diagnostics.test.ts": {
+      "before_sha256": null,
+      "after_sha256": "d02cedbcf3977eca163bb1fc0fcea05e63359b0b681a0e49ee9dfedee8169e2e",
+      "status": "added"
+    }
+  },
+  "owned_regions": {
+    "apps/server/src/app.ts": "Imports, shared body() parser, createApp optional controls config, error mapping and middleware setup only; trust/check/proposal routes not edited.",
+    "apps/server/src/auth/http.ts": "Shared JSON parser import and json() helper only.",
+    "apps/server/src/server.ts": "Request config validation before storage startup; createApp injection; periodic diagnostic logging and stop/failure cleanup."
+  },
+  "summary": [
+    "Application/authentication JSON parsers share declared-size and real streamed-byte caps, bounded concurrent readers, total read deadlines and caller abort handling. Oversize413, timeout/interruption408, malformed/size mismatch400, concurrent-body pressure429 with Retry-After. A contiguous growing buffer avoids unbounded tiny-chunk metadata, and one outer promise race avoids per-chunk abort handlers.",
+    "Default16MiB supports the existing500k policy and2m evidence-text contracts even with JSON Unicode escaping; request buffers are allocated/grown only as needed. The existing multipart10MiB/file and4 upload bounds remain separate and unchanged.",
+    "Per-instance token buckets apply direct-socket peer admission before authentication; auth/public categories have stricter peer limits; authenticated requests also share principal limits across peer changes. Forwarded/X-Forwarded-For/CF headers are not trusted. Missing socket identity shares one fallback bucket.",
+    "Buckets have fixed maximum cardinality, minute idle expiry, token refill and cleanup; capacity fails closed without evicting active limits. Exact health/readiness paths bypass admission while retaining request diagnostics, so shared API/proxy exhaustion cannot falsify deployment health.",
+    "Diagnostics accept fixed enum categories only, aggregate counters/gauges/latency bins without identifiers, errors, raw URLs, goals or evidence. There is no diagnostics HTTP endpoint. Internal snapshots and optional periodic operator logs cover the process; the database run queue explicitly declares last-observation semantics and timestamp.",
+    "Shutdown/store close removes rate cleanup timers, clears buckets and stops periodic logs. Bounded parser reads remove signal listeners/deadline timers and release reader/concurrency slots even if source cancellation never resolves."
+  ],
+  "operator_configuration": [
+    {
+      "env": "VISUA_JSON_MAX_BYTES",
+      "default": 16777216,
+      "bounds": "1024..33554432 bytes; JSON only"
+    },
+    {
+      "env": "VISUA_BODY_TIMEOUT_MS",
+      "default": 30000,
+      "bounds": "100..120000 milliseconds; shared JSON read deadline"
+    },
+    {
+      "env": "VISUA_JSON_CONCURRENCY",
+      "default": 4,
+      "bounds": "1..32 simultaneous JSON readers per app instance"
+    },
+    {
+      "env": "VISUA_RATE_PEER_PER_MINUTE",
+      "default": 1200,
+      "bounds": "1..100000 tokens/minute; direct socket peer; initial burst equals limit"
+    },
+    {
+      "env": "VISUA_RATE_PRINCIPAL_PER_MINUTE",
+      "default": 600,
+      "bounds": "1..100000 tokens/minute per authenticated principal; initial burst equals limit"
+    },
+    {
+      "env": "VISUA_RATE_AUTH_PER_MINUTE",
+      "default": 120,
+      "bounds": "1..100000; auth peer gate before auth and authenticated/anonymous auth category gate"
+    },
+    {
+      "env": "VISUA_RATE_PUBLIC_PER_MINUTE",
+      "default": 300,
+      "bounds": "1..100000; public peer gate and anonymous general category gate"
+    },
+    {
+      "env": "VISUA_RATE_MAX_BUCKETS",
+      "default": 10000,
+      "bounds": "1..100000 total live keys per app instance; all admission categories share cardinality budget"
+    },
+    {
+      "env": "VISUA_DIAGNOSTICS_INTERVAL_MS",
+      "default": 60000,
+      "bounds": "0 disables; otherwise1000..3600000 milliseconds"
+    }
+  ],
+  "integration_contract": {
+    "module": "apps/server/src/diagnostics.ts",
+    "exports": [
+      "processDiagnostics singleton",
+      "Diagnostics class",
+      "DIAGNOSTIC_COUNTERS/GAUGES/HISTOGRAMS const arrays",
+      "DiagnosticCounter/Gauge/Histogram types",
+      "startDiagnosticsLogging(diagnostics,intervalMs,write?) -> stop()"
+    ],
+    "methods": {
+      "increment": "increment(DiagnosticCounter): void; use only fixed outcome categories.",
+      "setGauge": "setGauge(DiagnosticGauge,number): void; runtime nonfinite values ignored, floors0; run.queued records databaseQueueObservedAt.",
+      "adjustGauge": "adjustGauge(DiagnosticGauge,delta): void; floor0; use this for concurrent process resources.",
+      "observe": "observe(DiagnosticHistogram,ms): void; fixed disjoint latency bins with upper bounds10,50,100,500,1000,5000,30000 then overflow.",
+      "snapshot": "Detached safe aggregate object. scope=process; run.queued scope exception and last scheduler database observation timestamp are explicit."
+    },
+    "run_counters": [
+      "run.started",
+      "run.completed",
+      "run.failed",
+      "run.cancelled",
+      "run.interrupted",
+      "run.lease_expired"
+    ],
+    "connector_counters": [
+      "connector.completed",
+      "connector.failed",
+      "connector.timeout",
+      "connector.rejected"
+    ],
+    "stream_counters": [
+      "stream.opened",
+      "stream.closed",
+      "stream.resync",
+      "stream.overflow",
+      "stream.auth_refused"
+    ],
+    "relay_counters": [
+      "relay.notify_failed",
+      "relay.reconnect",
+      "relay.resync"
+    ],
+    "request_counters": [
+      "request.body_rejected",
+      "request.body_timeout",
+      "request.body_busy",
+      "request.rate_limited"
+    ],
+    "gauges": [
+      "request.active",
+      "request.body_active",
+      "request.rate_buckets",
+      "run.queued",
+      "run.running",
+      "connector.active",
+      "stream.active",
+      "stream.queued_bytes",
+      "relay.queued"
+    ],
+    "histograms": [
+      "request_ms",
+      "run_ms",
+      "connector_ms"
+    ],
+    "request_semantics": "API-only handler counts by auth/public/workspace/health/other and status class; request_ms ends at response creation, excluding streaming response/socket completion. Dedicated stream resource gauges cover long-lived streams.",
+    "ownership": "This worker wired request/parser/periodic-log hooks. Lead has separately wired run/connector/stream/relay hooks in other owned files; those bytes are not claimed in this report.",
+    "createApp": "Optional fourth parameter {config?:RequestControlConfig,diagnostics?:Diagnostics}; startServer loads validated env policy and injects it before request handling.",
+    "readJsonBody": "readJsonBody(Request):Promise<unknown>; middleware attaches this app instance reader via a weak request map. Shared app/auth schemas preserve their existing validation after bounded parsing."
+  },
+  "checks": [
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/request-controls.test.ts apps/server/test/diagnostics.test.ts",
+      "exit_code": 0,
+      "result": "17 passed after final health exemption",
+      "log": "request-controls-final-tests.log",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "log_sha256": "b043cc3127175f313238ca4ac49ed5f7d01a7d309786688ccc02930b4efda5f1"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/request-controls.test.ts apps/server/test/diagnostics.test.ts apps/server/test/auth.test.ts",
+      "exit_code": 0,
+      "result": "48 passed; includes 33 existing auth cases. Before final two extra regressions and health exemption, which final focused run covers.",
+      "log": "request-controls-tests.log",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "log_sha256": "01a0d425906bbc7da24c65d8b5c3ed45ce5d0c03c2ab85dc837690a2eae17e56"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/evidence-files.test.ts apps/server/test/startup.test.ts -t 'publishes verified byte|rejects empty/oversize|requires CSRF|cancels a stalled body|bounds active uploads|probes storage anonymously|drains an in-flight request|closes a live event stream|bounds shutdown'",
+      "exit_code": 0,
+      "result": "9 passed, 22 unrelated cases skipped. Before health-admission exemption; shared-peer exhaustion has a new passing regression.",
+      "log": "request-controls-regressions.log",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "log_sha256": "44db47c9df66bffa4a6efd5505a31f097c7a1c8f1af2a2052671b3411f88e655"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec tsc --noEmit -p apps/server/tsconfig.json",
+      "exit_code": 0,
+      "result": "Passed after final changes.",
+      "log": "request-controls-typecheck.log",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "coverage": [
+    "Existing500k policy and2m escaped evidence text; multibyte byte accounting; absent/understated/oversized/invalid Content-Length; malformed JSON/UTF8; real application/auth parser413 responses.",
+    "Caller abort and stalled-read deadline despite cancellation promise never resolving; body concurrency pressure/recovery; byte-at-a-time streams; continuously ready empty chunks cannot starve wall-clock deadline.",
+    "Bucket cardinality and idle expiry/refill; spoofed forwarded-header resistance; principal quotas across direct peers; Retry-After429; known health/readiness remain available after peer exhaustion.",
+    "Fixed diagnostic label rejection/privacy, concurrent gauge adjustment/flooring, detached snapshots, last-database-queue observation semantics, aggregate logs and timer cleanup.",
+    "Existing33 auth cases passed;9 focused multipart/readiness/in-flight/shutdown/SSE regressions passed on local fixtures."
+  ],
+  "prior_corrections": [
+    "Intermediate typechecks found async store-close callback and three test-only type declarations; corrected before final passed typecheck.",
+    "Lead requested health/readiness exemption from shared admission; implemented with a passing exhaustion regression."
+  ],
+  "limitations": [
+    "Rate buckets and admission concurrency are per app/server instance, not distributed quotas. Direct peers behind an untrusted proxy share the proxy bucket; forwarded identities are deliberately ignored.",
+    "Defaults are configurable guardrails, not measured pilot capacity or production throughput claims. No production capacity/time-to-first-artifact baseline was measured.",
+    "The shared timeout bounds JSON reading. JSON/schema processing and application work are separately bounded by bytes and existing service policies; this does not claim a universal end-to-end request deadline.",
+    "Health/readiness are admission-exempt. Readiness retains its existing bounded shared storage probe.",
+    "run.queued is the most recent scheduler-observed queued row count for its connected database, with an observation timestamp; it can be stale and is not a process resource count.",
+    "No new HTTP diagnostic endpoint, proxy trust configuration, external telemetry export, full suite, browser run, build, live PostgreSQL, git action, deployment or delegation was used.",
+    "Exact hashes include whole shared app/server files at report time; only the assigned regions listed above were edited by this worker. Lead-owned diagnostic callsites and other concurrent M3 work need combined integration checks."
+  ],
+  "next_actions": [
+    "Lead review7 file hashes/owned regions and diagnostic hook semantics.",
+    "Lead run combined M3 PostgreSQL/browser/full verification and inspect per-instance rate settings for test/pilot traffic.",
+    "Use operator configuration table in canonical deployment documentation when that documentation package is edited."
+  ]
+}

@@ -185,8 +185,10 @@ work. [Final verification](runs/evidence-operations-20261013/source-verification
 passes 650 SQLite and 652 PostgreSQL tests and verifies 146 unique browser cases
 through full-lane plus targeted reruns. No single final full-check command passed.
 Independent review findings and the collapsed-details keyboard defect are fixed.
-Source is verified; commit/push and local deployment are pending at this checkpoint.
-Milestone 3 is under implementation in an isolated checkout; milestone 4 follows.
+Source verification preceded the completed delivery recorded below.
+Milestone 3 is integrated and verified: 798 SQLite passes plus 7 PostgreSQL-only
+skips, 805 PostgreSQL passes, and 148 browser cases through full-run and targeted
+fixture corrections. Local delivery remains pending.
 
 Evidence lifecycle delivery completed on October 13, 2026: source `3c85ef4`
 is pushed and running in the local Docker service. All 190 source pins match;

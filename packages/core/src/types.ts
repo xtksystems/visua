@@ -645,6 +645,10 @@ export type AgentStepType =
   | "error";
 
 export interface Citation {
+  /** Stable corpus chunk identity; absent on citations recorded before resolution was introduced. */
+  chunkId?: string;
+  /** SHA-256 of the canonical chunk identity, location and text at resolution time. */
+  chunkSha256?: string;
   documentId: string;
   documentTitle: string;
   locator?: string;
@@ -714,6 +718,10 @@ export interface AgentRun {
   error?: string;
   /** User id of the person (or token) that started the run. */
   startedBy?: string;
+  /** Absent on historical runs. Incremented on claim, cancellation or interruption. */
+  executionEpoch?: number;
+  execution?: { ownerId: string; attemptId: string; epoch: number; heartbeatAt: string; leaseExpiresAt: string };
+  interruptionReason?: "owner-expired" | "server-stopped";
   createdAt: string;
   startedAt?: string;
   finishedAt?: string;

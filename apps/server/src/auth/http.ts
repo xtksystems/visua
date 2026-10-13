@@ -8,6 +8,7 @@ import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { z } from "zod";
 import { ROLES, ROLE_LABELS, can, type Capability, type Role, type Workspace } from "@visua/core";
 import { NotFoundError, ValidationError, principalContext } from "../services/visua.ts";
+import { readJsonBody } from "../request-controls.ts";
 import { randomToken, safeEqual } from "./crypto.ts";
 import { AuthService, ForbiddenError, UnauthorizedError, safeReturnTo, type Principal } from "./service.ts";
 
@@ -177,12 +178,7 @@ const capabilityRole = (capability: Capability) => ROLE_LABELS[[...ROLES].revers
 const RoleSchema = z.enum(ROLES);
 
 async function json<T extends z.ZodType>(c: Context, schema: T): Promise<z.infer<T>> {
-  let body: unknown;
-  try {
-    body = await c.req.json();
-  } catch {
-    throw new ValidationError("Request body must be JSON");
-  }
+  const body = await readJsonBody(c.req.raw);
   const parsed = schema.safeParse(body);
   if (!parsed.success) throw new ValidationError(z.prettifyError(parsed.error));
   return parsed.data;
