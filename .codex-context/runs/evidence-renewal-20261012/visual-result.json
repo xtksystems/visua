@@ -1,0 +1,79 @@
+{
+  "status": "passed",
+  "illustrative_fixture": true,
+  "captures": [
+    {
+      "filename": "renewal-expired-1440.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": 0
+    },
+    {
+      "filename": "renewal-7d-1440.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": 0
+    },
+    {
+      "filename": "renewal-30d-1440.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": 0
+    },
+    {
+      "filename": "renewal-expired-390.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": 0
+    },
+    {
+      "filename": "renewal-expired-390-impact.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": 0
+    },
+    {
+      "filename": "renewal-7d-390.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": 0
+    },
+    {
+      "filename": "renewal-7d-390-impact.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": 0
+    },
+    {
+      "filename": "renewal-30d-390.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": 0
+    },
+    {
+      "filename": "renewal-30d-390-impact.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": 0
+    }
+  ],
+  "errors": []
+}

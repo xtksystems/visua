@@ -168,6 +168,33 @@ recorded. Legacy decisions remain visible in the item's history. The later
 metadata/body storage migration preserves existing review decisions and audit
 history.
 
+## Plan evidence renewal
+
+In **Evidence**, choose **Renewal**, or open **Review evidence renewals** from
+the overview. Select **Expired**, **Next 7 days**, or **Next 30 days**. The
+future windows exclude expired artifacts, and the thirty-day window includes
+the seven-day window. Deadlines are evaluated from the displayed server update
+time; a calendar expiry remains valid through the end of its UTC day.
+
+Each item shows review status separately from validity. An artifact can be
+pending review and expired at the same time. An accepted review alone does not
+make an artifact currently valid. Open **Inspect evidence** to use the existing
+artifact review and download flow. Closing the dialog keeps your renewal view.
+
+For expired artifacts, the view identifies linked requirements that lack valid
+accepted evidence now. For upcoming expiries, it shows the first loss of
+uninterrupted coverage based on accepted evidence already on file. Alternative
+artifacts can extend coverage, but an artifact collected after a gap cannot
+hide that earlier gap. Each requirement counts once in the summary, even when
+several artifacts link to it.
+
+These projections assume the current scope and recorded evidence stay unchanged.
+They do not predict new collection, approval, or changes in requirement status.
+Group links provide context without covering their descendants. Invalid dates
+and artifacts without a deadline remain available for inspection rather than
+being assigned an invented expiry. The view refreshes every minute and after
+relevant workspace changes, with retry available if a refresh fails.
+
 ## Explore requirements and mappings
 
 **Observatory** shows framework requirements as a spatial map. Open a

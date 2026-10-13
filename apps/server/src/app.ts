@@ -46,6 +46,7 @@ import { crosswalkOverview, crosswalkRows } from "./services/crosswalk.ts";
 import { soc2Description } from "./services/soc2.ts";
 import { frameworkState, leanGraph, nodeDetail, workspaceSummary } from "./services/views.ts";
 import { workspaceAttention } from "./services/attention.ts";
+import { workspaceEvidenceRenewal } from "./services/evidence-renewal.ts";
 import { NotFoundError, ValidationError, type VisuaService } from "./services/visua.ts";
 import { ConnectorCapacityError } from "./connectors/limits.ts";
 import { isWorkDate } from "./services/work.ts";
@@ -578,6 +579,10 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
 
   // ---------------------------------------------------------------- evidence
   app.get("/api/workspaces/:ws/evidence", async (c) => c.json(await svc.store.evidence.metadataList(wsId(c))));
+  app.get("/api/workspaces/:ws/evidence/renewal", async (c) => {
+    c.header("Cache-Control", "private, no-store");
+    return c.json(await workspaceEvidenceRenewal(svc, wsOf(c)));
+  });
   app.get("/api/workspaces/:ws/evidence/:id", async (c) => {
     const evidence = await svc.store.evidence.get(c.req.param("id"));
     if (!evidence || evidence.workspaceId !== wsId(c)) throw new NotFoundError("Evidence not found");

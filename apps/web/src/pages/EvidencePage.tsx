@@ -1,11 +1,11 @@
 /** Evidence & monitoring: provenance-first evidence ledger, connectors and checks. */
-import { evidenceFreshness, evidenceReviewScope, isEvidenceValid } from "@visua/core";
+import { evidenceRenewalDates, evidenceReviewScope, isEvidenceValid } from "@visua/core";
 import { Check, Download, Plug, Play, Plus, ShieldCheck, Upload, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { useRunAgent } from "../components/inspector/Inspector.tsx";
-import { CodeTag, Dialog, Empty, Metric, Segmented, toast } from "../components/ui/index.tsx";
+import { CodeTag, Dialog, Empty, Metric, Segmented, TabPanel, Tabs, toast } from "../components/ui/index.tsx";
 import { useWorkspaceId } from "../lib/workspace.ts";
 import { api } from "../lib/api.ts";
 import { useCan } from "../lib/auth.ts";
@@ -15,6 +15,7 @@ import type { CheckResult, Evidence } from "../lib/types.ts";
 import { split } from "../lib/media.ts";
 import { UploadEvidence } from "../components/work/UploadEvidence.tsx";
 import { QueryError } from "../components/ui/QueryError.tsx";
+import { EvidenceRenewal, EvidenceReviewValidity, type RenewalWindow } from "../components/work/EvidenceRenewal.tsx";
 
 const OUTCOME_COLOR: Record<CheckResult["outcome"], string> = {
   pass: "var(--color-status-implemented)",
@@ -28,19 +29,6 @@ function provenance(e: Evidence): { label: string; title: string } {
   if (e.source === "agent") return { label: "Agent-assisted", title: "Proposed by an agent and approved by a person." };
   if (e.source === "upload") return { label: "Uploaded", title: "Uploaded by a person; content hash recorded." };
   return { label: "Manual", title: "Recorded manually." };
-}
-
-function freshness(e: Evidence): { label: string; color: string } {
-  if (e.status === "rejected") return { label: "rejected", color: "var(--color-on-surface-muted)" };
-  if (e.status === "pending-review") return { label: "pending review", color: "var(--color-tertiary)" };
-  const state = evidenceFreshness(e);
-  if (state === "none") return { label: "requires review or correction", color: "var(--color-status-in-progress)" };
-  if (state === "expired") return { label: `expired${e.validUntil ? ` ${shortDate(e.validUntil)}` : ""}`, color: "var(--color-status-at-risk)" };
-  if (!e.validUntil) return { label: "no expiry", color: "var(--color-status-verified)" };
-  const days = (new Date(e.validUntil).getTime() - Date.now()) / 86_400_000;
-  if (days < 0) return { label: `expired ${shortDate(e.validUntil)}`, color: "var(--color-status-at-risk)" };
-  if (days < 30) return { label: `expires ${relativeTime(e.validUntil)}`, color: "var(--color-status-in-progress)" };
-  return { label: `valid to ${shortDate(e.validUntil)}`, color: "var(--color-status-verified)" };
 }
 
 function AddConnector({ onClose }: { onClose: () => void }) {
@@ -217,6 +205,20 @@ function EvidenceWorkspace() {
   const [adding, setAdding] = useState(false);
   const [viewing, setViewing] = useState<Evidence | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
+  const viewId = useId();
+  const view = searchParams.get("view") === "renewal" ? "renewal" : "ledger";
+  const windowParam = searchParams.get("window");
+  const renewalWindow: RenewalWindow = windowParam === "7d" || windowParam === "30d" ? windowParam : "expired";
+  const changeView = (next: "ledger" | "renewal") => setSearchParams(params => {
+    if (next === "renewal") { params.set("view", "renewal"); params.set("window", renewalWindow); }
+    else { params.delete("view"); params.delete("window"); }
+    return params;
+  });
+  const changeWindow = (next: RenewalWindow) => setSearchParams(params => { params.set("view", "renewal"); params.set("window", next); return params; });
+  const inspectRenewal = (id: string) => {
+    setViewing(null);
+    setSearchParams(params => { params.set("evidence", id); params.delete("check"); return params; });
+  };
   const evidenceId = searchParams.get("evidence");
   const checkId = searchParams.get("check");
   const selectedEvidence = viewing ?? evidence.find(e => e.id === evidenceId);
@@ -230,12 +232,12 @@ function EvidenceWorkspace() {
   const canReview = useCan("work.approve");
   const runConnector = useWsMutation(ws, (id: string) => api.post<CheckResult[]>(`/workspaces/${encodeURIComponent(ws)}/connectors/${id}/run`));
   const list = useMemo(() => {
-    const now = Date.now();
+    const now = new Date();
     return evidence
       .filter((e) => {
         if (filter === "pending") return e.status === "pending-review";
         if (filter === "connector") return e.source === "connector";
-        if (filter === "expiring") return !!e.validUntil && new Date(e.validUntil).getTime() - now < 30 * 86_400_000;
+        if (filter === "expiring") return evidenceRenewalDates(e, now).buckets.length > 0;
         return true;
       })
       .sort((a, b) => b.collectedAt.localeCompare(a.collectedAt));
@@ -250,7 +252,8 @@ function EvidenceWorkspace() {
     });
   }, [checks]);
   const accepted = evidence.filter((e) => isEvidenceValid(e)).length;
-  const expired = evidence.filter((e) => e.validUntil && new Date(e.validUntil).getTime() < Date.now()).length;
+  const asOf = new Date();
+  const expired = evidence.filter((e) => evidenceRenewalDates(e, asOf).validity === "expired").length;
   if (evidenceQuery.error) return <QueryError title="Could not load evidence" error={evidenceQuery.error} retry={() => evidenceQuery.refetch()} />;
   return (
     <div className="page">
@@ -271,11 +274,16 @@ function EvidenceWorkspace() {
         </div>
       </header>
       {!canWrite && <p className="muted" role="note">Read-only access. You can inspect evidence and monitoring results; contributors run collections and approvers review evidence.</p>}
-      {evidenceQuery.isPending && <p role="status">Loading evidence…</p>}
+      <Tabs id={viewId} label="Evidence view" tabs={[{ id: "ledger", label: "Ledger" }, { id: "renewal", label: "Renewal" }]} value={view} onChange={changeView} />
+      <TabPanel groupId={viewId} id="renewal" active={view === "renewal"}>
+        <EvidenceRenewal ws={ws} window={renewalWindow} onWindowChange={changeWindow} onInspect={inspectRenewal} />
+      </TabPanel>
+      <TabPanel groupId={viewId} id="ledger" active={view === "ledger"}>
+      {evidenceQuery.isPending ? <p role="status">Loading evidence…</p> : <>
       <div className="grid grid--4" style={{ marginBottom: 20 }}>
         <Metric label="Evidence items" value={evidence.length} sub={`${accepted} currently valid`} />
         <Metric label="Awaiting review" value={evidence.filter((e) => e.status === "pending-review").length} />
-        <Metric label="Expired" value={expired} sub="Expired evidence puts requirements at risk" />
+        <Metric label="Expired" value={expired} sub="See Renewal for coverage impact" />
         <Metric label="Connectors" value={connectors.length} sub={`${latestChecks.filter((c) => c.outcome === "pass").length}/${latestChecks.length} checks passing`} />
       </div>
       <div className="grid split" style={split(1.7, 1)}>
@@ -300,14 +308,13 @@ function EvidenceWorkspace() {
                   <th>Evidence</th>
                   <th>Provenance</th>
                   <th>Requirements</th>
-                  <th>Freshness</th>
+                  <th>Review & validity</th>
                   <th />
                 </tr>
               </thead>
               <tbody>
                 {list.map((e) => {
                   const p = provenance(e);
-                  const f = freshness(e);
                   return (
                     <tr key={e.id}>
                       <td style={{ maxWidth: 320 }}>
@@ -336,7 +343,7 @@ function EvidenceWorkspace() {
                           {e.requirementIds.length > 4 ? <span className="muted">+{e.requirementIds.length - 4}</span> : null}
                         </div>
                       </td>
-                      <td style={{ color: f.color, fontSize: 12.5 }}>{f.label}</td>
+                      <td><EvidenceReviewValidity evidence={e} /></td>
                       <td style={{ whiteSpace: "nowrap" }}>
                         {e.status === "pending-review" && canReview && (
                           <button className="btn btn--sm" onClick={() => setViewing(e)}>Review</button>
@@ -407,6 +414,8 @@ function EvidenceWorkspace() {
           )}
         </div>
       </div>
+      </>}
+      </TabPanel>
       {adding && canConfigure && <AddConnector onClose={() => setAdding(false)} />}
       {selectedEvidence && <EvidenceDialog key={`${ws}:${selectedEvidence.id}`} initial={selectedEvidence} onClose={closeLinked} />}
       {evidenceId && !selectedEvidence && !evidenceQuery.isPending && <Dialog title="Evidence unavailable" onClose={closeLinked}><p role="alert">This evidence is no longer available in this workspace.</p><button className="btn" onClick={() => void evidenceQuery.refetch()}>Retry evidence</button></Dialog>}

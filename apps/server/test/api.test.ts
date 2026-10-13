@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
@@ -766,45 +766,53 @@ describe("evidence, monitoring and exports", () => {
   });
 
   it("has an agent propose its passing checks as evidence, filed from the recorded check on approval", async () => {
-    const created = await api<{ workspace: { id: string } }>("POST", "/api/workspaces", {
-      name: "Checks Co",
-      profile: { industry: "saas", size: "11-50", dataTypes: [], drivers: [], environments: ["cloud"], maturityTier: 2, guidance: "guided", securityTeamSize: 2 },
-      frameworks: ["nist-csf-2.0"],
-    });
-    const cw = created.json.workspace.id;
-    await api("POST", `/api/workspaces/${cw}/connectors`, { kind: "repo-scan", config: { path: REPO_ROOT } });
-    type Evidence = { id: string; source: string; kind: string; status: string; reviewedBy?: string; sha256?: string; content?: string; requirementIds: string[] };
-    const evidence = async () => (await api<Evidence[]>("GET", `/api/workspaces/${cw}/evidence`)).json;
-    const before = (await evidence()).length;
-    const run = await api<{ proposals: { id: string; type: string; title: string; status: string; payload: { checkResultId?: string } }[] }>("POST", `/api/workspaces/${cw}/runs?wait=1`, { agent: "evidence-collector", goal: "Collect evidence", input: {} });
-    // The agent filed nothing itself: every passing check waits in the approvals inbox.
-    expect((await evidence()).length).toBe(before);
-    const proposed = run.json.proposals.filter((p) => p.type === "create-evidence" && p.payload.checkResultId);
-    expect(proposed.length).toBeGreaterThan(0);
-    expect(proposed.every((p) => p.status === "pending")).toBe(true);
-    // Edits on approval cannot change what the check observed or what it is linked to.
-    const preview = await api<{ reviewToken: string }>("GET", `/api/workspaces/${cw}/proposals/${proposed[0]!.id}/preview`);
-    const edited = await api("POST", `/api/workspaces/${cw}/proposals/${proposed[0]!.id}/decision`, {
-      decision: "approved", reviewToken: preview.json.reviewToken,
-      edits: { content: "Everything is perfect.", requirementIds: ["nist-csf-2.0:GV.OC-01"] },
-    });
-    expect(edited.status).toBe(400);
-    const decided = await api<{ status: string }>("POST", `/api/workspaces/${cw}/proposals/${proposed[0]!.id}/decision`, { decision: "approved", reviewToken: preview.json.reviewToken });
-    expect(decided.json.status).toBe("applied");
-    const filed = (await evidence()).filter((e) => e.source === "connector");
-    expect(filed).toHaveLength(1);
-    expect(filed[0]).toMatchObject({ kind: "automated-check", status: "accepted" });
-    expect(filed[0]!.sha256).toHaveLength(64);
-    expect(filed[0]!.content).not.toBe("Everything is perfect.");
-    expect(filed[0]!.requirementIds).not.toContain("nist-csf-2.0:GV.OC-01");
-    expect(filed[0]!.reviewedBy).not.toMatch(/^(agent|system)/);
-    // A check is filed once, and a later run does not propose a check whose evidence is still current.
-    const input = { type: "create-evidence" as const, title: "again", rationale: "again", payload: { checkResultId: proposed[0]!.payload.checkResultId }, citations: [], confidence: "high" as const, nodeIds: [] };
-    await expect(svc.createProposal(cw, "run_again", input)).rejects.toThrow(/already filed/);
-    const rerun = await api<{ proposals: { type: string; title: string }[] }>("POST", `/api/workspaces/${cw}/runs?wait=1`, { agent: "evidence-collector", goal: "Collect evidence", input: {} });
-    const titles = rerun.json.proposals.filter((p) => p.type === "create-evidence").map((p) => p.title);
-    expect(titles).not.toContain(proposed[0]!.title);
-    expect(titles.length).toBe(proposed.length - 1);
+    // Exercise real connector observations without scanning a mutable checkout twice.
+    const repo = mkdtempSync(join(REPO_ROOT, ".check-agent-repo-"));
+    try {
+      writeFileSync(join(repo, "pnpm-lock.yaml"), "lockfileVersion: '9.0'\n");
+      writeFileSync(join(repo, "SECURITY.md"), "Report security issues to the repository owner.\n");
+      const created = await api<{ workspace: { id: string } }>("POST", "/api/workspaces", {
+        name: "Checks Co",
+        profile: { industry: "saas", size: "11-50", dataTypes: [], drivers: [], environments: ["cloud"], maturityTier: 2, guidance: "guided", securityTeamSize: 2 },
+        frameworks: ["nist-csf-2.0"],
+      });
+      const cw = created.json.workspace.id;
+      await api("POST", `/api/workspaces/${cw}/connectors`, { kind: "repo-scan", config: { path: repo } });
+      type Evidence = { id: string; source: string; kind: string; status: string; reviewedBy?: string; sha256?: string; content?: string; requirementIds: string[] };
+      const evidence = async () => (await api<Evidence[]>("GET", `/api/workspaces/${cw}/evidence`)).json;
+      const before = (await evidence()).length;
+      const run = await api<{ proposals: { id: string; type: string; title: string; status: string; payload: { checkResultId?: string } }[] }>("POST", `/api/workspaces/${cw}/runs?wait=1`, { agent: "evidence-collector", goal: "Collect evidence", input: {} });
+      // The agent filed nothing itself: every passing check waits in the approvals inbox.
+      expect((await evidence()).length).toBe(before);
+      const proposed = run.json.proposals.filter((p) => p.type === "create-evidence" && p.payload.checkResultId);
+      expect(proposed.length).toBeGreaterThan(0);
+      expect(proposed.every((p) => p.status === "pending")).toBe(true);
+      // Edits on approval cannot change what the check observed or what it is linked to.
+      const preview = await api<{ reviewToken: string }>("GET", `/api/workspaces/${cw}/proposals/${proposed[0]!.id}/preview`);
+      const edited = await api("POST", `/api/workspaces/${cw}/proposals/${proposed[0]!.id}/decision`, {
+        decision: "approved", reviewToken: preview.json.reviewToken,
+        edits: { content: "Everything is perfect.", requirementIds: ["nist-csf-2.0:GV.OC-01"] },
+      });
+      expect(edited.status).toBe(400);
+      const decided = await api<{ status: string }>("POST", `/api/workspaces/${cw}/proposals/${proposed[0]!.id}/decision`, { decision: "approved", reviewToken: preview.json.reviewToken });
+      expect(decided.json.status).toBe("applied");
+      const filed = (await evidence()).filter((e) => e.source === "connector");
+      expect(filed).toHaveLength(1);
+      expect(filed[0]).toMatchObject({ kind: "automated-check", status: "accepted" });
+      expect(filed[0]!.sha256).toHaveLength(64);
+      expect(filed[0]!.content).not.toBe("Everything is perfect.");
+      expect(filed[0]!.requirementIds).not.toContain("nist-csf-2.0:GV.OC-01");
+      expect(filed[0]!.reviewedBy).not.toMatch(/^(agent|system)/);
+      // A check is filed once, and a later run does not propose a check whose evidence is still current.
+      const input = { type: "create-evidence" as const, title: "again", rationale: "again", payload: { checkResultId: proposed[0]!.payload.checkResultId }, citations: [], confidence: "high" as const, nodeIds: [] };
+      await expect(svc.createProposal(cw, "run_again", input)).rejects.toThrow(/already filed/);
+      const rerun = await api<{ proposals: { type: string; title: string }[] }>("POST", `/api/workspaces/${cw}/runs?wait=1`, { agent: "evidence-collector", goal: "Collect evidence", input: {} });
+      const titles = rerun.json.proposals.filter((p) => p.type === "create-evidence").map((p) => p.title);
+      expect(titles).not.toContain(proposed[0]!.title);
+      expect(titles.length).toBe(proposed.length - 1);
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
   });
 
   it("records a failed connector run in the audit trail", async () => {

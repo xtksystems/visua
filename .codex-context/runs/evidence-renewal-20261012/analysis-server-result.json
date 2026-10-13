@@ -1,0 +1,25 @@
+{
+  "run_id": "evidence-renewal-20261012",
+  "node_id": "analysis-server",
+  "input_sha256": "ee5311e18993a19e7a2e9cc46c2f887eb7119e9b67ffdbbdd085414d4d9b6fd1",
+  "status": "complete",
+  "summary": "Recommended metadata-only renewal endpoint, independent review/validity classification, cumulative exact-boundary windows, current scope snapshot, and deduplicated direct-requirement coverage loss using conditional known accepted interval chains.",
+  "evidence": [
+    "server-analysis.json",
+    "packages/core/src/evidence.ts",
+    "packages/core/src/status.ts",
+    "packages/core/src/scoring.ts",
+    "apps/server/src/services/attention.ts",
+    "apps/server/src/services/visua.ts",
+    "apps/server/src/services/views.ts",
+    "apps/server/src/storage/store.ts",
+    "packages/core/test/evidence.test.ts",
+    "apps/server/test/attention.test.ts",
+    "apps/server/test/evidence-content.test.ts"
+  ],
+  "limitations": [
+    "Read-only source analysis only; no tests, builds, browser, live DB or Docker actions.",
+    "Current-scope conditional future-record display wording and invalid legacy records need precise UI labels; UI and server investigations agree cumulative next7/next30 ranges.",
+    "No provenance/supersession schema expansion or historical/future factual coverage claims proposed."
+  ]
+}

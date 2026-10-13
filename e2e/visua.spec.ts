@@ -13,7 +13,7 @@ test("evidence review binds the inspected artifact and preserves history after a
   const e = await response.json() as Evidence;
   await page.goto(`${WS}/evidence`);
   const row = page.getByRole("row").filter({ hasText: title });
-  await expect(row).toContainText("pending review");
+  await expect(row).toContainText("Review: Pending review");
   const reviewedResponse = page.waitForResponse((r) => r.url().endsWith(`/evidence/${e.id}`) && r.request().method() === "PATCH");
   await row.getByText(title, { exact: true }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Accept", exact: true }).click();
@@ -27,7 +27,7 @@ test("evidence review binds the inspected artifact and preserves history after a
   const amended = await page.request.patch(`${url}/${e.id}`, { headers: { "x-visua-csrf": csrf }, data: { validUntil: "2030-12-31" } });
   expect(amended.status()).toBe(200);
   await page.reload();
-  await expect(row).toContainText("pending review");
+  await expect(row).toContainText("Review: Pending review");
   await row.getByText(title, { exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText("Review history");
   await expect(page.getByRole("dialog")).toContainText(e.sha256!);

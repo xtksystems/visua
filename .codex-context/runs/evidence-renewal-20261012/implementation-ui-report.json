@@ -1,0 +1,67 @@
+{
+  "run_id": "evidence-renewal-20261012",
+  "node_id": "implementation-ui",
+  "input_sha256": "8431c65f3f264f8e20d8868e2da008a24a956d49fca51cef11ff10570f5c1cff",
+  "status": "complete",
+  "summary": "Implemented URL-backed evidence renewal with typed server coverage, separate review/validity labels, accessible cumulative windows, mobile cards, exceptions, retry/refresh states, preserved bound review, and seven browser cases.",
+  "implementation_root": "/Users/artem/visua/.check/evidence-renewal-worktree",
+  "files": [
+    {
+      "path": "apps/web/src/pages/EvidencePage.tsx",
+      "change": "Ledger remains default. Shared Ledger/Renewal tabs use view/window search params; inspection preserves renewal params. Ledger displays independent Review and Validity using shared domain date rules and does not render empty metrics/table during initial load."
+    },
+    {
+      "path": "apps/web/src/components/work/EvidenceRenewal.tsx",
+      "change": "Uses actual WorkspaceEvidenceRenewal contract, query key [ws, id, evidence-renewal], 60-second and focus refresh. Renders cumulative Expired/Next7/Next30 tabs, distinct requirement impact, UTC exact instants, alternatives and first gaps, context-only links, inspectable unclassified items, initial loading, retry, dated stale snapshot on refresh failure, bucket empty states, and Show more."
+    },
+    {
+      "path": "apps/web/src/components/work/evidence-renewal.css",
+      "change": "Scoped token-based responsive card/list and status presentation; requirement links and status labels remain visible at narrow width."
+    },
+    {
+      "path": "e2e/evidence-renewal.spec.ts",
+      "change": "Seven real isolated fixture cases: bucket membership/review/expiry/no-deadline; alternative chain and partial impact; loading/failure/retry/empty; overview exact-artifact deep link and browser history; mobile keyboard/focus/navigation; SSE alternatives; viewer inspection without writes."
+    }
+  ],
+  "invariants": [
+    "EvidenceDialog function verified byte-for-byte identical to isolated HEAD. Detached detail snapshot, expectedScope submission, file download and review behavior unchanged.",
+    "Existing workspace capability gates, upload, connectors and check dialog remain in EvidencePage.",
+    "No client coverage computation; row and distinct-window impacts consume server results. Ledger temporal labels use the exported evidenceRenewalDates helper.",
+    "Expired copy states currently lacks valid accepted evidence, without a historic causal claim. Future copy says would lose uninterrupted coverage and states unchanged-scope/evidence assumptions.",
+    "Scope context labels use links outside the current assessed scope, avoiding treating group counts as requirement counts.",
+    "No source files in the main checkout were edited by this worker; no commits, builds, browser execution, deployment, external messages, or network calls."
+  ],
+  "verification": [
+    {
+      "command": "pnpm --filter @visua/web typecheck",
+      "result": "passed exit 0; final rerun after UI wording and rendering edits"
+    },
+    {
+      "command": "pnpm exec tsc --noEmit --target ES2023 --module ESNext --moduleResolution Bundler --allowImportingTsExtensions --jsx react-jsx --lib ES2023,DOM,DOM.Iterable --types node --skipLibCheck --strict e2e/evidence-renewal.spec.ts",
+      "result": "passed exit 0; initial static run found unresolved root @visua/core import and the test now imports the local helper directly"
+    },
+    {
+      "command": "git diff --check plus read-only trailing-whitespace check of new owned files",
+      "result": "passed"
+    },
+    {
+      "command": "Read-only Python comparison of EvidenceDialog source against git show HEAD",
+      "result": "identical byte-for-byte"
+    },
+    {
+      "command": "Browser/build/full test commands",
+      "result": "not run, per primary delivery freeze"
+    }
+  ],
+  "integration": [
+    "Lead already connected AttentionQueue generic renewal entry and expired/expiring exact links; one new browser case covers it.",
+    "Lead owns events invalidation; the exact UI key is [ws, canonicalWorkspaceId, evidence-renewal].",
+    "Server contract coordinated directly with renewal_server; API path is /api/workspaces/:ws/evidence/renewal and public types are imported from @visua/core.",
+    "All four owned changes remain uncommitted in the isolated worktree. Lead owns integration, browser runs, independent review, documentation, and final verification."
+  ],
+  "limitations": [
+    "Seven browser cases are authored and statically checked, but have not run; visual behavior and focus/overflow assertions still require the lead browser lane after the primary delivery suite ends.",
+    "No unit or server test execution was performed by this UI worker.",
+    "No scope filter, provenance schema, supersession or replacement workflow was added."
+  ]
+}

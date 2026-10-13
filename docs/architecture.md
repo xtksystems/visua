@@ -552,6 +552,16 @@ refreshes clock-dependent data every minute. Evidence and check deep links
 open the exact workspace-scoped record, including observations older than the
 recent-check list.
 
+The evidence renewal endpoint reads metadata and requirement state, without
+loading artifact bodies or external file bytes. It classifies normalized date
+windows independently of review status at one server time. Current coverage
+uses bound accepted evidence. Conditional future coverage unions its recorded
+intervals from that time until the first gap, so an alternative that expires
+earlier or starts after a gap cannot hide loss. Counts deduplicate direct
+requirements in current scope; group links remain context. The read model
+does not mutate scoring, approvals, history, or audit state. Renewal selections
+are URL-backed, and inspection retains the existing detached review snapshot.
+
 - **Shell.** A 220px labeled sidebar groups the primary destinations under
   Workspace, Explore and Manage. It includes Overview, My work, Action plan, Evidence,
   Agents, Policies, Reports & trust, Observatory, CSF profile & tiers, Crosswalk

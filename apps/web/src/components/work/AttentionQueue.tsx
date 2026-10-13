@@ -20,12 +20,12 @@ const LABELS: Record<AttentionKind, string> = {
   "expiring-evidence": "Expiring evidence", "evidence-review": "Evidence review", "proposal-review": "Agent decision", "implementation-gap": "Implementation gap",
 };
 
-function destination(ws: string, action: AttentionAction) {
+function destination(ws: string, action: AttentionAction, kind: AttentionKind) {
   const base = `/w/${encodeURIComponent(ws)}`;
   const id = encodeURIComponent(action.id);
   switch (action.type) {
     case "task": return `${base}/plan?task=${id}`;
-    case "evidence": return `${base}/evidence?evidence=${id}`;
+    case "evidence": return `${base}/evidence?evidence=${id}${kind === "expired-evidence" ? "&view=renewal&window=expired" : kind === "expiring-evidence" ? "&view=renewal&window=30d" : ""}`;
     case "check": return `${base}/evidence?check=${id}`;
     case "proposal": return `${base}/agents${action.runId ? `/${encodeURIComponent(action.runId)}` : ""}?proposal=${id}`;
     case "requirement": return `${base}/observatory/${encodeURIComponent(action.frameworkId ?? "")}?select=${id}`;
@@ -50,7 +50,7 @@ function AttentionRow({ item, ws }: { item: AttentionItem; ws: string }) {
           </div>
         )}
       </div>
-      <Link className="btn btn--quiet btn--sm attention__action" to={destination(ws, item.action)} aria-label={`${item.action.label}: ${item.title}`}>
+      <Link className="btn btn--quiet btn--sm attention__action" to={destination(ws, item.action, item.kind)} aria-label={`${item.action.label}: ${item.title}`}>
         {item.action.label} <ArrowRight size={14} aria-hidden="true" />
       </Link>
     </li>
@@ -76,6 +76,7 @@ export function AttentionQueue({ ws }: { ws: string }) {
           {queue.data?.enabledFrameworks.map(f => <option key={f.id} value={f.id}>{f.shortName}</option>)}
         </select></div>
       </div>
+      <Link className="btn btn--quiet btn--sm" to={`/w/${encodeURIComponent(ws)}/evidence?view=renewal&window=expired`}>Review evidence renewals <ArrowRight size={14} aria-hidden="true" /></Link>
       <div className="attention__filters" role="group" aria-label="Filter attention queue">
         {FILTERS.map(f => <button key={f.id} type="button" className="chip" aria-pressed={filter === f.id} onClick={() => { setFilter(f.id); setVisible(6); }}>{f.label} <span>{scoped.filter(item => matches(item, f.id)).length}</span></button>)}
       </div>

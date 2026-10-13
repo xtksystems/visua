@@ -113,9 +113,8 @@ framework state read metadata; inspection explicitly loads inline detail.
 [Final checks](runs/evidence-files-20261004/source-verification.json) pass 474
 SQLite and 476 PostgreSQL tests; 98 unique browser cases combine 79 unchanged
 full-lane passes and 19 final affected reruns. No single final full-check command
-passed. Next is explicit collection origin, assurance scope, and supersession.
-Other reviewed defects and phase packages remain open. Local Docker includes
-the completed packages at source commit `7806309`.
+passed. Collection origin, assurance scope, and supersession remain on the development roadmap.
+Other reviewed defects and phase packages remain open. Local Docker now includes the decision workspace package at `e867494`.
 
 The approved [decision workspace package](tasks/decision-workspace-20261004.md)
 adds scoped implementation/evidence/risk metrics, attention across enabled
@@ -126,6 +125,18 @@ The overview reads fresh metadata so expiry and coverage agree. See the
 [workspace guide](../docs/workspace.md) and
 [verification record](runs/decision-workspace-20261004/source-verification.json):
 505 SQLite, 507 PostgreSQL and all 110 browser tests pass, with desktop/mobile
-captures inspected. These changes are uncommitted and are not deployed in the
-existing Docker service. Priority-two visualization work and historical trends
-remain outside this package.
+captures inspected. The package was committed and pushed as `e867494`, then deployed to local Docker
+at localhost:8787. A fresh [delivery check](runs/decision-delivery-20261012/source-verification.json)
+passed all 110 browser tests, 505 SQLite and 507 PostgreSQL tests; live API and
+desktop/mobile smoke checks passed, with the original data and audit chain
+verified. The next approved [evidence renewal task](tasks/evidence-renewal-20261012.md)
+is complete and included in the evidence renewal delivery commit. It remains
+undeployed. It adds cumulative
+expiry windows, separate review and validity labels, and requirement impact
+using accepted alternatives through the first coverage gap.
+[Verification](runs/evidence-renewal-20261012/source-verification.json) passes
+524 SQLite and 526 PostgreSQL tests, plus 117 browser cases combining 115 full-lane
+passes and two targeted reruns. A viewer test had a transient route-fetch reset;
+an existing review test needed the new label text. All seven renewal browser
+cases passed in the full lane. Independent review and desktop/mobile captures
+also passed. Provenance/supersession and historical trends remain separate.

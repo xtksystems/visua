@@ -1,0 +1,16 @@
+{
+  "status": "complete",
+  "verdict": "pass",
+  "subject": "Deltas after independent-review.json, pinned by final-source.json",
+  "coverage": [
+    "Ledger uses the existing tested renewal normalizer for date-only/reversed/invalid semantics; no approval code changed.",
+    "Keyboard test now waits for actual selected state after Home, verified against the captured failing trace; focus assertion unchanged.",
+    "Conditional scope remains visible; calculation details moved to native accessible details element; CSS uses existing design tokens. Desktop and phone captures inspected.",
+    "API agent-approval test uses owned small real filesystem fixture and finally cleanup; real connector, expected-scope approval and duplicate checks remain. Instrumented old test confirmed two15s whole-checkout scans. Focused corrected test passes.",
+    "Existing bound-review browser test label assertions now match separate Review: Pending review state; every approval/history/stale-snapshot assertion passed in targeted execution."
+  ],
+  "findings": [],
+  "limitations": [
+    "Lead delta review is not independent. Final browser verification combines115full-lane and2targeted passes as recorded in source-verification.json."
+  ]
+}
