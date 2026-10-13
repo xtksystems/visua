@@ -188,7 +188,10 @@ Independent review findings and the collapsed-details keyboard defect are fixed.
 Source verification preceded the completed delivery recorded below.
 Milestone 3 is integrated and verified: 798 SQLite passes plus 7 PostgreSQL-only
 skips, 805 PostgreSQL passes, and 148 browser cases through full-run and targeted
-fixture corrections. Local delivery remains pending.
+fixture corrections. Source `dc5e68c` is pushed and deployed locally; all 196
+runtime source hashes match, original assessment rows are preserved, and live
+autonomy/public measure desktop/phone checks passed. The synthetic workspace
+was removed. See [delivery](runs/evidence-operations-20261013/automation-delivery.json).
 
 Evidence lifecycle delivery completed on October 13, 2026: source `3c85ef4`
 is pushed and running in the local Docker service. All 190 source pins match;

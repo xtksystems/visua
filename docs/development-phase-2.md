@@ -136,7 +136,8 @@ This milestone depends on the evidence definitions from milestone 2.
 All six packages are implemented. The database integration gate passes 798
 SQLite tests (seven PostgreSQL-only skips) and 805 PostgreSQL tests, including
 the two-instance HTTP cases. All 148 browser cases are verified through the
-full run and targeted fixture corrections; local delivery is underway;
+full run and targeted fixture corrections. Source `dc5e68c` is pushed and deployed
+locally, with source/data preservation and live desktop/phone checks passed;
 operator capacity and pilot-user baselines remain unmeasured.
 
 1. Add durable run ownership/leases, heartbeat, bounded concurrency, startup
@@ -234,7 +235,7 @@ completion-rate measurement exists yet.
 
 ## Next action
 
-Finish milestone 3's local delivery, then integrate milestone 4.
+Milestone 3 is delivered. Integrate and verify milestone 4 next.
 Snapshot-backed exports, separate access records, the offline auditor package,
 and isolated database/blob restore work are underway. The
 [evidence operations task](../.codex-context/tasks/evidence-operations-20261013.md)
