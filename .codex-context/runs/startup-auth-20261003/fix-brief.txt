@@ -1,0 +1,22 @@
+Run startup-auth-20261003, node review-fix. Targeted correction follow-up.
+Read your original review.json finding and inspect only changed server.ts,
+test/startup.test.ts, and the newly adjusted test/sso-recheck.test.ts.
+The startup cleanup finding has been fixed by bounded drainRuns before store
+close; the normal and failed-start paths share the same deadline helper. A
+regression holds a real seeded agent execution and forces waitForRun to fail,
+then verifies storage stays open until the execution resumes and finishes.
+Also inspect whether the changed SSO test retains its DNS-trouble contract:
+unknown DNS never lapses a proven domain, retry is no earlier than one hour,
+and repeated unknowns through ten days produce no failing event. The old 217
+hourly polls timed out on PostgreSQL at 30 seconds and cascaded into later
+cases. An isolated unchanged suite with testTimeout=60000 passed all 11 cases
+in 64.61 seconds. The new case retains retry boundary checks at 24, 24.5, and
+25 hours, then daily checks through hour 240 with exact per-domain count 11.
+Do not edit source or run full suites. Root owns focused/backend/full checks.
+Read-only isolated checks are permitted, no Docker or external provider changes.
+Write fix-review.json using the adversarial schema and result-fix.json using
+the fan-in envelope run_id, node_id review-fix, input_sha256 of this fix-brief.txt,
+status, summary, evidence, limitations. Keep first review artifacts intact.
+Bound this follow-up to the finding and revised regression contract, about
+5 minutes advisory. Return whether the finding is addressed and any new
+supported issue introduced by these corrections.

@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "origin": "http://localhost:8787",
+  "checks": {
+    "ready": true,
+    "existingAuditChains": [
+      {
+        "valid": true,
+        "events": 97
+      }
+    ],
+    "taskAssignmentDateAndLinks": true,
+    "requirementAssignmentAndDate": true,
+    "myWorkAndRequirementNavigation": true,
+    "noPageErrors": true
+  },
+  "fixtureCleaned": true
+}

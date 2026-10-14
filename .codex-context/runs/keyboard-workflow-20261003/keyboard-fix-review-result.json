@@ -1,0 +1,19 @@
+{
+  "run_id": "keyboard-workflow-20261003",
+  "node_id": "keyboard-fix-review",
+  "input_sha256": "06c057139ecc0270b653438740d9c2437487493f50a1dc3b8e92903be5765c32",
+  "status": "complete",
+  "summary": "Affected-flow adjudication completed against fix-review-source.json plus the disclosed navigation and test-settle addenda. The three first-pass findings are resolved: same-selection F frames the node, all six tab groups use the shared keyboard/panel contract, and Organization falls back to an available tab. The additional stale singleton/empty framing replay and catalog route-alias focus failures are addressed. No supported findings remain within this affected scope.",
+  "evidence": [
+    ".codex-context/runs/keyboard-workflow-20261003/keyboard-fix-review.json",
+    ".codex-context/runs/keyboard-workflow-20261003/keyboard-fix-review-source-validation.json",
+    ".codex-context/runs/keyboard-workflow-20261003/catalog-focus-final.log",
+    "Source pass found no supported remaining defects in the assigned affected scope; final disclosed addendum matches all pinned inputs."
+  ],
+  "limitations": [
+    "Review is bounded affected-flow source adjudication with inherited first-pass findings and root steering; it is not a new independent review of the entire package. Unchanged modal/tree/link paths were checked by hash, not rerun as an unrelated first-pass review.",
+    "No browser/build/server/unit/integration checks were executed by this reviewer. Runtime outcomes above are attributed to root-owned logs, and the root remains responsible for full final checks and the current integrated browser suite.",
+    "Original fix-review-source.json changed during the pass only in the disclosed ThreatsPage route-alias fix and e2e/keyboard-dialog-tabs.spec.ts addenda. Original mismatches and both intermediate/final addendum validations are preserved; the final addendum matches all reviewed current bytes.",
+    "Camera framing adjudication covers all currently reachable zero-node/single-node focus requests. The unchanged multi-node framing branch has no current application focus caller and was not runtime-tested as a hypothetical future workflow."
+  ]
+}

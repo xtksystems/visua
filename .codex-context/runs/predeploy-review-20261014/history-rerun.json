@@ -1,0 +1,18 @@
+{
+  "command": [
+    "pnpm",
+    "exec",
+    "playwright",
+    "test",
+    "e2e/score-history.spec.ts",
+    "--grep",
+    "reader sees exact recorded",
+    "--output",
+    ".codex-context/runs/predeploy-review-20261014/history-rerun/test-results"
+  ],
+  "exit_code": 1,
+  "seconds": 46.69,
+  "source": "cb438d1 unchanged",
+  "original_failure_artifacts": ".check/predeploy-review-20261014-history-initial",
+  "log": "history-rerun.log"
+}

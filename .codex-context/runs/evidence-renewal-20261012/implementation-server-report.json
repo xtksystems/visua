@@ -1,0 +1,91 @@
+{
+  "run_id": "evidence-renewal-20261012",
+  "node_id": "implementation-server",
+  "implementation_root": "/Users/artem/visua/.check/evidence-renewal-worktree",
+  "base_head": "e867494",
+  "summary": "Implemented metadata-only renewal projection with independent calendar validity and review state, cumulative date windows, current scope context, and deduplicated first-gap accepted-evidence coverage.",
+  "owned_files": [
+    {
+      "path": "packages/core/src/evidence-renewal.ts",
+      "sha256": "193c7937040939a8d3a14fcd3d1b7919beb18b626672267036b5ab581bdb60d8",
+      "lines": 131
+    },
+    {
+      "path": "packages/core/src/index.ts",
+      "sha256": "06af438dfddad5cd868c66e07f0cec16a3d0a32b967028d739961bb7f2c170c2",
+      "lines": 19
+    },
+    {
+      "path": "packages/core/test/evidence-renewal.test.ts",
+      "sha256": "8c27798a5af20530bbd7cb9a3e71543fd246157d374ba5ee33184ae7228637b0",
+      "lines": 81
+    },
+    {
+      "path": "apps/server/src/services/evidence-renewal.ts",
+      "sha256": "5341c0d4cfdab9153c6d4efb4ec6d921ba1778f32a397d4dd9876a465319ceb8",
+      "lines": 106
+    },
+    {
+      "path": "apps/server/src/app.ts",
+      "sha256": "f145ce46f3aed1e9c8461b5be8211a6a4e9c11eb1be94a96161bd8cb6f17e31b",
+      "lines": 806
+    },
+    {
+      "path": "apps/server/test/evidence-renewal.test.ts",
+      "sha256": "07e35d9865169a211e769b2809ff72f10d67c986bdfee8302a14d1be9c678652",
+      "lines": 196
+    }
+  ],
+  "public_contract": "WorkspaceEvidenceRenewal and associated types are exported from @visua/core via packages/core/src/evidence-renewal.ts. The UI worker and lead were notified before service implementation.",
+  "behavior": [
+    "GET /api/workspaces/:ws/evidence/renewal precedes evidence/:id, uses existing workspace.read authorization, and sends private/no-store.",
+    "Rows explicitly project safe metadata only; no content, data, blob handles, SHA or review history. Source metadata is never mutated.",
+    "Expired uses end<asOf; next7days and next30days are cumulative [asOf,asOf+window). Calendar expiry remains inclusive UTC day-end and exact expiry belongs to future windows.",
+    "Pending/rejected/unbound and future-collected records still receive finite date classifications; invalid/reversed dates and missing expiry remain outside date buckets with inspectable ids.",
+    "All recognized direct/group/out-of-scope links remain visible with context counts. Unknown links have a distinct count. Only current enabled, nonexcluded, nonwithdrawn, in-force, configured direct assessable scope enters impact.",
+    "Expired impact means currently uncovered direct requirements, independent of the expired artifact review state. No historical loss assertion is introduced.",
+    "Future impact follows accepted bound interval unions from now, accepts only gap-free future windows, stops at the first gap, treats reachable unbounded windows as no known loss, attributes rows to the terminal interval set, and deduplicates requirement counts.",
+    "No changes to attention, visua, scoring, evidence validation, schema, migrations, review or supersession behavior."
+  ],
+  "verification": [
+    {
+      "command": "pnpm exec vitest run packages/core/test/evidence-renewal.test.ts apps/server/test/evidence-renewal.test.ts packages/core/test/evidence.test.ts apps/server/test/attention.test.ts",
+      "cwd": "/Users/artem/visua/.check/evidence-renewal-worktree",
+      "outcome": "passed",
+      "evidence": "4 files, 70 tests passed; duration 2.61s; SQLite in-memory server lane"
+    },
+    {
+      "command": "pnpm --filter @visua/core --filter @visua/server typecheck",
+      "cwd": "/Users/artem/visua/.check/evidence-renewal-worktree",
+      "outcome": "passed",
+      "evidence": "Both package typechecks exited 0"
+    },
+    {
+      "command": "git diff --check",
+      "cwd": "/Users/artem/visua/.check/evidence-renewal-worktree",
+      "outcome": "passed",
+      "evidence": "Exited 0"
+    },
+    {
+      "command": "Initial focused new tests/typecheck",
+      "cwd": "/Users/artem/visua/.check/evidence-renewal-worktree",
+      "outcome": "corrected fixture errors",
+      "evidence": "Initial test tried to create a prohibited threat link via normal service and had an incorrect SOC2 fixture property. Replaced with deliberate legacy raw-store link fixture and reportType:type1. Final affected checks passed."
+    }
+  ],
+  "test_coverage": [
+    "Core exact +/-1ms expiry, exact7/30d, UTC day-end/timezone normalization, all review states, future collection, invalid/reversed/missing windows.",
+    "Core alternate expiries, reordered rows, same endpoints, future bridge chains, one-millisecond adjacency vs actual gaps, indefinite alternative, pending/rejected/legacy/stale nonbridges, current uncovered.",
+    "Server expired pending/rejected semantics, multiple links dedupe, cumulative loss counts, matching ending rows, unreachable future starts, unbound acceptance.",
+    "Server current scope includes enabled/in-force role scope and excludes user exclusions, manual not-applicable, withdrawn, disabled, threat, future/ended/no-role laws, SOC categories, RMF baseline/tailoring; preserves context.",
+    "Server raw invalid/legacy dates, metadata-only with spies blocking hydrated reads and blob reads, unchanged workspace revision/audit, viewer access, foreign tenant404, unauthenticated401, cache header and fresh expiry transition."
+  ],
+  "limitations": [
+    "PostgreSQL, production builds, browsers and full suites were not run by this worker; tests use existing backend-independent testDatabase fixture for the lead lanes.",
+    "Coverage projections assume unchanged current scope and recorded review/window metadata; they do not predict future collections, reviews, scope changes, legal applicability, implementation or verified status.",
+    "The existing scopeOf helper is reused unchanged; its law sunset uses the wall clock internally. Production endpoint captures current asOf, and tests freeze the clock. No historical scope API is provided.",
+    "Independent metadata reads match existing read-view behavior and do not claim a transactional historical snapshot.",
+    "Other workers edited their own files in the shared isolated worktree. This report owns only the six listed files; no commits or main application source edits were performed."
+  ],
+  "next_action": "Lead copies/reviews the six owned files into integration when authorized, runs both database lanes and browser acceptance, and reconciles UI/docs wording with the public metadata contract."
+}

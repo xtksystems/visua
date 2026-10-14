@@ -1,0 +1,17 @@
+{
+  "run_id": "visual-followthrough-20261013",
+  "node_id": "plan",
+  "input_sha256": "2dbb276381010031b1d0380e85e4fbf6de46cc041292a7971d4afbccca3acecf",
+  "status": "complete",
+  "summary": "Implemented default urgency List, URL-backed view/status/framework filters, persistent scope-labeled status counts, existing task dialog and bounded horizontal Board, UTC due-only timeline markers and accessible schedule table.",
+  "evidence": [
+    ".codex-context/runs/visual-followthrough-20261013/plan-report.json",
+    "15 focused Vitest tests passed",
+    "Web TypeScript check passed",
+    "Owned-file whitespace checks passed"
+  ],
+  "limitations": [
+    "Playwright, build, full suites and visual review reserved to lead; not run by worker.",
+    "No docs/e2e/shared files changed. Lead owns browser cases and legacy Board-default test updates."
+  ]
+}

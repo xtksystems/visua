@@ -1,0 +1,61 @@
+{
+  "run_id": "visual-followthrough-20261013",
+  "expected_nodes": 8,
+  "accepted_nodes": 8,
+  "snapshot_checked_files": 318,
+  "stale_sources": [],
+  "nodes": [
+    {
+      "id": "crosswalk",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "plan",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "crosswalk-plan-review",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "profile",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "agent-stages",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "history",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "profile-stages-review",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "history-review",
+      "status": "complete",
+      "issues": []
+    }
+  ],
+  "ready_for_integration": true,
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "source-verification.json",
+      "lead-adjudication.json",
+      "visual-verification.json",
+      "check-full.log (all non-browser lanes pass; 136 browser passes)",
+      "browser-final-delta.log (all four affected cases pass; 138 unique cases verified)"
+    ]
+  },
+  "complete": true
+}

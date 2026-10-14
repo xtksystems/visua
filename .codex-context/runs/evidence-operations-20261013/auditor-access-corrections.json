@@ -1,0 +1,113 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "auditor-access-corrections",
+  "status": "complete",
+  "updated_utc": "2026-10-13T10:26:59.166959+00:00",
+  "worktree": "/Users/artem/visua/.check/evidence-auditor-20261013",
+  "review": {
+    "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/auditor-access-review.json",
+    "sha256": "059f106c6d817b812f894c08248eb568dd21de963a84249612faaf41391c8779"
+  },
+  "files": [
+    {
+      "path": "apps/server/src/app.ts",
+      "before_sha256": "0cb9b481dcfc0be25a460aa17389bd70ef25a080d651235f00e1b7312262f330",
+      "after_sha256": "4af73282bcd03c66925604c4600e6bbfb55a0f7b668abc1d97ccdcf51dbee211"
+    },
+    {
+      "path": "apps/web/src/components/AuditorPanel.tsx",
+      "before_sha256": "3e20982cf1dba30a1367abbd538e7a6b6451c0f7b86ede7457c329d4ba690706",
+      "after_sha256": "5a641317fd59c28ade504124777c2f56526481d95d3b3cc7a1da72276ea205dc"
+    },
+    {
+      "path": "apps/server/test/auditor-http.test.ts",
+      "before_sha256": "ad3248f290e931ec0fecc06fca67b80dbda7c7db8379d44b25bfce4488fab33d",
+      "after_sha256": "7d411d9796c72c54a09d318d345806eb26a7274ae25b90e9874e328751b8f606"
+    },
+    {
+      "path": "e2e/auditor-handoff.spec.ts",
+      "before_sha256": "60b74390bef057d3ff5228de08e09652aa6ecfaddc9bdf0ac5d5e39445545e5c",
+      "after_sha256": "22f6335c284d2c882f8e44b7d88f51a02a62610b27b04e823fef364d33c0c3ff"
+    }
+  ],
+  "findings": [
+    {
+      "finding": "Final current-access check preceded a potentially blocking workspace advisory lock.",
+      "correction": "preparedAccess now obtains ws:<canonical workspace id> inside its outer atomic transaction before assertWorkspaceAccess, then checks request cancellation after the wait. recordAccess reuses the transaction-owned lock, removing the later lock wait after authorization.",
+      "coverage": "Auth semantics, role floors and identity attribution unchanged. No network is performed under this SQL lock. Applies to prepared auditor views, ZIP and legacy exports, access reads and file downloads.",
+      "regressions": "SQLite-safe cancellation during final lock wait passes. Two PostgreSQL-only cases hold an actual workspace advisory lock after blob preparation, observe an ungranted lock in pg_locks, commit membership/token revocation, then release the lock and require denial without bytes or an access record."
+    },
+    {
+      "finding": "A same-workspace live summary refresh hid a disabled framework without removing its selected id.",
+      "correction": "Requests and enabled buttons use selection intersected with current framework availability. An availability-key layout effect preserves valid user selections, removes invalid ids, aborts active work, and clears capture, receipt, error and loading state before painting the new scope. Late aborted results cannot restore removed-scope data. Newly enabled frameworks remain user-selectable rather than silently widening a prior selection.",
+      "regressions": "Authored a browser journey that opens a preview and saves a receipt, holds a second response, disables one framework through another signed-in owner request, waits for the real live summary refresh, releases the stale response, and verifies preview/download recover with only the still-selected valid framework. Authored only; not browser-executed."
+    },
+    {
+      "finding": "New preview percentage was labeled readiness.",
+      "correction": "Changed the label to implementation progress as directed by the lead.",
+      "regressions": "The authored live-scope browser journey asserts the new text."
+    }
+  ],
+  "checks": [
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/auditor-http.test.ts",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "exit_code": 0,
+      "outcome": "13 passed; 2 PostgreSQL-only cases skipped.",
+      "log": "/Users/artem/visua/.check/evidence-auditor-20261013/.codex-context/runs/evidence-operations-20261013/auditor-access-corrections-sqlite.log",
+      "log_sha256": "0ea8c8019477a20f11c10296ad041013d8bbc78461200bf7bd328d90c05489a0"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec tsc --noEmit -p apps/server/tsconfig.json",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "exit_code": 1,
+      "outcome": "Initial new test helper exposed Hono Response | Promise<Response> typing at then/catch. Corrected by making raw helper async.",
+      "log": "/Users/artem/visua/.check/evidence-auditor-20261013/.codex-context/runs/evidence-operations-20261013/auditor-access-corrections-server-typecheck.log",
+      "log_sha256": "379bb4e2a5aa15b7296fd4ad878ad15518e9f6be427251200819ca5aa8308c88"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec tsc --noEmit -p apps/server/tsconfig.json",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "exit_code": 0,
+      "outcome": "Final server typecheck passed.",
+      "log": "/Users/artem/visua/.check/evidence-auditor-20261013/.codex-context/runs/evidence-operations-20261013/auditor-access-corrections-server-typecheck-final.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec tsc --noEmit -p apps/web/tsconfig.json",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "exit_code": 0,
+      "outcome": "Web typecheck passed on final product code.",
+      "log": "/Users/artem/visua/.check/evidence-auditor-20261013/.codex-context/runs/evidence-operations-20261013/auditor-access-corrections-web-typecheck.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec tsc --noEmit --target ES2023 --module ESNext --moduleResolution Bundler --allowImportingTsExtensions --verbatimModuleSyntax --strict --skipLibCheck --jsx react-jsx --typeRoots apps/server/node_modules/@types --types node e2e/auditor-handoff.spec.ts",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "exit_code": 0,
+      "outcome": "All four authored auditor browser journeys typecheck; none executed by this worker.",
+      "log": "/Users/artem/visua/.check/evidence-auditor-20261013/.codex-context/runs/evidence-operations-20261013/auditor-access-corrections-browser-typecheck.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "lead_observations": {
+    "source": "Parent messages during full root database gate; not this worker execution.",
+    "postgres_membership_case": "Lead reported the real advisory-lock membership revocation case passed.",
+    "postgres_token_case": "Lead reported intermediate fixture failure reading created.json.record.id. Final isolated test uses actual flattened created.json.id. Final PostgreSQL execution remains lead-owned.",
+    "coordination": "Product app.ts and AuditorPanel.tsx were released before the root full gate. Focused suite execution was held while that gate ran, then resumed only after lead reported it finished."
+  },
+  "other_test_changes": [
+    "HTTP suite now explicitly uses MemoryBlobStore on either database backend to keep file fixtures disposable.",
+    "Binary test request helper accepts AbortSignal and always returns a Promise.",
+    "PostgreSQL fixture observes the actual ungranted advisory lock instead of sleeping; all held gates and connections are released in finally."
+  ],
+  "boundaries": [
+    "Exactly four authorized source/test paths edited. No auth/http, auth/service, VisuaService, schema or storage implementation changes.",
+    "No Git, install, Docker, PostgreSQL execution, browser execution, broad suite or delegation by this worker.",
+    "No root product edits. The assigned correction JSON is the only root write for this correction lane.",
+    "Original auditor access/UI reports remain historical and untouched.",
+    "Product fixes are verified by source inspection, typechecks and the focused SQLite-safe cases. Final PostgreSQL token regression and browser behavior require lead execution."
+  ],
+  "pending_worker_edits": false,
+  "next_action": "Lead carries final test hashes into root and runs targeted SQLite/PostgreSQL plus all four authored browser journeys. Product files have remained unchanged since release."
+}

@@ -1,17 +1,21 @@
+import { requirementEvidenceLineage } from "./services/evidence-lineage.ts";
 /**
  * Visua HTTP API (Hono). JSON everywhere, SSE for live events, strict input
  * validation with Zod, and a local file route that serves the official
  * corpus so every citation opens the source PDF at the right page.
  */
-import { createHash } from "node:crypto";
 import { createReadStream, existsSync, realpathSync, statSync } from "node:fs";
 import { extname, isAbsolute, relative, resolve, sep } from "node:path";
 import { Readable } from "node:stream";
 import { Hono, type Context } from "hono";
 import { compress } from "hono/compress";
 import { etag } from "hono/etag";
-import { streamSSE } from "hono/streaming";
+import { getCookie } from "hono/cookie";
+import { workspaceEventStream } from "./workspace-events.ts";
 import { z } from "zod";
+import { readinessProbe } from "./readiness.ts";
+import { readJsonBody, RequestControlError, RequestControls, type RequestControlConfig } from "./request-controls.ts";
+import type { Diagnostics } from "./diagnostics.ts";
 import {
   EXAMPLE_INFORMATION_TYPES,
   LEVEL_SCALES,
@@ -24,6 +28,10 @@ import {
   TIER_NAMES,
   TIER_SOURCE,
   ROLE_CAPABILITIES,
+  can,
+  effectiveEvidenceState,
+  obligationTiming,
+  type Capability,
   recommend,
   type AgentKind,
   type Workspace,
@@ -31,18 +39,32 @@ import {
 import { AGENTS, claudeEnabled, configuredModel } from "@visua/agents";
 import { CORPUS_DIR } from "@visua/frameworks";
 import { loadAuthConfig } from "./auth/config.ts";
-import { actorOf, authenticate, authRoutes, csrfProtection, limitParam, need, principalOf, requireCapability, requireSignIn, securityHeaders, workspaceAccess, type AppEnv } from "./auth/http.ts";
+import { actorOf, authenticate, authRoutes, cookieName, csrfProtection, limitParam, need, principalOf, requireCapability, requireSignIn, securityHeaders, workspaceAccess, type AppEnv } from "./auth/http.ts";
 import { AuthService, ForbiddenError, UnauthorizedError } from "./auth/service.ts";
 import { CONNECTOR_KINDS } from "./connectors/index.ts";
-import { actionPlanCsv, aiRmfProfileCsv, csfProfileCsv, evidenceIndexCsv, oscalPoam, oscalSsp, readinessMarkdown, soc2PbcCsv } from "./services/exports.ts";
+import { actionPlanCsv, aiRmfProfileCsv, csfProfileCsv, evidenceIndexCsv, exportScoreInput, oscalPoam, oscalSsp, readinessMarkdown, soc2PbcCsv } from "./services/exports.ts";
+import { buildAuditorBundle } from "./services/auditor-bundle.ts";
+import { captureExportSnapshot, EXPORT_SNAPSHOT_BASIS, type ExportSelection } from "./services/export-snapshot.ts";
+import { evidenceMetadata } from "./services/evidence.ts";
+import type { AccessInput } from "./storage/access.ts";
 import { aiOverview } from "./services/ai.ts";
 import { lawsOverview } from "./services/laws.ts";
 import { parseMinStatus, threatCatalogState, threatRing, threatsOverview } from "./services/threats.ts";
 import { overlayMeta, overlaySummary } from "./services/overlays.ts";
 import { crosswalkOverview, crosswalkRows } from "./services/crosswalk.ts";
+import { crosswalkComparison } from "./services/crosswalk-comparison.ts";
 import { soc2Description } from "./services/soc2.ts";
 import { frameworkState, leanGraph, nodeDetail, workspaceSummary } from "./services/views.ts";
-import { NotFoundError, ValidationError, type VisuaService } from "./services/visua.ts";
+import { recordScoreObservation } from "./services/score-history.ts";
+import { workspaceAttention } from "./services/attention.ts";
+import { workspaceEvidenceRenewal } from "./services/evidence-renewal.ts";
+import { latestMonitoringChecks, publicTrust } from "./services/trust.ts";
+import { RunQueueFullError, NotFoundError, ValidationError, type VisuaService } from "./services/visua.ts";
+import { ConnectorCapacityError } from "./connectors/limits.ts";
+import { isWorkDate } from "./services/work.ts";
+import { BlobStoreError, MAX_BLOB_BYTES } from "./blobs/index.ts";
+import { EvidenceUploadError, evidenceDisposition, evidenceUpload, withEvidenceUpload } from "./evidence-http.ts";
+import { ProposalReviewConflict } from "./services/proposal-review.ts";
 
 const Level = z.number().int().min(0).max(4);
 const Priority = z.enum(["critical", "high", "medium", "low"]);
@@ -50,6 +72,26 @@ const ImpactLevel = z.enum(["low", "moderate", "high"]);
 const AgentKindSchema = z.enum(["copilot", "assessor", "planner", "policy-author", "evidence-collector", "crosswalk-analyst", "auditor-prep", "task-executor"]);
 const TaskStatus = z.enum(["backlog", "todo", "in-progress", "in-review", "done", "blocked"]);
 const TaskKind = z.enum(["governance", "policy", "procedure", "technical", "evidence", "training", "assessment", "vendor", "monitoring"]);
+const WorkDate = z.string().refine(isWorkDate, "Must be a valid calendar date (YYYY-MM-DD)");
+const Assignee = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("person"), id: z.string().min(1), name: z.string().max(200).optional() }),
+  z.object({ type: z.literal("agent"), id: z.string().min(1), name: z.string().trim().min(1).max(200) }),
+  z.object({ type: z.literal("external"), id: z.literal("external"), name: z.string().trim().min(1).max(200) }),
+]);
+
+const EvidenceAssuranceSchema = z.object({
+  kind: z.enum(["design", "operating", "attestation", "unspecified"]), scope: z.string().max(2000),
+  observationStart: z.string().optional(), observationEnd: z.string().optional(),
+}).strict();
+const EvidenceProvenanceSchema = z.object({
+  origin: z.enum(["upload", "manual", "connector-check", "agent-proposal", "approved-policy"]),
+  recordedBy: z.string(), recordedAt: z.string(), originalRequirementIds: z.array(z.string()),
+  sourceDocumentIds: z.array(z.string()), restrictedContent: z.boolean(), seriesKey: z.string().optional(),
+  check: z.object({ resultId: z.string(), connectorId: z.string(), connectorKind: z.string(), connectorName: z.string(), checkId: z.string(), observedAt: z.string(), sourceConfigHash: z.string().optional() }).strict().optional(),
+  agent: z.object({ runId: z.string(), proposalId: z.string() }).strict().optional(),
+  policy: z.object({ id: z.string(), version: z.number(), sha256: z.string(), approvedBy: z.string().optional(), approvedAt: z.string().optional() }).strict().optional(),
+}).strict();
+const EvidenceReviewScopeSchema = z.object({ sha256: z.string().regex(/^[a-f0-9]{64}$/).optional(), requirementIds: z.array(z.string()), collectedAt: z.string(), validUntil: z.string().optional(), assurance: EvidenceAssuranceSchema.optional(), provenance: EvidenceProvenanceSchema.optional(), supersedesId: z.string().optional() }).strict();
 
 const ProfileSchema = z.object({
   industry: z.enum(PROFILE_INDUSTRIES),
@@ -124,7 +166,9 @@ const Schemas = {
     priority: Priority.optional(),
     applicable: z.boolean().optional(),
     applicabilityRationale: z.string().max(2000).optional(),
-    owner: z.string().max(200).optional(),
+    owner: z.string().max(200).nullable().optional(),
+    ownerUserId: z.string().min(1).nullable().optional(),
+    dueDate: WorkDate.nullable().optional(),
     notes: z.string().max(10_000).optional(),
     verifiedAt: z.string().nullable().optional(),
     statusOverride: z.enum(["not-started", "in-progress", "implemented", "verified", "at-risk", "not-applicable"]).nullable().optional(),
@@ -136,11 +180,11 @@ const Schemas = {
     status: TaskStatus.optional(),
     priority: Priority.optional(),
     requirementIds: z.array(z.string()).optional(),
-    dueDate: z.string().optional(),
-    startDate: z.string().optional(),
+    dueDate: WorkDate.optional(),
+    startDate: WorkDate.optional(),
     effortHours: z.number().min(0).max(10_000).optional(),
     checklist: z.array(z.object({ text: z.string().min(1), done: z.boolean().optional() })).optional(),
-    assignee: z.object({ type: z.enum(["person", "agent"]), id: z.string(), name: z.string() }).optional(),
+    assignee: Assignee.optional(),
   }),
   updateTask: z.object({
     title: z.string().min(1).max(200).optional(),
@@ -149,28 +193,39 @@ const Schemas = {
     status: TaskStatus.optional(),
     priority: Priority.optional(),
     requirementIds: z.array(z.string()).optional(),
-    dueDate: z.string().nullable().optional(),
-    startDate: z.string().nullable().optional(),
+    dueDate: WorkDate.nullable().optional(),
+    startDate: WorkDate.nullable().optional(),
     effortHours: z.number().min(0).max(10_000).optional(),
     checklist: z.array(z.object({ id: z.string(), text: z.string(), done: z.boolean() })).optional(),
-    assignee: z.object({ type: z.enum(["person", "agent"]), id: z.string(), name: z.string() }).nullable().optional(),
+    assignee: Assignee.nullable().optional(),
   }),
   createEvidence: z.object({
     title: z.string().min(1).max(300),
     description: z.string().max(10_000).optional(),
-    kind: z.enum(["document", "screenshot", "configuration", "log", "attestation", "automated-check", "policy", "report"]).optional(),
+    kind: z.enum(["document", "screenshot", "configuration", "log", "attestation", "policy", "report"]).optional(),
     requirementIds: z.array(z.string()).min(1),
     content: z.string().max(2_000_000).optional(),
+    data: z.record(z.string(), z.unknown()).optional(),
+    collectedAt: z.string().optional(),
     fileName: z.string().max(300).optional(),
     validUntil: z.string().optional(),
-  }),
+    assurance: EvidenceAssuranceSchema.optional(), supersedesId: z.string().min(1).optional(),
+  }).strict(),
   updateEvidence: z.object({
-    decision: z.enum(["accepted", "rejected"]).optional(),
+    decision: z.enum(["accepted", "rejected", "withdrawn"]).optional(),
     note: z.string().max(2000).optional(),
-    title: z.string().max(300).optional(),
-    requirementIds: z.array(z.string()).optional(),
-    validUntil: z.string().optional(),
-  }),
+    expectedScope: EvidenceReviewScopeSchema.optional(),
+    expectedReviewId: z.string().min(1).nullable().optional(),
+    assurance: EvidenceAssuranceSchema.optional(),
+    title: z.string().min(1).max(300).optional(),
+    description: z.string().max(10_000).optional(),
+    content: z.string().max(2_000_000).optional(),
+    data: z.record(z.string(), z.unknown()).optional(),
+    fileName: z.string().max(300).optional(),
+    requirementIds: z.array(z.string()).min(1).optional(),
+    collectedAt: z.string().optional(),
+    validUntil: z.string().nullable().optional(),
+  }).strict(),
   createPolicy: z.object({ title: z.string().min(1).max(200), body: z.string().min(1).max(500_000), requirementIds: z.array(z.string()).optional(), owner: z.string().optional() }),
   updatePolicy: z.object({
     title: z.string().min(1).max(200).optional(),
@@ -192,7 +247,8 @@ const Schemas = {
   }),
   connector: z.object({ kind: z.string(), name: z.string().max(120).optional(), config: z.record(z.string(), z.unknown()) }),
   run: z.object({ agent: AgentKindSchema, goal: z.string().max(4000).default(""), input: z.record(z.string(), z.unknown()).optional() }),
-  decision: z.object({ decision: z.enum(["approved", "rejected"]), edits: z.record(z.string(), z.unknown()).optional() }),
+  decision: z.object({ decision: z.enum(["approved", "rejected"]), edits: z.record(z.string(), z.unknown()).optional(), reviewToken: z.string().min(1).max(200).optional() }).strict(),
+  batchDecision: z.object({ proposalIds: z.array(z.string().min(1)).min(1).max(200), reviewToken: z.string().min(1).max(200) }).strict(),
   plan: z.object({ framework: z.string().default("nist-csf-2.0"), maxTasks: z.number().int().min(1).max(200).default(15) }),
   tiers: z.object({ answers: z.record(z.string(), z.number().int().min(1).max(4)) }),
   categorize: z.object({
@@ -211,12 +267,7 @@ const Schemas = {
 };
 
 async function body<T extends z.ZodType>(c: Context, schema: T): Promise<z.infer<T>> {
-  let json: unknown;
-  try {
-    json = await c.req.json();
-  } catch {
-    throw new ValidationError("Request body must be JSON");
-  }
+  const json = await readJsonBody(c.req.raw);
   const parsed = schema.safeParse(json);
   if (!parsed.success) throw new ValidationError(z.prettifyError(parsed.error));
   return parsed.data;
@@ -235,11 +286,23 @@ const MIME: Record<string, string> = {
 /** Inside the corpus and outside every non-redistributable `.local/` folder (in any letter case). */
 const servable = (path: string) => !!path && !path.startsWith("..") && !isAbsolute(path) && !path.split(sep).some((p) => p.toLowerCase() === ".local");
 
-export function createApp(svc: VisuaService, auth: AuthService = new AuthService(svc, loadAuthConfig())): Hono<AppEnv> {
+export function createApp(svc: VisuaService, auth: AuthService = new AuthService(svc, loadAuthConfig()), lifecycle: { stopping: boolean; signal?: AbortSignal } = { stopping: false }, controlsOptions: { config?: RequestControlConfig; diagnostics?: Diagnostics } = {}): Hono<AppEnv> {
   const app = new Hono<AppEnv>();
+  const databaseReady = readinessProbe(svc.store);
+  const controls = new RequestControls(controlsOptions.config, controlsOptions.diagnostics, lifecycle.signal);
+  svc.store.onClose(async () => controls.close());
 
   app.onError((err, c) => {
+    if (err instanceof RequestControlError) {
+      if (err.retryAfter !== undefined) c.header("Retry-After", String(err.retryAfter));
+      return c.json({ error: err.message }, err.status);
+    }
+    if (err instanceof ProposalReviewConflict) return c.json({ error: err.message }, 409);
+    if (err instanceof EvidenceUploadError) return c.json({ error: err.message }, err.status);
+    if (err instanceof BlobStoreError) return c.json({ error: "The evidence file is unavailable or could not be verified. Try again or contact your administrator." }, 503);
+    if (err instanceof ConnectorCapacityError) return c.json({ error: err.message }, 503);
     if (err instanceof NotFoundError) return c.json({ error: err.message }, 404);
+    if (err instanceof RunQueueFullError) return c.json({ error: err.message }, 429);
     if (err instanceof ValidationError) return c.json({ error: err.message }, 400);
     if (err instanceof UnauthorizedError) return c.json({ error: err.message }, 401);
     if (err instanceof ForbiddenError) return c.json({ error: err.message }, 403);
@@ -259,13 +322,26 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
 
   // ---------------------------------------------------------------- security & identity
   app.use("*", securityHeaders(auth));
-  app.use("*", authenticate(auth));
+  app.use("*", async (c, next) => {
+    if (lifecycle.stopping && c.req.path !== "/api/health" && c.req.path !== "/api/ready") {
+      return c.json({ error: "Server is stopping" }, 503);
+    }
+    return next();
+  });
+  app.use("/api/*", controls.beforeAuth());
+  app.use("/api/*", authenticate(auth));
+  app.use("/api/*", controls.afterAuth());
   app.use("/api/*", requireSignIn());
   app.use("/api/*", csrfProtection(auth));
   authRoutes(app, auth);
 
   // ---------------------------------------------------------------- meta
   app.get("/api/health", (c) => c.json({ ok: true, frameworks: svc.registry.indexes.size, corpusChunks: svc.registry.search.size }));
+  app.get("/api/ready", async (c) => {
+    if (lifecycle.stopping) return c.json({ ok: false }, 503);
+    const ok = await databaseReady() && !lifecycle.stopping;
+    return c.json({ ok }, ok ? 200 : 503);
+  });
 
   app.get("/api/meta", (c) =>
     c.json({
@@ -280,6 +356,7 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
       crosswalk: svc.registry.crosswalk.sets.map((s) => ({ id: s.id, title: s.title, authority: s.authority, count: s.mappings.length })),
       overlays: svc.registry.overlays.map(overlayMeta),
       exampleInformationTypes: EXAMPLE_INFORMATION_TYPES,
+      evidenceUpload: { maxBytes: MAX_BLOB_BYTES },
     }),
   );
 
@@ -313,7 +390,7 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
     const nodes = [];
     for (const index of svc.registry.indexes.values()) {
       if (framework && index.id !== framework) continue;
-      for (const n of index.search(q, 8)) nodes.push({ id: n.id, code: n.code, title: n.title, text: n.text.slice(0, 200), framework: n.frameworkId, kind: n.kind });
+      for (const n of index.search(q, 8)) nodes.push({ id: n.id, code: n.code, title: n.title, text: n.text.slice(0, 200), framework: n.frameworkId, kind: n.kind, assessable: n.assessable });
     }
     const passages = svc.registry.search.search(q, { limit: 6 }).map((h) => ({
       documentId: h.chunk.documentId,
@@ -386,8 +463,27 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
   app.use("/api/workspaces/:ws/*", workspaceAccess(auth));
   const wsOf = (c: Context<AppEnv>) => c.get("workspace");
   const wsId = (c: Context<AppEnv>) => c.get("workspace").id;
+  // Storage can outlast a session or membership. Recheck before publishing bytes or metadata.
+  const evidenceAccess = (c: Context<AppEnv>, capability: Capability) => () => svc.store.atomic(async () => {
+    if (c.req.raw.signal.aborted) throw new EvidenceUploadError("The request was interrupted. Try again.");
+    await svc.store.lock(`ws:${wsOf(c).tenantId}`);
+    const original = principalOf(c);
+    const bearer = c.req.header("authorization");
+    const fresh = bearer?.toLowerCase().startsWith("bearer ")
+      ? await auth.resolveApiToken(bearer.slice(7).trim(), { touch: false })
+      : await auth.resolveSession(getCookie(c, cookieName(auth)) ?? "", { touch: false });
+    if (!fresh || fresh.kind !== original.kind || fresh.id !== original.id) throw new UnauthorizedError("Sign in to continue");
+    const role = await auth.roleIn(fresh, wsOf(c).tenantId);
+    if (!role) throw new NotFoundError("Workspace not found");
+    if (!can(role, capability)) throw new ForbiddenError("Your current role does not permit this action");
+  });
 
   app.get("/api/workspaces/:ws", async (c) => c.json(await summary(c, wsOf(c))));
+  app.get("/api/workspaces/:ws/members", async (c) => c.json(await svc.workspaceMembers(wsId(c))));
+  app.get("/api/workspaces/:ws/my-work", async (c) => {
+    const principal = principalOf(c);
+    return c.json(await svc.myWork(wsId(c), principal.kind === "user" ? principal.user.id : undefined));
+  });
 
   app.patch("/api/workspaces/:ws", need("workspace.configure"), async (c) => {
     const input = await body(c, Schemas.updateWorkspace);
@@ -399,6 +495,16 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
     await svc.deleteWorkspace(wsId(c), actorOf(c));
     return c.json({ ok: true });
   });
+
+  app.get("/api/workspaces/:ws/score-history", async (c) => {
+    const parsed = z.coerce.number().int().min(1).max(200).safeParse(c.req.query("limit") ?? 60);
+    if (!parsed.success) throw new ValidationError("History limit must be an integer between 1 and 200");
+    const limit = parsed.data;
+    c.header("Cache-Control", "private, no-store");
+    return c.json(await svc.store.scoreHistory.recent(wsId(c), limit));
+  });
+  app.post("/api/workspaces/:ws/score-history", need("work.write"), async (c) =>
+    c.json(await recordScoreObservation(svc, wsId(c), actorOf(c)), 201));
 
   app.get("/api/workspaces/:ws/recommendation", async (c) => c.json(recommend(wsOf(c).profile)));
 
@@ -489,6 +595,11 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
     return c.body(null, 204);
   });
 
+  app.get("/api/workspaces/:ws/attention", async (c) => {
+    c.header("Cache-Control", "private, no-store");
+    return c.json(await workspaceAttention(svc, wsOf(c)));
+  });
+
   // ---------------------------------------------------------------- tasks
   app.get("/api/workspaces/:ws/tasks", async (c) => c.json(await svc.store.tasks.list(wsId(c))));
   app.post("/api/workspaces/:ws/tasks", async (c) => {
@@ -498,8 +609,7 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
   });
   app.patch("/api/workspaces/:ws/tasks/:id", async (c) => {
     const input = await body(c, Schemas.updateTask);
-    const clean = Object.fromEntries(Object.entries(input).map(([k, v]) => [k, v === null ? undefined : v]));
-    return c.json(await svc.updateTask(wsId(c), c.req.param("id"), clean as never, actorOf(c)));
+    return c.json(await svc.updateTask(wsId(c), c.req.param("id"), input as never, actorOf(c)));
   });
   app.delete("/api/workspaces/:ws/tasks/:id", async (c) => {
     await svc.deleteTask(wsId(c), c.req.param("id"), actorOf(c));
@@ -511,20 +621,57 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
   });
 
   // ---------------------------------------------------------------- evidence
-  app.get("/api/workspaces/:ws/evidence", async (c) => c.json(await svc.store.evidence.list(wsId(c))));
+  app.get("/api/workspaces/:ws/evidence", async (c) => c.json(await svc.store.evidence.metadataList(wsId(c))));
+  app.get("/api/workspaces/:ws/evidence/renewal", async (c) => {
+    c.header("Cache-Control", "private, no-store");
+    return c.json(await workspaceEvidenceRenewal(svc, wsOf(c)));
+  });
+  app.get("/api/workspaces/:ws/evidence/lineage", async (c) => {
+    c.header("Cache-Control", "private, no-store");
+    return c.json(await requirementEvidenceLineage(svc, wsOf(c), c.req.query("requirementId") ?? "", c.req.query("at")));
+  });
+  app.get("/api/workspaces/:ws/evidence/:id", async (c) => {
+    const evidence = await svc.store.evidence.get(c.req.param("id"));
+    if (!evidence || evidence.workspaceId !== wsId(c)) throw new NotFoundError("Evidence not found");
+    c.header("Cache-Control", "private, no-store");
+    return c.json(evidence);
+  });
+  app.post("/api/workspaces/:ws/evidence/files", async (c) => withEvidenceUpload(async () => {
+    const { file, metadata } = await evidenceUpload(c.req.raw);
+    const schema = Schemas.createEvidence.omit({ content: true, data: true, fileName: true });
+    const parsed = schema.safeParse(metadata);
+    if (!parsed.success) throw new ValidationError(z.prettifyError(parsed.error));
+    const evidence = await svc.createFileEvidence(wsId(c), { ...parsed.data, fileName: file.name, mediaType: file.type || "application/octet-stream" }, new Uint8Array(await file.arrayBuffer()), actorOf(c), evidenceAccess(c, "work.write"));
+    return c.json(evidence, 201);
+  }));
+  app.get("/api/workspaces/:ws/evidence/:id/file", async (c) => {
+    const { evidence, bytes } = await svc.getEvidenceFile(wsId(c), c.req.param("id"), evidenceAccess(c, "workspace.read"));
+    await preparedAccess(c, "workspace.read", { kind: "evidence-download", resource: evidence.id, bytes: bytes.byteLength });
+    return new Response(bytes as Uint8Array<ArrayBuffer>, { headers: {
+      "Content-Type": "application/octet-stream",
+      "Content-Disposition": evidenceDisposition(evidence.fileName ?? "evidence"),
+      "Content-Length": String(bytes.byteLength),
+      "Cache-Control": "private, no-store",
+      "X-Content-Type-Options": "nosniff",
+      "Content-Security-Policy": "sandbox; default-src 'none'",
+    } });
+  });
   app.post("/api/workspaces/:ws/evidence", async (c) => {
     const input = await body(c, Schemas.createEvidence);
-    const sha256 = input.content ? createHash("sha256").update(input.content).digest("hex") : undefined;
-    return c.json(await svc.createEvidence(wsId(c), { ...input, source: "upload", sha256 }, actorOf(c)), 201);
+    return c.json(await svc.createEvidence(wsId(c), { ...input, source: "upload" }, actorOf(c)), 201);
   });
   app.patch("/api/workspaces/:ws/evidence/:id", async (c) => {
     const input = await body(c, Schemas.updateEvidence);
     if (input.decision) {
       // Accepting or rejecting evidence is a review decision.
       requireCapability(c, "work.approve");
-      return c.json(await svc.reviewEvidence(wsId(c), c.req.param("id"), input.decision, actorOf(c), input.note));
+      if (Object.keys(input).some((key) => !["decision", "note", "expectedScope", "expectedReviewId"].includes(key))) throw new ValidationError("Review and evidence edits must be separate requests");
+      return c.json(await svc.reviewEvidence(wsId(c), c.req.param("id"), input.decision, actorOf(c), input.note, input.expectedScope, evidenceAccess(c, "work.approve"), input.expectedReviewId ?? null));
     }
-    return c.json(await svc.updateEvidence(wsId(c), c.req.param("id"), { title: input.title, requirementIds: input.requirementIds, validUntil: input.validUntil } as never, actorOf(c)));
+    const { decision: _decision, note, expectedScope, expectedReviewId, ...patch } = input;
+    if (note !== undefined || expectedReviewId !== undefined) throw new ValidationError("Review notes and review identity require a review decision");
+    void _decision;
+    return c.json(await svc.updateEvidence(wsId(c), c.req.param("id"), { ...patch, expectedScope }, actorOf(c)));
   });
 
   // ---------------------------------------------------------------- policies & risks
@@ -553,7 +700,13 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
     return c.json(await svc.createConnector(wsId(c), input, actorOf(c)), 201);
   });
   app.post("/api/workspaces/:ws/connectors/:id/run", async (c) => c.json(await svc.runConnector(wsId(c), c.req.param("id"), actorOf(c))));
-  app.get("/api/workspaces/:ws/checks", async (c) => c.json(await svc.store.checks.recent(wsId(c), 200)));
+  app.get("/api/workspaces/:ws/checks", async (c) => c.json(latestMonitoringChecks(await svc.store.checks.list(wsId(c)), new Date())));
+  app.get("/api/workspaces/:ws/checks/:id", async (c) => {
+    const check = await svc.store.checks.get(c.req.param("id"));
+    if (!check || check.workspaceId !== wsId(c)) throw new NotFoundError("Observation not found");
+    c.header("Cache-Control", "private, no-store");
+    return c.json(check);
+  });
 
   // ---------------------------------------------------------------- agents
   app.get("/api/workspaces/:ws/runs", async (c) =>
@@ -575,23 +728,28 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
     return c.json({ ...run, proposals });
   });
   app.post("/api/workspaces/:ws/runs/:id/cancel", async (c) => c.json(await svc.cancelRun(wsId(c), c.req.param("id"), actorOf(c))));
+  app.get("/api/workspaces/:ws/runs/:id/approval-preview", async (c) => { c.header("Cache-Control", "private, no-store"); return c.json(await svc.previewRunProposals(wsId(c), c.req.param("id"))); });
   app.post("/api/workspaces/:ws/runs/:id/approve-all", need("work.approve"), async (c) => {
-    const pending = (await svc.store.proposals.list(wsId(c))).filter((p) => p.runId === c.req.param("id") && p.status === "pending");
-    const decided = [];
-    for (const p of pending) decided.push(await svc.decideProposal(wsId(c), p.id, "approved", actorOf(c)));
-    return c.json(decided);
+    const input = await body(c, Schemas.batchDecision);
+    return c.json(await svc.approveRunProposals(wsId(c), c.req.param("id"), input.proposalIds, input.reviewToken, actorOf(c)));
   });
   app.get("/api/workspaces/:ws/proposals", async (c) => {
     const status = c.req.query("status");
     return c.json((await svc.store.proposals.list(wsId(c))).filter((p) => !status || p.status === status));
   });
+  app.get("/api/workspaces/:ws/proposals/:id/preview", async (c) => { c.header("Cache-Control", "private, no-store"); return c.json(await svc.previewProposal(wsId(c), c.req.param("id"))); });
   app.post("/api/workspaces/:ws/proposals/:id/decision", need("work.approve"), async (c) => {
     const input = await body(c, Schemas.decision);
-    return c.json(await svc.decideProposal(wsId(c), c.req.param("id"), input.decision, actorOf(c), input.edits));
+    if (input.decision === "approved" && !input.reviewToken) throw new ValidationError("Inspect a proposal preview before approving; reviewToken is required");
+    return c.json(await svc.decideProposal(wsId(c), c.req.param("id"), input.decision, actorOf(c), input.edits, input.reviewToken));
   });
 
   // ---------------------------------------------------------------- crosswalk, SOC 2 description, activity & events
   app.get("/api/workspaces/:ws/crosswalk", async (c) => c.json(await crosswalkOverview(svc, wsOf(c))));
+  app.get("/api/workspaces/:ws/crosswalk/comparison", async (c) => {
+    c.header("Cache-Control", "private, no-store");
+    return c.json(await crosswalkComparison(svc, wsOf(c), c.req.query()));
+  });
   // The Nexus inner ring: threat catalogs bundled onto the requirement groups linked to them.
   app.get("/api/workspaces/:ws/crosswalk/threats", async (c) => c.json(await threatRing(svc, wsOf(c), parseMinStatus(c.req.query("min")))));
   app.get("/api/workspaces/:ws/crosswalk/rows", async (c) =>
@@ -611,83 +769,133 @@ export function createApp(svc: VisuaService, auth: AuthService = new AuthService
 
   app.get("/api/workspaces/:ws/events", async (c) => {
     const ws = wsOf(c);
-    return streamSSE(c, async (stream) => {
-      const queue: string[] = [];
-      let wake: (() => void) | undefined;
-      const unsubscribe = svc.bus.subscribe(ws.id, (event) => {
-        queue.push(JSON.stringify(event));
-        wake?.();
-      });
-      let open = true;
-      stream.onAbort(() => {
-        open = false;
-        unsubscribe();
-        wake?.();
-      });
-      await stream.writeSSE({ event: "ready", data: JSON.stringify({ workspaceId: ws.id }) });
-      while (open) {
-        while (queue.length) {
-          const data = queue.shift()!;
-          await stream.writeSSE({ event: "visua", data });
-        }
-        // Wake on the next event, or after 15 s for a keep-alive ping (one timer at a time).
-        await new Promise<void>((r) => {
-          const timer = setTimeout(r, 15_000);
-          wake = () => {
-            clearTimeout(timer);
-            r();
-          };
-        });
-        wake = undefined;
-        if (open && !queue.length) await stream.writeSSE({ event: "ping", data: String(Date.now()) });
-      }
+    const bearer = c.req.header("authorization");
+    const credential = bearer?.toLowerCase().startsWith("bearer ")
+      ? { kind: "token" as const, value: bearer.slice(7).trim() }
+      : { kind: "user" as const, value: getCookie(c, cookieName(auth)) ?? "" };
+    const expected = principalOf(c);
+    const body = workspaceEventStream({
+      bus: svc.bus,
+      workspaceId: ws.id,
+      authorize: () => auth.assertWorkspaceAccess(credential, expected, ws.id, ws.tenantId),
+      signals: [c.req.raw.signal, lifecycle.signal],
+      stopping: lifecycle.stopping,
+    });
+    return c.newResponse(body, 200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "Connection": "keep-alive",
     });
   });
 
   // ---------------------------------------------------------------- exports & trust
+  function exportSelection(c: Context<AppEnv>): ExportSelection {
+    const query = new URL(c.req.url).searchParams;
+    if ([...query.keys()].some(key => !["framework", "asOf", "periodStart"].includes(key)) || query.getAll("asOf").length > 1 || query.getAll("periodStart").length > 1) {
+      throw new ValidationError("Use only framework, asOf and periodStart export parameters; dates may appear once");
+    }
+    return {
+      ...(query.has("framework") ? { frameworkIds: query.getAll("framework") } : {}),
+      ...(query.has("asOf") ? { asOf: query.get("asOf")! } : {}),
+      ...(query.has("periodStart") ? { periodStart: query.get("periodStart")! } : {}),
+    };
+  }
+  async function preparedAccess(c: Context<AppEnv>, capability: Capability, input?: AccessInput): Promise<void> {
+    if (c.req.raw.signal.aborted) throw new ValidationError("The request was interrupted");
+    const bearer = c.req.header("authorization");
+    const credential = bearer?.toLowerCase().startsWith("bearer ")
+      ? { kind: "token" as const, value: bearer.slice(7).trim() }
+      : { kind: "user" as const, value: getCookie(c, cookieName(auth)) ?? "" };
+    await svc.store.atomic(async () => {
+      // Finish any access-record lock wait before checking current credentials.
+      // recordAccess joins this transaction and reuses its workspace lock.
+      await svc.store.lock(`ws:${wsId(c)}`);
+      if (c.req.raw.signal.aborted) throw new ValidationError("The request was interrupted");
+      await auth.assertWorkspaceAccess(credential, principalOf(c), wsId(c), wsOf(c).tenantId, capability);
+      if (input) await svc.recordAccess(wsId(c), input);
+    });
+  }
+
+  app.get("/api/workspaces/:ws/auditor", need("workspace.export"), async c => {
+    const snapshot = await captureExportSnapshot(svc, wsOf(c), exportSelection(c));
+    const at = new Date(snapshot.asOf), states = new Map(snapshot.states.map(state => [state.nodeId, state]));
+    const input = exportScoreInput(snapshot);
+    const frameworks = snapshot.frameworkIds.map(id => {
+      const index = svc.registry.framework(id)!;
+      const score = svc.scoreOf(index, input, at);
+      return {
+        id, name: index.graph.framework.shortName, overall: score.overall, upcoming: score.upcoming?.overall,
+        requirements: index.assessable.map(node => {
+          const state = states.get(node.id), derived = score.statuses.get(node.id)!;
+          const timing = index.graph.framework.family === "law" ? obligationTiming(node, snapshot.asOf.slice(0, 10)) : "in-force";
+          const exclusion = node.withdrawn ? "Withdrawn from source catalog" : !state ? "Assessment state not recorded" : !state.applicable ? state.applicabilityRationale ?? state.userExclusion?.rationale ?? "Not applicable; rationale not recorded" : timing !== "in-force" ? timing === "upcoming" ? "Not yet in effect" : "No longer in effect" : undefined;
+          return { id: node.id, code: node.code, current: state?.current ?? 0, target: state?.target ?? 0, applicable: !exclusion, status: derived.status, reasons: derived.reasons, rationale: exclusion, owner: state?.owner, evidenceIds: snapshot.evidence.filter(evidence => evidence.requirementIds.includes(node.id)).map(evidence => evidence.id) };
+        }),
+      };
+    });
+    const content = JSON.stringify({
+      workspaceId: snapshot.workspace.id, workspaceName: snapshot.workspace.name, asOf: snapshot.asOf, capturedAt: snapshot.capturedAt,
+      revision: snapshot.revision, periodStart: snapshot.periodStart, frameworkIds: snapshot.frameworkIds, basis: EXPORT_SNAPSHOT_BASIS,
+      checkpoint: { workspaceId: snapshot.workspace.id, ...snapshot.auditCheckpoint }, frameworks,
+      evidence: snapshot.evidence.map(evidence => ({ evidence: evidenceMetadata(evidence), effective: effectiveEvidenceState(evidence, snapshot.evidence, at), dependency: snapshot.dependencies.evidenceIds.includes(evidence.id) })),
+      dependencies: snapshot.dependencies,
+    });
+    await preparedAccess(c, "workspace.export", { kind: "auditor-view", resource: "auditor", revision: snapshot.revision, bytes: Buffer.byteLength(content) });
+    return new Response(content, { headers: { "Content-Type": "application/json", "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
+  });
+  app.get("/api/workspaces/:ws/access", need("workspace.export"), async c => {
+    const query = new URL(c.req.url).searchParams;
+    const limit = z.coerce.number().int().min(1).max(200).safeParse(query.get("limit") ?? 100);
+    if (!limit.success || [...query.keys()].some(key => key !== "limit") || query.getAll("limit").length > 1) throw new ValidationError("Access limit must be an integer between 1 and 200");
+    const records = await svc.readAccess(wsId(c), limit.data);
+    await preparedAccess(c, "workspace.export");
+    c.header("Cache-Control", "private, no-store");
+    return c.json(records);
+  });
   app.get("/api/workspaces/:ws/exports/:kind", need("workspace.export"), async (c) => {
     const ws = wsOf(c);
     const kind = c.req.param("kind");
-    const file = (content: string, type: string, name: string) =>
-      new Response(content, { headers: { "content-type": type, "content-disposition": `attachment; filename="${ws.slug}-${name}"` } });
+    const selection = exportSelection(c);
+    if (kind === "auditor-bundle.zip") {
+      const bundle = await buildAuditorBundle(svc, ws, selection);
+      await preparedAccess(c, "workspace.export", { kind: "export", resource: kind, revision: bundle.snapshot.revision, manifestSha256: bundle.manifestSha256, bytes: bundle.bytes.byteLength });
+      return new Response(bundle.bytes as Uint8Array<ArrayBuffer>, { headers: {
+        "Content-Type": "application/zip", "Content-Disposition": evidenceDisposition(bundle.filename), "Content-Length": String(bundle.bytes.byteLength),
+        "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff",
+        "X-Visua-Manifest-SHA256": bundle.manifestSha256,
+        "X-Visua-Audit-Checkpoint": `${bundle.snapshot.workspace.id}:${bundle.snapshot.auditCheckpoint.seq}:${bundle.snapshot.auditCheckpoint.hash}`,
+      } });
+    }
+    if (!["csf-profile.csv", "action-plan.csv", "evidence-index.csv", "ai-rmf-profile.csv", "soc2-pbc.csv", "readiness.md", "oscal-ssp.json", "oscal-poam.json"].includes(kind)) throw new NotFoundError(`Unknown export '${kind}'`);
+    const snapshot = await captureExportSnapshot(svc, ws, selection);
+    const file = async (content: string, type: string, name: string) => {
+      await preparedAccess(c, "workspace.export", { kind: "export", resource: kind, revision: snapshot.revision, bytes: Buffer.byteLength(content) });
+      return new Response(content, { headers: { "Content-Type": type, "Content-Disposition": evidenceDisposition(`${ws.slug}-${name}`), "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
+    };
     switch (kind) {
       case "csf-profile.csv":
-        return file(await csfProfileCsv(svc, ws), "text/csv; charset=utf-8", "csf-2.0-organizational-profile.csv");
+        return file(await csfProfileCsv(svc, ws, snapshot), "text/csv; charset=utf-8", "csf-2.0-organizational-profile.csv");
       case "action-plan.csv":
-        return file(await actionPlanCsv(svc, ws), "text/csv; charset=utf-8", "action-plan.csv");
+        return file(await actionPlanCsv(svc, ws, snapshot), "text/csv; charset=utf-8", "action-plan.csv");
       case "evidence-index.csv":
-        return file(await evidenceIndexCsv(svc, ws), "text/csv; charset=utf-8", "evidence-index.csv");
+        return file(await evidenceIndexCsv(svc, ws, snapshot), "text/csv; charset=utf-8", "evidence-index.csv");
       case "ai-rmf-profile.csv":
-        return file(await aiRmfProfileCsv(svc, ws), "text/csv; charset=utf-8", "nist-ai-rmf-profile.csv");
+        return file(await aiRmfProfileCsv(svc, ws, snapshot), "text/csv; charset=utf-8", "nist-ai-rmf-profile.csv");
       case "soc2-pbc.csv":
-        return file(await soc2PbcCsv(svc, ws), "text/csv; charset=utf-8", "soc2-pbc-request-list.csv");
+        return file(await soc2PbcCsv(svc, ws, snapshot), "text/csv; charset=utf-8", "soc2-pbc-request-list.csv");
       case "readiness.md":
-        return file(await readinessMarkdown(svc, ws), "text/markdown; charset=utf-8", "readiness-report.md");
+        return file(await readinessMarkdown(svc, ws, snapshot), "text/markdown; charset=utf-8", "readiness-report.md");
       case "oscal-ssp.json":
-        return file(JSON.stringify(await oscalSsp(svc, ws), null, 2), "application/json", "oscal-ssp.json");
+        return file(JSON.stringify(await oscalSsp(svc, ws, snapshot), null, 2), "application/json", "oscal-ssp.json");
       case "oscal-poam.json":
-        return file(JSON.stringify(await oscalPoam(svc, ws), null, 2), "application/json", "oscal-poam.json");
+        return file(JSON.stringify(await oscalPoam(svc, ws, snapshot), null, 2), "application/json", "oscal-poam.json");
       default:
         throw new NotFoundError(`Unknown export '${kind}'`);
     }
   });
 
   app.get("/api/trust/:slug", async (c) => {
-    const ws = await svc.store.workspaces.get(c.req.param("slug"));
-    if (!ws || ws.slug !== c.req.param("slug") || !ws.trustCenter.enabled) throw new NotFoundError("Trust center not found");
-    const [summary, checks] = await Promise.all([workspaceSummary(svc, ws), svc.store.checks.recent(ws.id, 100)]);
-    return c.json({
-      name: ws.name,
-      headline: ws.trustCenter.headline ?? `${ws.name} security & compliance`,
-      contactEmail: ws.trustCenter.contactEmail,
-      // Only the frameworks the workspace publishes (state AI laws stay private unless chosen).
-      frameworks: summary.frameworks.filter((f) => f.onTrustCenter).map((f) => ({ id: f.id, name: f.shortName, readiness: Math.round(f.readiness * 100), evidenceCoverage: Math.round(f.evidenceCoverage * 100) })),
-      policies: summary.policies.filter((p) => p.status === "approved" || p.status === "published").map((p) => ({ title: p.title, version: p.version })),
-      monitoring: checks
-        .filter((ch, i, all) => all.findIndex((x) => x.checkId === ch.checkId) === i)
-        .map((ch) => ({ title: ch.title, outcome: ch.outcome, observedAt: ch.observedAt })),
-      updatedAt: ws.updatedAt,
-    });
+    return c.json(await publicTrust(svc, c.req.param("slug"), new Date()));
   });
 
   return app;

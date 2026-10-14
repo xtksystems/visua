@@ -1,0 +1,18 @@
+{
+  "run_id": "visual-followthrough-20261013",
+  "node_id": "crosswalk",
+  "input_sha256": "e2131bd209ba124326d69ed63e01fd1cb79209bf88c4432a832f8ef1c8929ae5",
+  "status": "complete",
+  "summary": "Added an alternate URL-backed Crosswalk matrix with exact full record totals, complete paginated details, original mapping direction/provenance, and metadata-only direct evidence inspection. Existing default Nexus and selectors preserved.",
+  "evidence": [
+    ".codex-context/runs/visual-followthrough-20261013/crosswalk-report.json",
+    "20 focused tests passed",
+    "Web and server typechecks passed",
+    "CSS references only defined design tokens"
+  ],
+  "limitations": [
+    "Browser, build, full suite and PostgreSQL verification are delegated to the lead and were not run by this worker.",
+    "Evidence time-window validity refreshes every 30 seconds while active and through existing evidence SSE invalidation.",
+    "The existing Nexus legacy rows endpoint remains unchanged; complete comparison counts/pagination use the new comparison endpoint."
+  ]
+}

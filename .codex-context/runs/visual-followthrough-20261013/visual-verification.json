@@ -1,0 +1,41 @@
+{
+  "status": "passed",
+  "recorded_utc": "2026-10-13T04:56:24.193821+00:00",
+  "captures": {
+    ".screens/visual-followthrough-20261013/agent-stages-1440.png": "f8cbb9c6881025def7575296eb7e646098751b39a33dedfc4ca732a95a7aa8bf",
+    ".screens/visual-followthrough-20261013/agent-stages-390.png": "c95f6f5b7d9b8da8c3297c2e637035f9fcf471db907331326304bb548d0e3885",
+    ".screens/visual-followthrough-20261013/crosswalk-evidence-390.png": "4ad25bf3716d1b4b369adea95b3b8112cd702a4d3036c161ea80660bfa13e0d5",
+    ".screens/visual-followthrough-20261013/crosswalk-evidence-detail-390.png": "5b44c5c846fa00be8e8c2bcba233f98a178662c0d404a4fd6794ee8169a8a11d",
+    ".screens/visual-followthrough-20261013/crosswalk-matrix-1440.png": "26d7a55dd0625618133c4d1e9d46b1f81fd0c5e36d8aa4884e2bbc542075d0a6",
+    ".screens/visual-followthrough-20261013/plan-urgency-1440.png": "f9e3aa4b7d71db1970fec1b28bbcde798fc450fba4b4981f2424360fdad4544c",
+    ".screens/visual-followthrough-20261013/plan-urgency-390.png": "1f2ba2895583a13010462e3b890d0e778c987a374d25b3deaf42d08a7862055b",
+    ".screens/visual-followthrough-20261013/profile-analysis-1440.png": "a353c4c4a35d315a813663b42e1086943e50cf3fad9158268d940f8fe5f39193",
+    ".screens/visual-followthrough-20261013/profile-analysis-390.png": "00f8dbb32aa5a8e29e32ae6c3a680f8f002b6fcec3f154830921b11f7ffefb9d",
+    ".screens/visual-followthrough-20261013/profile-chart-1440.png": "7cc3ddd069906667add25640859093ba4a2aa73188b5bc9b2c90bd971c35c272",
+    ".screens/visual-followthrough-20261013/profile-chart-390.png": "af93c7dc21dc31575e714af81ad7e090b5699c52ec93e6fc724f781247443e90",
+    ".screens/visual-followthrough-20261013/score-history-1440.png": "e4480d43e07a662ab96da2957c30a0bf358f99176414973ceb475d8a573788ce",
+    ".screens/visual-followthrough-20261013/score-history-390.png": "7531bd9c37ef0a9cd3441c4b516ae3b5c09533870fd8c8b989fce256d0daf744"
+  },
+  "inspected_viewports": [
+    "1440x900 desktop",
+    "390x844 touch phone"
+  ],
+  "observations": [
+    "Crosswalk matrix aligns counts and retains original relationship direction and authority in the detail list. Phone evidence details distinguish accepted review, validity, and direct/group links.",
+    "Plan urgency rows use aligned readable text and persistent status counts. Browser geometry verifies six Board columns and due-only Timeline markers.",
+    "CSF profile category rows align current, target and gap with numeric columns. Separate tier tab retains drafts through refresh/save failures; phone comparisons remain locally scrollable.",
+    "Agent stages show completed, rejected and unrecorded outcomes with text labels; decision views precede technical flight details.",
+    "History shows recorded points and exact values with comparison breaks. Final phone chart labels remain readable at a minimum chart width, inside a named scroll region with a visible focus outline.",
+    "All five added stylesheets use defined tokens. Added row feedback inherits the global reduced-motion override."
+  ],
+  "evidence": [
+    "consistency-css.json",
+    "browser-packages.log",
+    "full-end-to-end-playwright.log",
+    "browser-final-delta.log"
+  ],
+  "limits": [
+    "Expert visual inspection, not a user study or a comprehensive accessibility certification.",
+    "Wide comparisons use local horizontal scrolling on small screens."
+  ]
+}

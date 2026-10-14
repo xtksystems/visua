@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "original_data_unchanged": true,
+  "source": {
+    "status": "passed",
+    "checked": 97,
+    "changed": []
+  },
+  "container": "/visua-visua-1",
+  "health": "healthy",
+  "image": "sha256:5048f42618aadc5619631f08aa750c83a4e9a3983348a112251370b134747db2",
+  "revision": "e867494",
+  "mounts": [
+    {
+      "name": "visua_visua-data",
+      "destination": "/app/data"
+    }
+  ]
+}

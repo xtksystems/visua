@@ -1,0 +1,34 @@
+{
+  "status": "passed",
+  "at": "2026-10-14T01:52:08.083666+00:00",
+  "commit": "0af95208b3b87150290bce7683ef0bd11b0670e7",
+  "pushed": true,
+  "url": "http://localhost:8787",
+  "container": "visua-visua-1",
+  "image_id": "sha256:5a354d9c0e67ab7a5f70fcf793b703d30ea3865dc81f0a43e7c64196a569d98f",
+  "volume": "visua_visua-data",
+  "readiness": "readiness.json",
+  "runtime_source": "docker-source.json",
+  "runtime_pins": 209,
+  "original_data": "preservation.json",
+  "image_utility": "image-preflight.json",
+  "root_html_status": 200,
+  "backup": {
+    "volume_path": "/app/data/pilot-readiness-20261014-backup",
+    "host_copy": "data/deployment-backups/pilot-readiness-20261014-backup",
+    "capturedAt": "2026-10-14T01:51:32.596Z",
+    "database": {
+      "path": "database.sqlite",
+      "size": 1159168,
+      "sha256": "119ba24111bc29c24feba19b89711861ed1d8e9e8b401d339081d368e96c19e7"
+    },
+    "referencedFiles": 0,
+    "manifestSha256": "6348bc140afae47692f1bb769d098370f43345741c44433507ce652139f678fb",
+    "private_copy": true
+  },
+  "changes": "Operator tooling and documentation only; no runtime behavior, database migration or web source changed. No sign-in or assessment smoke mutations were needed.",
+  "limitations": [
+    "Local developer/offline deployment only; operator target/domain/IdP and hosted acceptance remain outstanding.",
+    "Standalone two-process PG/S3/OIDC rehearsal uses disposable local services and a test IdP; not hosted capacity."
+  ]
+}

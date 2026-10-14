@@ -1,0 +1,29 @@
+{
+  "status": "complete",
+  "verdict": "pass",
+  "summary": "The three original findings are resolved within the corrected fingerprint-bound scope. Independent isolated API/migration checks and 19 focused SQLite regressions passed; no supported remaining findings were identified in this bounded recheck.",
+  "coverage": [
+    "All seven corrected-source SHA-256 fingerprints matched fix-review-source.json at the start and end; no source drift occurred. Exact hashes follow and are saved in fix-review-source-observed.json.",
+    "Inspected corrected artifactHash, the unchanged canonical JSON/audit encoder and VisuaService update/review paths. One nonconnector envelope distinguishes raw text from combined or data-only artifacts; the connector checkId/observed/observedAt recipe and observation edit guards remain unchanged.",
+    "Executed an isolated authenticated API reproduction against corrected source: the original shape-alias edit changes SHA, resets acceptance to pending-review, preserves the prior history, and stale inspected scope is rejected with HTTP 400.",
+    "Executed an isolated connector fixture: preserved exact expected recipe digest, refused content/data/collection observation edits and verified the audit chain.",
+    "Inspected migration 5 and runner with unchanged Store/drivers from the original pass: current artifact hash calculation, skip condition for already current bound approvals, actual legacy decision detection, pending hash upgrades, preserved prior history, pending acceptance, workspace lock, revision and transactionally appended before/after audit.",
+    "Executed a version-4 SQLite fixture containing accepted and rejected artifacts with missing SHA, a pending upload with a pre-envelope SHA, and a metadata-only item. All three artifacts received current hashes; only the actual accepted/rejected decisions were archived unbound; each artifact could receive renewed acceptance with correctly appended history; metadata-only acceptance stayed refused; audit hashes and migration idempotence held.",
+    "Inspected corrected EvidencePage, unchanged queries/SSE dependencies and app review route: row action now opens inspection, dialog renders the fixed viewing object, and both decision handlers submit that same viewing object to evidenceReviewScope. Refetch does not replace the inspected dialog snapshot.",
+    "Inspected new server shape-alias and legacy upgrade regressions, existing transactional migration rollback and connector immutability coverage, and the new browser stale-dialog/expiry-history regression plus responsive overflow check.",
+    "Independently executed pnpm exec vitest run apps/server/test/evidence-binding.test.ts: one file and all 19 SQLite tests passed, including migration audit failure rollback, scope races, protected changes, connector immutability and edited proposal constraints.",
+    "Source SHA-256 apps/server/src/services/evidence.ts: 4f4e326aeccf9cebbb1af2d296ebb49f72bb5c207b664d852ae3ad73901ec1a0",
+    "Source SHA-256 apps/server/src/services/visua.ts: 1074914a3d42620e66f8a46ab4527d5130e16a054859d5fbada0d42c2e384b84",
+    "Source SHA-256 apps/server/src/storage/migrations.ts: 9da4acf03f0d914aa7f4a8f194ac26d55a607db4dd3d648af6fc0536826d0e2a",
+    "Source SHA-256 apps/server/src/app.ts: 9549e7879afff2082c9693376e7493d4fbd33d7814169bb8144165c7124a590d",
+    "Source SHA-256 apps/server/test/evidence-binding.test.ts: 77365c25bf31c121e1fe669d077985ecf264a3fd14653c0983a3578dc5c2fd49",
+    "Source SHA-256 apps/web/src/pages/EvidencePage.tsx: b2758d220dee41e1dbd3c90941dfe052871233346dfd9021a81893570ebe1b85",
+    "Source SHA-256 e2e/visua.spec.ts: a07e6b47f1147b18910d2ba1588d4d8262457521bd605ff94268d92254dcf733"
+  ],
+  "findings": [],
+  "limitations": [
+    "PostgreSQL execution and multi-instance races were not rerun in this bounded recheck; root owns the full final gate. SQLite checks and source tracing do not establish a PostgreSQL runtime pass.",
+    "Browser tests were inspected but not independently executed, to avoid a duplicate browser/server run during the root integration gate. UI conclusion is supported by raw corrected handlers, inspected SSE/refetch dependencies and executed server stale-scope refusal.",
+    "No full integration suite, deployment, Docker/service mutation, commit or external-provider work was performed. Original independent-review.json and its evidence artifacts were preserved."
+  ]
+}

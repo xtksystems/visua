@@ -1,0 +1,35 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "Completed one bounded independent source review of the uncommitted core/server evidence lifecycle against b34cf1fe846920c98aa71df3121712284880dc1a. Two medium defects reproduced: stale acceptance can override a withdrawal, and explicit-time lineage grants validity before acceptance. The lead accepted both and assigned fixes; those forthcoming corrections are not verified by this report.",
+  "coverage": [
+    "Read AGENTS.md, CLAUDE.md, declared startup context, workflow.md, lifecycle-contract.md, lifecycle-api-contract.json, and adversarial-review contract/schema. First pass used the fresh bounded assignment rather than author reasoning; later lead messages disclosed two corrections, which were independently inspected and exercised.",
+    "Inspected packages/core/src/{types,evidence,status,scoring,evidence-renewal}.ts: canonical review scope, acceptance binding, validity windows, per-requirement explicit/automatic supersession, source compatibility, independent failing checks, and score integration.",
+    "Inspected apps/server/src/services/{visua,evidence,evidence-lineage,evidence-renewal,attention,score-history}.ts and apps/server/src/app.ts: server-owned provenance, content-source unions, replacement validation, fixed reviews, withdrawal/rejection history, policy/check collection, metadata lineage, HTTP field/capability boundaries, and formula version.",
+    "Inspected relevant storage/context dependencies and packages/agents/src/tools.ts licensing boundary; inspected evidence-lifecycle, evidence-binding, core evidence, and agent evidence-provenance test definitions. All inspected file SHA-256 values are recorded in review-reproductions/inspected-source-hashes.json, captured 2026-10-13T07:48:23.079941+00:00.",
+    "Executed node .codex-context/runs/evidence-operations-20261013/review-reproductions/lifecycle-boundaries.ts with an explicit in-memory SQLite service and synthetic artifacts. Results are in review-reproductions/lifecycle-boundaries-result.json. Both reported failure scenarios reproduced; approved-policy body mutation was refused, and checks for two configurations of one connector preserved the original failing signal.",
+    "Executed env -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/evidence-lifecycle.test.ts apps/server/test/evidence-binding.test.ts packages/core/test/evidence.test.ts --reporter=json --outputFile=.codex-context/runs/evidence-operations-20261013/review-reproductions/focused-vitest-result.json. Result: 69 tests passed, 0 failed, 0 pending; SQLite/core only."
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "apps/server/src/services/visua.ts:1323; apps/server/src/app.ts:647; packages/core/src/evidence.ts:66 (inspected source hashes in review-reproductions/inspected-source-hashes.json)",
+      "mechanism": "An approver opens an artifact, another approver withdraws it with a reason, and the first approver later accepts using the original expectedScope. Review decisions do not change the fields in EvidenceReviewScope, so the equality check succeeds and silently restores accepted status without requiring inspection of the intervening withdrawal. The transaction serializes writes but does not detect this stale decision.",
+      "evidence": "Executed lifecycle-boundaries.ts: captured expectedScope after initial acceptance, withdrew with reason Source invalidated, then accepted with the pre-withdrawal snapshot. Result status was accepted and history was [accepted, withdrawn, accepted]. The HTTP review schema/route has no last-review precondition, so this reproduces its service path. Evidence: review-reproductions/lifecycle-boundaries-result.json -> staleAcceptanceAfterWithdrawal.",
+      "recommendation": "Bind each human review request to the latest inspected review identity or revision, separately from the artifact scope, and compare under the mutation lock. Preserve deliberate reacceptance after a fresh inspection, and add stale acceptance-after-withdrawal and stale withdrawal/acceptance race coverage."
+    },
+    {
+      "severity": "medium",
+      "location": "packages/core/src/status.ts:21; packages/core/src/evidence-renewal.ts:120; apps/server/src/services/evidence-lineage.ts:15",
+      "mechanism": "The new lineage endpoint accepts an explicit evaluation instant, but isEvidenceValid checks only current acceptance binding and the collection/expiry window. It does not require the accepted review to exist by that instant. Evidence accepted in October therefore reports valid for a June evaluation; coverage timeline uses the same collection-only start. Supersession already guards review time, leaving contradictory results across shared evidence views.",
+      "evidence": "Executed lifecycle-boundaries.ts with collectedAt 2026-01-01 and review recorded 2026-10-13T07:46:24.762Z. At 2026-06-01T00:00:00.000Z, isEvidenceValid returned true and both effectiveEvidenceState and requirementEvidenceLineage returned status valid/currentlyValid true. Evidence: review-reproductions/lifecycle-boundaries-result.json -> clockBeforeAcceptance. The report does not require reconstruction of prior workspace revisions; it identifies validity before the recorded acceptance itself.",
+      "recommendation": "Use the accepted review timestamp as a lower bound in the shared validity/freshness helpers and accepted coverage intervals, including explicit-time lineage. Add tests just before and at acceptance and verify consistency with supersession and coverage calculations."
+    }
+  ],
+  "limitations": [
+    "The assignment was a bounded core/server lifecycle review, not a complete application, UI, deployment, or security audit. No product source was modified.",
+    "No live database, local deployed service, shared browser, full test suite, PostgreSQL lane, or external connector was used. Synthetic checks establish only the stated behavior.",
+    "The working tree remained mutable during the review. The hash manifest identifies the inspected version; later corrections require focused integration verification. The lead accepted both findings and assigned fixes after reproduction, but those fixes are not claimed as verified here.",
+    "The first attempted API contract path api-contract.json was absent; the actual lifecycle-api-contract.json was subsequently located and read. No declared startup file was missing."
+  ]
+}

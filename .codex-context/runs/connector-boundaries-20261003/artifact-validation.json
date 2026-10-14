@@ -1,0 +1,43 @@
+{
+  "local_links_checked": 75,
+  "missing_links": [],
+  "new_files_whitespace_checked": 35,
+  "whitespace_issues": [],
+  "review_schema_semantics": "passed",
+  "fan_in": {
+    "run_id": "connector-boundaries-20261003",
+    "expected_nodes": 3,
+    "accepted_nodes": 3,
+    "snapshot_checked_files": 24,
+    "stale_sources": [],
+    "nodes": [
+      {
+        "id": "repo-worker",
+        "status": "complete",
+        "issues": []
+      },
+      {
+        "id": "review",
+        "status": "complete",
+        "issues": []
+      },
+      {
+        "id": "review-fix",
+        "status": "complete",
+        "issues": []
+      }
+    ],
+    "ready_for_integration": true,
+    "integration": {
+      "status": "passed",
+      "evidence": [
+        "Full final pnpm check exit0: full-check-delivery.log; all7 lanes,SQLite299+2skip,PG301,Playwright23.",
+        "Final source/test hashes match full-check-delivery-scope.json; only prose/records changed afterward.",
+        "Independent fix-review.json pass;90 affected tests; original DNS lifetime and synchronous cancellation findings closed.",
+        "Repository worker accepted after sanitized pre-change symlink reproduction and38 focused tests.",
+        "Final documentation links and diff whitespace validated; existing Docker healthy and unchanged."
+      ]
+    },
+    "complete": true
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "run_id": "office-plan-20261014",
+  "expected_nodes": 1,
+  "accepted_nodes": 1,
+  "snapshot_checked_files": 11,
+  "stale_sources": [],
+  "nodes": [
+    {
+      "id": "review",
+      "status": "complete",
+      "issues": []
+    }
+  ],
+  "ready_for_integration": true,
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "Exact revised document and ten source/support files match the independent review snapshot.",
+      "Source/adapters and explicit missing office preflight and PostgreSQL/local-file recovery work checked by lead and reviewer.",
+      "Local Markdown links and whitespace checked; 380 original reviewed source hashes remain unchanged.",
+      "Documentation-only integration. Earlier F01-F11/T01 and missing security coverage remain open; no tests or actual deployment performed in this update."
+    ]
+  },
+  "complete": true
+}

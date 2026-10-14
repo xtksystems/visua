@@ -1,0 +1,53 @@
+{
+  "status": "complete",
+  "execution_state": "authored; PostgreSQL execution not performed",
+  "subject": "/Users/artem/visua/.check/evidence-automation-20261013",
+  "input_brief": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/two-instance-gate-brief.txt",
+  "input_hash": "c6aef5917b345e366700d4ed1ac591ed5cdfebc22a46f5993f93b6d41a83764f",
+  "completed_at": "2026-10-13T09:19:57.834430+00:00",
+  "owned_paths": [
+    "apps/server/test/two-instance-automation.test.ts"
+  ],
+  "before": {
+    "apps/server/test/two-instance-automation.test.ts": null
+  },
+  "after": {
+    "apps/server/test/two-instance-automation.test.ts": "ac168eeb6690b3e55ed79dcdbe004d998b0e6a26a76eb164a27f0478774eea00"
+  },
+  "dependency_hashes_at_report": {
+    "apps/server/src/server.ts": "b9b5e304ab6ab8b78567e5a7ae8d8e5ca3182cd5e2c32d360068e9341dab06ec",
+    "apps/server/src/context.ts": "175b33033c0b5e8d043daf3e88d829c5e9aa8f1b190d1f4dc59a3e318a0bf757",
+    "apps/server/src/app.ts": "cb24d7eaa22611d53092bf6295becc5fb307abdf059970b43267cacc13480c57",
+    "apps/server/src/auth/http.ts": "39aaef9c85ac8c630f62cc96da2dc4a5b66247d0f9451327d912bd4ccbb063a8",
+    "apps/server/src/auth/service.ts": "71bb1be021f0110af7992b16937e0f9cd37ba7b620d5de1bd5c76ee550298f97",
+    "apps/server/src/storage/events.ts": "dd65e8f8d7618ebd28b787ea9b9ba851e46199f150bc108baa46d36e94b731b8",
+    "apps/server/test/db.ts": "287b4313e448fed3f89758820fd1c6e7c4e15e1b17228688a9993ff2b78bdb6e",
+    "apps/server/test/mock-idp.ts": "ed13db8850b8dfe643849d879fea870a0b9b00b7594ce69c9c5fcc5f322809ea",
+    "apps/server/test/run-reliability.test.ts": "77d6495ccba2f7b91f28de2b79d945135eb1eb331a6bf6830c5aec51f4e666e8",
+    "apps/server/test/stream-auth.test.ts": "987cc84a1ba33074f77a4715f5ddba25925dc1cd10749d3c7b3672e03e45d9a2",
+    "apps/server/test/oidc-current.test.ts": "22ba86a2bd535a8b962f829800432b7a5f5b3a86d14a89ce16b41d269cbbea54",
+    "apps/server/test/startup.test.ts": "752b5940e82f323f6e6e4a5d987c06757d9a940de2f4057e5188dcc69e7b4b72",
+    "docs/development-phase-2.md": "d0dafd306e416139555d848669059ce11504fc6ae3e45bf6914b533b5b23f996"
+  },
+  "checks": [
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL VISUA_AGENT_MODE=offline pnpm exec vitest run apps/server/test/two-instance-automation.test.ts",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "exit_code": 0,
+      "result": "Final skip smoke: 1 test file skipped, 4 tests skipped. No fixture, HTTP server, PostgreSQL connection or assertions executed."
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm --filter @visua/server typecheck",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "exit_code": 1,
+      "result": "Blocked by lead-owned concurrent source: src/app.ts(287,27) TS2322: Type 'void' is not assignable to type 'Promise<void>'. No diagnostics in the newly authored gate file. This check preceded final test-only timeout/assertion refinements; it is not reported as a final typecheck pass."
+    }
+  ],
+  "limits": [
+    "The four PostgreSQL cases are authored but were not executed against PostgreSQL; lead owns combined PostgreSQL and final integrated checks.",
+    "The agent entry point is mocked to a controlled offline latch. The gate validates real HTTP listener routing, persisted run outcomes and cross-instance controls, but does not invoke a real model or connector. Existing connector cancellation tests cover delayed connector results separately.",
+    "SSO uses the existing local mock IdP fixture only. The test covers current-provider replacement and stale-flow rejection through HTTP; helper-level token-exchange policy races remain in oidc-current.test.ts.",
+    "Canonical HTTP state after resync is asserted, with post-recovery SSE delivery. No browser UI or browser query-cache runtime was executed.",
+    "No application files, other tests, prior reviews, PostgreSQL/container, build, git, deployment or external provider were touched. Dependency hashes reflect source available at report time and may include concurrent lead changes."
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "Completed a fresh read-only source review of milestone 1 package 4 at HEAD c8a1ed06a8043fe725381ccccd89779b6a3498e0 plus the original pinned dirty inputs. Four supported findings concern cross-framework selection cleanup, live activity isolation, delayed inspector errors and duplicated Plan errors. No additional supported server capability mismatch was identified in the assigned flows.",
+  "coverage": [
+    "Validated all 61 review-scope.json source SHA-256 pins at start and checked pin drift at completion; read immutable brief, effective repository instructions, startup project context, task contract, invariants and adversarial review contract/schema.",
+    "Traced apps/web/src/lib/workspace.ts, queries.ts, api.ts, auth.ts, events.ts, main.tsx, App.tsx and shell/Shell.tsx: alias bootstrap, canonical query/mutation invalidation, SSE connect/reconnect lifecycle, error retry and sign-in/session reset.",
+    "Read inspector/Inspector.tsx and relevant Overlays/Threats dependencies: keyed requirement observer and component lifetime, owner save/cancel/cache update, same-selection dirty draft behavior, assessment decisions, task/evidence dialogs, delayed responses and agent actions.",
+    "Inspected all changed workspace page control paths in Home, Plan, Evidence, Agents, Policies, Profile, Crosswalk, SOC2, RMF, AI, Laws, Threats, Observatory, Settings, Organization and Onboarding, plus Login and Trust boundaries, proposal cards and overlay panels; compared UI capability gates with server role floors and stronger decisions/configuration/export guards.",
+    "Read core/access.ts and relevant server app.ts/auth/http.ts routes: workspaceAccess, need/requireCapability, canonical wsId, signed-in actors, requirements, evidence bound review scope, tasks, policies, connectors, agents, laws, AI, RMF, overlays, exports, organization administration and event bus workspace subscriptions.",
+    "Inspected state/ui.ts and state/agentActivity.ts ownership, and installed @tanstack/query-core 5.104.0 mutation/mutationObserver callback semantics to distinguish observer-owned per-call handlers from global mutation-cache callbacks.",
+    "Read e2e/inspector-selection.spec.ts, page-roles.spec.ts and workspace-recovery.spec.ts regression scenarios and final test-fixture corrections reported by root; inspected changed e2e/visua.spec.ts evidence-binding and inaccessible-deep-link assertions. These tests were reviewed as source and were not executed by this reviewer."
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "apps/web/src/state/agentActivity.ts:21; apps/web/src/lib/events.ts:35; apps/web/src/lib/auth.ts:53; apps/web/src/components/shell/Shell.tsx:94",
+      "mechanism": "Live agent state survives canonical workspace and principal changes. After receiving a step or running status in workspace A, switch to workspace B, or sign out and sign in as a principal in another organization through the SPA. The global Zustand steps/running/hot stores remain populated; the next shell displays A's latest step title and run count under B, and an unfinished run from A can remain marked running because its stream has closed. This exposes prior-workspace activity across the client tenancy/session boundary. The residual mechanism is present in the pinned source; it is not newly introduced solely by the canonical-id edits.",
+      "evidence": "useWorkspaceEvents writes agent.step and run status directly to useAgentActivity, whose stored entries have no workspace identity and no reset operation. AgentPulse reads all running entries and the final step without filtering. Shell changes the SSE connection on data.workspace.id, but its workspace layout effect resets selectedId only. useResetSession removes non-auth React Query queries and refetches /auth/me; it never clears live activity. AccountMenu signOut/switchTo and LoginPage.devSignIn use this reset then navigate without reloading the JS realm. No execution claim is made.",
+      "recommendation": "Scope live activity to the active canonical workspace, reset it on principal/tenant transitions, and reject events from obsolete connections. Verify an A-to-B switch and SPA sign-out/sign-in clear previous titles, running counts and hot node state."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/web/src/pages/ObservatoryPage.tsx:162; apps/web/src/pages/ObservatoryPage.tsx:171",
+      "mechanism": "A valid cross-framework deep link is cleared by the previous selection. Open an inspector for requirement A in CSF, then follow a mapping in place to a requirement B in another framework with ?select=B. When the new graph arrives, the first effect selects valid B. The second effect still captures A from that render, finds A absent from the new graph, and calls selectNode(null), removing both B and its select parameter. The destination opens without the intended inspector. Cached and uncached target graphs take the same effect-order path.",
+      "evidence": "The pinned deep-link effect reads params.get(\"select\") and calls ui.select(sel) when byId.has(sel). The subsequent framework cleanup effect checks the render-captured selectedId, with dependencies [byId], and calls selectNode(null). selectNode synchronously clears the store and deletes the URL select parameter. Inspector MappingsTab navigates to /observatory/${fw}?select=${encodeURIComponent(id)}, providing a concrete user trigger. The new inspector-selection tests only navigate A/B within nist-csf-2.0 and therefore do not cover this graph transition. No browser reproduction was run by this reviewer.",
+      "recommendation": "Resolve requested URL selection and stale-selection cleanup together, or prioritize a valid requested destination when the graph changes. Add a mapped cross-framework navigation regression with both cached and initially uncached target graphs."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/web/src/components/inspector/Inspector.tsx:484; apps/web/src/components/inspector/Inspector.tsx:532; apps/web/src/main.tsx:10",
+      "mechanism": "Task/evidence mutation errors escape the inspector selection lifetime. Hold a task or evidence POST submitted under A, select B or switch workspaces, then release the POST with an error. The keyed InspectorSelection unmounts A, but its task/evidence mutations have no guarded hook-level onError. The global MutationCache callback still displays A's delayed failure in B's interface, contrary to the requested isolation of pending callbacks by workspace and requirement.",
+      "evidence": "TasksTab.create and EvidenceTab.add call useWsMutation without the optional onError handler. main.tsx globally toasts any mutation whose mutation.options.onError is absent. Installed @tanstack/query-core 5.104.0 mutation.ts invokes MutationCache.onError independently of observers, while mutationObserver.ts executes per-call callbacks only when hasListeners() is true. Assessment and useRunAgent explicitly guard active lifetime, showing the intended ownership policy, but these tab mutations do not. The new delayed-response regression covers owner PATCH only. No runtime reproduction was performed by this reviewer.",
+      "recommendation": "Give inspector task/evidence mutations an explicit selection-lifetime error handler, consistent with the owner/agent actions, while preserving failure visibility and drafts when the originating selection remains active. Regress held task and evidence failures followed by selection/workspace changes."
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/src/main.tsx:10; apps/web/src/pages/PlanPage.tsx:275; apps/web/src/pages/PlanPage.tsx:307",
+      "mechanism": "The new default mutation handler duplicates existing per-call error notifications. A failed Generate plan or quick-add task emits the raw server message from MutationCache and the prefixed contextual message from mutate(..., { onError }). Checking mutation.options.onError recognizes only hook options, so it cannot suppress the default for these explicit per-call handlers. Exact-text toast deduplication does not help because the contextual text differs.",
+      "evidence": "PlanPage creates plan/create via useWsMutation with no hook-level onError, then supplies per-call handlers that toast \"Could not generate plan: ${message}\" and \"Could not add task: ${message}\". main.tsx first toasts message whenever mutation.options.onError is absent. The installed TanStack mutation cache and mutation observer implementations retain these callbacks separately and execute both for an active observer. useToasts.push deduplicates only equal kind/text pairs. No runtime reproduction was performed by this reviewer.",
+      "recommendation": "Make default error ownership explicit for callers with contextual handlers, or move these handlers to the supported hook-level option. Keep one contextual notification for each failure and verify both Plan flows."
+    }
+  ],
+  "limitations": [
+    "Source-analysis review only. No builds, unit tests, server/browser execution, or runtime fault reproduction performed by this reviewer; the integration owner owns those checks.",
+    "The original 61-path pin matched at review start. During completion, the integration owner changed three new e2e specs and began application corrections; end-of-pass drift is recorded in selection-review-evidence.json. Findings bind to the original pinned source, not the final corrected working tree. A bounded affected-flow re-review is required.",
+    "Fresh delegated context; runtime provider/model identity was not established. Server tenancy/capability and evidence-review boundaries were traced for this package, rather than independently re-auditing prior startup/connector/evidence packages."
+  ]
+}

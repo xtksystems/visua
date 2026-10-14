@@ -4,6 +4,7 @@ import {
   FrameworkIndex,
   buildSnapshot,
   deriveStatus,
+  evidenceReviewScope,
   estimateTier,
   groupStatus,
   planTasks,
@@ -20,19 +21,32 @@ import { miniGraph, state } from "./fixtures.ts";
 const index = new FrameworkIndex(miniGraph);
 const NOW = new Date("2026-06-01T00:00:00Z");
 
-const evidence = (nodeCode: string, extra: Partial<Evidence> = {}): Evidence => ({
-  id: `ev-${nodeCode}`,
-  workspaceId: "ws",
-  title: `Evidence for ${nodeCode}`,
-  kind: "document",
-  source: "upload",
-  requirementIds: [`test-csf:${nodeCode}`],
-  status: "accepted",
-  collectedAt: "2026-05-01T00:00:00Z",
-  validUntil: "2027-05-01T00:00:00Z",
-  createdAt: "2026-05-01T00:00:00Z",
-  ...extra,
-});
+const evidence = (nodeCode: string, extra: Partial<Evidence> = {}): Evidence => {
+  const e: Evidence = {
+    id: `ev-${nodeCode}`,
+    workspaceId: "ws",
+    title: `Evidence for ${nodeCode}`,
+    kind: "document",
+    source: "upload",
+    requirementIds: [`test-csf:${nodeCode}`],
+    status: "accepted",
+    collectedAt: "2026-05-01T00:00:00Z",
+    validUntil: "2027-05-01T00:00:00Z",
+    createdAt: "2026-05-01T00:00:00Z",
+    ...extra,
+  };
+  e.sha256 = "a".repeat(64);
+  e.reviewedBy = "reviewer";
+  e.reviewedAt = "2026-05-02T00:00:00Z";
+  e.reviewHistory = [{
+    id: `review-${nodeCode}`,
+    decision: "accepted",
+    reviewedBy: e.reviewedBy,
+    reviewedAt: e.reviewedAt,
+    scope: evidenceReviewScope(e),
+  }];
+  return e;
+};
 
 describe("FrameworkIndex", () => {
   it("indexes hierarchy, codes and units of work", () => {
@@ -64,12 +78,20 @@ describe("deriveStatus", () => {
   });
 
   it("flags expired evidence and overdue tasks as at-risk", () => {
-    const expired = evidence("PR.AA-01", { validUntil: "2026-01-01T00:00:00Z" });
+    const expired = evidence("PR.AA-01", { collectedAt: "2025-12-01T00:00:00Z", validUntil: "2026-01-01T00:00:00Z" });
     const r1 = deriveStatus({ ...base, state: state("PR.AA-01", 3, 3), evidence: [expired] });
     expect(r1.status).toBe("at-risk");
     expect(r1.reasons[0]).toMatch(/expired/);
     const overdue = { id: "t", status: "todo", dueDate: "2026-05-01", requirementIds: [] } as unknown as Task;
     expect(deriveStatus({ ...base, state: state("PR.AA-01", 1, 3), tasks: [overdue] }).status).toBe("at-risk");
+  });
+
+  it("keeps a calendar task due through its UTC day and flags it on the next day", () => {
+    const task = { id: "calendar-task", status: "todo", dueDate: "2026-05-02", requirementIds: [] } as unknown as Task;
+    const signals = { ...base, state: state("PR.AA-01", 1, 3), tasks: [task] };
+    expect(deriveStatus({ ...signals, now: new Date("2026-05-02T23:59:59.999Z") }).status).toBe("in-progress");
+    expect(deriveStatus({ ...signals, now: new Date("2026-05-03T00:00:00.000Z") }).status).toBe("at-risk");
+    expect(deriveStatus({ ...signals, tasks: [{ ...task, status: "done" }], now: new Date("2026-05-03T00:00:00.000Z") }).status).toBe("in-progress");
   });
 });
 
@@ -177,7 +199,8 @@ describe("crosswalk", () => {
     title: "test",
     sourceFramework: "test-csf",
     targetFramework: "test-soc2",
-    authority: "Test",
+    authority: "Test publisher",
+    status: "final",
     mappings: [
       { source: "test-csf:PR.AA-01", target: "test-soc2:CC6.1", relationship: "intersects-with", origin: { documentId: "d", authority: "Test" } },
       { source: "test-csf:PR.AA-03", target: "test-soc2:CC6.1", relationship: "equivalent", origin: { documentId: "d", authority: "Test" } },
@@ -195,9 +218,11 @@ describe("crosswalk", () => {
 
   it("projects progress with confidence", () => {
     const states = new Map([state("PR.AA-01", 2, 3), state("PR.AA-03", 3, 3)].map((s) => [s.nodeId, s]));
-    const [p] = projectLevels(cw, ["test-soc2:CC6.1"], states);
+    const [p] = projectLevels(cw, ["test-soc2:CC6.1"], states, id => id === "test-csf" ? "csf" : "soc2");
     expect(p?.sources).toHaveLength(2);
     expect(p?.suggested).toBeGreaterThanOrEqual(2);
-    expect(p?.confidence).toBe("high");
+    expect(p?.confidence).toBe("medium");
+    expect(p?.targetFamily).toBe("soc2");
+    expect(p?.suggested).toBe(2);
   });
 });

@@ -1,0 +1,34 @@
+{
+  "status": "passed",
+  "at": "2026-10-13T10:49:13.054474+00:00",
+  "base_head": "e9ad8c24f68c172e0ee2c92f549027b209b9d193",
+  "scope": "Documentation and delivery evidence only; no product/test/dependency changes after auditor verification.",
+  "checks": {
+    "markdown_relative_links": {
+      "checked": 71,
+      "broken": 0
+    },
+    "worker_results": {
+      "accepted": 30,
+      "result_hashes_match": true
+    },
+    "source_pins": "All product/test/dependency pins match auditor-source-verification.json; only docs/development-phase-2.md changed.",
+    "whitespace": "git diff --check passed",
+    "deployment": "Fresh Docker inspect reports healthy and revision e9ad8c2; /api/ready returned ok."
+  },
+  "files": {
+    ".codex-context/project.md": "0c94c5a215afeb55fdf45b33197f13f03a3a969e459d7c58046f543491c8a64b",
+    ".codex-context/tasks/evidence-operations-20261013.md": "914f5b5562cd6d1c2f83f4acab00efa58d95784c32856cc0a33df9519ce75273",
+    ".codex-context/sessions/20261013T064241Z-feat-light-workspace-design-19c0d5334d10.md": "5a9af9248339728068383445002b44e76895eef4106a2a7e895bf9e071c00515",
+    "docs/development-phase-2.md": "3b96514477a985486cd2b13b9a3011b08aea21867f0a78debafc1db8415a4e28",
+    ".codex-context/runs/evidence-operations-20261013/plan.json": "e2190d08ab2ed83ee3432182b6d2d022800377097cea87763ca3332c7c39fc4e",
+    ".codex-context/runs/evidence-operations-20261013/auditor-delivery.json": "e14fb25eda4923d764ecd8357506af626343a140cb4edd77bdf4868683dda384",
+    ".codex-context/runs/evidence-operations-20261013/auditor-readiness.json": "12b34da73b0c67a0319e6eddbd3582af66e3b558b4d44e4a6860e0cec20d726f",
+    ".codex-context/runs/evidence-operations-20261013/auditor-docker-source.json": "c8db321874f4194e75f9444049eac9f95fc9fd81d96f5c68044eb6c6bb7c0d76",
+    ".codex-context/runs/evidence-operations-20261013/auditor-preservation.json": "3773516759b5e8c654a54a885d7a5982963c5d15e4fab38e4485115ddabcb300",
+    ".codex-context/runs/evidence-operations-20261013/auditor-preservation-after.json": "0e915e6e27de3eb263935b7159940434e8ad5068a2970c4428ab91be6296a338",
+    ".codex-context/runs/evidence-operations-20261013/auditor-host-restore.json": "2f19612590d857eb59428730eac7056e84df559c26c4ee9c567e25f34b57ce41",
+    ".codex-context/runs/evidence-operations-20261013/auditor-smoke-cleanup.json": "78d83b7b5b074d8f356faabebc67b8f142ebf81ac0c1c82800a735a0c18e62fc",
+    ".codex-context/runs/evidence-operations-20261013/live-auditor-result.json": "1e1429f515caf110628d38177983d2b5a3b5c1d8b1f35eb7953826db059ce40e"
+  }
+}

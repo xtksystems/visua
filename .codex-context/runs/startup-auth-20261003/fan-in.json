@@ -1,0 +1,30 @@
+{
+  "run_id": "startup-auth-20261003",
+  "expected_nodes": 2,
+  "accepted_nodes": 2,
+  "snapshot_checked_files": 20,
+  "stale_sources": [],
+  "nodes": [
+    {
+      "id": "review",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "review-fix",
+      "status": "complete",
+      "issues": []
+    }
+  ],
+  "ready_for_integration": true,
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "full-check-final.log: exit 0, all seven lanes, 229 SQLite passed / 2 skipped, 231 PostgreSQL passed, 23 Playwright passed",
+      "review-adjudication.json and fix-review.json: startup cleanup finding resolved",
+      "README and phase/context local Markdown links validated; git diff --check and untracked whitespace checks passed",
+      "Isolated Node v22.23.3 container: current server source, ready=true, clean stop; Compose config remains host-loopback"
+    ]
+  },
+  "complete": true
+}

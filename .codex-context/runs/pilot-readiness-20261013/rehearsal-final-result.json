@@ -1,0 +1,334 @@
+{
+  "status": "passed",
+  "startedAt": "2026-10-14T01:44:13.939Z",
+  "fixture": "local-production-mode-rehearsal",
+  "workload": {
+    "requests": 80,
+    "concurrency": 4,
+    "appProcesses": 2,
+    "tenants": 1,
+    "workspaces": 1,
+    "frameworks": [
+      "nist-csf-2.0",
+      "aicpa-tsc-2017"
+    ],
+    "users": 4,
+    "evidenceFiles": 1,
+    "evidenceBytes": 65536
+  },
+  "checks": [
+    "Empty production bootstrap, developer login refusal, four OIDC roles, and a second application process on shared PostgreSQL",
+    "Member assignment, signed S3 upload, contributor approval refusal, approver acceptance, auditor write refusal, exact download and offline bundle verification",
+    "Bounded four-role concurrent reads with unchanged assessment audit",
+    "Fresh PostgreSQL restore and S3 prefix, exact reviewed bytes/history, unchanged checkpoint, retained access records, encrypted organization SSO login and new verified auditor bundle"
+  ],
+  "limitations": [
+    "Loopback HTTP, a local mock IdP, and cached MinIO/PostgreSQL fixture images; no hosted TLS, DNS, provider IAM, or real identity-provider recovery validated.",
+    "Closed-loop synthetic reads on one small workspace measure this local run only. No sustained saturation, hosted capacity, recovery objective, or pilot-user acceptance claim.",
+    "Recovery restores application SQL and S3 object bytes into a new database/prefix. Cluster roles, remote provider configuration, key custody, retention, and offsite recovery remain operator work."
+  ],
+  "resources": {
+    "startedAt": "2026-10-14T01:44:13.940Z",
+    "storage": "disposable tmpfs",
+    "containers": [
+      {
+        "name": "visua-pilot-pg-28b73521cfb26d4b5b89a91b",
+        "image": "postgres:17",
+        "id": "3c1ffc4a72e279dcb7c05055645e09f1abea4288592f8a891ad22c30bebd1f01",
+        "imageId": "sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f",
+        "host": "127.0.0.1",
+        "port": 55272
+      },
+      {
+        "name": "visua-pilot-s3-28b73521cfb26d4b5b89a91b",
+        "image": "quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z",
+        "id": "f053efc52b71bd693ba24392f99ded15d46593321d16a1b2a51905aa94b1d2af",
+        "imageId": "sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e",
+        "host": "127.0.0.1",
+        "port": 55295
+      }
+    ],
+    "cleanup": {
+      "status": "complete",
+      "completedAt": "2026-10-14T01:44:20.236Z"
+    },
+    "docker": {
+      "id": "e457ea15-eeec-407a-9b26-90c505a4183a",
+      "name": "docker-desktop",
+      "serverVersion": "29.7.2",
+      "operatingSystem": "Docker Desktop"
+    },
+    "images": [
+      {
+        "image": "postgres:17",
+        "id": "sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f",
+        "repoDigests": [
+          "postgres@sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f"
+        ]
+      },
+      {
+        "image": "quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z",
+        "id": "sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e",
+        "repoDigests": [
+          "quay.io/minio/minio@sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e"
+        ]
+      }
+    ],
+    "readyInMs": 2225,
+    "s3": {
+      "endpoint": "http://127.0.0.1:55295",
+      "bucket": "visua-pilot",
+      "region": "us-east-1",
+      "prefix": "evidence",
+      "privacy": "fresh bucket; no public policy or ACL configured"
+    },
+    "backup": {
+      "startedAt": "2026-10-14T01:44:18.569Z",
+      "completedAt": "2026-10-14T01:44:18.852Z",
+      "durationMs": 283,
+      "dump": {
+        "sha256": "ef769f4c8511036b204e0f4e9b00b18b97d3b66bb436a93f2d6c04c976ee7a19",
+        "bytes": 55366
+      },
+      "objectCount": 1,
+      "objectBytes": 65536,
+      "readBytes": 131072,
+      "sourceObjectsSha256": "70327ca0bd23c7431689c5a806f24176e77be13adef03b5da217763ac37b3970",
+      "restoredObjectsSha256": "70327ca0bd23c7431689c5a806f24176e77be13adef03b5da217763ac37b3970",
+      "objects": [
+        {
+          "sourceKeySha256": "ca668e4bcfa6379d90f3aa6da6a5de271a7ad84bfe6ffb7927ed6401a579ace2",
+          "restoredKeySha256": "c57fd098d5c56309e72f4e856463168aa663a9e36840c66693d5d5c023941996",
+          "bytes": 65536,
+          "sourceSha256": "4b640d85ab3ba30fd02c9fc9db4a8928f416322ad27022ea58a65aaee68a4df2",
+          "restoredSha256": "4b640d85ab3ba30fd02c9fc9db4a8928f416322ad27022ea58a65aaee68a4df2"
+        }
+      ],
+      "sourcePrefix": "evidence",
+      "restoredPrefix": "recovery",
+      "restoredDatabase": "restore_28b73521cfb26d4b5b89a91b",
+      "artifacts": {
+        "directory": "resources-28b73521cfb26d4b5b89a91b/backup",
+        "archive": "database.dump",
+        "manifest": "manifest.json",
+        "report": "report.json"
+      },
+      "limits": {
+        "objects": 100,
+        "totalReadBytes": 67108864,
+        "objectRequestMs": 10000,
+        "backupMs": 120000
+      },
+      "consistency": "Caller must stop all app writers before backup. Current evidence/ objects were copied; the caller separately verifies app references, restored downloads, reviews, audit chain and auditor bundle. This is not a coordinated production snapshot.",
+      "elapsedThroughVerificationMs": 1222.9516249999997,
+      "evidenceSha256": "4b640d85ab3ba30fd02c9fc9db4a8928f416322ad27022ea58a65aaee68a4df2"
+    }
+  },
+  "originalBundle": {
+    "manifestSha256": "6c4774bc8ebed64c5ff0102d2f12f8eacb9a5d901503db58e7aa7009df52067c",
+    "checkpoint": {
+      "workspaceId": "ws_0mv7g5jgegbfjcr0e",
+      "seq": 4,
+      "hash": "db67f8909a361f5e05ccdeac5663e32bceb215e2e0b7c31d29f6df2c81d991a4"
+    },
+    "contentSha256": "1dea3a59714625cd15cca4c0246c22fae8a1b1b98ca79559e493fc8ac8ec2a60",
+    "archiveBytes": 376671,
+    "externalPinsChecked": true
+  },
+  "measurement": {
+    "mode": "closed-loop HTTP reads",
+    "requests": 80,
+    "concurrency": 4,
+    "elapsedMs": 202.94074999999975,
+    "requestsPerSecond": 394.20372694986145,
+    "p50Ms": 8.852624999999534,
+    "p95Ms": 21.405499999999847,
+    "maxMs": 33.31425000000036,
+    "statusCounts": {
+      "200": 80
+    }
+  },
+  "processDiagnostics": [
+    {
+      "scope": "process",
+      "since": "2026-10-14T01:44:16.557Z",
+      "gaugeScope": {
+        "default": "Current resources in this process; concurrent resources adjust a shared aggregate.",
+        "run.queued": "Last scheduler observation of queued rows in the connected database; not a current process queue or a live total."
+      },
+      "databaseQueueObservedAt": "2026-10-14T01:44:17.049Z",
+      "counters": {
+        "request.body_rejected": 0,
+        "request.body_timeout": 0,
+        "request.body_busy": 0,
+        "request.rate_limited": 0,
+        "run.started": 0,
+        "run.completed": 0,
+        "run.failed": 0,
+        "run.cancelled": 0,
+        "run.interrupted": 0,
+        "run.lease_expired": 0,
+        "connector.completed": 0,
+        "connector.failed": 0,
+        "connector.timeout": 0,
+        "connector.rejected": 0,
+        "stream.opened": 0,
+        "stream.closed": 0,
+        "stream.resync": 0,
+        "stream.overflow": 0,
+        "stream.auth_refused": 0,
+        "relay.notify_failed": 0,
+        "relay.reconnect": 0,
+        "relay.resync": 0
+      },
+      "gauges": {
+        "request.active": 0,
+        "request.body_active": 0,
+        "request.rate_buckets": 6,
+        "run.queued": 0,
+        "run.running": 0,
+        "connector.active": 0,
+        "stream.active": 0,
+        "stream.queued_bytes": 0,
+        "relay.queued": 0
+      },
+      "requests": {
+        "auth.2xx": 2,
+        "auth.3xx": 4,
+        "auth.4xx": 1,
+        "auth.5xx": 0,
+        "auth.other": 0,
+        "public.2xx": 0,
+        "public.3xx": 0,
+        "public.4xx": 0,
+        "public.5xx": 0,
+        "public.other": 0,
+        "workspace.2xx": 1,
+        "workspace.3xx": 0,
+        "workspace.4xx": 0,
+        "workspace.5xx": 0,
+        "workspace.other": 0,
+        "health.2xx": 1,
+        "health.3xx": 0,
+        "health.4xx": 0,
+        "health.5xx": 0,
+        "health.other": 0,
+        "other.2xx": 4,
+        "other.3xx": 0,
+        "other.4xx": 0,
+        "other.5xx": 0,
+        "other.other": 0
+      },
+      "latencyBucketUpperBoundsMs": [
+        10,
+        50,
+        100,
+        500,
+        1000,
+        5000,
+        30000,
+        null
+      ],
+      "histograms": {
+        "request_ms": {
+          "count": 13,
+          "sumMs": 104.99854099999982,
+          "buckets": [
+            7,
+            6,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "run_ms": {
+          "count": 0,
+          "sumMs": 0,
+          "buckets": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "connector_ms": {
+          "count": 0,
+          "sumMs": 0,
+          "buckets": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    null
+  ],
+  "recovery": {
+    "startedAt": "2026-10-14T01:44:18.569Z",
+    "completedAt": "2026-10-14T01:44:18.852Z",
+    "durationMs": 283,
+    "dump": {
+      "sha256": "ef769f4c8511036b204e0f4e9b00b18b97d3b66bb436a93f2d6c04c976ee7a19",
+      "bytes": 55366
+    },
+    "objectCount": 1,
+    "objectBytes": 65536,
+    "readBytes": 131072,
+    "sourceObjectsSha256": "70327ca0bd23c7431689c5a806f24176e77be13adef03b5da217763ac37b3970",
+    "restoredObjectsSha256": "70327ca0bd23c7431689c5a806f24176e77be13adef03b5da217763ac37b3970",
+    "objects": [
+      {
+        "sourceKeySha256": "ca668e4bcfa6379d90f3aa6da6a5de271a7ad84bfe6ffb7927ed6401a579ace2",
+        "restoredKeySha256": "c57fd098d5c56309e72f4e856463168aa663a9e36840c66693d5d5c023941996",
+        "bytes": 65536,
+        "sourceSha256": "4b640d85ab3ba30fd02c9fc9db4a8928f416322ad27022ea58a65aaee68a4df2",
+        "restoredSha256": "4b640d85ab3ba30fd02c9fc9db4a8928f416322ad27022ea58a65aaee68a4df2"
+      }
+    ],
+    "sourcePrefix": "evidence",
+    "restoredPrefix": "recovery",
+    "restoredDatabase": "restore_28b73521cfb26d4b5b89a91b",
+    "artifacts": {
+      "directory": "resources-28b73521cfb26d4b5b89a91b/backup",
+      "archive": "database.dump",
+      "manifest": "manifest.json",
+      "report": "report.json"
+    },
+    "limits": {
+      "objects": 100,
+      "totalReadBytes": 67108864,
+      "objectRequestMs": 10000,
+      "backupMs": 120000
+    },
+    "consistency": "Caller must stop all app writers before backup. Current evidence/ objects were copied; the caller separately verifies app references, restored downloads, reviews, audit chain and auditor bundle. This is not a coordinated production snapshot.",
+    "elapsedThroughVerificationMs": 1222.9516249999997,
+    "evidenceSha256": "4b640d85ab3ba30fd02c9fc9db4a8928f416322ad27022ea58a65aaee68a4df2"
+  },
+  "restoredBundle": {
+    "manifestSha256": "3d994cdd986f2c74f98a6aa2194263f5f106a182e0930bf3e7d8c57a753ba1dd",
+    "checkpoint": {
+      "workspaceId": "ws_0mv7g5jgegbfjcr0e",
+      "seq": 4,
+      "hash": "db67f8909a361f5e05ccdeac5663e32bceb215e2e0b7c31d29f6df2c81d991a4"
+    },
+    "contentSha256": "1da7c9b38cf6c30c23539d548d2236933b44e40fefd67917c8ec5911ad97fdb4",
+    "archiveBytes": 376671,
+    "externalPinsChecked": true
+  },
+  "completedAt": "2026-10-14T01:44:20.236Z",
+  "cleanupComplete": true,
+  "reportPath": "/Users/artem/visua/.check/pilot-l7fGit/report.json"
+}

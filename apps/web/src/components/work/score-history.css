@@ -1,0 +1,29 @@
+.score-history { min-width: 0; margin-top: var(--space-xl); }
+.score-history__head, .score-history__scope, .score-history__legend { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md); }
+.score-history__head { justify-content: space-between; }
+.score-history__scope { margin-block: var(--space-lg); }
+.score-history__scope select { max-width: 100%; width: auto; }
+.score-history p { line-height: 1.6; }
+.score-history__latest { font-size: var(--font-body-sm-size); }
+.score-history__chart-scroll { max-width: 100%; overflow-x: auto; }
+.score-history__chart-scroll:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
+.score-history__chart { width: 100%; min-width: 680px; max-height: 300px; display: block; }
+.score-history__grid { stroke: var(--color-outline); stroke-width: 1; }
+.score-history__axis { fill: var(--color-on-surface-muted); font: var(--font-body-sm-size) var(--font-body-md-family); }
+.score-history__progress { stroke: var(--color-primary); fill: var(--color-primary); }
+.score-history__evidence { stroke: var(--color-status-verified); fill: var(--color-status-verified); }
+.score-history__segment { stroke-width: 2; }
+.score-history__evidence .score-history__segment { stroke-dasharray: 4 3; }
+.score-history__progress-label { color: var(--color-primary); }
+.score-history__evidence-label { color: var(--color-status-verified); }
+.score-history__legend { font-size: var(--font-body-sm-size); }
+.score-history__table-scroll { max-width: 100%; overflow: auto; margin-top: var(--space-lg); }
+.score-history .table { width: 100%; min-width: 760px; font-size: var(--font-body-sm-size); }
+.score-history .table th, .score-history .table td { vertical-align: top; text-align: left; white-space: normal; }
+.score-history .table ul { margin: 0; padding-left: var(--space-lg); }
+.score-history__cell-note { display: block; font-weight: normal; color: var(--color-on-surface-muted); margin-top: var(--space-xs); }
+.score-history__details { margin-top: var(--space-lg); }
+.score-history__details details { padding-block: var(--space-sm); }
+.score-history__details summary { cursor: pointer; }
+.score-history__details .mono { font-size: var(--font-label-md-size); }
+@media (max-width: 600px) { .score-history__head { align-items: flex-start; } .score-history__legend { flex-direction: column; align-items: flex-start; gap: var(--space-xs); } }

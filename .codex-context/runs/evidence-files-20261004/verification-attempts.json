@@ -1,0 +1,65 @@
+{
+  "attempts": [
+    {
+      "command": "pnpm check (clean Visua environment)",
+      "source": "full-check-source.json",
+      "log": "full-check.log",
+      "outcome": "interrupted130after failing SQLite/PG baseline waits; source changed duringbrowser",
+      "sqlite": "468passed3failed2skipped",
+      "postgres": "468passed1failed4skipped",
+      "diagnosis": "postgres-diagnosis.md"
+    },
+    {
+      "command": "pnpm check (clean Visua environment)",
+      "source": "full-check-final-source.json",
+      "log": "full-check-final.log",
+      "exit_code": 1,
+      "sqlite": "474passed2skipped",
+      "postgres": "475passed1failedmalformedUnicode JSONB",
+      "browser": "blocked by orphan owned server60514 from interruptedfirstcheck; terminated SIGTERM",
+      "other_lanes": "licensing/typecheck/corpus/design passed"
+    },
+    {
+      "command": "pnpm check (clean Visua environment)",
+      "source": "final-source.json",
+      "log": "full-check-delivery.log",
+      "outcome": "interrupted130 after2 browserfailures;474SQLite/476PGpassed",
+      "session_id": 11880,
+      "browser": "2 tests use synchronous detail assumption; fixed by awaiting link visible",
+      "server_cleanup": "owned check runner/Playwright SIGINT, explicit owned index server SIGTERM"
+    },
+    {
+      "command": "pnpm check (clean Visua environment)",
+      "source": "delivery-source.json",
+      "log": "full-check-release.log",
+      "outcome": "failed; recovery required",
+      "exit_code": 1,
+      "sqlite": "474 passed, 2 skipped",
+      "postgres": "475 passed, 1 failed (10ms real database readiness recovery assertion)",
+      "browser": "96 passed, 2 failed (Chromium renderer crash; duplicate stale-review inline error/global toast)",
+      "other_lanes": "licensing, typecheck, corpus hashes and DESIGN.md lint passed"
+    },
+    {
+      "command": "pnpm exec playwright test e2e/evidence-files.spec.ts e2e/keyboard-dialog-tabs.spec.ts e2e/page-roles.spec.ts e2e/visua.spec.ts e2e/keyboard-outline.spec.ts --grep '[Ee]vidence|[Ff]ile|upload|metadata-only|download failures|can view every workspace destination|contributor page writes|approver can accept|outline has one named tab stop' (clean Visua environment)",
+      "source": "final-delivery-source.json",
+      "log": "affected-browser-final.log",
+      "outcome": "passed",
+      "session_id": 41993,
+      "exit_code": 0,
+      "browser": "19 passed (4.2m)"
+    },
+    {
+      "command": "pnpm check --no-e2e (clean Visua environment)",
+      "source": "final-delivery-source.json",
+      "log": "backend-final.log",
+      "outcome": "passed",
+      "session_id": 35652,
+      "exit_code": 0,
+      "sqlite": "474 passed, 2 PostgreSQL-only skips",
+      "postgres": "476 passed",
+      "other_lanes": "licensing, typecheck, corpus hashes and DESIGN.md lint passed",
+      "browser": "explicit --no-e2e; final browser evidence recorded separately"
+    }
+  ],
+  "focused_keyboard": "2 reader-role cases passed45.1s afterdetailwait"
+}

@@ -4,8 +4,9 @@
  * every framework Visua models, so one run updates CSF, SOC 2 and SP 800-53.
  */
 import type { CheckOutcome } from "@visua/core";
-import { repoScanConnector } from "./repo-scan.ts";
+import { createRepoScanConnector, repoScanConnector } from "./repo-scan.ts";
 import { webPostureConnector } from "./web-posture.ts";
+import { withConnectorBudget } from "./limits.ts";
 
 export interface RequirementRefs {
   csf?: string[];
@@ -30,10 +31,18 @@ export interface ConnectorKind {
   run(config: Record<string, unknown>, signal?: AbortSignal): Promise<CheckOutput[]>;
 }
 
-export const CONNECTOR_KINDS: ConnectorKind[] = [webPostureConnector, repoScanConnector];
+export function createConnectorKinds(repoRoots?: readonly string[]): ConnectorKind[] {
+  const repo = repoRoots === undefined ? repoScanConnector : createRepoScanConnector({ roots: repoRoots });
+  return [webPostureConnector, repo].map((kind) => ({
+    ...kind,
+    run: (config, signal) => withConnectorBudget((budget) => kind.run(config, budget), signal),
+  }));
+}
 
-export function connectorKind(kind: string): ConnectorKind | undefined {
-  return CONNECTOR_KINDS.find((k) => k.kind === kind);
+export const CONNECTOR_KINDS = createConnectorKinds();
+
+export function connectorKind(kind: string, kinds: readonly ConnectorKind[] = CONNECTOR_KINDS): ConnectorKind | undefined {
+  return kinds.find((k) => k.kind === kind);
 }
 
 export const FRAMEWORK_OF_REF: Record<keyof RequirementRefs, string> = {

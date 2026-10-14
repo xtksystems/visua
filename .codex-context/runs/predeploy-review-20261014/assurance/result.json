@@ -1,0 +1,22 @@
+{
+  "run_id": "predeploy-review-20261014",
+  "node_id": "assurance",
+  "input_sha256": "97ba971865786f5467e0df7c55b30f65cb58d5a233b89d739d62dd9e24097848",
+  "status": "complete",
+  "summary": "Completed the bounded corpus/licensing/claims/export assurance review of cb438d1083e9ae3e2a38dd8e5d7dba4c778b2e89. Two medium defects were reproduced: zero-target overlay readiness is overstated, and SOC 2 DC9 omits the final observation day. No unconditional deployment blocker was established within this lens.",
+  "evidence": [
+    "review.json",
+    "repro.mjs",
+    "repro.log",
+    "source-evidence.log",
+    "validation.log",
+    "Command: node --disable-warning=ExperimentalWarning .codex-context/runs/predeploy-review-20261014/assurance/repro.mjs; cwd=/Users/artem/visua; exit=0; synthetic reproduction assertions passed."
+  ],
+  "limitations": [
+    "This is one bounded independent source-review pass with two synthetic runtime reproductions, not an exhaustive audit of every corpus statement or application flow. No full shared suite or build was run; the lead owns the baseline pnpm check and dependency audit.",
+    "No current-law or current-publication legal audit was performed. All inspected manifests report retrieval on 2026-09-26; later enactments, injunctions, revisions and licensing changes were not externally verified.",
+    "Local OSCAL fixture hashes match the committed source pins, but upstream URLs were not fetched during this pass. Source tests show official-schema validation; this worker did not execute that test suite or independently resolve imported upstream profiles across OSCAL versions.",
+    "Inspected corpus read routes expose installed data at the authenticated installation level, without a per-tenant licensing entitlement check. The current Docker ignore excludes restricted AICPA and .local material, which limits the immediate exposure; rights covering any separately mounted licensed corpus and its recipient organizations were not established.",
+    "Synthetic fixtures exercise the real calculation/service code with fake repositories; no HTTP/browser reproduction, live tenant inspection, live mutation, external credential access, external model call, or restricted-content disclosure was performed."
+  ]
+}

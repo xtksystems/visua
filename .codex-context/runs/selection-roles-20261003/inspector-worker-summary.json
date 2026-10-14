@@ -1,0 +1,52 @@
+{
+  "run_id": "selection-roles-20261003",
+  "node_id": "inspector-worker",
+  "input_sha256": "5a22000d6848502abf10e71dfa77e6e489d431d106d2f5dff7cdc62bd6d577e7",
+  "changes": [
+    "Key the full inspector query/state subtree by canonical workspace id and node id, isolating cached selections and pending callbacks.",
+    "Use controlled owner drafts with explicit Save/Cancel, disabled clean/pending actions, same-selection refetch preservation, inline save errors and guarded late error notices.",
+    "Use canonical workspace ids for inspector assessment, task, evidence and agent writes while retaining route aliases in navigation.",
+    "Gate task execution/create, evidence create and agent runs by work.write; retain work.approve gates for applicability and verification.",
+    "Keep requirement load failures visible with retry and close; reset evidence fields on cancel and success.",
+    "Overlays and Threats contain no mutation affordances; their viewing controls remain useful and are reset by the keyed inspector boundary."
+  ],
+  "tests_authored": [
+    "Cached A → B → A → B owners, dirty drafts, no blur writes, and canonical detail requests.",
+    "Owner explicit save/cancel, dirty preservation through SSE-driven refetch, failure retention/retry and persisted reload.",
+    "Cached tab/rationale dialog/task/evidence draft reset.",
+    "Pending owner save disabled controls and late failure isolation.",
+    "Same-node cached workspace draft reset with id distinct from slug.",
+    "Failed requirement deep link inline retry and close.",
+    "Viewer, auditor, contributor and approver inspector capability matrix (four cases)."
+  ],
+  "checks": [
+    {
+      "command": "pnpm --filter @visua/web typecheck",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "scope": "pre-final-handler-guard web source"
+    },
+    {
+      "command": "pnpm exec tsc --noEmit --target ES2023 --module ESNext --moduleResolution Bundler --strict --noUncheckedIndexedAccess --skipLibCheck --types node e2e/inspector-selection.spec.ts",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "scope": "final authored inspector browser spec"
+    },
+    {
+      "command": "git diff --check -- apps/web/src/components/inspector/Inspector.tsx e2e/inspector-selection.spec.ts",
+      "cwd": "/Users/artem/visua",
+      "status": "passed"
+    }
+  ],
+  "source_digests": {
+    "apps/web/src/components/inspector/Inspector.tsx": "9e8f676d188946d5e0b1c5fa5cdba6ef275c92b7709e829524e4db0d5a20975a",
+    "apps/web/src/components/inspector/Overlays.tsx": "1400d7395190112f0bbfffd760d8344c99061fb4caf58ab13fde38fdf33ceb06",
+    "apps/web/src/components/inspector/Threats.tsx": "4ff97f7dc32f5827e1fd49d737832c7c40d1b25375f525868ca11ddf968a53f6",
+    "e2e/inspector-selection.spec.ts": "68139d3487f64d2724048095236e0e72042c6739502602d462c8946d74063a1f"
+  },
+  "limitations": [
+    "Browser, build and server processes were not started by this worker; root owns integrated browser execution.",
+    "The web typecheck passed before the final optional hook-level error guard and minor clean-draft adjustment; final integrated typecheck remains root-owned.",
+    "The ten browser cases are authored and statically typechecked; browser outcomes are not claimed."
+  ]
+}

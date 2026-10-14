@@ -1,0 +1,47 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "Completed one bounded source review of keyboard-workflow-20261003 against the pinned dirty production sources. Found a nonfunctional F reframe action, three omitted tablists, and a role-change tab-state edge case. Production pins matched at start/end; the disclosed palette test addendum matches its separate snapshot.",
+  "coverage": [
+    "AGENTS.md, CLAUDE.md, .codex-context/invariants.md, startup project/workflow context, DESIGN.md keyboard map, and review-contract/schema read.",
+    "apps/web/src/pages/ObservatoryPage.tsx: full outline visibility/filter/ancestor logic, roving focus, pointer focus, surface-scoped shortcuts, URL selection synchronization, HUD exclusions, and phone outline path inspected.",
+    "apps/web/src/lib/modal.ts and components/ui/index.tsx: full initial focus, top-modal event ownership, focus containment, Tab wrapping, callback updates, cleanup/microtask restore, StrictMode/remount and nesting branches inspected from source. No production nested-dialog caller was identified among the inspected consumers.",
+    "apps/web/src/components/shell/Shell.tsx: workspace provider/identity lifetime, palette search result filtering, active descendant, modal guard, keyboard activation, navigation and capability gates inspected.",
+    "apps/web/src/components/inspector/Inspector.tsx: full keyed selection observer, tabs/panels, assessment scope dialog, explicit owner draft handling, task/evidence draft unmount lifetime, mapping navigation and agent capability boundaries inspected.",
+    "apps/web/src/components/inspector/Threats.tsx: ThreatInspector tab/panel branches and requirement/related-threat links inspected; OrganizationPage.tsx tab-list and permission-dependent panel lifetime inspected.",
+    "apps/web/src/lib/workspace.ts, queries.ts, auth.ts, state/ui.ts, main.tsx and App.tsx: canonical workspace resolution/cache keys, request observers, role selection, global selection/focus state, query defaults and route lifetimes inspected.",
+    "apps/web/src/scene/Observatory.tsx CameraRig and scene/layout.ts dependency: F request traced through focusSeq and the single-node selection-framing effect. Camera dependency verified byte-identical to pinned HEAD.",
+    "Actual consumers inspected in EvidencePage.tsx, PlanPage.tsx, PoliciesPage.tsx, components/agents/Proposals.tsx and AgentsPage.tsx; repository-wide role=tab/tablist search and direct source inspection of Agents, RMF lifecycle, and Threat catalog controls performed.",
+    "e2e/keyboard-palette.spec.ts (including test-only addendum), keyboard-outline.spec.ts, keyboard-dialog-tabs.spec.ts and relevant CSS focus/modal rules examined as raw source context; no tests executed.",
+    "SHA-256 validation of every review-source.json entry performed at start/end and separate addendum validated at end; results saved in keyboard-review-source-validation.json."
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "apps/web/src/scene/Observatory.tsx:89 (caller apps/web/src/pages/ObservatoryPage.tsx:330)",
+      "mechanism": "Select a node, orbit/pan the camera away, focus the canvas or its outline row, and press F. The shortcut requests focus for the already selected node; selectedId stays unchanged. CameraRig discards single-point focus requests, while its other framing effect runs only when selectedId or layout changes, so F leaves the camera away from the selection.",
+      "evidence": "Source-derived, not browser-reproduced: ObservatoryPage.tsx:330-331 calls ui.focus([selection]); state/ui.ts:60 increments focusSeq but sets selectedId to the same id. CameraRig framing effect at scene/Observatory.tsx:69-83 depends on [selectedId, layout], and focusSeq effect at :85-95 returns immediately at :89 when pts.length===1. DESIGN.md:741 and canvas help at ObservatoryPage.tsx:434 promise F frames the selection. keyboard-outline.spec.ts:187-189 checks selection/focus after F, without checking the camera pose.",
+      "recommendation": "Reuse the existing single-node framing operation for explicit one-node focusSeq requests as well as selection changes. Add a focused check that moves the camera while retaining selection and verifies F restores framing."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/web/src/pages/AgentsPage.tsx:269; apps/web/src/pages/RmfPage.tsx:38; apps/web/src/pages/ThreatsPage.tsx:356",
+      "mechanism": "On Agents Runs/Approvals inbox, RMF lifecycle steps, or Threat catalog tabs, focus a tab and use ArrowLeft/ArrowRight, Home, or End. These controls still use hand-written tab roles with only click callbacks, so the expected tab keyboard interactions do nothing. Every tab remains in the normal Tab sequence and the content has no corresponding tabpanel association. Updating shared Tabs and its three consumers leaves these actual tablists outside the milestone behavior.",
+      "evidence": "Source-derived: a repository-wide tab-role search identifies these three manual tablists in addition to components/ui/index.tsx. AgentsPage.tsx:269-302, RmfPage.tsx:38-69, and ThreatsPage.tsx:356-430 contain no tab keyboard handler, tabIndex, tab id/aria-controls, or matching role=tabpanel wrapper. The only ThreatsPage onKeyDown is scoped to the separate AtlasMatrix at :88-106; neither AgentsPage nor RmfPage supplies an ancestor tab keyboard handler.",
+      "recommendation": "Apply the shared tab/panel behavior to Agents, and use the same keyboard/association contract with the existing styled RMF steps and catalog cards. If a control is intentionally navigation rather than tabs, give it appropriate link/group semantics. Cover the remaining tab-role instances in the keyboard regression suite."
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/src/pages/OrganizationPage.tsx:117 (shared tabIndex assignment apps/web/src/components/ui/index.tsx:229)",
+      "mechanism": "An admin is viewing API tokens or SSO (or an auditor is viewing Audit trail), then another administrator reduces that role and the tenant query refetches. The authorized tab list shrinks, but local tab state retains the removed id. Every surviving tab is aria-selected=false and tabindex=-1, and every remaining panel is hidden, leaving keyboard navigation without an active tab or panel until a pointer user explicitly chooses Members.",
+      "evidence": "Source-derived: OrganizationPage.tsx:108 initializes tab only once; :110-119 derives manage/audit and the tabs from refetched tenant.data.role; :133 passes the unchanged tab value into Tabs; :135-138 conditionally removes permission-dependent panels without selecting a remaining tab. Tabs at ui/index.tsx:228-229 selects/tab-stops only an id equal to value. No role/tab reconciliation effect exists in OrganizationPage.",
+      "recommendation": "Derive or reconcile a valid active tab whenever the available tab ids change, falling back to Members, and preserve one focusable selected tab plus its associated visible panel. Verify the role-reduction/refetch transition without remounting the page."
+    }
+  ],
+  "limitations": [
+    "This is source inspection only. No browser, build, server, unit or integration commands were run; root owns runtime verification. Findings describe source-derived failure mechanisms, not tested runtime outcomes.",
+    "At end, original review-source.json differs only for e2e/keyboard-palette.spec.ts, which root intentionally extended with a modal Ctrl+K assertion during review. Its current bytes match review-source-test-addendum.json; every originally pinned production source still matches. New outline/dialog tests were context only and are recorded by final dependency hash.",
+    "The first-pass brief was fresh; root later requested tracing the F CameraRig dependency. That finding was independently verified against source, but its investigation lens received this explicit parent steering.",
+    "The manual Agents/RMF/Threats tablists and CameraRig are supporting dependencies outside the original review-source file list; their inspected current hashes are recorded in keyboard-review-source-validation.json. The CameraRig matches the pinned HEAD. Source-only lifecycle/nesting inspection does not establish browser-specific behavior."
+  ]
+}

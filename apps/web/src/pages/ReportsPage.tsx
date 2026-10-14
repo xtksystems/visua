@@ -2,13 +2,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { Download, ExternalLink, FileJson, FileSpreadsheet, FileText, Globe, ShieldCheck } from "lucide-react";
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Segmented, toast } from "../components/ui/index.tsx";
+import { useWorkspaceId } from "../lib/workspace.ts";
 import { api, corpusFileUrl, exportUrl } from "../lib/api.ts";
 import { useCan } from "../lib/auth.ts";
 import { relativeTime, truncate } from "../lib/format.ts";
 import { useActivity, useAuditVerification, useWorkspace, useWsMutation } from "../lib/queries.ts";
 import { split } from "../lib/media.ts";
+import { AuditorPanel } from "../components/AuditorPanel.tsx";
 
 interface ManifestDoc {
   id: string;
@@ -94,8 +96,9 @@ function Library() {
 }
 
 export function ReportsPage() {
+  const canConfigure = useCan("workspace.configure");
   const canExport = useCan("workspace.export");
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
   const workspace = useWorkspace(ws);
   const audit = useAuditVerification(ws);
   const activity = useActivity(ws, 200);
@@ -123,6 +126,7 @@ export function ReportsPage() {
           <p>Readiness exports prepare you for an independent assessment. Visua never issues audit opinions, reports on controls or certifications.</p>
         </div>
       </header>
+      {canExport && workspace.data && <AuditorPanel key={workspace.data.workspace.id} workspace={workspace.data} />}
       <div className="grid grid--3" style={{ marginBottom: 20 }}>
         {!canExport && (
           <div className="panel muted" role="note" style={{ gridColumn: "1 / -1" }}>
@@ -157,7 +161,7 @@ export function ReportsPage() {
             )}
           </div>
           <p className="muted" style={{ fontSize: 12.5, padding: "8px 16px 12px" }}>
-            Each event stores the SHA-256 of the previous one. Editing, deleting or reordering any past event breaks the chain, and verification pinpoints where.
+            Each event stores the SHA-256 of the previous one. Verification detects internal edits and reordering. Detecting a removed tail requires a separately retained expected checkpoint; an internally consistent chain alone does not prove completeness or authenticity.
           </p>
           <div className="table-box" style={{ maxHeight: 520 }}>
             <table className="table table--audit">
@@ -197,26 +201,27 @@ export function ReportsPage() {
               <h2>Trust center</h2>
               <span className="spacer" />
               <label className="row" style={{ gap: 6, fontSize: 13 }}>
-                <input type="checkbox" checked={!!tc?.enabled} onChange={(e) => saveTrust.mutate({ enabled: e.target.checked, headline: tc?.headline, contactEmail: tc?.contactEmail })} />
+                <input type="checkbox" disabled={!canConfigure || saveTrust.isPending} checked={!!tc?.enabled} onChange={(e) => saveTrust.mutate({ enabled: e.target.checked, headline: tc?.headline, contactEmail: tc?.contactEmail })} />
                 Public
               </label>
             </div>
             <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
-              Publishes only computed facts — readiness, evidence coverage, approved policies and live monitoring results. No free-text claims.
+              Publishes scoped readiness and evidence measures, approved policy titles, and recorded monitoring outcomes. Your headline is labeled as an organization-authored statement; it is not independently verified by Visua.
             </p>
             <p style={{ fontSize: 13, marginBottom: 12 }}>
               Readiness published for:{" "}
               {workspace.data?.frameworks.filter((f) => f.onTrustCenter).map((f) => f.shortName).join(", ") || "no framework"}.{" "}
               <Link to={`/w/${ws}/settings`}>Choose in Settings</Link>
             </p>
+            {!canConfigure && <p className="muted" role="note">Only admins and owners configure the trust center. You can review its settings here.</p>}
             <div className="stack" style={{ gap: 10 }}>
               <div className="field">
-                <label>Headline</label>
-                <input className="input" value={headline ?? tc?.headline ?? ""} onChange={(e) => setHeadline(e.target.value)} />
+                <label>Organization-authored headline</label>
+                <input className="input" disabled={!canConfigure} aria-label="Trust center headline" value={headline ?? tc?.headline ?? ""} onChange={(e) => setHeadline(e.target.value)} />
               </div>
               <div className="field">
                 <label>Security contact</label>
-                <input className="input" value={contact ?? tc?.contactEmail ?? ""} onChange={(e) => setContact(e.target.value)} />
+                <input className="input" disabled={!canConfigure} aria-label="Security contact" value={contact ?? tc?.contactEmail ?? ""} onChange={(e) => setContact(e.target.value)} />
               </div>
               <div className="row row--wrap">
                 {tc?.enabled && (
@@ -225,7 +230,7 @@ export function ReportsPage() {
                   </Link>
                 )}
                 <span style={{ flex: 1 }} />
-                <button className="btn btn--primary" onClick={() => saveTrust.mutate({ enabled: !!tc?.enabled, headline: headline ?? tc?.headline, contactEmail: contact ?? tc?.contactEmail }, { onSuccess: () => toast("Trust center updated") })}>
+                <button className="btn btn--primary" disabled={!canConfigure || saveTrust.isPending} onClick={() => saveTrust.mutate({ enabled: !!tc?.enabled, headline: headline ?? tc?.headline, contactEmail: contact ?? tc?.contactEmail }, { onSuccess: () => toast("Trust center updated") })}>
                   Save
                 </button>
               </div>

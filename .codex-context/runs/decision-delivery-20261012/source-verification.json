@@ -1,0 +1,44 @@
+{
+  "status": "passed",
+  "source_commit": "e867494cf6616a4775578d0f109c24848f16fc1e",
+  "branch": "feat/light-workspace-design",
+  "pushed": true,
+  "source_pins": "source-pins.json",
+  "pins_checked": 273,
+  "checks": {
+    "no_e2e": {
+      "session": 42937,
+      "log": "check-no-e2e.log",
+      "status": "passed",
+      "exit_code": 0,
+      "sqlite": 505,
+      "postgres": 507
+    },
+    "browser": {
+      "session": 98831,
+      "log": "e2e.log",
+      "status": "passed",
+      "exit_code": 0,
+      "passed": 110,
+      "duration": "15.0m"
+    },
+    "live_api": {
+      "status": "passed",
+      "result": "live-api-smoke-result.json"
+    },
+    "live_browser": {
+      "status": "passed",
+      "result": "live-browser-smoke-result.json",
+      "captures_inspected": true
+    }
+  },
+  "deployment": "deployment-verification.json",
+  "runtime_source_files_checked": 160,
+  "db_preservation": "Original database summaries matched immediately before/after replacement; API smoke later created and removed an isolated workspace, leaving its normal deletion audit event. Original Northwind audit chain valid:97 events.",
+  "rollback_image": "visua-rollback:decision-20261012",
+  "backup": "docker-backup-result.json",
+  "limitations": [
+    "Local Docker deployment at http://localhost:8787 only.",
+    "Renewal source is a separate uncommitted package and is not in this running image."
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "status": "partial",
+  "verdict": "findings",
+  "summary": "Lead source and package assessment; independent security worker returned no completed report. No new security attack reproduction was run after that worker stopped.",
+  "coverage": [
+    "Read auth/service.ts OIDC callback/current provider generation, global identity resolution and new membership admission; auth/config.ts and auth/http.ts middleware/cookie/CSRF/workspace route guards; enumerated app.ts capabilities and inspected auth.test.ts existing first-time/linked/domain cases.",
+    "Ran production and complete pnpm dependency audit; read package manifests and Dockerfile; verified four affected package versions exist in the running image through a read-only directory listing.",
+    "Ran a high-confidence credential-format scan across356 tracked product/config/script/doc files; no matches. Historical context and corpus/generated framework data excluded; no values printed."
+  ],
+  "findings": [
+    {
+      "severity": "high",
+      "location": "apps/server/src/auth/service.ts:794-817",
+      "mechanism": "Verified-email/domain admission checks are inside the globally unlinked-user branch. For an already-linked issuer/subject, the later missing-target-membership branch checks only whether JIT is enabled before granting its default role. Thus a provider accepted by the target connection can admit a globally linked person outside that connection\u2019s proven domain; global identity recognition does not establish target-organization membership. Prerequisites include target JIT enabled and the target provider/client successfully authenticating the same issuer/subject.",
+      "evidence": "Source-supported, not runtime-reproduced in this review. Lines794-808 apply verified email/proven domain only when no global user was found; lines813-818 create a new target membership otherwise. Existing auth.test.ts327-330 outside-domain case uses an unlinked identity; lines282-284 intentionally preserve existing identity across email changes. That identity continuity is valid but does not justify new organization admission. The independent worker stopped before returning a fixture or complete review, recorded in security/execution.json.",
+      "recommendation": "Recheck target connection admission whenever creating a new organization membership, independently of global identity recognition; preserve existing-member identity continuity. Add isolated regression cases for pre-linked users, mismatched/unverified/lapsed domains, JIT disabled, and legitimate existing members. Until corrected and independently reviewed, keep organization JIT disabled and provision explicit members; planned Google OAuth Internal audience must also be verified."
+    },
+    {
+      "severity": "medium",
+      "location": "Dockerfile:15-25; apps/server/package.json:27; pnpm-lock.yaml",
+      "mechanism": "The runtime image copies the entire build workspace including development dependencies. The full dependency audit identifies11 advisories in ajv8.17.1, fast-uri3.1.2, uuid8.3.2 and source-map-js1.2.1, all present in the image, although the production-only dependency audit is clean. This increases deployed package risk and weakens patch inventory; no application request path exercising the reported vulnerable operations was established.",
+      "evidence": "dependency-audit-all.json reports8 high/3 moderate advisory records; dependency-audit.json reports zero across138 production dependencies. image-dependency-presence.json lists the four installed versions. Source search finds Ajv only in export tests without$data enabled, exceljs in corpus ingestion, and source-map-js via Vite/PostCSS build tooling. Severity is application-context medium, not the sum of upstream advisory labels.",
+      "recommendation": "Update the affected development/transitive graph and build a production image that excludes test/ingestion/build tools where they are not needed. Re-run full checks, audit the actual final image, preserve required public corpus/runtime tooling, and document reachability and any accepted remaining advisories. Do not blindly apply major overrides."
+    }
+  ],
+  "limitations": [
+    "The security worker stopped due to a platform safety restriction; no complete independent security review or successful reproduction returned. No refusal was retried or routed to another provider.",
+    "Lead inspection does not replace a complete independent auth/security review, a penetration test, provider IAM/TLS assessment, or live IdP validation.",
+    "Known-advisory and token-format scans are bounded checks, not proof of absence of vulnerabilities or secrets."
+  ]
+}

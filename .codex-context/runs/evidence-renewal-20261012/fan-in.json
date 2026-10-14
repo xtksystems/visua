@@ -1,0 +1,49 @@
+{
+  "status": "complete",
+  "expected_nodes": 5,
+  "received_nodes": 5,
+  "accepted_nodes": 5,
+  "nodes": [
+    {
+      "id": "analysis-server",
+      "worker_id": "/root/renewal_server",
+      "status": "complete",
+      "accepted": true,
+      "result": "analysis-server-result.json",
+      "result_sha256": "3e029af32b1f9c6739bf3917eef25762eded85ae0d1d66544c08cfa88bf7539d"
+    },
+    {
+      "id": "analysis-ui",
+      "worker_id": "/root/renewal_ui",
+      "status": "complete",
+      "accepted": true,
+      "result": "analysis-ui-result.json",
+      "result_sha256": "50f44a3b648206468594ee8ff6f233f61028cbc767e2dada27dc1b3403001363"
+    },
+    {
+      "id": "implementation-server",
+      "worker_id": "/root/renewal_server",
+      "status": "complete",
+      "accepted": true,
+      "result": "implementation-server-result.json",
+      "result_sha256": "c7c80e14ef63407951b6cf2873a74b7256b6706a2716924fe417841e611beabf"
+    },
+    {
+      "id": "implementation-ui",
+      "worker_id": "/root/renewal_ui",
+      "status": "complete",
+      "accepted": true,
+      "result": "implementation-ui-result.json",
+      "result_sha256": "c9640f7472ba2413617be8a426612cac54579532657e08a46c48e37f4d380d37"
+    },
+    {
+      "id": "independent-review",
+      "worker_id": "/root/renewal_review",
+      "status": "complete",
+      "accepted": true,
+      "result": "independent-review.json",
+      "result_sha256": "0ba09ebf225447486ca9b39e139e5ca6a9a8086e3e8a690731c229ddddaaca35"
+    }
+  ],
+  "integration": "source-verification.json"
+}

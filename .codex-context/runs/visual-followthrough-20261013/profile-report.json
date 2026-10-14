@@ -1,0 +1,93 @@
+{
+  "run_id": "visual-followthrough-20261013",
+  "node_id": "profile",
+  "completed_at": "2026-10-13T04:03:59.624622+00:00",
+  "cwd": "/Users/artem/visua",
+  "summary": "CSF categories now share a full-width aligned chart and numeric table, with URL sorting and scoped requirement drill-down. Organizational Tiers are in a separate keyboard tab with workspace-bound draft and save state.",
+  "sources": {
+    "apps/web/src/pages/ProfilePage.tsx": "770dbc7a19d330ff17d0b989711fd4f3782d6be47ea62672e2f7bbb0e62d413d",
+    "apps/web/src/pages/profile.css": "be145262400bcc9fdda153c877171873500043258ced078ba6f2d7ced248888b",
+    "apps/web/src/lib/profile.ts": "2df78ef509a245c674febe0691a8dca918f78cc4f63b5efb877e7fd883930b8b",
+    "apps/web/test/profile.test.ts": "dcc13c654112c5a89a3f83198f1390f1e8075a8d787d8eaa954a9b5471d6ffa8"
+  },
+  "verification": [
+    {
+      "command": "pnpm exec vitest run apps/web/test/profile.test.ts",
+      "result": "passed",
+      "tests": 10,
+      "evidence": ".codex-context/runs/visual-followthrough-20261013/profile-unit.log"
+    },
+    {
+      "command": "pnpm --filter @visua/web typecheck",
+      "result": "passed",
+      "evidence": ".codex-context/runs/visual-followthrough-20261013/profile-typecheck.log"
+    },
+    {
+      "command": "git diff --check -- apps/web/src/pages/ProfilePage.tsx apps/web/src/pages/profile.css apps/web/src/lib/profile.ts apps/web/test/profile.test.ts",
+      "result": "passed"
+    },
+    {
+      "command": "CSS variable references compared with generated and application CSS definitions",
+      "result": "passed",
+      "tokens": 25,
+      "undefined": [],
+      "evidence": ".codex-context/runs/visual-followthrough-20261013/profile-css-tokens.json"
+    }
+  ],
+  "ui_contract": {
+    "tabs": {
+      "group": "Profile and tiers",
+      "default": "Profile",
+      "second": "Tiers",
+      "query": "tab=tiers"
+    },
+    "sort": {
+      "label": "Sort categories",
+      "values": [
+        "function",
+        "gap",
+        "current",
+        "target"
+      ],
+      "default": "function",
+      "query": "sort"
+    },
+    "selection": {
+      "query": "category=<full category id>",
+      "button": "View requirements for CODE",
+      "region": "Category requirements",
+      "table": "Requirements in selected category"
+    },
+    "chart": {
+      "table": "Current and target profile by category",
+      "columns": [
+        "Category",
+        "Implementation level, 0 to 4",
+        "Current",
+        "Target",
+        "Mean gap",
+        "Below target",
+        "In scope"
+      ],
+      "scroll_region": "Scrollable category comparison"
+    },
+    "tier_save": "Save assessment",
+    "navigation": "Requirement CodeTag links preserve canonical workspace, framework and Observatory select id."
+  },
+  "review": [
+    "Only server-projected inScope=true applicable outcomes without an explicit not-applicable status contribute to category levels, detail and status distribution.",
+    "Missing scope or state withholds category means and overall metrics; disabled and empty scopes render no numeric level.",
+    "Mean gap is positive target mean minus current mean on the chart scale. Below-target outcome counts retain individual shortfalls hidden by aggregate means.",
+    "Current requirement status and accepted valid evidence counts remain exactly those from the refreshed server state.",
+    "Fresh framework state polls every minute and uses existing canonical workspace query invalidation.",
+    "Tier answers, dirty flag and mutation state persist above unmounted TabPanels; canonical workspace component key resets all draft state.",
+    "Tier save success and deferred category-close focus are guarded against completion in an unmounted workspace instance.",
+    "Save failure retains answers with explicit error; loading and failed profile/meta/workspace queries render loading or retry instead of fabricated zeros.",
+    "All new CSS variables are defined; primary table and assessment text uses existing body typography tokens."
+  ],
+  "limitations": [
+    "Browser execution, production build, screenshot inspection and combined full suites are lead-owned and were not run by this worker.",
+    "Narrow layouts retain table comparisons in named keyboard-focusable horizontal scroll regions; page overflow requires the lead browser check.",
+    "No backend, shared contracts, documentation, e2e, commit, push or deployment files were changed."
+  ]
+}

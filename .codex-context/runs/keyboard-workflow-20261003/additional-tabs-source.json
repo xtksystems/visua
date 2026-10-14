@@ -1,0 +1,10 @@
+{
+  "root": "/Users/artem/visua",
+  "files": {
+    "apps/web/src/components/ui/index.tsx": "7df1f9d75c78294b289df7516c70537bfaa77079c9986a4b7201ef19ea2f2473",
+    "apps/web/src/pages/AgentsPage.tsx": "52280fa6fb9d00ae24384f42323a5e5100d68febbd8eda9e4b17311d2f5da5eb",
+    "apps/web/src/pages/RmfPage.tsx": "61963d6e2fd259c78fa4150d43b3b622b4437e7eb20747d584c664e20bf24ff7",
+    "apps/web/src/pages/ThreatsPage.tsx": "f3468384fdedd955e4dc0c483ca556ce34917fcfb90df0e799fb29fc00e9c4f9",
+    "e2e/keyboard-dialog-tabs.spec.ts": "36fb6fce188ccd2fa5808b00d1526fe3c5e9c0f716d6bc4faf0f04bcbaf4d967"
+  }
+}

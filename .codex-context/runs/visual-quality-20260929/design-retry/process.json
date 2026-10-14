@@ -1,0 +1,9 @@
+{
+  "pid": 52883,
+  "process_group_id": 52883,
+  "started_utc": "2026-09-30T02:00:22.998210+00:00",
+  "binary": "/Users/artem/.local/share/claude/versions/2.1.285",
+  "request_sha256": "99c65a401c8a1f40f81633ffdae580ddec9e92edb3e744fd3566b82cadda0a19",
+  "brief_sha256": "ea1363c0e17cbc746ada00badbc36b3f68f7f85a3533ebc060e5397d1a174b05",
+  "identity_note": "Verify a still-running process before signaling; stored PIDs may be reused."
+}

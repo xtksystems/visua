@@ -1,0 +1,20 @@
+{
+  "run_id": "pilot-readiness-20261013",
+  "node_id": "resources",
+  "input_sha256": "ca7ec9703c3795828aa5a372c202407d9607bc28183d322f19ce9e9d7da122d8",
+  "status": "complete",
+  "summary": "Implemented the disposable PostgreSQL 17 and MinIO resource helper, with private randomized credentials, loopback ports, tmpfs storage, bounded recovery, secret-free reports, and ownership-checked cleanup. The agreed interface is ready for the lead's full rehearsal.",
+  "limitations": [
+    "No Docker lifecycle, application scenario, or broad suite was run by this worker. The lead explicitly reserved live lifecycle validation for the full rehearsal.",
+    "The caller must stop all writers before backupAndRestore, which can run once. Current evidence/ objects are copied; the lead separately checks database references, restored downloads, reviews, audit chain and auditor bundle.",
+    "Object reads are capped at 100 objects and 64 MiB cumulative source plus restored verification bytes, effectively allowing at most 32 MiB of source objects. The brief's small fixture is the intended target.",
+    "PostgreSQL and restored PostgreSQL databases share one isolated temporary container. Recovery demonstrates database and prefix separation, not infrastructure failover or a production snapshot protocol.",
+    "Caller-owned signal handling must invoke close; errors during resource startup or recovery automatically attempt cleanup. Cleanup failures are surfaced."
+  ],
+  "evidence": [
+    "resources-result.json: original worker evidence, source hashes, and limitations retained unchanged.",
+    "resources-correction-result.json: correction and affected recheck evidence.",
+    "source-verification.json and rehearsal-release-result.json: lead combined validation."
+  ],
+  "normalization": "Lead normalized structured evidence references to the run-contract string array; original worker artifact retained."
+}

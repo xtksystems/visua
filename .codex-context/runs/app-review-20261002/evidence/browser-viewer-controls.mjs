@@ -1,0 +1,14 @@
+import {chromium} from '@playwright/test';
+import {writeFile} from 'node:fs/promises';
+import path from 'node:path';
+const OUT=path.dirname(new URL(import.meta.url).pathname),BASE='http://localhost:8787',W='/w/northwind-health';
+const result={startedAt:new Date().toISOString(),baseURL:BASE,checks:[],blockedMutations:[],pageErrors:[]};
+const browser=await chromium.launch({args:['--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']}),context=await browser.newContext({viewport:{width:1440,height:900}}),page=await context.newPage();
+page.setDefaultTimeout(12000);page.on('pageerror',e=>result.pageErrors.push(e.message));
+try{
+ const login=await page.request.post(BASE+'/api/auth/dev/login',{data:{email:'jordan.park@northwind-health.example'}});result.loginStatus=login.status();
+ await context.route('**/api/**',async route=>{const req=route.request();if(!['GET','HEAD','OPTIONS'].includes(req.method())){result.blockedMutations.push({method:req.method(),url:req.url(),body:req.postDataJSON()});return route.abort('blockedbyclient');}return route.continue();});
+ async function count(locator){const total=await locator.count();let enabled=0,visible=0;for(let i=0;i<total;i++){if(await locator.nth(i).isEnabled())enabled++;if(await locator.nth(i).isVisible())visible++;}return{total,enabled,visible};}
+ await page.goto(BASE+W+'/plan');await page.getByRole('heading',{name:'Action plan',exact:true}).waitFor();const plan={route:W+'/plan',role:await page.locator('.role-badge').innerText(),quickAddInput:await count(page.getByRole('textbox',{name:'Task title'})),generatePlan:await count(page.getByRole('button',{name:'Generate plan',exact:true})),planWithAgent:await count(page.getByRole('button',{name:'Plan with agent',exact:true})),addTaskEmpty:await count(page.getByRole('button',{name:'Add task',exact:true}))};await page.getByRole('textbox',{name:'Task title'}).fill('Read-only browser test, do not submit');plan.addTaskWithText=await count(page.getByRole('button',{name:'Add task',exact:true}));await page.getByRole('textbox',{name:'Task title'}).fill('');result.checks.push(plan);
+ await page.goto(BASE+W+'/evidence');await page.getByRole('heading',{name:'Evidence ledger',exact:true}).waitFor();result.checks.push({route:W+'/evidence',role:await page.locator('.role-badge').innerText(),addConnector:await count(page.getByRole('button',{name:'Add connector',exact:true})),collectWithAgent:await count(page.getByRole('button',{name:'Collect with agent',exact:true})),runConnector:await count(page.getByRole('button',{name:'Run',exact:true}))});
+}catch(e){result.failure=e.stack;}finally{result.finishedAt=new Date().toISOString();await writeFile(path.join(OUT,'browser-viewer-controls.json'),JSON.stringify(result,null,2));await browser.close();console.log(JSON.stringify(result,null,2));}

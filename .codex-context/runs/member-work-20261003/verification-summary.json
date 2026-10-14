@@ -1,0 +1,22 @@
+{
+  "status": "passed",
+  "command": "env -u VISUA_DATABASE_URL -u VISUA_DB -u VISUA_TEST_DATABASE_URL -u NODE_ENV -u VISUA_REPO_SCAN_ROOTS VISUA_AGENT_MODE=offline VISUA_AUTH_MODE=dev VISUA_PUBLIC_URL=http://localhost:8799 pnpm check",
+  "exit_code": 0,
+  "duration_seconds": 1145,
+  "lanes": 7,
+  "sqlite": {
+    "passed": 382,
+    "skipped": 2
+  },
+  "postgres": {
+    "passed": 384
+  },
+  "browser": {
+    "passed": 91,
+    "new_member_work_cases": 11
+  },
+  "source_pins": 249,
+  "changed_since_start": [],
+  "review": "final-review.json complete/pass; earlier findings resolved in review-adjudication.json",
+  "logs": "full-check-final.log and final-check-logs/ (local ignored artifacts)"
+}

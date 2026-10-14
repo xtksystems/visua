@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "phase": "restart",
+  "origin": "http://localhost:8787",
+  "checks": {
+    "exactBytesAndFilename": true,
+    "immutableReferenceAndReview": true,
+    "audit": {
+      "valid": true,
+      "events": 3
+    },
+    "noPageErrors": true
+  },
+  "fixtureCleaned": true
+}

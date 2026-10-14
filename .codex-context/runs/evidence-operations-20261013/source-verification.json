@@ -1,0 +1,65 @@
+{
+  "status": "passed",
+  "recorded_utc": "2026-10-13T08:48:43.296139+00:00",
+  "base_head": "b34cf1fe846920c98aa71df3121712284880dc1a",
+  "source_manifest": "lifecycle-final-source.json",
+  "source_manifest_sha256": "dcc109a670eba90c4f1d54fc18940a914ad4bf3a668e024bf9d06c5b4e32cb27",
+  "source_files_verified": 316,
+  "commands": [
+    {
+      "command": "pnpm check",
+      "outcome": "failed browser lane:142 passed,4 failed; original typecheck/SQLite648/PG650/corpus/design pass",
+      "log": "check-final.log",
+      "source": "lifecycle-verification-source.json"
+    },
+    {
+      "command": "pnpm exec playwright test evidence-renewal proposal-review keyboard-dialog-tabs visua --grep affected cases",
+      "outcome": "15 passed,2 keyboard failed; renewal,proposal and responsive cases passed",
+      "log": "lifecycle-affected-browser.log"
+    },
+    {
+      "command": "pnpm exec playwright test e2e/keyboard-dialog-tabs.spec.ts --grep read-only",
+      "outcome": "2 failed; revealed collapsed-detail hidden links in modal Tab loop",
+      "log": "lifecycle-keyboard-browser.log"
+    },
+    {
+      "command": "pnpm exec playwright test e2e/evidence-lifecycle.spec.ts e2e/evidence-renewal.spec.ts e2e/proposal-review.spec.ts e2e/keyboard-dialog-tabs.spec.ts",
+      "outcome": "32 passed after modal correction; includes all8 lifecycle and both CSF/SOC2 complete journeys",
+      "log": "lifecycle-dialog-browser-final.log"
+    },
+    {
+      "command": "pnpm check --no-e2e",
+      "outcome": "passed licensing/typecheck/SQLite650+2skips/Postgres652/corpus/design; browser intentionally omitted after final32 pass",
+      "log": "lifecycle-check-final-no-e2e.log"
+    }
+  ],
+  "verified_browser_cases": 146,
+  "browser_basis": "142 baseline passes plus15 affected passes plus32 final dialog passes; all4 baseline failures resolved. Unchanged paths reused; no single final full-check command passed.",
+  "review": {
+    "report": "lifecycle-review.json",
+    "findings_resolved": [
+      "latest inspected review ID prevents stale human decisions after withdrawal",
+      "accepted review timestamp bounds valid evidence and coverage intervals"
+    ],
+    "lead_regressions": [
+      "agent review proposals bind immutable latest review ID; stale proposal cannot override withdrawal",
+      "renewal task titles do not propagate restricted artifact text after relinking",
+      "modal keyboard loop excludes links within collapsed details"
+    ],
+    "focused_tests": "51 evidence/proposal and21 agent tests passed before final complete database lanes"
+  },
+  "visual_inspection": {
+    "directory": ".screens/evidence-lifecycle-20261013",
+    "files": [
+      "desktop-evidence-lineage.png",
+      "phone-evidence-dialog.png"
+    ],
+    "outcome": "inspected readable desktop/phone layouts; responsive1024/390 case passes with named keyboard-accessible ledger scroll region"
+  },
+  "limitations": [
+    "Lineage evaluates currently recorded metadata at a selected time, not reconstructed historical revisions.",
+    "Legacy collection origin/assurance remain unknown; no backfill or migration.",
+    "Checks use fixtures/mocks and local databases; hosted pilot and real provider behavior unverified.",
+    "Delivery tracked separately; pending at this source verification checkpoint."
+  ]
+}

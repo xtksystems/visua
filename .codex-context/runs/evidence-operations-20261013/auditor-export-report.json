@@ -1,0 +1,190 @@
+{
+  "task": "M4 auditor snapshot and existing report exporters",
+  "status": "implementation complete; integration gates remain lead-owned",
+  "completed_at": "2026-10-13T09:58:22.958169+00:00",
+  "worktree": "/Users/artem/visua/.check/evidence-auditor-20261013",
+  "baseline": {
+    "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/auditor-worktree-baseline.json",
+    "base_head": "2f82c73",
+    "overlay": "Current integrated M3; combined gate pending"
+  },
+  "source_identity": {
+    "algorithm": "SHA256 of sorted path + NUL + file SHA256 + newline",
+    "aggregate_sha256": "2e5ee96541c9f101acba5fc83e88c831c4b79351cc4b7b709824417a04651979",
+    "files": [
+      {
+        "path": "apps/server/src/services/export-snapshot.ts",
+        "absolute_path": "/Users/artem/visua/.check/evidence-auditor-20261013/apps/server/src/services/export-snapshot.ts",
+        "sha256": "2d185bc312573a53c1da2a87c5e1785fef5a9c4491483e0d624519b1ca8606c6",
+        "bytes": 9093,
+        "baseline_sha256": null
+      },
+      {
+        "path": "apps/server/src/services/exports.ts",
+        "absolute_path": "/Users/artem/visua/.check/evidence-auditor-20261013/apps/server/src/services/exports.ts",
+        "sha256": "af4c7599e04fbc24a95bb98e90e51c28922d9ffa70aa9d58fabe15e09c0eda7d",
+        "bytes": 27629,
+        "baseline_sha256": "c5c130dc397a5cc3a364972b5a338bf6bac750090a9836ded7424ee0dd25c5b2"
+      },
+      {
+        "path": "apps/server/test/export-snapshot.test.ts",
+        "absolute_path": "/Users/artem/visua/.check/evidence-auditor-20261013/apps/server/test/export-snapshot.test.ts",
+        "sha256": "6b1a5f87a95ec186c1c079e171d3b694145755151efc11c140c8d3d1dcd7f741",
+        "bytes": 8659,
+        "baseline_sha256": null
+      },
+      {
+        "path": "apps/server/test/exports.test.ts",
+        "absolute_path": "/Users/artem/visua/.check/evidence-auditor-20261013/apps/server/test/exports.test.ts",
+        "sha256": "d213ff50f0c3cb3a77a15503243c1bcf934cbc1ae49acf3d638555a21b9ab692",
+        "bytes": 13265,
+        "baseline_sha256": null
+      },
+      {
+        "path": "apps/server/test/fixtures/oscal/oscal_ssp_schema.json",
+        "absolute_path": "/Users/artem/visua/.check/evidence-auditor-20261013/apps/server/test/fixtures/oscal/oscal_ssp_schema.json",
+        "sha256": "08d3faeb12f0fab7705dec15fb648c72400c7ab6ac0056222d49d21507e02a69",
+        "bytes": 92768,
+        "baseline_sha256": null
+      },
+      {
+        "path": "apps/server/test/fixtures/oscal/oscal_poam_schema.json",
+        "absolute_path": "/Users/artem/visua/.check/evidence-auditor-20261013/apps/server/test/fixtures/oscal/oscal_poam_schema.json",
+        "sha256": "906725163d767036c6189aec51252109b203214e121fc1acaff494b4d2dfbc04",
+        "bytes": 129396,
+        "baseline_sha256": null
+      },
+      {
+        "path": "apps/server/test/fixtures/oscal/LICENSE.md",
+        "absolute_path": "/Users/artem/visua/.check/evidence-auditor-20261013/apps/server/test/fixtures/oscal/LICENSE.md",
+        "sha256": "63407ac41abc46911bc9759fc0c19fd0ba7f66c59bb6746e51d85e2f2f3244b1",
+        "bytes": 5255,
+        "baseline_sha256": null
+      },
+      {
+        "path": "apps/server/test/fixtures/oscal/sources.json",
+        "absolute_path": "/Users/artem/visua/.check/evidence-auditor-20261013/apps/server/test/fixtures/oscal/sources.json",
+        "sha256": "52c8f0606df8ff325d982474cd8443677a41a8ab7aabae10ad371001a1cf27db",
+        "bytes": 794,
+        "baseline_sha256": null
+      },
+      {
+        "path": "apps/server/package.json",
+        "absolute_path": "/Users/artem/visua/.check/evidence-auditor-20261013/apps/server/package.json",
+        "sha256": "fdae1311de9c3b97be463619a642f18424200f6b815011cdcb0e83b886d6e898",
+        "bytes": 1004,
+        "baseline_sha256": "2498a1a82883414c01ad2bfeaa5fbeffc8b156786084940f26ee58feeb6ad351"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "absolute_path": "/Users/artem/visua/.check/evidence-auditor-20261013/pnpm-lock.yaml",
+        "sha256": "cd6f0a2c4595b1b6f211c86a6912842aa368425caa2ee5b3ef09d1125d92626b",
+        "bytes": 132568,
+        "baseline_sha256": "dfd1ab612f67a60be973f36cac109b47bc9f22b40bb3448120d85b2f4cd04a0e"
+      }
+    ]
+  },
+  "ownership": {
+    "initial": [
+      "apps/server/src/services/export-snapshot.ts",
+      "apps/server/src/services/exports.ts",
+      "apps/server/test/export-snapshot.test.ts",
+      "apps/server/test/exports.test.ts",
+      "apps/server/test/fixtures/oscal/**",
+      "apps/server/package.json",
+      "pnpm-lock.yaml"
+    ],
+    "approved_extensions": [
+      "Direct server production fflate0.8.3 dependency for lead-owned ZIP bundle.",
+      "Snapshot source/check/policy and supersession dependency closure, explicit missing references, and pre-hydration SQL size/count caps."
+    ],
+    "root_product_files_changed_by_this_lane": [],
+    "other_lanes_untouched": true
+  },
+  "implementation": [
+    "ExportSelection/ExportSnapshot/captureExportSnapshot expose the agreed serializable interface; capture uses store.atomic and workspace lock, rereads workspace/revision, and reads consistent SQL metadata, inline bodies and complete audit chain. No mutation, audit append, revision bump, external blob I/O or historical replay.",
+    "Selection accepts only enabled assessable frameworks, sorts scope and record arrays, validates calendar-correct RFC3339 instants with periodStart <= asOf <= capturedAt. The review period is a label, not a coverage claim or truncation of current records.",
+    "Required dependencies field labels lineage evidence and source check/policy records outside assessed scope and records missing explicit references. Supersession closure is bounded by the evidence count cap and handles cycles.",
+    "Pre-hydration SQL aggregates reject more than20,000 workspace records across states/evidence/tasks/policies/checks/activity, more than1,000 evidence records, or more than32MiB evidence-content JSON. Counts are workspace-wide to protect current whole-workspace SQL list APIs and the complete audit chain.",
+    "All eight existing report exporters accept optional third snapshot; supplied snapshots render without live SQL reads. Scoring delegates to svc.scoreOf at one asOf, excludes future checks, applies law-effective scope, and evidence listing uses shared effectiveEvidenceState including accepted replacements.",
+    "CSV cells neutralize spreadsheet formula prefixes including leading control whitespace and preserve quote/newline escaping. Readiness, AI/CSF/SOC2 reports and OSCAL preserve explicit exclusions/reasons. Evidence CSV labels dependencies and recorded versus effective status.",
+    "SOC2 PBC emits concrete Visua-authored requests for every criterion, with identifier references rather than invented or copied AICPA wording. POAM uses author-created level-gap descriptions instead of framework requirement text.",
+    "OSCAL1.1.2 SSP and POAM use deterministic RFC4122v5 entity IDs, document IDs keyed to workspace/revision/evaluation/scope, a stable logical document ID, and explicit changing capture metadata. POAM supplies the same stable system ID as SSP.",
+    "Zero RMF level uses explained local not-implemented token; unknown categorization/user/boundary details stay explicit. No-gap POAM and no-applicable-control SSP throw useful ValidationError responses instead of invalid empty arrays or invented controls/gaps.",
+    "SSP pins official baseline/catalog URLs to immutable corpus-recorded commit and includes verified SHA256 source identities. Local tailoring actions/rationale and excluded-state reasons remain in schema-supported metadata.remarks; the source profile is explicitly OSCAL1.2.2 and is not claimed resolved or transformed to1.1.2."
+  ],
+  "dependencies": {
+    "production_added": {
+      "fflate": "0.8.3"
+    },
+    "dev_added": {
+      "ajv": "8.17.1",
+      "ajv-formats": "3.0.1"
+    },
+    "installation": "pnpm --filter @visua/server add with --offline --ignore-scripts; no other dependencies changed; direct manifest/lock diff inspected."
+  },
+  "verification": [
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL VISUA_AGENT_MODE=offline pnpm exec vitest run apps/server/test/export-snapshot.test.ts apps/server/test/exports.test.ts --maxWorkers=1",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "outcome": "pass",
+      "tests": 35,
+      "files": 2,
+      "duration_seconds": 3.34,
+      "coverage": [
+        "coherent revision while normal mutation waits",
+        "fresh workspace reread and no capture writes",
+        "inline body retention",
+        "scope/strict dates",
+        "full audit and review window semantics",
+        "lineage/source dependency retention and missing references",
+        "all three pre-hydration cap boundaries",
+        "no live SQL with supplied snapshot",
+        "fixed-asOf stable IDs/report content and record reordering",
+        "expiry and accepted supersession",
+        "law upcoming/ended scope",
+        "all skeleton PBC requests",
+        "CSV formula/control prefixes and escaping",
+        "exact official SSP/POAM Draft7 schemas with actual URI/date-time checks",
+        "version5 IDs plus independent Python UUID vector",
+        "official source and schema byte hashes",
+        "zero level/tailoring/system identity",
+        "empty/no-gap unavailable behavior"
+      ]
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm --filter @visua/server typecheck",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "outcome": "latest run blocked only by concurrent unrelated source",
+      "error": "apps/server/src/operations/local-backup.ts(26,54) TS2322: number not assignable to string",
+      "note": "Earlier run passed after fixing the owned Policy fixture; latest owned files have no reported type errors. Lead notified; do not present this latest whole-server run as passed. Parent subsequently reports this backup-only issue fixed using fs.promises.open plus FileHandle.createReadStream; no rerun was required for this lane and combined integration typecheck remains parent-owned."
+    },
+    {
+      "kind": "schema provenance",
+      "outcome": "exact downloaded NIST1.1.2 schemas and LICENSE bytes copied unchanged; fixtures/sources.json retains URLs and SHA256.",
+      "validator": "AJV8.17.1 Draft7, allErrors, Unicode regexp, ajv-formats3.0.1; strict:false supports generated annotation/alternative-type constructs while keyword/format validation remains enabled."
+    }
+  ],
+  "limits": [
+    "No full suites, PostgreSQL execution, browser server/tests, build, Docker, live database, Git operations, external provider dispatch or deployment performed by this lane.",
+    "Snapshot inline-byte preflight uses SQLite BLOB length or PostgreSQL octet_length(JSON text); only SQLite executed here. Both database variants need lead integration gates.",
+    "Full audit scope means selecting fewer frameworks does not bypass the workspace-wide safety ceilings. Large-workspace pagination/streaming is intentionally not implemented.",
+    "Schema validation does not establish operational truth, audit conclusions, or end-to-end profile resolution. SSP1.1.2 points to pinned source profile1.2.2 and explicitly disclaims a resolved tailored profile.",
+    "Report rendering uses immutable in-process registry data plus captured record arrays; no full corpus is embedded in ExportSnapshot. Bundle source metadata and immutable blob materialization remain the bundle lane responsibility.",
+    "Policies referenced by a historical evidence version may be current policy records; provenance version/hash remains intact, and bundle must describe historical bytes availability accurately.",
+    "HTTP capability/audit handling, ZIP verification, UI preview/download, full gates and deployment are owned by the parent/other workers."
+  ],
+  "integration_contract": {
+    "module": "apps/server/src/services/export-snapshot.ts",
+    "exports": [
+      "ExportSelection",
+      "ExportSnapshot",
+      "captureExportSnapshot",
+      "EXPORT_SNAPSHOT_BASIS"
+    ],
+    "new_required_field": "dependencies: {evidenceIds:string[],policyIds:string[],checkIds:string[],missing:{kind:\"evidence\"|\"policy\"|\"check\",id:string,referencedByEvidenceId:string}[]}",
+    "report_signature": "(svc:VisuaService, ws:Workspace, snapshot?:ExportSnapshot)",
+    "source_pin_export": "OSCAL_SOURCE_PIN in exports.ts",
+    "next_action": "Run lead-owned combined SQLite/PG/API/ZIP/browser and typecheck gates, independently review the stable export source, then integrate/deploy under parent authorization."
+  }
+}

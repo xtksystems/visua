@@ -1,0 +1,13 @@
+{
+  "status": "failed",
+  "checks": [
+    "Scheduled snapshot captured after deployment; original audit chain valid"
+  ],
+  "errors": [],
+  "originalAudit": {
+    "valid": true,
+    "events": 98
+  },
+  "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n3 !== 2\n",
+  "syntheticWorkspaceRemoved": true
+}

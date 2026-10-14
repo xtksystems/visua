@@ -1,0 +1,71 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "relay-recovery",
+  "status": "complete",
+  "recorded_at": "2026-10-13T09:06:45.254909+00:00",
+  "worktree": "/Users/artem/visua/.check/evidence-automation-20261013",
+  "input_sha256": "665a927a7284d3869396059a9dfb7f64a2e7f4e0965f7b245016e6564f322ef1",
+  "changed_files": {
+    "apps/server/src/storage/events.ts": {
+      "before_sha256": "5e96843f519621c34330e2274053d8bf4906b42b1d7d0c41b6cbbdfacedb293b",
+      "after_sha256": "861d7c2c02404f9da3a53a23e21bfc8f4bff0fb83629c3d726fe9e660494439e"
+    },
+    "apps/server/test/relay.test.ts": {
+      "before_sha256": "43e9a4809bd2dca9c165aee6b8f271b8fe6da0f6d539844020c2754119521976",
+      "after_sha256": "343d75d8463d01c4439992ef13567d65bd8003189a8428cce78311df2cc99b5c"
+    }
+  },
+  "summary": "Publisher NOTIFY failures and bounded-queue overflow now retain one pending gap and retry an explicit resync notification across the existing schema channel, reaching continuously connected remote browser streams.",
+  "behavior": [
+    "One pool NOTIFY in flight, up to 64 compacted first-delivery payloads queued, one pending-gap bit, one resync retry timer; no failed event replay. Each event is at most 7500 bytes before the fixed origin envelope, so retained wire payloads total less than 512 KiB.",
+    "If ordinary first delivery fails or queue serialization/size/count cannot be honored, discard pending event payloads and send a small {origin,resync:true} control notification. Repeated changes coalesce into the gap bit while retry is pending.",
+    "Retry starts at 1 second and doubles through 2,4,8,16 seconds, capped at 30 seconds; it continues without requiring a later mutation and resets after successful delivery. At most one retry timer/query can be outstanding.",
+    "Remote receivers call EventBus.resync on the control message. Schema/channel isolation and same-origin suppression are preserved; local mutation subscribers already saw their own event.",
+    "Events arriving while a resync is in flight remain in the bounded queue for first delivery, or set a new pending gap if that queue overflows. Successful control completion cannot erase that later gap.",
+    "close clears the first-delivery queue, pending gap and both reconnect/recovery timers. Subsequent publishes do no transport work; late success/failure cannot schedule work; closed listeners ignore incoming notifications.",
+    "Existing public API stays unchanged except exported constant RELAY_MAX_QUEUED_EVENTS=64 for bounded behavior tests. Existing compact-event and LISTEN-reconnect behavior are preserved."
+  ],
+  "checks": [
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/relay.test.ts -t 'repairs a failed publisher'",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "exit_code": 1,
+      "outcome": "Expected before-fix failure: remote resync listener called zero times instead of once, with listeners connected.",
+      "log": "relay-recovery-before-test.log",
+      "log_sha256": "5b60478f5fbc4c08c5dc981df5e74de7a0bb07b385013e3813543c945b059350"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/relay.test.ts apps/server/test/workspace-events.test.ts",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "exit_code": 0,
+      "outcome": "19 passed across two focused synthetic files.",
+      "log": "relay-recovery-tests.log",
+      "log_sha256": "59280ba392a3c107f2d9f7967963c89142089abc48950ce37bc783e61a614175"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec tsc --noEmit -p apps/server/tsconfig.json",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "exit_code": 0,
+      "outcome": "Server source/test typecheck passed.",
+      "log": "relay-recovery-typecheck.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "coverage": [
+    "Regression uses actual PgEventRelay, EventBus and workspaceEventStream with fake pg transport; verifies failed send followed by unrelated mutation causes explicit remote SSE resync while all three listener connections remain open.",
+    "Same-origin and other-schema subscribers do not receive the recovery resync.",
+    "Persistent failures with hundreds of further changes retain one timer and produce only compact control retries at bounded exponential intervals. Recovery works without a fresh event.",
+    "Ordinary first-delivery event order survives 65 simultaneous events (one in flight plus 64 queued).",
+    "Blocked sends plus hundreds of oversized source events do not dispatch unbounded queries; overflow during in-flight resync produces a second resync.",
+    "Close during a pending retry or an in-flight success/failure prevents further query/timer work; pre-existing stream bound/cleanup tests continue passing."
+  ],
+  "limitations": [
+    "Synthetic fake-transport tests establish application recovery behavior; no live PostgreSQL, browser, full suite, build, deployed server, git action or external database was used.",
+    "Recovery state is intentionally in memory. A publisher process that dies before successfully notifying a pending gap cannot guarantee delivery after its restart; durable revision tracking/outbox remains outside this bounded fix.",
+    "One already-started pool query can settle (and may deliver its notification) after close. The database API has no query cancellation primitive; its eventual completion cannot requeue work.",
+    "A pool query that never settles prevents further transport attempts on this relay; payload retention stays bounded. Recovery assumes the transport eventually completes or rejects and the process remains running.",
+    "Receiving instances must support the new resync control envelope; older deployed versions do not understand it. Coordinate rollout or use the existing browser reconnect invalidation during a mixed-version interval.",
+    "Remote control resync invalidates all connected workspaces on that schema rather than retaining an unbounded set of affected workspace IDs. No load/capacity target is asserted."
+  ],
+  "next_action": "Lead review the two owned files, integrate with current M3 work, and execute the live PostgreSQL publisher-failure/browser invalidation gate in the lead-owned lane."
+}

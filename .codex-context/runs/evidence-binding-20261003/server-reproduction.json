@@ -1,0 +1,10 @@
+{
+  "baseline": "before package implementation",
+  "invalidExpiryApproved": "accepted",
+  "invalidExpiryCountsValid": true,
+  "changedStatus": "accepted",
+  "changedReviewer": "reviewer",
+  "changedLinks": [
+    "nist-csf-2.0:PR.AA-02"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "status": "complete",
+  "source": "1dc5ed1",
+  "command": "node .codex-context/runs/app-review-20261002/evidence/production-bootstrap.mjs",
+  "findings": [
+    {
+      "id": "seed-before-bootstrap",
+      "reproduced": true,
+      "productionAuthMode": "oidc",
+      "demoOrganizations": 2,
+      "bootstrapOwnerMemberships": 0,
+      "environment": "isolated SQLite memory store; startup identity-seeding order; no live IdP"
+    },
+    {
+      "id": "dev-bind-default",
+      "reproduced": true,
+      "authModeWithoutEnvironment": "dev",
+      "omittedHostnameBinds": "::",
+      "environment": "installed @hono/node-server 2.1.1 with ephemeral port; no application data served"
+    }
+  ],
+  "limitations": [
+    "Production sign-in failure inferred from zero membership and finishLogin source; no live production IdP used",
+    "SQLite identity fixture only; no production database changed"
+  ]
+}

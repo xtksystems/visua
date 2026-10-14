@@ -28,7 +28,14 @@ import type {
 
 export type { ActivityEvent, AgentRun, CheckResult, Connector, Evidence, Policy, Proposal, RequirementNode, RequirementState, Risk, Status, Task, Workspace };
 
+export interface WorkspaceMember { id: string; name: string }
+export interface MyWork {
+  tasks: Task[];
+  requirements: { id: string; code: string; title: string; state: RequirementState; status: Status }[];
+}
+
 export interface Meta {
+  evidenceUpload: { maxBytes: number };
   product: { name: string; version: string };
   frameworks: (FrameworkDescriptor & { units: number })[];
   levelScales: Record<string, LevelScale>;
@@ -59,6 +66,7 @@ export interface FrameworkSummary {
 }
 
 export interface WorkspaceSummary {
+  asOf: string;
   workspace: Workspace;
   frameworks: FrameworkSummary[];
   tasks: { total: number; open: number; done: number; overdue: number; byStatus: Record<string, number> };
@@ -94,7 +102,11 @@ export interface UnitState {
   target: number;
   priority: "critical" | "high" | "medium" | "low";
   applicable: boolean;
+  /** Normal assessments always supply current enabled scope; absent on threat coverage units. */
+  inScope?: boolean;
   owner?: string;
+  /** Stable member identity; text-only external owners do not have one. */
+  ownerUserId?: string;
   status: Status;
   reasons: string[];
   openTasks: number;
@@ -109,6 +121,8 @@ export interface UnitState {
 
 export interface FrameworkStateBundle {
   frameworkId: string;
+  /** Shared score/evidence evaluation instant for normal assessment bundles. */
+  asOf?: string;
   overall: NodeScore;
   groups: Record<string, NodeScore & { status: Status }>;
   units: Record<string, UnitState>;
@@ -333,7 +347,7 @@ export interface RunWithProposals extends AgentRun {
 }
 
 export interface SearchResult {
-  nodes: { id: string; code: string; title: string; text: string; framework: string; kind: string }[];
+  nodes: { id: string; code: string; title: string; text: string; framework: string; kind: string; assessable: boolean }[];
   passages: { documentId: string; documentTitle: string; page?: number; locator?: string; quote: string; score: number }[];
 }
 

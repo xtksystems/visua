@@ -1,0 +1,57 @@
+{
+  "workspace": {
+    "id": "ws_0mut9jc1exejjfkmu",
+    "tenantId": "tnt_0mum4nwakvcs65a9u",
+    "name": "Evidence deployment 1791084617899",
+    "slug": "evidence-deployment-1791084617899",
+    "profile": {
+      "industry": "saas",
+      "size": "11-50",
+      "dataTypes": [],
+      "drivers": [],
+      "environments": [
+        "cloud"
+      ],
+      "maturityTier": 1,
+      "guidance": "guided",
+      "securityTeamSize": 1
+    },
+    "frameworks": [
+      {
+        "frameworkId": "nist-csf-2.0",
+        "enabled": true,
+        "defaultTarget": 2
+      }
+    ],
+    "autonomy": {},
+    "trustCenter": {
+      "enabled": false
+    },
+    "createdAt": "2026-10-04T03:30:17.906Z",
+    "updatedAt": "2026-10-04T03:30:17.906Z"
+  },
+  "title": "Deployment file persistence fixture",
+  "evidence": {
+    "workspaceId": "ws_0mut9jc1exejjfkmu",
+    "title": "Deployment file persistence fixture",
+    "kind": "document",
+    "source": "upload",
+    "requirementIds": [
+      "nist-csf-2.0:PR.AA-01"
+    ],
+    "status": "pending-review",
+    "collectedAt": "2026-01-01T00:00:00.000Z",
+    "validUntil": "2030-12-31T23:59:59.999Z",
+    "fileName": "deployment-fixture.bin",
+    "reviewHistory": [],
+    "createdAt": "2026-10-04T03:30:24.975Z",
+    "id": "ev_0mut9jhiumswr8a97",
+    "sha256": "2c769b99b74e478208ed5c3c7fdbf32bbe88a907347523df01985458101adb66",
+    "artifact": {
+      "id": "7ed70428-2ed3-41ed-a179-45d96ab52606",
+      "sha256": "2c769b99b74e478208ed5c3c7fdbf32bbe88a907347523df01985458101adb66",
+      "size": 46,
+      "mediaType": "application/octet-stream"
+    }
+  }
+}

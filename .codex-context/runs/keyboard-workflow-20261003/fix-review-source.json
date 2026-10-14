@@ -1,0 +1,24 @@
+{
+  "root": "/Users/artem/visua",
+  "files": {
+    "DESIGN.md": "bd06057ef4e636b4296b5efe26d2f921334918d58fe25afb4a42f85004f41036",
+    "apps/web/src/components/inspector/Inspector.tsx": "ada41a35fae9bf97de3732f7c77fdc01fe978295607085581e337fea76367c3c",
+    "apps/web/src/components/inspector/Threats.tsx": "1327139ea6c2aba3e82750c0da2aa1580635d28ee4fb7c15bb5667c24791e79c",
+    "apps/web/src/components/shell/Shell.tsx": "061dc8f7afea061798c07f7c5b85f147c06bc34f8221fad840640cb6c0dddf5c",
+    "apps/web/src/components/ui/index.tsx": "6eea5c3b267bb7070b8be46b3e3d1b96d9832f5530b0ea183f79251ccbd9ad9c",
+    "apps/web/src/lib/modal.ts": "83a9f2e67190b43083b9c1d2cc54efad4e7866c687ddc30465cd45d836db3282",
+    "apps/web/src/lib/queries.ts": "16cfd9a535be5a74c756aa98131c4f63bb03035ed9e5bd46e0af4a7c4a3672b0",
+    "apps/web/src/lib/workspace.ts": "d4f8484ae7a07e03048670665386ee5ac369edf1c158a3dd65b9a9861f5378c2",
+    "apps/web/src/pages/AgentsPage.tsx": "ba2ab0f4dd178370722a115cc30b490270bc10687bfc7d9c81fa495873c4a34d",
+    "apps/web/src/pages/ObservatoryPage.tsx": "e9ec6df5622743f0a0fe5eaa545aed6209bc10309dedccd494e8b7712d361a87",
+    "apps/web/src/pages/OrganizationPage.tsx": "172428eec36937435298f090466bd57a122c3305a47586df5bcf858496820e51",
+    "apps/web/src/pages/RmfPage.tsx": "af2a080a87e4f3292ad1a2e33b18d9ccb4f82ff1b4cd6fbb70030c7987483ec7",
+    "apps/web/src/pages/ThreatsPage.tsx": "02e90d5f24fa51a412622d5dcf6a54ca07d06fc59a0f259b07754fb7cce35902",
+    "apps/web/src/scene/Observatory.tsx": "ded0b395a80f22362f79aa0c7a89d4529ebafb9c547bc3d1d9ea965cb9d57dd1",
+    "apps/web/src/state/ui.ts": "fe3c9c573bc5eefe957d978f4125990ba1f7e3675aea483b21237c702526330e",
+    "apps/web/src/styles/global.css": "414ac20efca7c0890553669ae1ff42db27ae840e0ac5eb3e1511c0a7d8cdef41",
+    "e2e/keyboard-dialog-tabs.spec.ts": "7091c3540aed92698e7fe488a8c4da72c47995a2c50fff7373121eb06795b2e0",
+    "e2e/keyboard-outline.spec.ts": "0806693cdc7446682fbc4a1b30c62e9db66af57a6294e4e1309b64f8a267cf56",
+    "e2e/keyboard-palette.spec.ts": "bc8bdeba977e0b76f9ab3205285dd7f98abde8d8f1ec441a8721ff52d976e264"
+  }
+}

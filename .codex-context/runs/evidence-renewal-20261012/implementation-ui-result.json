@@ -1,0 +1,19 @@
+{
+  "run_id": "evidence-renewal-20261012",
+  "node_id": "implementation-ui",
+  "input_sha256": "8431c65f3f264f8e20d8868e2da008a24a956d49fca51cef11ff10570f5c1cff",
+  "status": "complete",
+  "summary": "Implemented URL-backed evidence renewal with typed server coverage, separate review/validity labels, accessible cumulative windows, mobile cards, exceptions, retry/refresh states, preserved bound review, and seven browser cases.",
+  "evidence": [
+    ".codex-context/runs/evidence-renewal-20261012/implementation-ui-report.json",
+    "Owned isolated files: EvidencePage.tsx, EvidenceRenewal.tsx, evidence-renewal.css, evidence-renewal.spec.ts.",
+    "Final web TypeScript check passed; standalone static TypeScript check of seven authored browser cases passed.",
+    "EvidenceDialog source equals isolated HEAD byte-for-byte; diff whitespace checks passed.",
+    "Actual server contract and lead overview/events integration coordinated directly."
+  ],
+  "limitations": [
+    "Seven browser cases are authored and statically checked, but have not run; visual behavior and focus/overflow assertions still require the lead browser lane after the primary delivery suite ends.",
+    "No unit or server test execution was performed by this UI worker.",
+    "No scope filter, provenance schema, supersession or replacement workflow was added."
+  ]
+}

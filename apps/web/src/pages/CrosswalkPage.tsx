@@ -6,11 +6,13 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { GitCompareArrows, Info, Sparkles, X } from "lucide-react";
 import { Suspense, useMemo, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import type { Status } from "@visua/core";
 import { useRunAgent } from "../components/inspector/Inspector.tsx";
 import { CoverageBar, CoverageLegend, LINK_STATUS_HELP, LINK_STATUS_LABEL, LinkStatusBadge, ThreatLinkFilter } from "../components/threats/Coverage.tsx";
 import { Empty, FrameworkBadge, StatusChip } from "../components/ui/index.tsx";
+import { useWorkspaceId } from "../lib/workspace.ts";
+import { useCan } from "../lib/auth.ts";
 import { api } from "../lib/api.ts";
 import { truncate } from "../lib/format.ts";
 import { badgeOf } from "../lib/frameworks.ts";
@@ -18,6 +20,7 @@ import { useWorkspace } from "../lib/queries.ts";
 import type { LinkStatus, ThreatRing } from "../lib/types.ts";
 import { NexusCanvas, frameworkColor, type NexusData } from "../scene/Nexus.tsx";
 import { useUi } from "../state/ui.ts";
+import { ComparisonMatrix } from "../components/crosswalk/ComparisonMatrix.tsx";
 
 interface Side {
   id: string;
@@ -55,6 +58,7 @@ function Dot({ fw }: { fw: string }) {
 
 function GroupDetail({ ws, data, groupId, onClose }: { ws: string; data: NexusData; groupId: string; onClose: () => void }) {
   const run = useRunAgent();
+  const canWrite = useCan("work.write");
   const fw = data.frameworks.find((f) => f.groups.some((g) => g.id === groupId))!;
   const group = fw.groups.find((g) => g.id === groupId)!;
   const [limit, setLimit] = useState(80);
@@ -96,7 +100,7 @@ function GroupDetail({ ws, data, groupId, onClose }: { ws: string; data: NexusDa
       <div className="callout" role="note">
         <Info size={14} /> A mapping says two requirements address related intent. It is not evidence: each requirement still needs its own implementation and proof.
       </div>
-      {fw.enabled && (
+      {fw.enabled && canWrite && (
         <button className="btn btn--agent btn--sm" style={{ alignSelf: "flex-start" }} onClick={() => run("crosswalk-analyst", `Project mapped progress onto ${fw.shortName}`, { framework: fw.id }, { stay: true })}>
           <Sparkles size={13} /> Project mapped progress onto {fw.shortName}
         </button>
@@ -223,7 +227,7 @@ function Overview({ data, onSelect }: { data: NexusData; onSelect: (id: string) 
         <div className="eyebrow">Crosswalk Nexus</div>
         <h2 style={{ fontSize: 17, margin: "2px 0 6px" }}>Do the work once, see where it counts</h2>
         <p className="muted" style={{ fontSize: 13 }}>
-          {total.toLocaleString()} unit-level mappings from {data.sets.length} sets connect {data.frameworks.length} frameworks. Pillars are requirement groups (height = number of units, color = status); arcs bundle the mappings between two groups (width = count).
+          {total.toLocaleString()} unit-level mappings from {data.sets.length} sets connect {data.frameworks.length} frameworks. Pillars are requirement groups (height = number of units, color = status); overview arcs group mappings by framework (width = count). Select a pillar to trace its group-level connections.
         </p>
       </div>
       <div className="stack" style={{ gap: 8 }}>
@@ -298,7 +302,12 @@ function Overview({ data, onSelect }: { data: NexusData; onSelect: (id: string) 
 }
 
 export function CrosswalkPage() {
-  const { ws = "" } = useParams();
+  const [params] = useSearchParams();
+  return params.get("view") === "matrix" ? <ComparisonMatrix /> : <NexusPage />;
+}
+
+function NexusPage() {
+  const ws = useWorkspaceId();
   const workspace = useWorkspace(ws);
   const [params, setParams] = useSearchParams();
   const selected = params.get("group");
@@ -345,7 +354,8 @@ export function CrosswalkPage() {
         </Suspense>
         <div className="hud hud--tl" data-hud>
           <div className="row" style={{ gap: 8, fontWeight: 600 }}>
-            <GitCompareArrows size={15} /> Crosswalk Nexus
+            <GitCompareArrows size={15} /> <span>Crosswalk Nexus</span>
+            <button className="btn btn--sm" onClick={() => { const next = new URLSearchParams(params); next.set("view", "matrix"); setParams(next); }}>Matrix</button>
           </div>
           <div className="row row--wrap" style={{ gap: 6, marginTop: 8 }}>
             {data!.frameworks.map((f) => (
@@ -369,13 +379,16 @@ export function CrosswalkPage() {
               </button>
             )}
           </div>
+          <div className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+            {selected || hovered ? "Group connections · width shows mapping count" : "Framework connections · select a pillar to explore"}
+          </div>
           {showThreats && ring.data && ring.data.catalogs.length > 0 && (
             <div className="row row--wrap" style={{ gap: 12, marginTop: 8, fontSize: 11.5 }} role="group" aria-label="Threat link status on arcs">
               <span className="muted">Threat links</span>
-              {(["final", "draft", "unreviewed"] as const).map((st) => (
+              {(["final", "draft", "unreviewed", "superseded"] as const).map((st) => (
                 <span key={st} className="row" style={{ gap: 5 }} title={LINK_STATUS_HELP[st]}>
                   <svg width="22" height="6" aria-hidden>
-                    <line x1="1" y1="3" x2="21" y2="3" stroke="var(--color-on-surface-muted)" strokeWidth="2" strokeLinecap="round" strokeDasharray={st === "final" ? undefined : st === "draft" ? "6 3" : "0.5 4"} />
+                    <line x1="1" y1="3" x2="21" y2="3" stroke="var(--color-on-surface-muted)" strokeWidth="2" strokeLinecap="round" strokeDasharray={st === "final" ? undefined : st === "draft" ? "6 3" : st === "unreviewed" ? "1 3" : "1 7"} />
                   </svg>
                   {LINK_STATUS_LABEL[st]}
                 </span>

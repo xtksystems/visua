@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "phase": "create",
+  "origin": "http://localhost:8787",
+  "checks": {
+    "existingAuditChains": [
+      {
+        "valid": true,
+        "events": 97
+      }
+    ],
+    "exactBytesAndFilename": true,
+    "immutableReferenceAndReview": true,
+    "audit": {
+      "valid": true,
+      "events": 3
+    },
+    "noPageErrors": true
+  },
+  "fixtureCleaned": false
+}

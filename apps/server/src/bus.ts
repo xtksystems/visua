@@ -40,6 +40,7 @@ export class EventBus {
   private readonly emitter = new EventEmitter();
   private relay?: BusRelay;
   private seq = 0;
+  private readonly resyncListeners = new Set<() => void>();
 
   constructor() {
     this.emitter.setMaxListeners(1000);
@@ -59,6 +60,16 @@ export class EventBus {
   /** Deliver an event published by another instance to this instance's subscribers. */
   deliver(event: VisuaEvent): void {
     this.emitter.emit(event.workspaceId, { ...event, id: ++this.seq });
+  }
+
+  /** Ephemeral delivery has a gap; every local subscriber must refresh canonical storage. */
+  resync(): void {
+    for (const listener of this.resyncListeners) listener();
+  }
+
+  subscribeResync(listener: () => void): () => void {
+    this.resyncListeners.add(listener);
+    return () => { this.resyncListeners.delete(listener); };
   }
 
   subscribe(workspaceId: string, listener: (event: VisuaEvent & { id: number }) => void): () => void {

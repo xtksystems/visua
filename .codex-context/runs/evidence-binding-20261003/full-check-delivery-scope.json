@@ -1,0 +1,29 @@
+{
+  "root": "/Users/artem/visua",
+  "files": {
+    "packages/core/src/types.ts": "ccd9b7dfe9ac54136155d21508af836f1c45ece25579f2d6a59acca5ec363f93",
+    "packages/core/src/status.ts": "d118c764df121c01f90ec5abcb4d4944c2ef6e39eea5c15c12bf073ab4a03980",
+    "packages/core/src/index.ts": "43684ba61b49ebb474ca85fad36eb26125770b206376f223534c1f34575d9a5f",
+    "packages/core/src/evidence.ts": "4070e3e368e4820df5164aaf801e9468037b25ce68bc262e73fe679dbea65979",
+    "packages/core/test/core.test.ts": "974edb754381e1353d8c2c20d9139cb1659f960d8776e11b9b34a4ea980f8dc2",
+    "packages/core/test/evidence.test.ts": "d2fb69570f8c9c97e6e76aca34d9078e5b7cc7f2cf5b3c74edc7f00615ad2982",
+    "apps/server/src/services/visua.ts": "1074914a3d42620e66f8a46ab4527d5130e16a054859d5fbada0d42c2e384b84",
+    "apps/server/src/services/evidence.ts": "4f4e326aeccf9cebbb1af2d296ebb49f72bb5c207b664d852ae3ad73901ec1a0",
+    "apps/server/src/audit.ts": "ad3dfb78365569914af8a1d46ab8b4cf1fa0b573057cd26f8328b6a4e111d52b",
+    "apps/server/src/app.ts": "9549e7879afff2082c9693376e7493d4fbd33d7814169bb8144165c7124a590d",
+    "apps/server/src/storage/migrations.ts": "9da4acf03f0d914aa7f4a8f194ac26d55a607db4dd3d648af6fc0536826d0e2a",
+    "apps/server/src/seed/demo.ts": "a924f0dabb3cc619a33ce540e6b7251fd5b443cea54b9f0227d4377b25ded6ad",
+    "apps/server/src/services/views.ts": "6b1f1175578289d5f7d1717c02c856b507814018f07ef0fe745f8ee193d62c11",
+    "apps/server/test/api.test.ts": "b33452d5c20d0bc8fd80d2b4807e69ca54da2cca5ea4afaa7e135a0edcf9fa41",
+    "apps/server/test/evidence-binding.test.ts": "77365c25bf31c121e1fe669d077985ecf264a3fd14653c0983a3578dc5c2fd49",
+    "apps/web/src/pages/EvidencePage.tsx": "b2758d220dee41e1dbd3c90941dfe052871233346dfd9021a81893570ebe1b85",
+    "packages/agents/src/tools.ts": "1dc6e6aec33742015ae903422ff37ad6a28e8dc84b7aca7993a4b255e5c0501a",
+    "e2e/visua.spec.ts": "a07e6b47f1147b18910d2ba1588d4d8262457521bd605ff94268d92254dcf733",
+    "package.json": "9c039485e240321449eff8db06de41cb73c5a2e6056118e54059c4d41987d453",
+    "pnpm-lock.yaml": "c72f7954fe5449fefaa295aa532a2bfe8d3b4fd538fa6f7024c84ca20406bd5c",
+    "vitest.config.ts": "a71f2905d4c75d45d87c4b7eab5fba778ccdaeec82e4b693c39da63ccbf758e7",
+    "playwright.config.ts": "677212c07b618ceac2ef61da848f2b3fad0244d9598a9bd8f8dfe3680178c375",
+    "scripts/check.ts": "bd2720e33a2a0400328f2db509a6087ea4f0a35854d394a8d149435978c6df1b"
+  },
+  "meaning": "Final gate code/test/dependency fingerprints; documentation completion follows gate."
+}

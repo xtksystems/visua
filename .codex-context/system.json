@@ -1,0 +1,7 @@
+{
+  "system": "codex-context",
+  "version": 1,
+  "startup_context": [
+    ".codex-context/project.md"
+  ]
+}

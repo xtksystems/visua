@@ -2,7 +2,7 @@
  * API view models: lean graphs for the 3D Observatory, full node detail for
  * the inspector, and per-framework state bundles.
  */
-import { codeOf, frameworkOf, groupStatus, obligationTiming, trustCenterPublishes, type FrameworkGraph, type RequirementNode, type Workspace } from "@visua/core";
+import { isEvidenceValid, isTaskOverdue, codeOf, frameworkOf, groupStatus, obligationTiming, trustCenterPublishes, type FrameworkGraph, type RequirementNode, type Workspace } from "@visua/core";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { CORPUS_DIR, FRAMEWORK_ORDER } from "@visua/frameworks";
@@ -139,12 +139,17 @@ export async function nodeDetail(svc: VisuaService, ws: Workspace, node: Require
 export async function frameworkState(svc: VisuaService, ws: Workspace, frameworkId: string, opts: { minStatus?: MinStatus } = {}) {
   // Threat catalogs are not assessed: their bundle carries derived coverage.
   if (svc.registry.framework(frameworkId)?.graph.framework.family === "threat") return threatStateBundle(svc, ws, frameworkId, opts.minStatus);
-  const [score, states, tasks, evidence] = await Promise.all([
-    svc.score(ws.id, frameworkId),
+  const [states, tasks, evidence, checks] = await Promise.all([
     svc.store.states.list(ws.id, frameworkId),
     svc.store.tasks.list(ws.id),
-    svc.store.evidence.list(ws.id),
+    svc.store.evidence.metadataList(ws.id),
+    svc.store.checks.list(ws.id),
   ]);
+  // Scores and evidence counts must agree even when validity changes within
+  // the service score cache's hour. Both use this metadata snapshot and clock.
+  const at = new Date();
+  const index = svc.registry.framework(frameworkId)!;
+  const score = svc.scoreOf(index, { states, tasks, evidence, checks }, at);
   const openTasks = new Map<string, number>();
   for (const t of tasks) if (t.status !== "done") for (const id of t.requirementIds) openTasks.set(id, (openTasks.get(id) ?? 0) + 1);
   // The framework's overlay, if any, drives the Observatory's overlay lens.
@@ -152,14 +157,15 @@ export async function frameworkState(svc: VisuaService, ws: Workspace, framework
   const adoption = overlay ? svc.frameworkSettings(ws, frameworkId)?.overlays?.find((a) => a.overlayId === overlay.id) : undefined;
   const overlayLenses = overlay ? (adoption?.lenses ?? overlay.lenses?.map((l) => l.id) ?? []) : [];
   const evidenceCount = new Map<string, number>();
-  for (const e of evidence) if (e.status === "accepted") for (const id of e.requirementIds) evidenceCount.set(id, (evidenceCount.get(id) ?? 0) + 1);
+  for (const e of evidence) if (isEvidenceValid(e, at)) for (const id of new Set(e.requirementIds)) evidenceCount.set(id, (evidenceCount.get(id) ?? 0) + 1);
   // Statutory obligations: scoped by date when read (see VisuaService.scoreOf).
-  const index = svc.registry.framework(frameworkId)!;
   const law = index.graph.framework.family === "law";
-  const today = new Date().toISOString().slice(0, 10);
+  const today = at.toISOString().slice(0, 10);
+  const enabled = !!svc.frameworkSettings(ws, frameworkId)?.enabled;
   const timing = (nodeId: string) => (law ? obligationTiming(index.byId.get(nodeId) ?? {}, today) : "in-force");
   return {
     frameworkId,
+    asOf: at.toISOString(),
     overall: score.overall,
     ...(score.upcoming ? { upcoming: score.upcoming.overall } : {}),
     groups: Object.fromEntries([...score.scores.entries()].map(([id, s]) => [id, { ...s, status: groupStatus(s) }])),
@@ -171,7 +177,11 @@ export async function frameworkState(svc: VisuaService, ws: Workspace, framework
           target: s.target,
           priority: s.priority,
           applicable: s.applicable && timing(s.nodeId) !== "ended",
+          inScope: enabled && !!index.byId.get(s.nodeId)?.assessable && !index.byId.get(s.nodeId)?.withdrawn
+            && s.applicable && !s.userExclusion && s.statusOverride !== "not-applicable"
+            && svc.scopeOf(ws, s.nodeId).applicable && timing(s.nodeId) === "in-force",
           owner: s.owner,
+          ownerUserId: s.ownerUserId,
           ...(timing(s.nodeId) === "upcoming" ? { upcoming: String(index.byId.get(s.nodeId)?.attributes?.["effective"]) } : {}),
           status: score.statuses.get(s.nodeId)?.status ?? "not-started",
           reasons: score.statuses.get(s.nodeId)?.reasons ?? [],
@@ -198,7 +208,15 @@ export async function frameworkState(svc: VisuaService, ws: Workspace, framework
 export async function workspaceSummary(svc: VisuaService, ws: Workspace) {
   const rank = (id: string) => (FRAMEWORK_ORDER.indexOf(id) === -1 ? 99 : FRAMEWORK_ORDER.indexOf(id));
   const enabled = ws.frameworks.filter((f) => f.enabled && svc.registry.framework(f.frameworkId)).sort((a, b) => rank(a.frameworkId) - rank(b.frameworkId));
-  const scores = await Promise.all(enabled.map((f) => svc.score(ws.id, f.frameworkId)));
+  const [states, evidence, tasks, checks, proposals, runs, policies] = await Promise.all([
+    svc.store.states.list(ws.id), svc.store.evidence.metadataList(ws.id),
+    svc.store.tasks.list(ws.id), svc.store.checks.list(ws.id),
+    svc.store.proposals.list(ws.id), svc.store.runs.recent(ws.id, 50), svc.store.policies.list(ws.id),
+  ]);
+  // The overview shares one clock and metadata snapshot across frameworks. An
+  // hourly cached score can hide an expiry already visible in the attention queue.
+  const at = new Date();
+  const scores = enabled.map(f => svc.scoreOf(svc.registry.framework(f.frameworkId)!, { states, evidence, tasks, checks }, at));
   const frameworks = enabled.map((f, i) => {
     const index = svc.registry.framework(f.frameworkId)!;
     const s = scores[i]!.overall;
@@ -219,25 +237,18 @@ export async function workspaceSummary(svc: VisuaService, ws: Workspace) {
       ...(scores[i]!.upcoming ? { upcoming: { total: scores[i]!.upcoming!.overall.total, readiness: scores[i]!.upcoming!.overall.readiness } } : {}),
     };
   });
-  const [tasks, proposals, runs, evidenceTotal, policies] = await Promise.all([
-    svc.store.tasks.list(ws.id),
-    svc.store.proposals.list(ws.id),
-    svc.store.runs.recent(ws.id, 50),
-    svc.store.evidence.count(ws.id),
-    svc.store.policies.list(ws.id),
-  ]);
-  const today = new Date().toISOString().slice(0, 10);
   return {
+    asOf: at.toISOString(),
     workspace: ws,
     frameworks,
     tasks: {
       total: tasks.length,
       open: tasks.filter((t) => t.status !== "done").length,
       done: tasks.filter((t) => t.status === "done").length,
-      overdue: tasks.filter((t) => t.status !== "done" && t.dueDate && t.dueDate < today).length,
+      overdue: tasks.filter((t) => isTaskOverdue(t, at)).length,
       byStatus: tasks.reduce<Record<string, number>>((acc, t) => ((acc[t.status] = (acc[t.status] ?? 0) + 1), acc), {}),
     },
-    evidence: { total: evidenceTotal },
+    evidence: { total: evidence.length },
     policies: policies.map((p) => ({ id: p.id, title: p.title, status: p.status, version: p.version })),
     approvals: proposals.filter((p) => p.status === "pending").length,
     agents: { running: runs.filter((r) => r.status === "running" || r.status === "queued").length, recent: runs.length },

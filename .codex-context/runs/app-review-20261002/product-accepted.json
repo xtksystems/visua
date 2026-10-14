@@ -1,0 +1,23 @@
+{
+  "run_id": "app-review-20261002",
+  "node_id": "product",
+  "input_sha256": "5d088dd2d925a519fd39f32eaf8454f6ea5601ff78113a34b850fb7c62f7800c",
+  "status": "complete",
+  "summary": "product Opus 5.5 review complete and reconciled; supported findings and qualifications recorded in final review and phase plan.",
+  "evidence": [
+    "product/result.json: raw findings and coverage",
+    "product/run.json: successful subscription-only run and reported model usage",
+    "review-adjudication.json: integration decisions",
+    "../../../../docs/reviews/full-app-review-2026-10-02.md: source-supported synthesis"
+  ],
+  "limitations": [
+    "Packet-only, read-only review. No tests, build, browser or server were run; every finding is inferred from source. The lead's 214 passed / 2 skipped figure was not independently verified.",
+    "Server routes (app.ts), VisuaService, storage and auth middleware were not in the packet. Statements that the server refuses an action rest on the documentation and on packages/core/src/access.ts.",
+    "Whether workspace ids differ from slugs is not visible in the packet; the SSE query-key finding depends on that.",
+    "Whether the default SOC 2 skeleton carries pointsOfFocus is not visible; the note that PBC requests may be empty in a fresh clone is an inference from README and architecture wording.",
+    "Separation-of-duties rules (an author accepting their own evidence or approving their own policy) could not be checked without the service code.",
+    "Visual quality, contrast as rendered, real GPU performance, and label layout were not observed. Responsiveness comments come from the CSS and the e2e expectations.",
+    "Agent runtime, offline playbooks, corpus licensing, tenancy, SSO and the audit-chain implementation belong to other lanes and were touched only where they surface in the UI.",
+    "State-law dates and counts were reviewed as code behaviour, not as current law."
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "run_id": "predeploy-review-20261014",
+  "node_id": "operations",
+  "input_sha256": "2ed54c88e73805c45f971f4717f58fcae23c7858999ec8d309f8a5bccb0cdb74",
+  "status": "complete",
+  "summary": "Operations/source review of cb438d1083e9ae3e2a38dd8e5d7dba4c778b2e89 found two PostgreSQL failure-handling defects. An isolated wire-protocol mock reproduced process exit on idle connection loss and pending connection/pool work without default application deadlines. Hosted capacity, identity/provider integration and recovery remain unverified deployment gates; the local Compose file is explicitly a demo.",
+  "evidence": [
+    "review.json",
+    "pg-failure-fixture.mjs",
+    "pg-failure-fixture.log",
+    "inspection-evidence.json",
+    "deployment-notes.json",
+    "report-validation.log"
+  ],
+  "limitations": [
+    "No actual Google Workspace, Cloudflare, cloud compute, PostgreSQL service or object-store tenant was accessed. Candidate Cloud Run/Cloud SQL/R2 integration, TLS, IAM, SSE/proxy behavior and recovery are not validated.",
+    "Mock reproductions used local Node v26.0.0 and installed pg 8.23.0; Docker declares Node 22. Reproduce failure/recovery checks in the final immutable runtime image before accepting a fix. The mocks use synthetic local identity only and contain no real credentials.",
+    "This was one bounded independent source review. Shared full suites/builds were reserved for the lead, so this node makes no assertion that they passed. No sustained capacity, OS-image vulnerability scan, actual database restart, restore drill or production SLO measurement was run.",
+    "Dependency advisories came from lead-generated audit artifacts. Development packages are shipped by Docker, but no remotely reachable vulnerable call path was established. See deployment-notes.json for release hygiene and counterevidence.",
+    "Existing runtime health evidence describes an older deployed revision, not the reviewed HEAD. Repository documentation explicitly leaves hosted environment, ownership, retention, real user acceptance and measured RPO/RTO open."
+  ]
+}

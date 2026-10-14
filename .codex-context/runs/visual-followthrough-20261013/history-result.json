@@ -1,0 +1,31 @@
+{
+  "run_id": "visual-followthrough-20261013",
+  "node_id": "history",
+  "input_sha256": "85d83f0f75c920b5da37c5cee66de24ff39c9d6347a53e0b8de717f92096453f",
+  "status": "complete",
+  "summary": "Append-only transactional observations, migration 7, authorized manual capture, drained daily scheduling, and history UI with comparability breaks and numeric table.",
+  "evidence": [
+    ".codex-context/runs/visual-followthrough-20261013/history-report.json",
+    "packages/core/src/score-history.ts",
+    "packages/core/src/index.ts",
+    "apps/server/src/services/score-history.ts",
+    "apps/server/src/services/score-history-ticker.ts",
+    "apps/server/src/storage/migrations.ts",
+    "apps/server/src/storage/store.ts",
+    "apps/server/src/server.ts",
+    "apps/server/src/app.ts",
+    "apps/web/src/components/work/ScoreHistory.tsx",
+    "apps/web/src/components/work/score-history.css",
+    "apps/web/src/pages/HomePage.tsx",
+    "apps/web/src/lib/score-history.ts",
+    "apps/server/test/score-history.test.ts",
+    "apps/web/test/score-history.test.ts"
+  ],
+  "limitations": [
+    "No PostgreSQL/full suite/browser/build/deployment was run by worker; lead owns those lanes.",
+    "History starts with real captures; no reconstructed prior observations.",
+    "UI shows latest 60 workspace observations; older observations are retained and bounded API reads support up to 200.",
+    "Capture work is serialized per workspace; scheduler checks every 15 minutes, initial 30 seconds, and never overlaps itself.",
+    "Catalog identity memoizes immutable loaded FrameworkIndex graphs; changing corpus requires the existing registry/restart workflow."
+  ]
+}

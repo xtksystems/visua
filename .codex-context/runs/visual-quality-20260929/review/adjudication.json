@@ -1,0 +1,22 @@
+{
+  "depth_precision": {
+    "decision": "accepted",
+    "fix": "Terrain gauge track and fill now disjoint; redundant constellation outer ring removed; crowns and progress material use polygonOffset."
+  },
+  "stale_click_bounds": {
+    "decision": "accepted, already fixed before review returned",
+    "fix": "Recompute InstancedMesh bounding sphere during every animated matrix update."
+  },
+  "reduced_motion_cue": {
+    "decision": "accepted",
+    "fix": "Core receives active and reducedMotion separately, static tertiary halo persists, static emissive in reduced-motion mode; new browser frame comparison test."
+  },
+  "hex_alignment": {
+    "decision": "accepted",
+    "fix": "Selection and agent hex rings start at pi/6, matching prism corners; stale comment removed."
+  },
+  "designer_district_overlap": {
+    "decision": "not reproduced",
+    "evidence": "district-check.json: no collisions across 9 redistributable catalogs; no geometry overhaul needed."
+  }
+}

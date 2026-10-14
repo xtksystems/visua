@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "expected": "Local development deployment must fail hosted profile.",
+  "cli_exit_code": 1,
+  "configReady": false,
+  "failed_checks": [
+    "production-mode",
+    "oidc-mode",
+    "public-origin",
+    "server-secret",
+    "seed-disabled",
+    "platform-idp",
+    "bootstrap-owner",
+    "postgresql",
+    "s3-backend",
+    "s3-config"
+  ]
+}

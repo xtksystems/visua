@@ -1,0 +1,23 @@
+{
+  "run_id": "app-review-20261002",
+  "node_id": "governance",
+  "input_sha256": "383663d26ddb01d96edef276dd040a7038c933335a14d060f50f90b38a0671ad",
+  "status": "complete",
+  "summary": "governance Opus 5.5 review complete and reconciled; supported findings and qualifications recorded in final review and phase plan.",
+  "evidence": [
+    "governance/result.json: raw findings and coverage",
+    "governance/run.json: successful subscription-only run and reported model usage",
+    "review-adjudication.json: integration decisions",
+    "../../../../docs/reviews/full-app-review-2026-10-02.md: source-supported synthesis"
+  ],
+  "limitations": [
+    "Source-only review of the packet: no tests, ingestion, agent run, connector or export was executed by this lane. Every finding is an inference from the numbered source; the lead's '214 passed / 2 skipped' was not reproduced here.",
+    "Not in the packet and therefore not reviewed: the storage layer (store, repositories, migrations), auth/http.ts and auth/service.ts, services/views.ts (workspaceSummary, nodeDetail, frameworkState, onTrustCenter), the web app, seed data, scripts/check.ts, .gitignore, the corpus manifests and the generated data files. Statements about evidence supersession, trust-center framework filtering and the manifest 'framework' value for AICPA documents assume nothing in those files changes the behaviour described.",
+    "Finding 3 assumes no background job expires, supersedes or deletes evidence; none appears in the service code provided.",
+    "Corpus content, official counts, quotation accuracy and page numbers were not checked against any source. No statement here confirms that any law, draft or standard in the corpus is current, and nothing here is legal or licensing advice; finding 7 flags a boundary for the operator to assess.",
+    "The Claude runtime's API parameters (model id, betas, fallbacks, thinking and effort fields) were not validated against a live API; no paid agent execution was performed.",
+    "Tenant isolation, CSRF, sessions, SSO, connector egress and path safety, and concurrency belong to other lanes and were touched only where they bear on evidence or licensing claims.",
+    "Documentation drift noticed but not verified: README and architecture.md cite 202 Vitest tests against the lead's 214, and 22 versus 21 Playwright tests.",
+    "Lesser observations left out of the 12 findings: ended state-law obligations stay assessable because stored applicability is date-scoped only when settings change; law status (for example 'enjoined') does not affect scope when obligations exist; SP 800-53 enhancements inherit the base control's page; linked requirements may be non-assessable group nodes or belong to disabled frameworks; the AI overview's GAI risk readiness divides by all linked outcomes including out-of-scope ones; threat level 4 'Full' is computed only over linked requirements in enabled frameworks and in scope, and the default filter counts unreviewed links."
+  ]
+}

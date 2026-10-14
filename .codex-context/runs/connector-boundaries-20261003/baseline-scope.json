@@ -1,0 +1,22 @@
+{
+  "root": "/Users/artem/visua",
+  "files": {
+    "apps/server/src/auth/egress.ts": "412b2414bcf932c1f1c4ebe97b1214e6ad5df1cb303e6d8cec84ae620f2f7ebe",
+    "apps/server/src/connectors/index.ts": "84796a4aef733278a340cfd3984eb4ca2d89d848ae808bef7e896ad8b9f13881",
+    "apps/server/src/connectors/web-posture.ts": "0d25c1bcd7b44c9d367cdd87eb7b0a52823fb57ebeac71c91312c1a98acfb148",
+    "apps/server/src/connectors/repo-scan.ts": "08a0137a4891fb85ca3be39a52c4f8567b87016102a07077bc19615d11aed08b",
+    "apps/server/src/services/visua.ts": "12c0a045c3d5f3c6f741b78559930a87e90008d48b424be4f8897fb0f0ded46f",
+    "apps/server/test/egress.test.ts": "f95629c69358d876b419019f8469dbf70eb93e77b775792a2f25bcdb10cc6b6e",
+    "apps/server/test/api.test.ts": "6d41ff3ca00e4becef062c879c0a002569ceec18301186d3b36e5b1fdbe712b0",
+    "apps/server/src/connectors/limits.ts": null,
+    "apps/server/src/connectors/network.ts": null,
+    "apps/server/test/connector-boundaries.test.ts": null,
+    "apps/server/test/repo-scan.test.ts": null,
+    "README.md": "21452ccdd59e6d5400adb0d9ee2becf922ae3f50aecff0a51580d3ec9e95dade",
+    "docs/architecture.md": "f72048b8e01378e06db77c53800da358097b49d9dccbee98dbe6587f400b9688",
+    "docs/development-phase-2.md": "9502a3917b2db7d4d6936bd6f2bfbe6dc6bb10c4d834505e5de7aa292fcb3707",
+    ".codex-context/project.md": "7f02bb81073fafa366eddf0228d7b03aa0b3d72f1187bc80e9b59951fcf03b43",
+    ".codex-context/architecture.md": "123a73f6c172fc49a44cf02823191be9e60a7b52476106d75735da68ddeb7b9f",
+    ".codex-context/invariants.md": "ba6a2a05726000610ca4ae8fe6097453c247397ea6ea9b17b6c2582c09524d32"
+  }
+}

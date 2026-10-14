@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 /**
  * Citation-ready lexical retrieval (Okapi BM25) over the local official corpus.
  *
@@ -23,6 +25,28 @@ export interface SearchHit {
   score: number;
   /** Best matching sentence(s) for display as a quote. */
   quote: string;
+}
+
+/** A supplied quote identifies provenance, never the truth of the conclusion attached to it. */
+export interface CorpusReference {
+  documentId: string;
+  chunkId?: string;
+  chunkSha256?: string;
+  page?: number;
+  locator?: string;
+  quote: string;
+}
+export interface ResolvedCorpusCitation extends CorpusReference {
+  chunkId: string;
+  chunkSha256: string;
+  documentTitle: string;
+}
+export type CitationResolution = { ok: true; citation: ResolvedCorpusCitation } | { ok: false; error: string };
+
+const normalizeQuote = (text: string) => text.replace(/\s+/gu, " ").trim();
+/** Canonical location and original text are bound, not a caller-supplied title or quote. */
+export function corpusChunkSha256(chunk: CorpusChunk): string {
+  return createHash("sha256").update(JSON.stringify({ id: chunk.id, documentId: chunk.documentId, documentTitle: chunk.documentTitle, framework: chunk.framework, page: chunk.page, locator: chunk.locator, text: chunk.text })).digest("hex");
 }
 
 const STOPWORDS = new Set(
@@ -63,6 +87,8 @@ export function tokenize(text: string): string[] {
 
 export class CorpusSearch {
   private readonly chunks: CorpusChunk[];
+  private readonly byId = new Map<string, CorpusChunk[]>();
+  private readonly byDocument = new Map<string, CorpusChunk[]>();
   private readonly docTerms: Map<string, number>[] = [];
   private readonly docLength: number[] = [];
   private readonly df = new Map<string, number>();
@@ -72,9 +98,15 @@ export class CorpusSearch {
   private readonly b = 0.72;
 
   constructor(chunks: CorpusChunk[]) {
-    this.chunks = chunks;
+    this.chunks = chunks.map(chunk => Object.freeze({ ...chunk }));
     let total = 0;
-    chunks.forEach((chunk, i) => {
+    this.chunks.forEach((chunk, i) => {
+      const identities = this.byId.get(chunk.id);
+      if (identities) identities.push(chunk);
+      else this.byId.set(chunk.id, [chunk]);
+      const document = this.byDocument.get(chunk.documentId);
+      if (document) document.push(chunk);
+      else this.byDocument.set(chunk.documentId, [chunk]);
       const terms = tokenize(`${chunk.locator ?? ""} ${chunk.text}`);
       const tf = new Map<string, number>();
       for (const t of terms) tf.set(t, (tf.get(t) ?? 0) + 1);
@@ -93,6 +125,25 @@ export class CorpusSearch {
 
   get size(): number {
     return this.chunks.length;
+  }
+
+  /** Exact lookup only. Omitted locations are filled from a unique matching chunk. */
+  resolveCitation(input: CorpusReference): CitationResolution {
+    if (typeof input.quote !== "string" || !input.quote.trim() || input.quote.length > 600) return { ok: false, error: "Citation quote must contain 1–600 characters." };
+    if (input.page !== undefined && (!Number.isInteger(input.page) || input.page < 1)) return { ok: false, error: "Citation page must be a positive integer." };
+    const quote = normalizeQuote(input.quote);
+    const candidates = input.chunkId === undefined ? this.byDocument.get(input.documentId) ?? [] : this.byId.get(input.chunkId) ?? [];
+    if (input.chunkId !== undefined && candidates.length !== 1) return { ok: false, error: "Citation chunk is missing or ambiguous in the current corpus." };
+    const matching = candidates.filter(chunk => chunk.documentId === input.documentId
+      && (input.page === undefined || input.page === chunk.page)
+      && (input.locator === undefined || input.locator === chunk.locator)
+      && normalizeQuote(chunk.text).includes(quote));
+    if (matching.length !== 1) return { ok: false, error: matching.length ? "Citation matches multiple corpus chunks; provide its chunkId and location." : "Citation quote, document or location does not match a corpus chunk." };
+    const chunk = matching[0]!;
+    if (this.byId.get(chunk.id)?.length !== 1) return { ok: false, error: "Citation chunk identity is ambiguous in the current corpus." };
+    const chunkSha256 = corpusChunkSha256(chunk);
+    if (input.chunkSha256 !== undefined && input.chunkSha256 !== chunkSha256) return { ok: false, error: "Citation chunk content has changed; retrieve and inspect the current passage." };
+    return { ok: true, citation: { chunkId: chunk.id, chunkSha256, documentId: chunk.documentId, documentTitle: chunk.documentTitle, page: chunk.page, locator: chunk.locator, quote } };
   }
 
   search(query: string, opts: { limit?: number; framework?: string; documentId?: string } = {}): SearchHit[] {
@@ -124,7 +175,9 @@ export class CorpusSearch {
 
 /** Pick the sentence window with the highest query-term density. */
 export function bestQuote(text: string, terms: string[], maxLength = 420): string {
-  const sentences = text.replace(/\s+/g, " ").match(/[^.!?]+[.!?]*(\s|$)/g) ?? [text];
+  // Split only at punctuation followed by whitespace. A matching regex that skips
+  // punctuation inside identifiers (PR.AA, CC6.1) can silently remove source text.
+  const sentences = normalizeQuote(text).split(/(?<=[.!?])\s+/u);
   let best = 0;
   let bestScore = -1;
   for (let i = 0; i < sentences.length; i++) {
@@ -137,5 +190,6 @@ export function bestQuote(text: string, terms: string[], maxLength = 420): strin
     }
   }
   const quote = sentences.slice(best, best + 2).join(" ").trim();
-  return quote.length > maxLength ? `${quote.slice(0, maxLength - 1).trimEnd()}…` : quote;
+  // Keep an exact contiguous excerpt: generated ellipses are not source text.
+  return normalizeQuote(quote).slice(0, maxLength).trimEnd();
 }

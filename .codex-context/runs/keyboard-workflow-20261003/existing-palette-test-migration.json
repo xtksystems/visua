@@ -1,0 +1,6 @@
+{
+  "path": "e2e/workspace-recovery.spec.ts",
+  "prior_sha256": "2a7452db56fc1442ac19a38a89f34bb76a1ea320424e019949310410d4b07396",
+  "current_sha256": "baa6f41e7bed6951d1a4b0204e1ea9336efc8baab15b418702779c3700933f5d",
+  "only_change": "Two locators (three test cases) update textbox to the named combobox; all other bytes match prior package source."
+}

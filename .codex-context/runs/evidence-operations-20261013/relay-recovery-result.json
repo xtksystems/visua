@@ -1,0 +1,32 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "relay-recovery",
+  "input_sha256": "665a927a7284d3869396059a9dfb7f64a2e7f4e0965f7b245016e6564f322ef1",
+  "status": "complete",
+  "summary": "Fixed publisher-side NOTIFY gaps with bounded queued first delivery and retryable remote resync. Before-fix regression failed as expected; final 19 synthetic tests and server typecheck pass.",
+  "evidence": [
+    "relay-recovery-report.json",
+    "relay-recovery-before-test.log",
+    "relay-recovery-tests.log",
+    "relay-recovery-typecheck.log"
+  ],
+  "limitations": [
+    "Synthetic fake-transport tests establish application recovery behavior; no live PostgreSQL, browser, full suite, build, deployed server, git action or external database was used.",
+    "Recovery state is intentionally in memory. A publisher process that dies before successfully notifying a pending gap cannot guarantee delivery after its restart; durable revision tracking/outbox remains outside this bounded fix.",
+    "One already-started pool query can settle (and may deliver its notification) after close. The database API has no query cancellation primitive; its eventual completion cannot requeue work.",
+    "A pool query that never settles prevents further transport attempts on this relay; payload retention stays bounded. Recovery assumes the transport eventually completes or rejects and the process remains running.",
+    "Receiving instances must support the new resync control envelope; older deployed versions do not understand it. Coordinate rollout or use the existing browser reconnect invalidation during a mixed-version interval.",
+    "Remote control resync invalidates all connected workspaces on that schema rather than retaining an unbounded set of affected workspace IDs. No load/capacity target is asserted."
+  ],
+  "changed_files": {
+    "apps/server/src/storage/events.ts": {
+      "before_sha256": "5e96843f519621c34330e2274053d8bf4906b42b1d7d0c41b6cbbdfacedb293b",
+      "after_sha256": "861d7c2c02404f9da3a53a23e21bfc8f4bff0fb83629c3d726fe9e660494439e"
+    },
+    "apps/server/test/relay.test.ts": {
+      "before_sha256": "43e9a4809bd2dca9c165aee6b8f271b8fe6da0f6d539844020c2754119521976",
+      "after_sha256": "343d75d8463d01c4439992ef13567d65bd8003189a8428cce78311df2cc99b5c"
+    }
+  },
+  "report_sha256": "23fc6adcd938b4072344355d8444ecd9eb17f25bf25a2cc5e850f8b2e7b5e8c3"
+}

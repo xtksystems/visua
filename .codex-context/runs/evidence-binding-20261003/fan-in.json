@@ -1,0 +1,35 @@
+{
+  "run_id": "evidence-binding-20261003",
+  "expected_nodes": 3,
+  "accepted_nodes": 3,
+  "snapshot_checked_files": 25,
+  "stale_sources": [],
+  "nodes": [
+    {
+      "id": "core-worker",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "integrity-review",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "fix-review",
+      "status": "complete",
+      "issues": []
+    }
+  ],
+  "ready_for_integration": true,
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "verification-summary.json: final seven-lane pnpm check passed (360 SQLite, 362 PostgreSQL, 24 browser tests).",
+      "fix-review.json: three original integrity findings corrected; bounded recheck pass.",
+      "full-check-delivery-scope.json: exact final code/test/dependency fingerprints.",
+      "Core worker, original review and corrected-state review results accepted; previous package changes preserved."
+    ]
+  },
+  "complete": true
+}

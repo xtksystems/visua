@@ -1,0 +1,103 @@
+{
+  "finishedAt": "2026-10-02T07:22:01.618Z",
+  "scope": "Read-only deployed app browser review at localhost:8787. Developer sessions permitted; no product writes forwarded.",
+  "commands": [
+    "curl -s http://localhost:8787/api/health",
+    "node .codex-context/runs/app-review-20261002/evidence/browser-validation.mjs",
+    "node .codex-context/runs/app-review-20261002/evidence/browser-interactions.mjs",
+    "node .codex-context/runs/app-review-20261002/evidence/browser-inspector-cases.mjs",
+    "node .codex-context/runs/app-review-20261002/evidence/browser-viewer-controls.mjs"
+  ],
+  "cwd": "/Users/artem/visua",
+  "sourceHead": "1dc5ed1 (supplied scope)",
+  "deploymentRevision": "Not independently established; existing deployed build only.",
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "routeChecks": 48,
+  "routePatterns": "Every App.tsx route pattern, existing agent detail, explicit CSF inspector query, and unauthenticated public trust center. 24 URLs per viewport.",
+  "routeResults": {
+    "documentHTTP200": 48,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "failedRequests": 0,
+    "httpErrors": 0,
+    "horizontalDocumentOverflow": 0
+  },
+  "functionalReadOnlyFlows": [
+    "Phone menu links to plan and closes after navigation",
+    "Phone task details open with Enter",
+    "Task board switches to timeline",
+    "Evidence dialog displays provenance, hash, validity, content",
+    "Search PR.AA-01 returns requirement and cited corpus matches",
+    "Existing approvals inbox renders",
+    "Phone requirement inspector renders citation and stacked sheet",
+    "Fresh Viewer session hides Agents launch and approval controls"
+  ],
+  "confirmedFindings": [
+    {
+      "id": "owner-cache-blur",
+      "scenario": "Mock requirement A owner as Owner A fixture and B as Owner B fixture. Select A → B → A → B with unedited owner input focused and blurred each time.",
+      "observed": "Owner samples A,B,B,B. Cached A retained B owner and attempted PATCH A {owner: Owner B fixture}. PATCH was aborted and never forwarded.",
+      "evidence": "browser-inspector-cases.json"
+    },
+    {
+      "id": "modal-escape-selection",
+      "scenario": "Select PR.AA-01, open Mark not applicable dialog, focus Cancel, press Escape.",
+      "observed": "Dialog closed and inspector selection changed to parent PR.AA.",
+      "evidence": "browser-inspector-cases.json"
+    },
+    {
+      "id": "viewer-enabled-modifiers",
+      "scenario": "Fresh developer Viewer session on Plan and Evidence; inspect controls only.",
+      "observed": "Generate plan, Plan with agent, Quick add input, Add connector, Collect with agent, and two Run connector buttons are enabled. Add task becomes enabled after temporary unsaved text. Agents page correctly hides modifying controls.",
+      "evidence": "browser-viewer-controls.json"
+    }
+  ],
+  "screenshots": [
+    "browser-desktop-agents.png",
+    "browser-desktop-evidence.png",
+    "browser-desktop-home.png",
+    "browser-desktop-observatory-inspector.png",
+    "browser-desktop-plan.png",
+    "browser-desktop-settings.png",
+    "browser-desktop-trust.png",
+    "browser-phone-evidence-details.png",
+    "browser-phone-home.png",
+    "browser-phone-login.png",
+    "browser-phone-observatory-inspector.png",
+    "browser-phone-plan.png",
+    "browser-phone-profile.png",
+    "browser-phone-task-details.png",
+    "browser-phone-threats.png",
+    "browser-phone-trust.png"
+  ],
+  "visuallyInspected": [
+    "browser-desktop-home.png",
+    "browser-desktop-observatory-inspector.png",
+    "browser-desktop-plan.png",
+    "browser-desktop-trust.png",
+    "browser-phone-home.png",
+    "browser-phone-plan.png",
+    "browser-phone-task-details.png",
+    "browser-phone-evidence-details.png",
+    "browser-phone-observatory-inspector.png",
+    "browser-phone-threats.png"
+  ],
+  "limitations": [
+    "Desktop login screenshot timed out after 12000ms; route itself loaded with no errors. No retry.",
+    "Chromium uses SwiftShader. This run does not establish hardware or production visual performance.",
+    "Mutating user actions, connector execution, agent execution, onboarding submission, and settings changes were excluded.",
+    "Public trust rendering was checked; no legal or compliance status assessment was performed.",
+    "Some dialog screenshots captured transition frames; those images do not establish settled visual defects.",
+    "The initial session-switch viewer check was invalid and retained Owner. Fresh-context Viewer checks supersede it.",
+    "No deployment revision equivalence to source HEAD was independently established."
+  ]
+}

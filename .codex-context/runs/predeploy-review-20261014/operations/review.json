@@ -1,0 +1,37 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "Operations/source review of cb438d1083e9ae3e2a38dd8e5d7dba4c778b2e89 found two PostgreSQL failure-handling defects. An isolated wire-protocol mock reproduced process exit on idle connection loss and pending connection/pool work without default application deadlines. Hosted capacity, identity/provider integration and recovery remain unverified deployment gates; the local Compose file is explicitly a demo.",
+  "coverage": [
+    "Read effective AGENTS.md, CLAUDE.md, startup project context, workflow and independent-review contract/schema. Verified reviewed HEAD with git rev-parse.",
+    "Inspected Dockerfile, compose.yaml, .dockerignore, workspace/package manifests and lockfile importer/version entries for build/runtime artifact boundaries, dependency inclusion, bind/identity defaults and image revision.",
+    "Inspected apps/server/src/index.ts, server.ts, startup.ts, context.ts, readiness.ts, diagnostics.ts, request-controls.ts and auth/config.ts; traced security headers and authentication/probe middleware in auth/http.ts and app.ts.",
+    "Inspected storage/postgres.ts, storage/index.ts, storage/events.ts and migration entry/locking; inspected S3/verified-blob limits, cancellation, credential/endpoint handling and shutdown ownership, evidence upload bounds, auditor-bundle admission references and background timer entry points.",
+    "Reviewed docs/operations.md and docs/pilot-acceptance.md against actual preflight, startup, backup/restore and monitoring scope; inspected local-backup.ts, pilot-preflight.ts and CLI wrappers, scripts/check.ts and focused rehearsal/resource ownership and recovery sections.",
+    "Executed pg-failure-fixture.mjs with only disposable loopback PG-wire mock servers: idle connection loss produced exit 1; blackholed handshake retained 10 active connection attempts and 2 queued requests at 1200 ms. Actual child outputs and exit statuses retained in pg-failure-fixture.log.",
+    "Inspected lead raw dependency-audit.json, dependency-audit-all.json, image-dependency-presence.json and runtime-readonly.json; preserved summarized audit/identity data and inspected source hashes in inspection-evidence.json. Provider-specific source constraints are in deployment-notes.json."
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "apps/server/src/storage/postgres.ts:48",
+      "mechanism": "A database restart, failover or network close affecting an idle pool connection emits pg.Pool error. The pool is created without any error listener, so Node treats that event as uncaught and terminates the entire application instead of discarding the failed idle connection and recovering. In-flight requests, event streams and background work bypass the implemented graceful shutdown.",
+      "evidence": "Executed pg-failure-fixture.mjs idle scenario using installed pg 8.23.0 and a loopback PG-wire mock: SELECT 1 completed, poolIdle=1, poolErrorListeners=0; closing that socket exited the child with status 1 and Unhandled error event / Connection terminated unexpectedly on BoundPool. Full output is pg-failure-fixture.log. Counterevidence: the separate PgEventRelay installs error/end handlers (storage/events.ts:155), and Compose restarts crashed processes, but neither handles the main pool error or preserves graceful shutdown.",
+      "recommendation": "Register a nonthrowing, sanitized pool error handler when constructing PostgresDriver, with a bounded diagnostic signal. Let pg evict the dead idle client and exercise subsequent-query recovery. Add a focused idle-connection termination/restart regression against the deployment Node/PostgreSQL versions."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/server/src/storage/postgres.ts:48; apps/server/src/storage/postgres.ts:62",
+      "mechanism": "With the documented/default PostgreSQL configuration, opening/acquiring pooled connections and queries have no application deadline. If TCP connects but the PostgreSQL handshake or an active query never finishes, all ten slots can remain occupied and later requests queue without a pool wait bound. Readiness only races its own shared probe and cannot cancel this underlying work; accepted request/background handlers can remain live until process termination.",
+      "evidence": "Executed pg-failure-fixture.mjs stall scenario: after 1200 ms all 12 queries remained unsettled, with 10 mock sockets/total clients and 2 pool waiters; connectionTimeoutMillis, query_timeout and statement_timeout were unset. Source at postgres.ts:48 provides only connectionString/max/application_name, and installed pg-pool index.js:206 queues without a timer when connectionTimeoutMillis is absent. Longer indefinite retention is a source-supported prediction, not a measured load result. Counterevidence: SQL role/DSN statement/query policies may constrain queries if explicitly configured, but none is required here; readiness responds after its own 1-second budget and graceful shutdown has a process deadline.",
+      "recommendation": "Provide explicit bounded pool acquisition/connection deadlines and a deliberate query/statement/lock timeout policy appropriate for migrations and ordinary requests. Ensure timeout paths cancel or destroy the affected work and release resources rather than only racing a Promise. Rehearse stalled handshakes, blocked SQL, pool exhaustion and recovery using the selected provider and configured connection budget."
+    }
+  ],
+  "limitations": [
+    "No actual Google Workspace, Cloudflare, cloud compute, PostgreSQL service or object-store tenant was accessed. Candidate Cloud Run/Cloud SQL/R2 integration, TLS, IAM, SSE/proxy behavior and recovery are not validated.",
+    "Mock reproductions used local Node v26.0.0 and installed pg 8.23.0; Docker declares Node 22. Reproduce failure/recovery checks in the final immutable runtime image before accepting a fix. The mocks use synthetic local identity only and contain no real credentials.",
+    "This was one bounded independent source review. Shared full suites/builds were reserved for the lead, so this node makes no assertion that they passed. No sustained capacity, OS-image vulnerability scan, actual database restart, restore drill or production SLO measurement was run.",
+    "Dependency advisories came from lead-generated audit artifacts. Development packages are shipped by Docker, but no remotely reachable vulnerable call path was established. See deployment-notes.json for release hygiene and counterevidence.",
+    "Existing runtime health evidence describes an older deployed revision, not the reviewed HEAD. Repository documentation explicitly leaves hosted environment, ownership, retention, real user acceptance and measured RPO/RTO open."
+  ]
+}

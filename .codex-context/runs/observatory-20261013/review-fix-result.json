@@ -1,0 +1,23 @@
+{
+  "run_id": "observatory-20261013",
+  "node_id": "review-fix",
+  "input_sha256": "c2e512e9afa131208b14f5ccffd867725ab31aa5937a38b92a0185d4109941f1",
+  "status": "complete",
+  "summary": "The original inspector-navigation focus-loss defect is corrected, and no supported defect was found in the rapid selection/filter URL composition. One limited residual focus-request cancellation issue remains for pointer blur to non-focusable content.",
+  "evidence": [
+    ".codex-context/runs/observatory-20261013/review-fix.json",
+    ".codex-context/runs/observatory-20261013/review-fix-source.json",
+    "apps/web/src/pages/ObservatoryPage.tsx",
+    "apps/web/src/components/inspector/Inspector.tsx",
+    "apps/web/src/components/inspector/Threats.tsx",
+    "apps/web/src/lib/modal.ts",
+    "apps/web/src/lib/observatory.ts",
+    "e2e/observatory-presets.spec.ts",
+    "e2e/keyboard-outline.spec.ts"
+  ],
+  "limitations": [
+    "This was a bounded follow-up to the original review, with the lead-provided correction rationale visible; it is not a new independent review of the whole feature.",
+    "No browsers, builds, tests or live data were executed. Runtime focus, exact loading timing and rapid input ordering remain owned by the separate integration lane.",
+    "The residual null-relatedTarget pointer-blur finding is source-derived and limited to focus returning from body; active form/dialog focus is protected by the current guard."
+  ]
+}

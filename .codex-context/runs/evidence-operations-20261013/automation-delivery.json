@@ -1,0 +1,32 @@
+{
+  "status": "passed",
+  "commit": "dc5e68c195f48f90e96cfd3a13fafa9070ea8626",
+  "pushed": true,
+  "at": "2026-10-13T10:17:51.740406+00:00",
+  "url": "http://localhost:8787",
+  "container": "visua-visua-1",
+  "volume": "visua_visua-data",
+  "source": {
+    "status": "passed",
+    "checked": 196,
+    "changed": []
+  },
+  "backup": {
+    "path": "/app/data/evidence-automation-20261013-backup.db",
+    "integrity": "ok",
+    "bytes": 1138688,
+    "sha256": "0625a41b9afe007bbdd31053323aa7d52d460855e5a931f5dd2def6cca7deafa"
+  },
+  "backup_local_copy": "data/deployment-backups/evidence-automation-20261013-backup.db (ignored, mode0600, matching SHA256)",
+  "preservation_before": "automation-preservation.json",
+  "preservation_after": "automation-preservation-after.json",
+  "smoke_effects": [
+    "One new developer sign-in session and updatedAt/lastLoginAt timestamps; all other existing user fields and original sessions unchanged.",
+    "One synthetic workspace deletion event; original workspace/evidence/reviews/tasks/memberships/audit rows preserved."
+  ],
+  "live": "live-automation-result.json",
+  "visual": "Inspected desktop settings and390px trust screenshots; aligned controls/readable calculation; overflow assertions passed",
+  "limitations": [
+    "Local developer/offline deployment; hosted pilot and production capacity not verified."
+  ]
+}

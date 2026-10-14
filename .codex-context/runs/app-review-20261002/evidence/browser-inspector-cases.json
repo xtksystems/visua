@@ -1,0 +1,51 @@
+{
+  "startedAt": "2026-10-02T07:18:57.308Z",
+  "baseURL": "http://localhost:8787",
+  "ownerFixture": true,
+  "ownerSamples": [
+    {
+      "id": "nist-csf-2.0:PR.AA-01",
+      "value": "Owner A fixture",
+      "url": "http://localhost:8787/w/northwind-health/observatory/nist-csf-2.0"
+    },
+    {
+      "id": "nist-csf-2.0:PR.AA-02",
+      "value": "Owner B fixture",
+      "url": "http://localhost:8787/w/northwind-health/observatory/nist-csf-2.0"
+    },
+    {
+      "id": "nist-csf-2.0:PR.AA-01",
+      "value": "Owner B fixture",
+      "url": "http://localhost:8787/w/northwind-health/observatory/nist-csf-2.0"
+    },
+    {
+      "id": "nist-csf-2.0:PR.AA-02",
+      "value": "Owner B fixture",
+      "url": "http://localhost:8787/w/northwind-health/observatory/nist-csf-2.0"
+    }
+  ],
+  "attemptedMutations": [
+    {
+      "method": "PATCH",
+      "url": "http://localhost:8787/api/workspaces/northwind-health/requirements/nist-csf-2.0%3APR.AA-01",
+      "body": {
+        "owner": "Owner B fixture"
+      }
+    }
+  ],
+  "pageErrors": [],
+  "escape": {
+    "before": "http://localhost:8787/w/northwind-health/observatory/nist-csf-2.0",
+    "after": "http://localhost:8787/w/northwind-health/observatory/nist-csf-2.0",
+    "dialogCount": 0,
+    "inspectorLabel": "PR.AA details"
+  },
+  "viewerFreshContext": {
+    "loginStatus": 200,
+    "launchHeading": 0,
+    "approveButtons": 0,
+    "role": "Viewer · read-only",
+    "waitingText": 35
+  },
+  "finishedAt": "2026-10-02T07:19:05.009Z"
+}

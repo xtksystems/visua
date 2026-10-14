@@ -13,6 +13,7 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Vector3, type Camera } from "three";
+import { observeSceneLayout } from "./demandRendering.ts";
 import type { Vec3 } from "./layout.ts";
 
 export interface ScreenLabel {
@@ -158,6 +159,7 @@ function span(className: string, text: string): HTMLSpanElement {
 export function ScreenLabels({ labels, margin = 6 }: { labels: ScreenLabel[]; margin?: number }) {
   const gl = useThree((s) => s.gl);
   const camera = useThree((s) => s.camera);
+  const invalidate = useThree((s) => s.invalidate);
   const size = useThree((s) => s.size);
   const [host] = useState(() => {
     const d = document.createElement("div");
@@ -169,7 +171,6 @@ export function ScreenLabels({ labels, margin = 6 }: { labels: ScreenLabel[]; ma
   const sizes = useRef(new Map<string, { w: number; h: number }>());
   const dirty = useRef(true);
   const last = useRef<number[]>([]);
-  const frame = useRef(0);
   const sorted = useMemo(() => [...labels].sort((a, b) => b.priority - a.priority), [labels]);
   const p = useMemo(() => new Vector3(), []);
   const o = useMemo(() => new Vector3(), []);
@@ -182,6 +183,7 @@ export function ScreenLabels({ labels, margin = 6 }: { labels: ScreenLabel[]; ma
   const measure = () => {
     for (const [id, el] of els.current) sizes.current.set(id, { w: el.offsetWidth, h: el.offsetHeight });
     dirty.current = true;
+    invalidate();
   };
 
   useLayoutEffect(() => {
@@ -230,23 +232,26 @@ export function ScreenLabels({ labels, margin = 6 }: { labels: ScreenLabel[]; ma
       sizes.current.delete(id);
     }
     measure();
-  }, [labels, host]);
+  }, [labels, host, size.width, size.height, margin]);
+
+  useLayoutEffect(() => observeSceneLayout(gl.domElement, measure), [gl, invalidate]);
 
   // Web fonts change label widths once they load.
   useEffect(() => {
     let live = true;
-    void document.fonts?.ready.then(() => live && measure());
+    const onFonts = () => { if (live) measure(); };
+    void document.fonts?.ready.then(onFonts);
+    document.fonts?.addEventListener("loadingdone", onFonts);
     return () => {
       live = false;
+      document.fonts?.removeEventListener("loadingdone", onFonts);
     };
   }, []);
 
   useFrame(() => {
-    frame.current++;
     const state = viewState(camera, size.width, size.height);
     const moved = state.some((x, i) => x !== last.current[i]);
-    // HUD panels can change without the camera moving: look again every 20 frames.
-    if (!moved && !dirty.current && frame.current % 20 !== 0) return;
+    if (!moved && !dirty.current) return;
     last.current = state;
     dirty.current = false;
     const W = size.width;

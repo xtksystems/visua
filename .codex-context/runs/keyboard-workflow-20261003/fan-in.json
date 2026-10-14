@@ -1,0 +1,50 @@
+{
+  "run_id": "keyboard-workflow-20261003",
+  "expected_nodes": 5,
+  "accepted_nodes": 5,
+  "snapshot_checked_files": 72,
+  "stale_sources": [],
+  "nodes": [
+    {
+      "id": "outline-worker",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "ui-worker",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "keyboard-review",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "additional-tabs-worker",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "keyboard-fix-review",
+      "status": "complete",
+      "issues": []
+    }
+  ],
+  "ready_for_integration": true,
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "full-check-final.log: all seven lanes passed; 80 browser cases",
+      "final-check-logs: SQLite360 / PostgreSQL362 and full browser logs",
+      "spec-typecheck-final.log: strict new-spec typecheck passed",
+      "keyboard-fix-review.json: complete/pass; final addendum hashes match",
+      "catalog-focus-final.log: held catalog keyboard/loading/focus regression passes",
+      "existing-palette-test-migration.json: only two existing role locators changed",
+      "prior-scope-validation.json: 49 prior files unchanged; 12 authorized keyboard changes",
+      "artifact-validation.json: five valid complete accepted results",
+      "integration-summary.json: final check command/result/limitations"
+    ]
+  },
+  "complete": true
+}

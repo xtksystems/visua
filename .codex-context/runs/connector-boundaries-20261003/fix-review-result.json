@@ -1,0 +1,21 @@
+{
+  "run_id": "connector-boundaries-20261003",
+  "node_id": "review-fix",
+  "input_sha256": "3c61e4bf49c0ee295a7a881f32321ef713f162bffdce07d165ca049daf46e7a9",
+  "status": "complete",
+  "summary": "Focused follow-up passed on fix-final-scope.json with no unresolved supported findings. The original DNS capacity-lifetime finding is closed: pending socket and redirect DNS callbacks retain connector slots through caller cancellation/deadlines until callback completion. An additional synchronous-start cancellation race found during this follow-up was corrected and independently rechecked. Final focused validation passed 90 tests in 5 files.",
+  "evidence": [
+    ".codex-context/runs/connector-boundaries-20261003/fix-review.json \u2014 focused passing review; original finding and interim startup race both closed.",
+    ".codex-context/runs/connector-boundaries-20261003/fix-final-scope.json \u2014 all listed SHA-256 digests matched final tested files.",
+    ".codex-context/runs/connector-boundaries-20261003/fix-review-final-focused.log \u2014 final 5-file focused run passed 90 tests.",
+    ".codex-context/runs/connector-boundaries-20261003/fix-review-sync-abort.log \u2014 interim introduced cancellation race reproduced with caller still pending beyond accelerated deadline.",
+    ".codex-context/runs/connector-boundaries-20261003/fix-review-sync-abort-final.log \u2014 independent corrected cancellation check passed while underlying work remained held.",
+    "apps/server/test/connector-dns-lifetime.test.ts \u2014 verified cancelled socket/redirect DNS retain slots until callbacks complete, natural deadlines retain capacity, and completed lookups recover capacity."
+  ],
+  "limitations": [
+    "Stalled DNS tests hold mocked node:dns.lookup callbacks; no real operating-system resolver was intentionally stalled. Deadline regressions accelerate the configured 30000/12000 ms policies while asserting requested policy values.",
+    "This follow-up ran the affected network/DNS/capacity/auth suites only, using local fixtures and SQLite. The coordinator owns final full pnpm check, PostgreSQL and browser validation; those gates are not claimed by this report.",
+    "This targeted follow-up had the original finding and integration-owner fix description as context. It does not claim fresh blindness to author conclusions or repeat the unaffected repository scan/service/startup review.",
+    "No external host, running Docker, deployment, commit or production resource was accessed."
+  ]
+}

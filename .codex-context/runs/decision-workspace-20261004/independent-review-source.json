@@ -1,0 +1,12 @@
+{
+  "packages/core/src/proposal-review.ts": "caf52b1cd0b8d2983fe3b6e6a30c40c79e82e05bd313c90996e82e17fcd48510",
+  "packages/core/src/attention.ts": "20774bb77358d3254899bcaf78bc48291fb0e9e79a3792417b7fe1bbc2d03175",
+  "apps/server/src/services/proposal-review.ts": "229861aa5b1de0a7fa9e3ade58570ab15c3d76b5eb4b0f6354655b06d471c61f",
+  "apps/server/src/services/attention.ts": "8673655da5b26de410cf399681780518c224a335b8a229948d9b908521c197de",
+  "apps/server/src/services/views.ts": "95286b99fc2e7e8ba9cd8c51a6c00946e7ae648823205ba3badf8e918810473e",
+  "apps/server/src/services/visua.ts": "962e8baa9b1026ceafb707db57201ba00e8d9590998ff19b3d27dc53da691588",
+  "apps/server/src/app.ts": "77a8a0a902ab74cf44ef8800e755ca7106707809212912bbd62ccd5246437d71",
+  "apps/server/test/proposal-review.test.ts": "6c7098ca61ff233e1059e4f71369e2595c575c59a0e23e49cc72dbb6b1af67b8",
+  "apps/server/test/attention.test.ts": "f46c7c2bb6519a03e4842b042df2b85ea36dc28679e926d9f50c1bf8385eac37",
+  "apps/server/test/overview.test.ts": "4f7e5cc1c90df9b4500d7f93f0356a1a5ad1ab441aaa37a9eee3c84ad295c6b6"
+}

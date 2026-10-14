@@ -1,0 +1,104 @@
+{
+  "run_id": "decision-workspace-20261004",
+  "node_id": "independent-review",
+  "input_sha256": "44c431485fe4ba631a31ab6d2016b2b48302eeae4f3938fa1b22ee7843103386",
+  "status": "completed",
+  "summary": "Independent first pass found two medium issues, both corrected and independently rechecked. Integration later found PostgreSQL snapshot row-order instability; its narrowly scoped normalization correction also passed reviewer source inspection and 14 direct token-binding checks. No unresolved supported finding remains within the reviewed scopes. Full integration acceptance belongs to the lead.",
+  "evidence": [
+    {
+      "report": ".codex-context/runs/decision-workspace-20261004/independent-review.json",
+      "sha256": "e89bcde24f63e42b61566893e9230eaf2e00f7fd4792e5de043129ff1ba261e5",
+      "status": "complete",
+      "verdict": "findings",
+      "findings": 2
+    },
+    {
+      "command": "node .check/independent-review/repro.ts",
+      "cwd": "/Users/artem/visua",
+      "outcome": "completed; two findings reproduced",
+      "output": ".check/independent-review/repro-output.txt",
+      "database": ":memory:"
+    },
+    {
+      "command": "env -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/proposal-review.test.ts apps/server/test/attention.test.ts apps/server/test/overview.test.ts",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed",
+      "tests": 25,
+      "files": 3,
+      "dialect": "sqlite",
+      "duration_seconds": 8.68
+    },
+    {
+      "first_pass_source": ".check/independent-review/inspected-source.json",
+      "sha256": "0437ac29ac522a798e04706249af2daf626dadb898edd76ba54543b9deb907ab",
+      "supplied_source_digests_matched": true
+    },
+    {
+      "report": ".codex-context/runs/decision-workspace-20261004/independent-review-recheck.json",
+      "sha256": "76239f030b353ec14e3829bdff81a7d1c7ae1270d5ce43b320c296aaabf009b5",
+      "status": "complete",
+      "verdict": "pass",
+      "resolved_original_findings": 2
+    },
+    {
+      "command": "node .check/independent-review/repro.ts",
+      "cwd": "/Users/artem/visua",
+      "outcome": "both original findings no longer reproduce",
+      "output": ".check/independent-review/recheck-output.txt",
+      "database": ":memory:"
+    },
+    {
+      "command": "env -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/proposal-review.test.ts",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed",
+      "files": 1,
+      "tests": 19,
+      "dialect": "sqlite",
+      "duration_seconds": 15.03
+    },
+    {
+      "rechecked_source_sha256": {
+        "apps/server/src/services/proposal-review.ts": "9a25cf077d8aa420374429fb4dbcadc92ce982d6db9fd1ed93a161bbee581af3",
+        "apps/server/test/proposal-review.test.ts": "19acac3bb4aec5866adc4e8336e8de390a6ff71da682a2ef3e152d80df1b3363",
+        "apps/web/src/components/agents/Proposals.tsx": "8c59229c6fd6195500ebd2e6e195ce986553da189e18d067509a7fdb13f9d807",
+        "apps/server/src/services/visua.ts": "962e8baa9b1026ceafb707db57201ba00e8d9590998ff19b3d27dc53da691588"
+      }
+    },
+    {
+      "report": ".codex-context/runs/decision-workspace-20261004/independent-review-order-recheck.json",
+      "sha256": "5f5184731a9ecfbcfb5fcefc0c58851540cb22c891906074f27652cafda75063",
+      "status": "complete",
+      "verdict": "pass",
+      "origin": "integration-discovered third correction"
+    },
+    {
+      "command": "node .check/independent-review/order-binding-recheck.ts",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed",
+      "checks": 14,
+      "output": ".check/independent-review/order-binding-recheck-output.json",
+      "execution": "actual buildProposalPreview with isolated dependency stubs; no database"
+    },
+    {
+      "inspected_worker_postgres_evidence": [
+        ".check/proposal-order-debug/before-fix.json",
+        ".check/proposal-order-debug/diagnosis.json",
+        ".check/proposal-order-debug/after-fix.json"
+      ],
+      "independently_executed": false
+    },
+    {
+      "order_correction_source_sha256": {
+        "apps/server/src/services/proposal-review.ts": "0557777626d49dd1ab99ea0550c0aaef8215f79100bb8874f2e8fe20072a43e9",
+        "apps/server/test/proposal-review.test.ts": "2f46c0e115ffc53bdcb0ff56e5ea4f4ba83f79c3df16345a6ec386e6df0c811c",
+        "apps/server/src/audit.ts": "ad3dfb78365569914af8a1d46ab8b4cf1fa0b573057cd26f8328b6a4e111d52b",
+        "apps/server/src/storage/store.ts": "f514139bd12d9bd06e312ebadb71daf68f00851aa46657bfa5de68cae5cdb55e",
+        "apps/server/src/storage/identity.ts": "d287e809b71e878825b3193ce9b2fb550c454ab0d51c7e332c5d437681d93d1d"
+      }
+    }
+  ],
+  "limitations": [
+    "This is a focused follow-up informed by the integration regression and proposed fix, not a new independent first pass. The two original review findings and their earlier corrections remain recorded separately.",
+    "The 14-case reviewer check exercises actual token construction with isolated dependency stubs; it does not execute database transactions. PostgreSQL plan switching and both-backend proposal suites were performed by the implementation worker, with final integration checks owned by the lead. No browser, build, full-suite, or product source edits were performed during this follow-up."
+  ]
+}

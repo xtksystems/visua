@@ -3,7 +3,8 @@
 Visua has five layers. The official corpus is ingested into normalized framework
 graphs. A domain engine scores a workspace against those graphs. Agents read through a
 narrow host contract and *propose* changes. An API persists state and streams events.
-A web client renders all of it as navigable 3D space with a 2D twin.
+The web client presents an overview and action plan alongside 3D maps with 2D paths.
+For the user workflow, see [Using the workspace](workspace.md).
 
 ```
 corpus/                     official publications, manifests (SHA-256, license), structure notes
@@ -200,6 +201,24 @@ stay local.
   lands in the audit trail. A generative system brings the Generative AI Profile into
   scope.
 
+Member assignments use stable organization user IDs: `RequirementState.ownerUserId`
+for requirements and a `person` task assignee's `id`. The service checks current
+membership in the workspace tenant and records the member's stored name. The
+legacy `owner` label remains an external-owner path; explicit `external` task
+assignees carry a label without granting identity or access. Optional fields
+live in existing JSON records; this package needs no additional database
+migration. Clearing an assignment or date removes its field.
+
+Requirement due dates and task start/due dates accept calendar-valid `YYYY-MM-DD`
+values. Calendar due dates become overdue on the following UTC day. A task
+due date cannot precede its start date. Task link edits accept
+assessable requirements from enabled workspace frameworks and retain the task's
+original source citation. A server-owned `contentRequirementIds` pool retains
+original and later linked requirement IDs for model licensing checks even after
+links are removed; known licensed source documents retain a withholding fallback.
+Assignment, date, and link changes record before/after
+snapshots in the same transaction as the workspace audit event.
+
 ## 3. Agents (`packages/agents`)
 
 **Contract.** Agents never touch storage. They read through `AgentHost` (workspace,
@@ -207,16 +226,35 @@ states, scores, tasks, evidence, policies, connectors, registry) and change thin
 through `propose()`. The host decides from the workspace's autonomy settings whether a
 proposal is applied at once or waits in the approvals inbox. Every step (plan, thought,
 tool call, citation, proposal, message) is written to the run's **flight recorder** and
-streamed over SSE. The 3D scene shows agent activity as violet comets on the
+streamed over SSE. The 3D scene shows agent activity in terracotta on the
 requirements being touched.
 
+Interactive decisions use server-derived proposal previews. The preview runs
+the existing mutation path inside a savepoint that always rolls back, including
+audit writes and deferred events. It returns current and proposed fields,
+actual affected requirements, source observations, and explicit unknowns.
+Generated identifiers, timestamps, and actor fields are marked separately.
+External file bytes are not read by a preview; file evidence still requires
+the direct byte-verifying review path.
+
+Approval requests carry the preview's review token. The service checks it
+inside the workspace mutation lock before applying a change. The token binds
+the proposal, current workspace records, source observations, revision, and
+date-sensitive inputs. HTTP clients must obtain a preview before approval;
+approval edits require a new proposal and preview. Internal autonomy uses the
+same payload/provenance checks and only permits configured task creation or
+filing an immutable recorded check. Batch previews freeze the proposal IDs, detect
+overlapping targets, and report each actual outcome. Stale batches change
+nothing; overlapping proposals remain pending for individual review.
+
 **Agents.** Copilot, Assessor, Planner, Policy Author, Evidence Collector, Crosswalk
-Analyst, Audit Prep and Task Executor. They share 16 tools:
+Analyst, Audit Prep and Task Executor. They share 17 tools:
 
 - Read tools: `workspace_overview`, `search_corpus`, `get_requirement`,
   `list_requirements`, `crosswalk`, `list_tasks`, `list_evidence`, `focus`
 - Proposal tools: `propose_assessment`, `propose_target`, `propose_applicability`,
-  `propose_task`, `propose_policy`, `propose_evidence`, `update_task` (a task update)
+  `propose_task`, `propose_policy`, `propose_evidence`, `update_task` (a task update),
+  and `propose_crosswalk_assessment` (a server-calculated mapping projection)
 - `run_checks` runs the workspace's connectors, records their checks and proposes each
   passing check as evidence
 
@@ -226,6 +264,37 @@ apply only to the roles an organization recorded); and *threat catalogs are view
 `get_requirement` on a threat returns the requirements publishers link to it, grouped
 by publication with each link's status, and proposal tools refuse threats, frameworks
 the workspace has not enabled, and levels on requirements out of scope.
+
+**Proposal provenance.** The service validates strict per-type envelopes and
+payloads at creation and revalidates payloads when previewing or applying. Check
+proposals contain only an immutable check-result reference. Narrative proposals
+cannot claim connector observations, human attestations or approved policies.
+Existing unsupported autonomy grants stay in historical storage but are ignored;
+saving Settings replaces them with the two supported choices. Narratives and
+assessment, scope, target, policy and task-update changes always require review.
+
+Quoted citations resolve to one corpus chunk and its SHA-256, document, page and
+locator. The quote must occur contiguously after whitespace normalization. A
+matching passage establishes provenance, not the truth of the proposed conclusion.
+Model licensing gates still apply. Mapping references are distinct from quotes.
+Crosswalk proposals use current enabled source assessments, relationship direction,
+publisher authority/status and conservative family-scale conversion. Weak mappings
+stay low confidence regardless of their count. Both offline and provider-backed
+Crosswalk Analysts use the deterministic proposal tool, and the service refuses
+crosswalk assessments without their original mapping projection. Approval rechecks
+source state and mapping identity; the review shows authority and limitations.
+
+**Run ownership.** A durable owner, attempt ID, epoch, heartbeat and lease bind an
+execution. Default bounds are two local executions, one active execution per
+workspace, 32 queued runs per workspace, a 30-second lease and 5-second heartbeat.
+Claims and every runtime write are fenced under the workspace lock. Reconciliation
+uses bounded insertion-order pages with a fixed sweep ceiling so older blocked
+queues cannot hide later work. A declined claim defers other queued items from
+that workspace until the next page, avoiding repeated admission checks. SQL
+scan cost still depends on stored history; these bounds are not a capacity test.
+Expired attempts become interrupted failures and
+are not replayed automatically. Cancellation from another instance fences writes
+immediately; local abort observation and shutdown release underlying resources.
 
 **Claude runtime.** A streamed, manual tool loop on `client.beta.messages.stream`:
 
@@ -244,13 +313,36 @@ exercise.
 - The Task Executor records implementation guides as task notes and never files them
   as evidence.
 - Marking something not applicable requires a written rationale.
-- Evidence proposals are restricted, and the trust center publishes computed facts only.
+- Evidence proposals are restricted. Public measures disclose their calculation
+  basis; free-text headlines are labeled as organization-authored statements.
 
 **Licensed text gate.** When agents run on Claude, AICPA criterion text, points of
 focus and AICPA corpus passages are replaced in tool results with Visua's summary and a
 notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`.
 
 ## 4. Server (`apps/server`)
+
+The entry point delegates resource ownership to `src/server.ts`. Startup
+validates authentication and listener settings before opening storage, runs
+first-owner bootstrap, and seeds demo workspaces only when configured. The
+default enables seeding in non-production developer mode. If startup fails
+after seeding launches detached work, cleanup drains it before closing storage,
+using the same deadline as ordinary shutdown. Developer mode binds
+to loopback; local Compose explicitly overrides the container listener while
+keeping its published port on loopback.
+
+`/api/health` reports liveness without database access. `/api/ready` runs a SQL
+probe and returns `503` on database failure, a one-second wait timeout, or
+shutdown. Concurrent probes share one pending query. Neither endpoint resolves
+cookies or bearer tokens, so a stale credential cannot break a health check.
+
+On `SIGINT` or `SIGTERM`, the listener stops accepting connections and existing
+responses close their connections after completion. New application work is
+refused, and SSE streams close immediately. Shutdown waits for HTTP requests,
+active SSO domain checks, and this instance's detached agent executions before
+closing the relay and store. `VISUA_SHUTDOWN_MS` bounds the whole drain and
+resource close; a timeout forces remaining sockets closed and exits with code
+`1`. Durable agent recovery after interruption remains separate work.
 
 - **Storage** (`src/storage/`). One async driver interface with two backends, chosen by
   `VISUA_DATABASE_URL`: embedded SQLite (`node:sqlite`, the default, for local use,
@@ -259,12 +351,34 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     Postgres): workspaces, requirement states, tasks, evidence, policies, risks,
     connectors, checks, agent runs, proposals and activity, plus the tenancy and
     identity tables.
+  - Evidence metadata lives in `evidence`; inline `content` and `data` live in
+    `evidence_content`. Migration 6 moves existing bodies without changing
+    evidence IDs, hashes, review statuses and history, dates, row timestamps, or
+    audit events. The split and all later body writes are transactional on both
+    backends. Evidence and workspace deletion remove inline body rows.
+  - `EvidenceCollection.get()`, `list()`, `recent()`, and `update()` explicitly
+    hydrate inline bodies for internal and export compatibility.
+    `metadataList()` reads only metadata rows, without a body join. The HTTP
+    evidence listing and scoring use that path; evidence events omit inline
+    `content` and `data`.
   - Versioned migrations run at startup under a lock, so several instances can start
     together. Version 1 also upgrades SQLite databases written before migrations
     existed (their workspaces move to a default organization).
   - Repositories resolve their connection through an `AsyncLocalStorage` transaction
     context: a service method and everything it calls commit or roll back together.
     Nested `store.transaction()` calls use savepoints.
+  - Migration 7 adds append-only `score_snapshots`. Capture holds the workspace
+    lock, reads fresh evidence metadata and assessment signals at one server
+    instant, and commits the observation with its audit event. Observations
+    include exact numerators/denominators, formula version, catalog identity,
+    scope IDs, and per-requirement targets and priorities. Workspace deletion
+    removes its observations. Reads return a bounded chronological window.
+  - Scheduled capture checks every 15 minutes after a 30-second startup delay.
+    A locked last-scheduled observation check permits one capture per 24 hours
+    across server instances. Shutdown stops new captures and drains the active
+    one before closing storage. `VISUA_SCORE_HISTORY=off` disables the timer.
+    Manual capture requires `work.write`; GET never creates history. Existing
+    installations begin with no observations; downtime is not backfilled.
 - **Consistency.** Every service mutation runs in one transaction, holds a per-workspace
   lock (a Postgres advisory lock; SQLite serializes writers) and re-reads the workspace
   after taking it, so concurrent requests on different instances never lose updates.
@@ -273,7 +387,7 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   with one role each, federated identities keyed by issuer and subject, sessions, API
   tokens and per-organization SSO connections.
   - Middleware resolves the principal (bearer API token or session cookie), requires
-    one for every `/api` route except health, sign-in and public trust centers, checks
+    one for every `/api` route except health/readiness, sign-in and public trust centers, checks
     the CSRF token and origin on writes, and sets security headers.
   - Every `/api/workspaces/:ws` route resolves the workspace, then the principal's role
     in the workspace's organization. No role means 404, so other tenants' workspaces do
@@ -341,16 +455,112 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   event is written in the same transaction as the change it records, under the
   workspace lock, and a unique `(workspace_id, seq)` index means the chain can never
   fork. `GET /activity/verify` recomputes the chain and reports the first broken link.
+- **Evidence approvals.** The service computes inline artifact SHA-256 from a
+  canonical JSON envelope containing content and/or structured data, or the
+  immutable connector observation. A file's hash identifies its verified raw
+  bytes. Every decision appends a server-owned history entry with the hash,
+  requirement set, collection date, expiry, assurance, collection provenance,
+  and replacement reference. Current acceptance requires the
+  latest decision to match those fields and the active reviewer/time.
+  Protected edits clear active review
+  metadata and return the item to review; descriptive edits preserve approval.
+  Connector and recorded approved-policy content, raw data, and collection time
+  cannot be amended.
+  Mutations audit before/after metadata and hashes without duplicating raw
+  artifacts. All writes, decisions, revisions, and events share the transaction.
+  Migration 5 recomputes current artifact digests, archives legacy decisions
+  without inventing a scope, and returns
+  unbound accepted items to review, with an audit event in the same transaction.
+  Stop older application writers when upgrading the evidence contract.
+  Dates must be real `YYYY-MM-DD` calendar dates or timezone-qualified ISO
+  timestamps. Date-only collection begins at midnight UTC and date-only expiry
+  ends at `23:59:59.999` UTC; expiry cannot precede collection. Malformed, future,
+  expired, unbound, or not-yet-reviewed records cannot satisfy verification at
+  the evaluation time.
+  `PATCH /api/workspaces/:ws/evidence/:id` takes either metadata/artifact edits
+  or a decision plus `expectedScope` from `evidenceReviewScope()` and
+  `expectedReviewId` (the latest inspected review id, or `null`). Stale
+  decisions and mixed edit/review requests return `400`. The detail dialog keeps
+  its inspected snapshot even when live queries refresh the underlying row. Use `validUntil: null`
+  to remove expiry. Agent review proposals capture the inspected scope and latest
+  review id when created. Approval edits cannot replace either precondition or
+  a connector proposal's check id; an intervening withdrawal requires a new
+  proposal. Legacy proposals without a review id cannot override a prior review.
+- **Evidence lifecycle.** Optional provenance records collection origin,
+  recorder/time, original requirements and source documents, and immutable
+  check, agent proposal, or approved-policy references. Legacy absence remains
+  unknown; no backfill certifies old origins. Content licensing classification
+  grows through relinking and survives removal of a licensed overlay. Assurance
+  records a kind, scope, and optional complete observation interval.
+  `supersedesId` links compatible artifacts in the same workspace. Stored check
+  series include the connector configuration hash captured at observation;
+  policy series retain the approved version and body hash. Shared
+  `effectiveEvidenceState()` suppresses expiry risk only when a valid accepted
+  successor covers the affected requirement. Monitoring grouping includes
+  connector, target configuration, and check identity, so a passing independent
+  target cannot erase a failure. Score snapshot formula version changes at this
+  boundary instead of connecting incompatible historical values.
+  `GET /api/workspaces/:ws/evidence/lineage?requirementId=...&at=...` reads
+  metadata only and evaluates current records at the requested time. It is not
+  historical reconstruction. Rejection and withdrawal require reasons;
+  withdrawal does not require a readable blob.
+- **File evidence** (`src/blobs/`). Uploads create an immutable, server-owned
+  `artifact` reference with an ID, SHA-256, byte size, and media type. The
+  canonical tenant and workspace scope every storage operation; `fileName`
+  remains a display label and never selects a storage path. File bytes never
+  enter evidence `content` or `data`.
+  - `POST /api/workspaces/:ws/evidence/files` takes multipart fields `file` and
+    `metadata` (JSON), with exactly one nonempty file and a 10 MiB file size
+    limit. Metadata must link at least one assessable requirement in an enabled
+    framework. The server allows four concurrent uploads, limits multipart
+    buffering to 10 MiB plus 64 KiB of form overhead, and cancels body reads
+    after 30 seconds. Blob operations have a 15-second deadline.
+  - `createFileEvidence()` validates metadata before storage, writes and reads
+    back the bytes, and verifies SHA-256 and size before opening the SQL
+    metadata/audit transaction. It then rereads the workspace and checks current
+    authorization. Uploads start `pending-review`. Failures before a metadata
+    write attempt trigger best-effort blob cleanup. Once publication begins,
+    errors retain bytes because a successful COMMIT may lose its acknowledgement.
+    Cleanup failures and uncertain transaction outcomes can leave orphan bytes.
+  - `GET /api/workspaces/:ws/evidence/:id` explicitly hydrates an inline body;
+    file detail contains metadata only. The `/file` suffix downloads verified
+    bytes as an attachment with `application/octet-stream`, `nosniff`, and
+    `private, no-store`. Download and file review verify SHA-256 and size
+    outside SQL transactions, then reread the workspace, reference, and review
+    scope and recheck current authorization under locks without writing session
+    or token usage timestamps. Missing or corrupt
+    bytes block the operation.
+  - File references and bytes cannot be edited. Upload a new evidence item to
+    replace a file. Date and link edits retain the reference and invalidate
+    acceptance as usual. File review through nested proposal approval is
+    refused because storage I/O cannot run inside its database transaction;
+    people review files directly. Agents have no file-reading tool.
+  - Local storage defaults to `<repo>/data/blobs`. Compose explicitly uses
+    `/app/data/blobs` in the same `visua-data` volume as SQLite. S3 uses private
+    scoped object keys and the AWS SDK's standard credential chain. Bucket
+    creation, access policy, encryption, backup, lifecycle, retention, and
+    physical garbage collection belong to the operator. Workspace deletion
+    removes metadata but does not delete physical blobs. See the
+    [storage environment settings](../README.md#evidence-file-storage).
 - **Live events across instances.** On Postgres, every instance LISTENs on one channel
   per schema and NOTIFYs it with each event it publishes, so a browser connected to any
-  instance sees changes made through any other. Events over NOTIFY's 8,000-byte limit
-  travel with their identifying fields only (`partial: true`).
+  instance can refetch changes made through any other. Oversized events travel
+  with identifying fields only (`partial: true`). Each stream rechecks current
+  credentials, user, membership, tenant policy and workspace before delivery and
+  while idle; it never extends session lifetime. Streams hold at most 128 events
+  or 256 KiB and request canonical refetch on overflow. Client reconnects and relay
+  reconnects also trigger refetch. Publisher failures retain a gap flag and retry
+  a remote resync notification, with a 64-event first-delivery queue. This is an
+  ephemeral invalidation channel, not durable event replay; a publisher crash
+  cannot recover its in-memory pending notification.
 - **Derived caches.** Each audited change bumps the workspace's revision counter;
   readiness scores are cached per revision, so every instance sees fresh scores.
 - **Agent host.** Agents read from a snapshot of the workspace taken when the run starts
   and refreshed after every change their own actions apply. `propose()` is async and
-  goes through the service; run steps stream to the bus at once and are persisted in
-  order through a queue, outside the caller's transaction.
+  goes through the service. Run steps persist in order with a valid execution
+  lease and publish only after commit; cancelled or stale attempts cannot append
+  steps, observations or proposals. Work never holds a transaction over a network
+  call.
 - **API.** A Hono app with about 55 routes. They cover:
   - metadata, the recommendation engine and framework graphs
   - corpus search and corpus files (path-traversal safe; `.local/` never served)
@@ -378,26 +588,153 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   passing results become hashed evidence at once; when an agent runs one (`run_checks`),
   it proposes each passing result as evidence, and approval files it from the recorded
   check (edits cannot change what the check observed).
+  Both kinds enter a shared four-run limit per server process and receive a
+  30-second abort signal. Excess runs fail with HTTP 503; a cancelled run keeps
+  its slot until its underlying work stops. The run's asynchronous work scope
+  tracks DNS callbacks even when an aborted HTTP/TLS request settles earlier.
+  This keeps
+  resolver work bounded when DNS stalls. Network calls remain outside the
+  check/evidence/audit transaction. Public web requests reuse the identity
+  provider egress guard, with no private-host exception: literals and every
+  connection-time DNS answer are checked for HTTP and direct TLS. Redirects
+  are checked individually, capped at five, and cannot downgrade HTTPS.
+  Network operations stop after 12 seconds; encoded and decoded response
+  bodies are capped at 1 MiB.
+  Repository roots come from the operator's `VISUA_REPO_SCAN_ROOTS` JSON array.
+  The default is this project only in non-production developer mode, and an
+  empty allowlist in hosted/OIDC mode. Scans skip symlinks and special files,
+  use bounded asynchronous reads, and mark incomplete secret scans as warnings.
+  Limits are 15 seconds, 4,000 visited entries, 512,000 bytes per file, and
+  32 MiB total reads. Roots must be on an operator-controlled filesystem;
+  portable Node filesystem APIs cannot make all parent-directory operations
+  atomic against a malicious concurrent directory replacement.
 - **Exports.**
   - CSF Organizational Profile (NIST template columns)
   - action plan, evidence index and SOC 2 PBC list (CSV)
   - readiness report (Markdown)
   - OSCAL 1.1.2 SSP and POA&M (JSON)
+  - frozen auditor ZIP with original artifact bytes, snapshot, source metadata,
+    access receipt, offline presentation, and a standalone verifier
+
+Export preparation captures workspace revision, current records, complete audit
+chain/checkpoint, and evidence dependencies in one workspace-locked SQL transaction.
+Blob reads happen after that transaction. The capture is detached from later edits.
+A selected `asOf` evaluates current records at that time, including verification,
+review acceptance, expiry, supersession, and law timing; it does not replay old
+revisions. `periodStart` records the requested window without claiming period-wide
+assurance. Complete workspace audit history can extend outside selected frameworks
+and dates. Missing dependency records and unavailable historical policy bytes are
+explicit. Capture preflight bounds are 20,000 workspace records, 1,000 evidence
+records, and 32 MiB of inline content.
+
+Every report uses the captured context. CSV values neutralize spreadsheet formula
+prefixes. OSCAL 1.1.2 output uses stable UUIDv5 identifiers and is tested against
+pinned official schemas. SSP profile identity follows the configured baseline;
+security impacts retain the separate categorization. Source profile/catalog pins
+are disclosed, including their version differences; generated output is not a
+resolved OSCAL profile or a compliance assertion. Empty required OSCAL structures
+are unavailable instead of filled with invented entities. SOC 2 PBC prompts stay
+Visua-authored and do not reproduce licensed criterion text.
+
+The ZIP is bounded to 64 MiB uncompressed and 256 binary artifacts, with two
+concurrent preparations per process and a checked 60-second work budget. Sorted
+entries and fixed ZIP metadata make identical captures reproducible. Inline/file
+artifact bytes, reviews, scope, targets, exclusions, exports, and provenance are
+covered by the manifest. The offline verifier rejects unsafe paths, special files,
+symlinks, oversized reads, missing references, digest mismatches, and broken audit
+chains. Internal hashes establish consistency only; independent manifest and/or
+checkpoint pins plus a separately trusted verifier are needed to detect rewriting.
+
+Auditor views, exports, and evidence downloads recheck current access after
+preparation and record `prepared` responses in migration 8's separate
+`workspace_access` table. These records bind the server principal and bounded
+metadata, without changing assessment revision, its hash chain, or bus activity.
+They do not prove receipt. The latest-records endpoint defaults to 100 and caps at
+200; workspace deletion cascades to these records. API responses are private and
+not cached. Auditor capability remains read/export only.
+
+See [operations](operations.md) for offline SQLite/local-file backup and restore,
+upgrade handling, separately retained receipts, hosted prerequisites, and retention
+responsibilities. The recovery helper validates referenced bytes and uses fresh
+destinations; it is not a PostgreSQL or object-store backup service.
 
 ## 5. Web (`apps/web`)
 
-- **Shell.** A rail with Mission control, Observatory, Plan, Evidence, Agents, Policies,
-  Profile, Crosswalk, SOC 2, RMF, AI governance, State AI laws, AI threats, Reports,
-  Organization and Settings. It also has a command palette
+The web client presents a light workspace with labeled navigation, readable
+status colors and a 2D path through every spatial view.
+
+The overview names the selected framework for implementation progress, valid
+evidence coverage, and risk counts. Its summary computes all framework scores
+from one fresh metadata snapshot and clock instead of the hourly scene cache.
+The attention endpoint returns a complete queue across enabled frameworks,
+with scope filtering, latest-check semantics, ownership, and typed destinations.
+Evidence alternatives describe current coverage; group links never grant
+descendant coverage. The client filters before limiting displayed rows and
+refreshes clock-dependent data every minute. Evidence and check deep links
+open the exact workspace-scoped record, including observations older than the
+recent-check list.
+
+The evidence renewal endpoint reads metadata and requirement state, without
+loading artifact bodies or external file bytes. It classifies normalized date
+windows independently of review status at one server time. Current coverage
+uses bound accepted evidence. Conditional future coverage unions its recorded
+intervals from that time until the first gap, so an alternative that expires
+earlier or starts after a gap cannot hide loss. Counts deduplicate direct
+requirements in current scope; group links remain context. The read model
+does not mutate scoring, approvals, history, or audit state. Renewal selections
+are URL-backed, and inspection retains the existing detached review snapshot.
+
+- **Shell.** A 220px labeled sidebar groups the primary destinations under
+  Workspace, Explore and Manage. It includes Overview, My work, Action plan, Evidence,
+  Agents, Policies, Reports & trust, Observatory, CSF profile & tiers, Crosswalk
+  nexus, SOC 2 program, RMF program, AI governance, State AI laws, AI threats,
+  Organization and Settings. The shell also has a command palette
   (⌘K: search requirements or ask the copilot), a live approvals badge and toasts.
-  - Below 1024px the rail folds into a menu opened from the top bar (DESIGN.md › Layout)
-    and the inspector becomes a bottom sheet with a handle. Two-pane pages stack below
-    900px; Agents and Policies show one pane at a time. No page, panel or table scrolls
-    sideways at 1024px or on a phone (the ATLAS matrix scrolls within itself): a table's
+  - The shell resolves URL ids or slugs before mounting workspace pages. Query
+    keys, writes, and SSE subscriptions use the canonical workspace id.
+    Connections refresh cached state when opened or reconnected. Live agent
+    activity clears on workspace or session changes; obsolete streams cannot
+    restore it. Failed workspace loads keep the URL and offer retry.
+  - The inspector's query and draft lifetime is keyed by workspace and
+    requirement. Owner changes use explicit Save/Cancel; dirty owner input
+    survives a same-requirement refresh or failed save. Selection changes reset
+    tabs and dialogs and suppress late callbacks from the previous selection.
+    Failed detail loads offer retry without consuming the requirement URL.
+    Mutation controls follow server capabilities, and a shared error handler
+    reports failures unless a hook supplies its own handler.
+  - Below 1024px the sidebar folds into a labeled menu opened from the top bar,
+    as described in [the design layout](../DESIGN.md#layout), and the inspector
+    becomes a bottom sheet with a handle. Two-pane pages stack below
+    900px; Agents and Policies show one pane at a time. The page itself does not
+    scroll sideways at 1024px or on a phone. Wide matrices, profile comparisons,
+    history charts and tables, schedule tables, and the six-column Board scroll
+    within labeled keyboard-focusable regions. A table's
     secondary columns hide when its panel is narrow (container queries on `.table-box`)
     or the screen is a phone, the FIPS 199 editor becomes one card per row, and chart
     rows wrap.
   - Breakpoints live in `lib/media.ts` (`NARROW`, `PHONE`, `split()`) and `global.css`.
+- **Overview and action plan.** Overview shows scoped implementation progress,
+  valid evidence coverage, risk counts, and the cross-framework attention queue
+  above framework cards. It shows placeholders while the workspace loads.
+  The action plan defaults to an urgency list, with persistent status counts
+  scoped by framework before the status filter. URL parameters retain view,
+  status, framework, and task selection. Board and Timeline remain alternate
+  views. The timeline uses due-only point markers and a numeric schedule table;
+  malformed or missing schedules remain visible without invented durations.
+  Quick add, generated tasks, and agent planning retain capability checks.
+  On the board, a pending status move is
+  held by task ID and layered over query results so event-driven refreshes
+  cannot briefly restore the old column. The card shows a saving state and
+  cannot be dragged again until the request settles. A failed request clears
+  only that task's pending move, returns the card to its previous status, and
+  shows an error toast.
+- **Evidence.** The ledger loads metadata; opening an item loads a separate
+  detail snapshot for review. **Upload evidence** collects the file, title,
+  description, kind, dates, and linked requirements. It retains the draft on
+  failure and opens detail after verified publication. File detail shows the
+  name, size, media type, and hash, with **Download file** for local inspection.
+  Upload and review controls follow capabilities. Stored files are downloaded
+  as attachments rather than rendered in the page.
 - **Observatory.** Instanced hex prisms in two layouts:
   - *constellation*: radial sectors per top-level group
   - *readiness terrain*: a honeycomb
@@ -406,16 +743,15 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   satellites, evidence crystals and agent comets orbit the prisms. The five lenses
   recolor the scene without moving anything.
 
-  CameraControls fly to a selection. Bloom and vignette are applied under a performance
-  monitor. A selection compiles no shaders: the programs only the selection halo, its path
-  and agent comets use are compiled while the scene loads (the real components, drawn for
-  a few frames hidden inside the core, then kept hidden so their programs stay alive, and
-  drawn again when the performance monitor drops post-processing, since drawing straight
-  to the screen needs other programs), and
-  line points are memoized, because drei's `Line` disposes its material whenever its points
-  change and three.js then deletes the shared program. Units out of scope (an undecided law's obligations, controls outside the
-  baseline) shrink to small dots; nodes with no unit below them (ATLAS's mitigations)
-  stay in the outline and the inspector but take no place in the scene.
+  CameraControls fly to a selection. The light scene uses matte materials without
+  bloom or vignette. The selection halo, its path and agent comets warm their shader
+  programs while the scene loads: the real components draw for a few frames inside
+  the opaque core, then stay mounted so the first selection does not compile them.
+  Line points are memoized because drei's `Line` disposes its material when its
+  points change, which deletes the shared program in three.js. Units out of scope
+  (an undecided law's obligations, controls outside the baseline) shrink to small
+  dots; nodes with no unit below them (ATLAS's mitigations) stay in the outline
+  and inspector but take no place in the scene.
 
   *Labels* are drawn in screen space (`scene/ScreenLabels.tsx`): code-sm and label-caps
   at 11–13px, placed by priority whenever the camera moves, and hidden rather than drawn
@@ -429,29 +765,93 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   opens or a bottom sheet covers the canvas; the home view fits the ring and its
   titles inside the canvas and clear of every panel. The HUD's top bar wraps rather than
   overlaps, its chips become selects on a narrow canvas (container queries on the
-  stage), and the legend collapses to the lens name and swatches.
+  stage). Compact legend labels remain visible; their explanatory text can
+  collapse. The outline has its own status or threat-coverage legend.
 
   Below 1024px the outline opens over the scene; phones open the Observatory on its
-  outline with the 3D scene one tap away (DESIGN.md › Layout).
+  outline with the 3D scene one tap away, as described in
+  [the design layout](../DESIGN.md#layout).
 
-  The outline is a full 2D twin with tree semantics and keyboard control (←/→ siblings,
-  Enter drill in, Esc up, F frame, L lens, / filter). Deep links use `?select=`.
+  The outline is a full 2D twin with named, leveled tree rows and one managed tab
+  stop. Focus follows explicit tree navigation; deep links reveal ancestors
+  without taking focus from forms. Shortcuts run only on focused rows or the
+  canvas (arrows walk siblings, Enter drills in, Backspace/Escape goes up,
+  F frames, L changes lenses, / filters). Forms, HUD controls, modifiers, and
+  modals do not steer the scene. Deep links use `?select=`; requirement code
+  links and palette results navigate to that requirement's canonical workspace
+  and framework. Palette selection uses the URL rather than a delayed callback.
+
+  Outline presets and text search live in `?preset=` and `?q=` alongside the
+  selection. A pure projection distinguishes matches from ancestor and selected
+  context; context rows don't inflate result counts. Normal framework bundles
+  expose stable `ownerUserId`, current assessed `inScope`, and `asOf`. Status,
+  evidence counts, and scores use one fresh metadata snapshot and clock instead
+  of the hourly score cache. Observatory refreshes every minute and on workspace
+  events. Query placeholders never cross workspace or framework identities.
+  Threat bundles retain derived coverage and don't acquire assessment presets.
+
+  Shared tabs provide one selected tab stop, wrapping Left/Right and Home/End,
+  and stable tab/panel associations. Inactive panels retain their associations
+  while unmounting their content. `lib/modal.ts` manages dialog and palette
+  focus entry, Tab trapping, topmost Escape, and connected trigger restoration;
+  changing an onClose callback does not restart the focus lifetime.
 - **Crosswalk Nexus.** Frameworks sit as sectors on one ring and requirement groups as
   pillars. Pillar height is log(units) and color is group status. Arcs bundle the
   unit-level mappings, with width ∝ √count and a color gradient from the source
-  framework to the target. Selecting a group flies the camera behind it, animates its
-  arcs and lists every mapping with live status. A searchable group list is the
+  framework to the target. The home view aggregates counts by framework pair and
+  mapping set; selecting a group restores its exact group-to-group connections,
+  flies the camera behind it, and lists every mapping with live status. A searchable group list is the
   keyboard path. An inner **threat ring** holds ATLAS tactics, the OWASP entries and
   the NIST AI 100-2 objectives in neutral ink (threat catalogs have no identity hue);
   their pillars take the status color of their pooled coverage, and their arcs bundle
   the threat links onto requirement groups. A threat arc shows the status of its
-  strongest link: final solid, draft dashed, unreviewed dotted.
+  strongest link: final solid, draft dashed, unreviewed densely dotted, and
+  superseded sparsely dotted. Patterns restart at each relationship; selection
+  does not animate them. Parallel publication sets use separate curve lanes.
 
   Labels use the same screen-space layer (framework names with an identity swatch, the
   threat ring's codes once a pillar is in focus) and the camera frames the ring around
-  the HUD. Arcs are batched into a few draw calls by width, opacity and dash style (the
-  focused pillar's arcs are drawn again on top). Below 1024px the scene and its details
+  the HUD. Arcs are batched into a few draw calls by width and dash style.
+  Pillars and their footprints use one instanced field per shape; sector grounds
+  and rails are batched. Focus dims instance colors without transparent sorting. Focusing
+  a pillar hides unrelated arcs and draws its own links in framework color. Below
+  1024px the scene and its details
   stack as one scrolling page.
+  The alternate **Matrix** reads `/crosswalk/comparison`: complete pair/group
+  counts with bounded record pagination, exact published endpoint direction,
+  authority, publication status, and source. Evidence selection reads scoped
+  metadata and direct links only; group links and mappings never grant proof.
+  URL parameters retain axes, group filters, page, and artifact. Query results
+  never reuse another pair's details; keyboard focus returns to the initiating
+  control after a new selection loads unless the user has moved focus.
+- **CSF profile.** Full-width category rows align current, target, and the gap
+  between means on a 0–4 scale, with a numeric table and scoped requirement
+  drill-down. Sorting and selection live in the URL. Unknown scope withholds
+  means; excluded categories do not become zeros. Tier answers and save state
+  outlive tab panels but reset with canonical workspace identity. The Shell
+  retains the same workspace subtree through temporary refresh errors when
+  cached data exists; access loss still closes the protected subtree.
+- **Agent stages.** New runs persist collection and analysis boundaries.
+  Proposal, review, and application states derive from persisted outcomes,
+  including autonomy and partial results. Legacy absence remains unknown;
+  cancellation and errors cannot complete an unobserved stage. Decision views
+  retain token-based approval; the flight recorder uses keyboard-operable
+  details controls beneath them.
+- **Observed history.** The overview fetches stored score observations apart
+  from current metrics. Point shapes, direct labels, and an exact numeric table
+  distinguish progress from proof. Lines connect only comparable observations;
+  scope, targets/priorities, catalog, formula, missing frameworks, or gaps over
+  36 hours break the series. One observation does not imply a trend. The chart
+  keeps a readable scale on phones through local horizontal scrolling.
+- **Demand rendering.** Both 3D canvases stop drawing when idle. Camera controls,
+  height transitions, and active agent work request frames while moving. DOM
+  mutation, resize, scroll, and font observers wake labels and camera framing
+  when panels change. Scene label writes are excluded from mutation wakeups.
+  Camera deltas are capped after idle so a new flight still eases in. Completed
+  agent runs remove comet subscriptions. Use `node scripts/scene-profile.ts
+  --url http://localhost:8787 --out .screens/profile.json` against a seeded
+  development server to count WebGL draw calls and idle frames with SwiftShader;
+  these counts do not measure hardware GPU frame rate.
 - **Threat views.** The Threats page shows the ATLAS matrix (tactics as columns,
   techniques colored by coverage, with glyphs), the OWASP LLM Top 10 by edition, the
   OWASP Agentic Top 10 and the NIST AI 100-2 attacks by objective. A link filter (all
@@ -474,17 +874,27 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   - *SOC 2*: scope, observation window, DC 200 checklist, readiness by series
   - *RMF*: lifecycle, FIPS 199, tailoring, authorization, readiness by family
 - **Build.** Vite (rolldown) splits the bundle with code-splitting groups: packages in
-  `vendor`, the 3D stack (three.js, react-three-fiber, drei, postprocessing) in `three`,
+  `vendor`, the 3D stack (three.js, react-three-fiber, drei) in `three`,
   loaded only by the Observatory and the Nexus. Pages are lazy routes.
 - **Design system.** All colors, type, spacing, radii and component tokens come from
   `DESIGN.md`, compiled by `packages/design` into CSS variables and typed tokens.
+  The palette uses a warm porcelain canvas, white surfaces, forest ink and sage
+  interaction color.
   - Status colors are semantic and always come with a glyph.
   - Framework hues identify frameworks.
-  - Aurora Violet is reserved for AI.
+  - Terracotta is reserved for AI activity and actions.
+
+`GET /api/workspaces/:ws/members` exposes member IDs and names within the workspace
+access boundary. `GET /api/workspaces/:ws/my-work` matches assignments to the
+signed-in user's stable ID, never to a display label or API-token actor. The web
+query key includes workspace and principal identity. Task and state events
+invalidate personal work as well as the corresponding shared views. Task detail
+forms keep explicit Save/Cancel drafts per workspace/task; same-task refreshes
+preserve edited fields, while switching tasks discards them.
 
 ## 6. Testing
 
-- `packages/*/test`, `apps/server/test` and `apps/web/test` (Vitest, 202 tests):
+- `packages/*/test`, `apps/server/test` and `apps/web/test` (Vitest):
   - official counts and citations
   - identifier normalization
   - the SOC 2 skeleton and the licensed overlay
@@ -492,6 +902,14 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   - API flows: onboarding, RMF categorize/tailor/OSCAL, SOC 2 scoping and DC 200,
     Nexus bundles
   - all eight offline agents, autonomy, connectors, evidence hashing
+  - file evidence (`evidence-files.test.ts`, `evidence-content.test.ts`): upload
+    and download access, immutable references, byte verification, stale review
+    scope, authorization changes during I/O, failed-publication cleanup, and
+    migration 6 body separation with unchanged approvals and audit history
+  - private blob adapters (`blob-store.test.ts`): local persistence and file
+    integrity, tenant/workspace isolation, bounded reads, and S3-compatible
+    PUT/GET/DELETE through actual SDK-signed requests to a mock HTTP service;
+    these tests do not deploy to or validate an actual cloud provider
   - integrity guardrails: N/A rationale, scope preservation (documented exclusions
     survive every scope change), audit-chain tamper detection, no plan-as-evidence, and
     assessments refused on threat catalogs, frameworks a workspace has not enabled and
@@ -545,18 +963,24 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
     previous one (the camera controls leave its world matrix to the renderer), and shown
     and hidden by opacity, a compositor change, so a busy machine never draws new
     positions over old raster
-- `e2e/` (Playwright, 22 tests) runs against the production bundle served by the API,
-  with an in-memory seeded database and WebGL on SwiftShader. It covers Home and Mission
-  control's program links, the Observatory and its 2D twin, the Nexus, RMF, SOC 2, AI
-  governance, an agent run with citations, the trust center and its per-framework
+- `e2e/` (Playwright) runs against the production bundle served by the API,
+  with an in-memory seeded database and WebGL on SwiftShader. It covers the
+  Overview and its program links, the Observatory and its 2D twin, the Nexus,
+  RMF, SOC 2, AI governance, an agent run with citations, the trust center and
+  its per-framework
   choice, persona sign-in, a viewer's read-only view, tenant separation, organization
   administration, the threat views (ATLAS matrix and its keyboard navigation, the
   coverage inspector and its link filter, OWASP editions, the Nexus threat ring), a
-  threat catalog in the Observatory, no shader compiled by a selection in the Observatory (with post-processing and after slow frames drop it), the State AI laws page (roles deciding scope, the
+  threat catalog in the Observatory, no shader compiled by a selection in the
+  Observatory, the State AI laws page (roles deciding scope, the
   timeline and its list view, obligations in 3D), and layout: labels in the 3D scenes
   stay inside the canvas and clear of the HUD and of each other at 1440 and 1024
-  pixels, the rail folds into a menu on a phone, no page, panel or table scrolls sideways
-  at 1024 pixels or on a phone, and the Observatory opens on its outline on a phone.
+  pixels, the sidebar folds into a menu on a phone, pages fit narrow screens,
+  and the Observatory opens on its outline on a phone. Wide comparison charts
+  and tables scroll in explicitly named, keyboard-focusable regions that stay
+  within the viewport. The suite also covers matrix direction/provenance,
+  urgency and due-only tasks, profile/tier draft lifetime, actual agent stages,
+  snapshot comparison breaks, and native keyboard/touch chart scrolling.
 - `pnpm screens` (`scripts/screens.ts`) photographs every view at 1440×900, 1024×768
   and 390×844 into the git-ignored `.screens/` folder, with a contact sheet and a
   report of horizontal overflow and console errors; `--docs` regenerates the README
@@ -564,6 +988,10 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
 
 ## 7. Known limitations
 
+- File cleanup before publication is best effort; uncertain commit outcomes
+  retain bytes. Both can leave orphan files. Workspace deletion removes metadata and inline SQL bodies but retains
+  physical blobs. Operators manage retention and garbage collection; Visua
+  does not provision S3 buckets or their policies and lifecycle rules.
 - Domains grandfathered by the upgrade, or trusted while `VISUA_SSO_DOMAIN_VERIFICATION=off`,
   were never proven and are never re-checked; on a shared installation, ask their
   organizations to remove and verify them again. Domains proven by DNS are re-checked
@@ -591,3 +1019,36 @@ notice. They are sent only when the operator sets `VISUA_AICPA_AI_USE=permitted`
   re-download them; the committed copies are hash-checked.
 - State AI laws change often. The corpus records what was retrieved and when; Visua
   tracks obligations and is not legal advice.
+
+### Public measures and operational boundaries
+
+Public trust measures evaluate current recorded metadata at one `asOf` time and
+include scope counts, weighted implementation numerator/denominator, valid proof
+coverage, formula version and catalog version. They are not historical replay.
+Monitoring selects the latest observation for each connector/configuration/check
+across stored history; target changes cannot erase previous outcomes. Public
+labels distinguish sources without publishing configuration values. Custom
+headlines are explicitly organization-authored; policy approval and monitoring
+are separate from accepted evidence and implementation progress.
+
+JSON body reads enforce streamed bytes, declared size, concurrency, timeout and
+caller cancellation. Authentication and admission cover the same API routes;
+static pages do not resolve credentials. Health and readiness bypass admission
+and authentication. Defaults are 16 MiB, four active readers and 30 seconds. Uploads
+retain their separate file/form limits. Per-instance request controls use direct
+socket peers and authenticated principal IDs; forwarded address headers confer no
+new identity. Bounds are 1200 peer requests/minute, 600 principal requests/minute,
+120 auth requests/minute and 300 public requests/minute, with 10000 rate buckets.
+They are local operational defaults, not measured capacity or distributed quotas.
+
+`VISUA_JSON_MAX_BYTES`, `VISUA_JSON_CONCURRENCY`, `VISUA_BODY_TIMEOUT_MS`,
+`VISUA_RATE_PEER_PER_MINUTE`, `VISUA_RATE_PRINCIPAL_PER_MINUTE`,
+`VISUA_RATE_AUTH_PER_MINUTE`, `VISUA_RATE_PUBLIC_PER_MINUTE`, and
+`VISUA_RATE_MAX_BUCKETS` configure these bounds. `VISUA_DIAGNOSTICS_INTERVAL_MS`
+controls aggregate operator logs (60000 by default; 0 disables periodic logging).
+Diagnostics use fixed counters, resource gauges and latency buckets; they contain
+no actor IDs, raw URLs, goals, evidence, error strings or credentials. The queued
+run gauge is the last scheduler observation of its connected database, while
+active resource gauges describe the process. There is no tenant-facing diagnostic
+endpoint. Pilot capacity and time-to-first-accepted-artifact baselines still need
+representative users and an agreed measurement period.

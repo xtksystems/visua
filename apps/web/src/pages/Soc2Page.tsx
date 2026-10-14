@@ -6,9 +6,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Download, FileText, Telescope } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import type { Soc2Settings } from "@visua/core";
 import { Empty, Segmented, StatusBar, toast } from "../components/ui/index.tsx";
+import { useWorkspaceId } from "../lib/workspace.ts";
+import { useCan } from "../lib/auth.ts";
 import { api, exportUrl } from "../lib/api.ts";
 import { shortDate } from "../lib/format.ts";
 import { useFrameworkState, useGraph, useMeta, useWorkspace, useWsMutation } from "../lib/queries.ts";
@@ -62,6 +64,7 @@ function ObservationWindow({ start, end }: { start?: string; end?: string }) {
 }
 
 function Scope({ ws, settings }: { ws: string; settings: Soc2Settings }) {
+  const canConfigure = useCan("workspace.configure");
   const [draft, setDraft] = useState(settings);
   useEffect(() => setDraft(settings), [settings]);
   const save = useWsMutation(ws, (soc2: Soc2Settings) => api.put(`/workspaces/${encodeURIComponent(ws)}/frameworks/${TSC}`, { soc2 }));
@@ -71,7 +74,8 @@ function Scope({ ws, settings }: { ws: string; settings: Soc2Settings }) {
   };
   const dirty = JSON.stringify(draft) !== JSON.stringify(settings);
   return (
-    <div className="panel">
+    <fieldset className="panel" disabled={!canConfigure || save.isPending} style={{ minWidth: 0, margin: 0 }}>
+      {!canConfigure && <p className="muted" role="note">Only admins and owners change examination scope.</p>}
       <div className="panel__head">
         <h2>Examination scope</h2>
         <span className="spacer" />
@@ -125,7 +129,7 @@ function Scope({ ws, settings }: { ws: string; settings: Soc2Settings }) {
           Save scope
         </button>
       </div>
-    </div>
+    </fieldset>
   );
 }
 
@@ -183,7 +187,9 @@ function SystemDescription({ ws }: { ws: string }) {
 }
 
 export function Soc2Page() {
-  const { ws = "" } = useParams();
+  const canConfigure = useCan("workspace.configure");
+  const canExport = useCan("workspace.export");
+  const ws = useWorkspaceId();
   const meta = useMeta();
   const { data } = useWorkspace(ws);
   const graph = useGraph(TSC);
@@ -211,7 +217,7 @@ export function Soc2Page() {
       <div className="page">
         <Empty title="SOC 2 is not enabled for this workspace">
           <p style={{ margin: "8px 0 12px" }}>Prepare for a SOC 2 examination against the 2017 Trust Services Criteria (revised points of focus, 2022). Visua tracks readiness, evidence over the observation window and the auditor's request list.</p>
-          <button className="btn btn--primary" onClick={() => enable.mutate(undefined)}>
+          <button className="btn btn--primary" disabled={!canConfigure || enable.isPending} title={canConfigure ? undefined : "Ask an admin to enable SOC 2"} onClick={() => enable.mutate(undefined)}>
             Enable SOC 2
           </button>
         </Empty>
@@ -232,9 +238,9 @@ export function Soc2Page() {
           </p>
         </div>
         <div className="page__actions">
-          <a className="btn" href={exportUrl(ws, "soc2-pbc.csv")}>
+          {canExport && <a className="btn" href={exportUrl(ws, "soc2-pbc.csv")}>
             <Download size={14} /> PBC request list
-          </a>
+          </a>}
           <Link className="btn btn--primary" to={`/w/${ws}/observatory/${TSC}`}>
             <Telescope size={14} /> Criteria in 3D
           </Link>

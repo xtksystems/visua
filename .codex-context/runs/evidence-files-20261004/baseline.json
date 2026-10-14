@@ -1,0 +1,21 @@
+{
+  "head": "3b50f1b001ba2ca9905f67cd0b0082830d75cca1",
+  "clean": true,
+  "pins": {
+    "apps/server/src/app.ts": "9171f7e2c96c4b4ae8a8b6091396afc5623dfcee81d227a75980bf248034e19e",
+    "apps/server/src/context.ts": "1c77d872779be8cfc55e4de52b9ec7a9b56e7f6d816f502775f3a9ea02b7f17b",
+    "apps/server/src/services/visua.ts": "387339f630e4306d82f1b027c16a76a683455373205e2fbd3b41ccd4a3c31cdf",
+    "apps/server/src/services/evidence.ts": "4f4e326aeccf9cebbb1af2d296ebb49f72bb5c207b664d852ae3ad73901ec1a0",
+    "apps/server/src/storage/store.ts": "1b36452e0e5bf10ad0ea20f1b539fa4fe35e540e482087cf5b0a54e307eae31b",
+    "apps/server/src/storage/migrations.ts": "9da4acf03f0d914aa7f4a8f194ac26d55a607db4dd3d648af6fc0536826d0e2a",
+    "packages/core/src/types.ts": "5bb3369696da3d4668f8a08bc028505447bdf498170d3eca85e53547f4e86ab0",
+    "apps/web/src/pages/EvidencePage.tsx": "d47b5644dc6f29640812090f8404aa017c280d2ac4e2ec7a1147184bacbbd7bb",
+    "apps/web/src/lib/api.ts": "c7b794c7bd1964550c851a395405c64d92f67380c5ab91c8f88e42b4735cad8c",
+    "apps/web/src/lib/queries.ts": "fe6bc2a5fe4cb3488a0f4f5d26c7a65ec58372d0e0e6c7221efb95c48ed5c221",
+    "apps/server/package.json": "518aaab09c9c281e41787609dc52b619fc7c3ce45ffef8c63719fdd488979f94",
+    "pnpm-lock.yaml": "c72f7954fe5449fefaa295aa532a2bfe8d3b4fd538fa6f7024c84ca20406bd5c",
+    "compose.yaml": "d9d1ef439b904ba65624c45e357df01e30cb85914451c59689a072859cdc678c",
+    "Dockerfile": "ac72e727e331af0cff014d4681c78aba382d84a0e8b6d47947df495ace6d9c9f",
+    ".dockerignore": "fa43a592d91042786c65ddcf94352ef38251f46e23df891fbac3e278a2bf9f05"
+  }
+}

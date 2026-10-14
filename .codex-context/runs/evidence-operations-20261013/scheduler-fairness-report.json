@@ -1,0 +1,48 @@
+{
+  "status": "complete",
+  "summary": "Corrected scheduler fixed-window starvation with a bounded rotating scan over immutable insertion positions and a high-water bound per sweep. Later free-workspace runs and abandoned leases are now reached without moving rows by updated_at or replaying terminal history.",
+  "input_hash": "daa16dcc83e9c383688fc51ea79bff9e8de91d38bbd4d56a9e181351c1208d90",
+  "subject": "/Users/artem/visua/.check/evidence-automation-20261013",
+  "files": {
+    "apps/server/src/storage/store.ts": "205548533e2e1764f7a02535dbbbee7631748bfa44401352ede76dfc58a8c10a",
+    "apps/server/src/services/visua.ts": "d2067e4f9b5594036f61b75a453f048a7608f1f7a0575ed6fa3d54c6095ce9f5",
+    "apps/server/test/run-reliability.test.ts": "77d6495ccba2f7b91f28de2b79d945135eb1eb331a6bf6830c5aec51f4e666e8"
+  },
+  "changes": [
+    "RunCollection.scanActive reads at most one bounded active page in SQLite rowid/PostgreSQL pos order, keeping a captured through position until the sweep ends. Updates retain position; deletion of the previous page tail does not invalidate continuation; newly inserted rows join a later sweep.",
+    "VisuaService stores a private scan cursor and advances it only after a page is successfully processed. Existing heartbeat, workspace-lock claim, fencing, local/durable concurrency, cancellation and shutdown code is retained.",
+    "Persistent regression seeds 266 active records including eight blocked workspace queues, then verifies a later eligible run starts and later abandoned work fails within two reconciliations. A second regression exercises timestamp movement, deletion of the cursor row, terminal state change, newly inserted work and wraparound."
+  ],
+  "verification": [
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL VISUA_AGENT_MODE=offline pnpm exec vitest run apps/server/test/run-reliability.test.ts -t 'reaches later eligible'",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "exit_code": 1,
+      "result": "Expected reproduce-first failure before implementation: one failed, nine skipped; later abandoned run remained running after two reconciliations."
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL VISUA_AGENT_MODE=offline pnpm exec vitest run apps/server/test/run-reliability.test.ts",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "exit_code": 0,
+      "result": "11 tests passed; 1 test file passed; duration 1.18 seconds. SQLite only with both database environment variables unset."
+    }
+  ],
+  "ownership_check": {
+    "apps/server/src/storage/store.ts": {
+      "undoing_owned_edits_matches_before": true
+    },
+    "apps/server/src/services/visua.ts": {
+      "undoing_owned_edits_matches_before": true
+    },
+    "apps/server/test/run-reliability.test.ts": {
+      "undoing_owned_edits_matches_before": true
+    }
+  },
+  "limits": [
+    "No PostgreSQL runtime, full test suite, typecheck, build, browser/server, live database, provider, git, deployment or delegation was run; lead owns the final integrated gate.",
+    "Application scan work is bounded to 256 returned active rows per scheduler tick (the internal collection API caps requested pages at 1024). PostgreSQL pos is not indexed in existing migrations: query execution may scan/sort historical rows even though result hydration and per-tick processing are bounded. Lead explicitly retained migration/index evaluation for the combined PostgreSQL gate.",
+    "A run that becomes eligible or expires after its page was processed can wait until the next sweep. The cursor and captured high-water bound ensure updates and continuous new appends do not reset or indefinitely extend the current sweep.",
+    "The original independent review and reproduction artifacts were preserved without modification; this is a subsequent implementation and self-check."
+  ],
+  "result_artifact": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/scheduler-fairness-result.json"
+}

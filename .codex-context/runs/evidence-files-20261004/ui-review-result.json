@@ -1,0 +1,19 @@
+{
+  "run_id": "evidence-files-20261004",
+  "node_id": "review_ui",
+  "input_sha256": "0bad46815e0feb84935cf87d4d8041289547a39d2de1252924ac15a7dd2e8806",
+  "status": "complete",
+  "summary": "Bounded final UI correction review passes with no supported findings. Hook-level onError suppresses duplicate default toast; active guards protect late dialog callbacks. Deterministic readiness proof passed. All 261 final-delivery pins match; full integration remains with root.",
+  "evidence": [
+    ".codex-context/runs/evidence-files-20261004/ui-review.json",
+    ".codex-context/runs/evidence-files-20261004/final-delivery-source.json SHA-256 583ae705af9117ba38331bfcfd059e9b8d243b89558bf946fe6dc5c837bf2039; 261 pins checked before/after, zero mismatches",
+    "EvidencePage.tsx + queries.ts + main.tsx + installed query-core 5.104.0 dispatch paths inspected",
+    "Lightweight Node actual-readinessProbe assertion exited 0: stalled calls share query 1; recovery resolves with query 2",
+    "e2e/keyboard-dialog-tabs.spec.ts visibility synchronization and existing focus assertions inspected"
+  ],
+  "limitations": [
+    "This is the assigned bounded source correction review and a deterministic readiness proof; it is not a final full backend/browser or deployment pass. Root owns final integration and affected browser cases, which were pending in the immutable brief.",
+    "No browser rendering or delayed response/unmount test was independently executed here. UI callback lifetime and duplicate-toast suppression are supported by the inspected application and installed query-core dispatch paths.",
+    "The extra keyboard-dialog-tabs visibility wait is a fixture-only synchronization change included in the pins; it was inspected without rerunning browser focus behavior."
+  ]
+}

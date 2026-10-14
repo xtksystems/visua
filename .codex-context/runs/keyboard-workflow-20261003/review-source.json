@@ -1,0 +1,18 @@
+{
+  "root": "/Users/artem/visua",
+  "files": {
+    "apps/web/src/pages/ObservatoryPage.tsx": "e9ec6df5622743f0a0fe5eaa545aed6209bc10309dedccd494e8b7712d361a87",
+    "apps/web/src/components/ui/index.tsx": "7df1f9d75c78294b289df7516c70537bfaa77079c9986a4b7201ef19ea2f2473",
+    "apps/web/src/lib/modal.ts": "83a9f2e67190b43083b9c1d2cc54efad4e7866c687ddc30465cd45d836db3282",
+    "apps/web/src/components/shell/Shell.tsx": "061dc8f7afea061798c07f7c5b85f147c06bc34f8221fad840640cb6c0dddf5c",
+    "apps/web/src/components/inspector/Inspector.tsx": "ada41a35fae9bf97de3732f7c77fdc01fe978295607085581e337fea76367c3c",
+    "apps/web/src/components/inspector/Threats.tsx": "1327139ea6c2aba3e82750c0da2aa1580635d28ee4fb7c15bb5667c24791e79c",
+    "apps/web/src/pages/OrganizationPage.tsx": "d7b30b6bf1adaa18740a06865dff92de016712761034ae6f07790b156922b46a",
+    "apps/web/src/lib/workspace.ts": "d4f8484ae7a07e03048670665386ee5ac369edf1c158a3dd65b9a9861f5378c2",
+    "apps/web/src/lib/queries.ts": "16cfd9a535be5a74c756aa98131c4f63bb03035ed9e5bd46e0af4a7c4a3672b0",
+    "apps/web/src/state/ui.ts": "fe3c9c573bc5eefe957d978f4125990ba1f7e3675aea483b21237c702526330e",
+    "apps/web/src/styles/global.css": "414ac20efca7c0890553669ae1ff42db27ae840e0ac5eb3e1511c0a7d8cdef41",
+    "e2e/keyboard-palette.spec.ts": "b91fbb10d1b0f4ad634eb92bbd0b926e6ead8538e3c878f147ae5c0687c79c23",
+    "DESIGN.md": "bd06057ef4e636b4296b5efe26d2f921334918d58fe25afb4a42f85004f41036"
+  }
+}

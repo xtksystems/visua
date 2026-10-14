@@ -6,10 +6,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { BrainCircuit, Pencil, Plus, Sparkles, Telescope, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import type { AiSystem, CorpusCitation, FrameworkDescriptor, Status } from "@visua/core";
 import { useRunAgent } from "../components/inspector/Inspector.tsx";
 import { Dialog, Empty, Progress, StatusBar, StatusChip, toast } from "../components/ui/index.tsx";
+import { useWorkspaceId } from "../lib/workspace.ts";
+import { useCan } from "../lib/auth.ts";
 import { api, exportUrl } from "../lib/api.ts";
 import { truncate } from "../lib/format.ts";
 import { useMeta, useWorkspace, useWsMutation } from "../lib/queries.ts";
@@ -154,6 +156,7 @@ function SystemDialog({ ws, initial, onClose }: { ws: string; initial: Draft; on
 }
 
 function Inventory({ ws, systems }: { ws: string; systems: AiSystem[] }) {
+  const canWrite = useCan("work.write");
   const [editing, setEditing] = useState<Draft | null>(null);
   const remove = useWsMutation(ws, (id: string) => api.del(`/workspaces/${encodeURIComponent(ws)}/ai/systems/${id}`));
   return (
@@ -162,10 +165,11 @@ function Inventory({ ws, systems }: { ws: string; systems: AiSystem[] }) {
         <BrainCircuit size={16} />
         <h2>AI system inventory</h2>
         <span className="spacer" />
-        <button className="btn btn--sm" onClick={() => setEditing(EMPTY)}>
+        <button className="btn btn--sm" disabled={!canWrite} onClick={() => setEditing(EMPTY)}>
           <Plus size={13} /> Add system
         </button>
       </div>
+      {!canWrite && <p className="muted" role="note">Read-only access. Contributors and above manage the AI inventory.</p>}
       {systems.length ? (
         <table className="table table--systems">
           <thead>
@@ -202,12 +206,12 @@ function Inventory({ ws, systems }: { ws: string; systems: AiSystem[] }) {
                   {s.owner ?? "—"}
                 </td>
                 <td style={{ whiteSpace: "nowrap" }}>
-                  <button className="btn btn--quiet btn--sm btn--icon" aria-label={`Edit ${s.name}`} onClick={() => setEditing({ ...s })}>
+                  <button className="btn btn--quiet btn--sm btn--icon" disabled={!canWrite} aria-label={`Edit ${s.name}`} onClick={() => setEditing({ ...s })}>
                     <Pencil size={13} />
                   </button>
                   <button
                     className="btn btn--quiet btn--sm btn--icon"
-                    aria-label={`Remove ${s.name}`}
+                    disabled={!canWrite || remove.isPending} aria-label={`Remove ${s.name}`}
                     onClick={() => window.confirm(`Remove ${s.name} from the inventory? The removal is recorded in the audit trail.`) && remove.mutate(s.id)}
                   >
                     <Trash2 size={13} />
@@ -222,13 +226,16 @@ function Inventory({ ws, systems }: { ws: string; systems: AiSystem[] }) {
           No AI systems inventoried yet. Start here: AI risk management is scoped by the systems you develop or deploy, their purpose and their context of use.
         </p>
       )}
-      {editing && <SystemDialog ws={ws} initial={editing} onClose={() => setEditing(null)} />}
+      {editing && canWrite && <SystemDialog ws={ws} initial={editing} onClose={() => setEditing(null)} />}
     </div>
   );
 }
 
 export function AiPage() {
-  const { ws = "" } = useParams();
+  const canWrite = useCan("work.write");
+  const canConfigure = useCan("workspace.configure");
+  const canExport = useCan("workspace.export");
+  const ws = useWorkspaceId();
   const meta = useMeta();
   const workspace = useWorkspace(ws);
   const run = useRunAgent();
@@ -257,7 +264,7 @@ export function AiPage() {
           <p style={{ margin: "8px 0 12px" }}>
             Enable the NIST AI Risk Management Framework to inventory your AI systems and work through its four functions — GOVERN, MAP, MEASURE and MANAGE — with the Generative AI Profile for generative systems.
           </p>
-          <button className="btn btn--primary" onClick={() => enable.mutate(undefined)}>
+          <button className="btn btn--primary" disabled={!canConfigure || enable.isPending} title={canConfigure ? undefined : "Ask an admin to enable AI governance"} onClick={() => enable.mutate(undefined)}>
             Enable NIST AI RMF
           </button>
         </Empty>
@@ -277,12 +284,12 @@ export function AiPage() {
           </p>
         </div>
         <div className="page__actions">
-          <button className="btn btn--agent" onClick={() => run("planner", "Plan AI RMF work for our largest AI governance gaps", { framework: AI_RMF }, { stay: true })}>
+          <button className="btn btn--agent" disabled={!canWrite} onClick={() => run("planner", "Plan AI RMF work for our largest AI governance gaps", { framework: AI_RMF }, { stay: true })}>
             <Sparkles size={14} /> Plan with agent
           </button>
-          <a className="btn" href={exportUrl(ws, "ai-rmf-profile.csv")}>
+          {canExport && <a className="btn" href={exportUrl(ws, "ai-rmf-profile.csv")}>
             AI RMF profile (CSV)
-          </a>
+          </a>}
           <Link className="btn btn--primary" to={`/w/${ws}/observatory/${AI_RMF}`}>
             <Telescope size={14} /> Outcomes in 3D
           </Link>

@@ -1,0 +1,43 @@
+Run ID startup-auth-20261003, node review. Integration owner: root.
+Review the current working implementation in /Users/artem/visua on branch
+feat/light-workspace-design, base c8a1ed06a8043fe725381ccccd89779b6a3498e0.
+This is a fresh, read-only native review with one bounded lens: startup/auth
+safety and resource lifetime under shutdown or database failure.
+
+Contract: OIDC/production must not seed demo tenants by default; an empty
+production database must produce a working configured bootstrap owner through
+OIDC, including PostgreSQL. Developer authentication remains refused in
+production and binds loopback by default; explicit VISUA_HOST supports the
+existing local Compose setup whose host port must stay loopback. Health is
+liveness; readiness probes storage and returns 503 on failure/timeout/stopping.
+Shutdown closes SSE, drains requests (including disconnected clients' still
+running handlers), active domain checks and local agent executions before
+closing relay/storage, with a forced-stop deadline. Preserve tenants, owner
+bootstrap semantics, audit/storage transactions and existing user data.
+
+Read AGENTS.md, CLAUDE.md, .codex-context/invariants.md and review.md as needed.
+Subject paths: apps/server/src/server.ts, startup.ts, readiness.ts, index.ts,
+app.ts, context.ts, auth/config.ts, auth/http.ts, auth/recheck-ticker.ts,
+services/visua.ts, test/startup.test.ts, test/domain-recheck.test.ts,
+compose.yaml, README.md, docs/architecture.md. Trace related dependencies as
+needed. New untracked source files are part of the subject; git diff alone
+misses them. Snapshot identities are recorded in plan.json.
+
+Inspect the implementation and tests independently. Do not edit source, run a
+full suite, change Compose state, access secrets or dispatch other providers.
+Bound work to one pass, about 10 minutes advisory. Read-only shell inspection
+and isolated reproductions are allowed. Do not share services/build caches or
+mutate the running Docker on 8787. Root is running verification; avoid testing
+all suites concurrently. You own only review.json and result.json beneath
+.codex-context/runs/startup-auth-20261003/.
+
+Write review.json using the schema in
+/Users/artem/.agents/skills/adversarial-review/assets/review.schema.json:
+status, verdict, summary, coverage, findings, limitations; support each finding
+with exact path/location, trigger, mechanism, evidence and recommendation.
+Only declare coverage actually performed; do not equate a source review with
+passing runtime evidence. Write result.json with run_id, node_id,
+input_sha256 (SHA256 of this immutable brief.txt), status complete/partial,
+summary, evidence ["review.json", source locators], limitations. Return a short
+message naming the artifacts and any material findings. Preserve a complete
+report even if you identify defects. No inherited author transcript is provided.

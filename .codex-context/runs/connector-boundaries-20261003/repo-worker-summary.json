@@ -1,0 +1,48 @@
+{
+  "files_changed": [
+    "apps/server/src/connectors/repo-scan.ts",
+    "apps/server/test/repo-scan.test.ts"
+  ],
+  "summary": "Added operator root loading and injectable connector factory; async confined traversal derives all six signals without following symlinks, uses no-follow regular-file handles, enforces scan entry/read/deadline caps, and warns on incomplete secret coverage.",
+  "checks": [
+    {
+      "command": "pnpm exec vitest run apps/server/test/repo-scan.test.ts",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "tests": 38,
+      "duration_seconds": 1.03
+    },
+    {
+      "command": "pnpm --filter @visua/server typecheck",
+      "cwd": "/Users/artem/visua",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check -- apps/server/src/connectors/repo-scan.ts apps/server/test/repo-scan.test.ts",
+      "cwd": "/Users/artem/visua",
+      "status": "passed"
+    }
+  ],
+  "evidence": [
+    {
+      "artifact": "repo-worker-repro.json",
+      "observation": "Before edits, an escaping file symlink read an external fake AWS key and a linked external SECURITY.md passed. Evidence contains no credential bytes."
+    },
+    {
+      "coverage": "Environment roots, production/OIDC/empty disabling, malformed config, lazy default environment, explicit root copying, nested roots, missing allowed roots, filesystem-root aliases, outside/sibling/traversal, repository/file/directory/workflow/policy/lockfile symlinks, directory loops, FIFOs/device links, open-time symlink replacement, six IDs/requirement mappings, secret redaction, per-file/total bytes, entries including directories/skips, deadline/abort cleanup."
+    },
+    {
+      "observation": "Actual developer root smoke: lockfile pass; secrets warn, findings [], complete false, reason individual file byte limit reached; 2084 entries and 7318814 bytes in observed snapshot."
+    }
+  ],
+  "limitations": [
+    "Node provides no portable dirfd-relative openat API. O_NOFOLLOW protects the final file component; malicious concurrent ancestor directory replacements can race repeated canonical-path/inode checks. Allowed directory structures must be controlled by trusted operators.",
+    "Filesystem calls cannot be cancelled. The 15-second deadline stops further work after the in-flight operation resolves and all handles are closed; a hung filesystem may exceed this deadline. The enclosing registry must bound caller wait and retain its concurrency slot until underlying work settles.",
+    "The real project has tracked framework JSON and review artifacts above 512000 bytes. Its default developer scan truthfully reports secrets warn with no findings and incomplete individual-file coverage; root coordinator authorized adapting the API assertion rather than broad exclusions.",
+    "Focused tests use temporary roots only. Full integration/suite verification is owned by the coordinator; actual device nodes and hostile concurrent ancestor swaps are not reproduced."
+  ],
+  "source_sha256": {
+    "apps/server/src/connectors/repo-scan.ts": "64c3eee44e89dc8a6a65c56066bc47a63d4dfccc771d4c11f5350bde7e07d991",
+    "apps/server/test/repo-scan.test.ts": "99563e106512c2171877b63af1df23df544c95858cb8290dd6d45c6fa6269c94"
+  }
+}

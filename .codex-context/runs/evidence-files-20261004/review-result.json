@@ -1,0 +1,19 @@
+{
+  "run_id": "evidence-files-20261004",
+  "node_id": "review",
+  "input_sha256": "cb8c945fc736dfaac73ac32b1b0d9c01c3b6731758d5abed4f81ecd60614a45c",
+  "status": "complete",
+  "summary": "Fresh independent review completed on the frozen 261-file source pins relative to 3b50f1b. Four supported findings were recorded, including high-severity deletion of a published blob after uncertain metadata commit. Focused 150-test suite passed; isolated fixtures reproduced commit-loss cleanup, malformed filename encoding, and unnecessary inline-body reads. Source hashes matched before and after review.",
+  "evidence": [
+    ".codex-context/runs/evidence-files-20261004/independent-review.json",
+    ".codex-context/runs/evidence-files-20261004/review-source.json: all 261 source SHA-256 pins matched before and after review",
+    "data/review-fixtures/evidence-files-check.ts",
+    "data/review-fixtures/evidence-files-check.log",
+    "data/review-fixtures/evidence-files-focused-tests.log: 5 files and 150 tests passed"
+  ],
+  "limitations": [
+    "PostgreSQL/full check/browser/live Docker and real provider execution belong to root and were not performed by this reviewer.",
+    "Commit acknowledgement loss was simulated after an actual isolated SQLite commit; token deadlock is a supported source-derived PostgreSQL interleaving.",
+    "Review applies to frozen review-source.json bytes and must not be treated as a pass for subsequent edits."
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "status": "complete",
+  "task": "M4 OSCAL schema preparation only",
+  "report": {
+    "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation-report.json",
+    "sha256": "dd1d1f17d986c5700dc511babd81dfe823d4fdc7bda833c8fcd87ed6a9deea0a"
+  },
+  "decision": "Retain 1.1.2; implement required schema edge-case and semantic corrections before claiming conformant exports.",
+  "source_identity": [
+    {
+      "path": "/Users/artem/visua/apps/server/src/services/exports.ts",
+      "sha256": "c5c130dc397a5cc3a364972b5a338bf6bac750090a9836ded7424ee0dd25c5b2"
+    },
+    {
+      "path": "/Users/artem/visua/.check/evidence-automation-20261013/apps/server/src/services/exports.ts",
+      "sha256": "c5c130dc397a5cc3a364972b5a338bf6bac750090a9836ded7424ee0dd25c5b2"
+    }
+  ],
+  "product_files_changed": [],
+  "artifact_files": [
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/LICENSE.md",
+      "sha256": "63407ac41abc46911bc9759fc0c19fd0ba7f66c59bb6746e51d85e2f2f3244b1",
+      "bytes": 5255
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/download-manifest.json",
+      "sha256": "787571c523665a0c4b5f414bc646133975757096c4538a7521d72a6f1cc59106",
+      "bytes": 2885
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/fixture-description.json",
+      "sha256": "1d063020923058dd06bdaa1767823e4203464f73219b9932d30cdeadd81c7c40",
+      "bytes": 399
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/generate-current.mjs",
+      "sha256": "561c79c26384ab2a330e32a325afce36ee074274a70fa7e0bfa65761326b1ee5",
+      "bytes": 2705
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/oscal_poam_metaschema_RESOLVED.xml",
+      "sha256": "87cc1264a75df0b9a86cef7925890fb2951d7dc1cbb6613ce4e94c42cec7c9f6",
+      "bytes": 12222
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/oscal_poam_schema.json",
+      "sha256": "906725163d767036c6189aec51252109b203214e121fc1acaff494b4d2dfbc04",
+      "bytes": 129396
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/oscal_ssp_metaschema_RESOLVED.xml",
+      "sha256": "aa88aa47465b3532d194a2334c411483593d4409c9666b16b62c4fd0774cd265",
+      "bytes": 84007
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/oscal_ssp_schema.json",
+      "sha256": "08d3faeb12f0fab7705dec15fb648c72400c7ab6ac0056222d49d21507e02a69",
+      "bytes": 92768
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/poam-no-gaps.json",
+      "sha256": "2faa6d83cff679287c35252a35c32422a635385598c4cbfbc4716f5579caaf69",
+      "bytes": 320
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/poam-populated-first.json",
+      "sha256": "b2f1341419094bbf24b1a8ea0b7b937d477c0d4181cd3ebb0e520113b6628b60",
+      "bytes": 1510
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/poam-populated-repeat.json",
+      "sha256": "e8d714833597e11c557226580df62a55a3157efb6e96ca78e6d25cded3f89bc2",
+      "bytes": 1510
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/poam-repeat-diff.json",
+      "sha256": "a39f9376965f41ef077716f642f433c81936643dbb6f9700769de72c3669b4ed",
+      "bytes": 687
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/release-v1.1.2.json",
+      "sha256": "8319c0cc64d737a0c3c5edc6edfe967f7db45ee0b4cb3f61258da933237533e7",
+      "bytes": 72248
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/schema-structure-summary.json",
+      "sha256": "9f164f4f73cda45f9b1f68bd6a43062a558d5fd1e24c8752607c92fd4693c6a8",
+      "bytes": 61996
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/ssp-populated-first.json",
+      "sha256": "721f2348b76eb9ea69d1127ba7b15aa699ccc02725a209185e4dd9ddcd632769",
+      "bytes": 4466
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/ssp-populated-repeat.json",
+      "sha256": "fd0e67c3a12102d10a941ade029fcf8480b0f9c4b0b9638917451405336114e1",
+      "bytes": 4466
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/ssp-repeat-diff.json",
+      "sha256": "d0e101295b25ce0db8a651dd16b50a03b2b70935cf47670a334f8db9eb52f4f9",
+      "bytes": 2608
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/ssp-tailored-empty.json",
+      "sha256": "2bb749a8c943690b2ee2526d39e1c8893543e395a8607fca2326e9c1a420d36d",
+      "bytes": 3225
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/tag-root-contents.json",
+      "sha256": "19bc35f1dfde39f84bf90044c21ea11766d14a3ffd05860ca81715babaf4b741",
+      "bytes": 10177
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/validate-current.py",
+      "sha256": "03f85d8e42e9200aa981f32b54b46d1642d9b3674d249ed3f0a73a499ba10d5b",
+      "bytes": 2544
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/validation-results.json",
+      "sha256": "7167ea7621ea2c4e5cdd423035e610b3115f9b2ff1e94bae3592bab524019447",
+      "bytes": 1814
+    }
+  ],
+  "verification": {
+    "executed_synthetic_documents": 6,
+    "required_format_checkers_present": {
+      "email": true,
+      "date-time": false,
+      "uri-reference": false,
+      "uri": false
+    },
+    "no_install": true,
+    "no_database": true,
+    "passes_supported_schema_constraints": 4,
+    "definite_schema_failures": 2,
+    "fully_format_checked": 0
+  },
+  "limits": [
+    "Installed FormatChecker has email support but lacks date-time, uri-reference, and uri checkers. Those format annotations were not checked. Four fixtures pass supported constraints, not a claim of full format-checked conformance; the two minItems failures are definitive.",
+    "Six synthetic outputs cover current populated, repeated-state, and all-controls-removed/no-gap paths; this is not exhaustive schema or semantic certification.",
+    "No product source, manifest, package lock, full suite, browser, live database, or deployed artifact was changed.",
+    "JSON Schema does not encode every OSCAL semantic requirement, relationship, or external profile resolution rule."
+  ],
+  "not_implemented": "No product correction, dependency declaration, checked-in schema suite, or deployment was performed."
+}

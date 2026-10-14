@@ -1,0 +1,10 @@
+{
+  "status": "failed",
+  "checks": [],
+  "errors": [],
+  "originalAudit": {
+    "valid": true,
+    "events": 98
+  },
+  "error": "TypeError: (intermediate value).some is not a function"
+}

@@ -1,0 +1,19 @@
+{
+  "run_id": "pilot-readiness-20261013",
+  "node_id": "pilot-review",
+  "input_sha256": "944b79cc5b6aa18a23c3c88aa61f2fe1ea63c911ce9dcf825bd355ab9099f46f",
+  "status": "complete",
+  "summary": "Fresh bounded review found one medium startup-cleanup reporting defect and one low malformed-wildcard configuration mismatch. Preflight focused suite passed all 48 tests; both findings have isolated reproductions. Subsequent affected rechecks confirm persistent cleanup failure is reported false, successful retry is reported true, and bracketed wildcards are rejected; original review and source identities are retained.",
+  "limitations": [
+    "Bounded fresh first pass on the supplied working-tree snapshot at base a0fee8b5b4101a489163d499265c64d33ab51e11. Any subsequent edits require affected rechecks; this report preserves original findings and hashes.",
+    "No Docker daemon, external provider, localhost:8787, existing application data, full rehearsal, broad suite, hosted TLS, IAM, real IdP, remote recovery or capacity checks were executed. Cleanup fault injection used a built-in spawn stub; it demonstrates reporting/control flow, not Docker daemon behavior.",
+    "Lead-owned documentation was excluded because it was not stable. Existing dependencies were examined only where directly relevant to configuration interpretation, identity, startup/shutdown, resource lifetime and recovery verification.",
+    "No supported secret disclosure or backup-consistency defect was identified within the assigned bounded source review; absence of a finding is not a production-readiness claim."
+  ],
+  "evidence": [
+    "pilot-review-result.json: original worker evidence, source hashes, and limitations retained unchanged.",
+    "pilot-review-result.json: correction and affected recheck evidence.",
+    "source-verification.json and rehearsal-release-result.json: lead combined validation."
+  ],
+  "normalization": "Lead normalized structured evidence references to the run-contract string array; original worker artifact retained."
+}

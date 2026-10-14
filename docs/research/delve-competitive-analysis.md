@@ -495,7 +495,7 @@ Comparing Wayback snapshots from 2026-02-14 and 2026-03-14 with 2026-04-21 and t
 | Value Delve sells | Visua equivalent | How it is distinct |
 |---|---|---|
 | "Compliance in days" | **Honest speed.** Agents pre-collect evidence and draft artifacts on day one. The **Readiness Terrain** shows real readiness per requirement: current maturity as prism height and target as a ghost prism. | Readiness is computed from verified evidence, not from accepted defaults. No promised pass dates. |
-| 10–15 hours of customer effort | An **inbox of agent drafts** (Aurora Violet) that people approve, edit or reject. Hours saved are measured from agent run logs, not asserted. | People dispose; agents propose. Every draft has a flight recorder. |
+| 10–15 hours of customer effort | An **inbox of agent drafts** (terracotta) that people approve, edit or reject. Hours saved are measured from agent run logs, not asserted. | People dispose; agents propose. Every draft has a flight recorder. |
 | Bundled audit and pentest | A **verified auditor and pentester directory**: AICPA Peer Review status, state CPA licensure, ISO certification-body accreditation through IAF CertSearch, and OSCP/GWAPT credentials. Optional bundles with published prices. | Visua never drafts auditor conclusions and never picks "friendly" auditors. Independence is enforced by the product. |
 | Slack-first human help | A **cited copilot** plus optional human experts. An honest SLA. | Answers cite the local official corpus (document, section, page). "No citation, no claim." |
 | Trust Report, badges, questionnaire autofill | A **Trust center compiled from verified evidence** (scope, period, auditor, last-verified time) and a **questionnaire agent** that cites evidence and policy clauses for each answer. | A **claim-consistency agent** blocks publishing any statement that evidence does not back. |
@@ -523,7 +523,7 @@ Delve's product shows progress bars. Its best ideas, the chains from finding to 
    - Click any evidence crystal (for example the GitHub MFA export) and trace system → integration or agent run → evidence (hash, time) → test → requirement(s) → framework(s) → trust-center statement(s) → questionnaire answers.
    - It works in reverse: click a trust-center claim and see the evidence behind it, or see the claim flagged coral if nothing supports it.
 4. **Agent traffic.**
-   - Agents appear as violet comets traveling along links. Pending approvals pulse as beacons.
+   - Agents appear as terracotta signals traveling along links. Pending approvals pulse as beacons.
    - A "flight recorder" timeline replays each run: goal, plan, tool calls, screenshots or DOM snapshots, and citations.
    - This makes "agentic compliance" auditable instead of mystical, which is the direct counter to the "is there actually AI here?" critique of Delve.
 5. **Time scrubber and drift.**
@@ -663,7 +663,7 @@ These are table stakes after the Delve affair.
 
 The voice rules in `DESIGN.md` (precise, calm, no alarmism, never promise certification) already set Visua apart from Delve's urgency-driven copy.
 
-**Visual identity.** Visua's "Deep-night observatory" (Observatory Blue, Aurora Violet reserved for AI) is already distinct from Delve's teal, black and orange gradients and flat SaaS mockups. Keep it.
+**Visual identity.** Visua uses a warm porcelain canvas, forest ink and sage for interaction, with terracotta reserved for agent activity. Labeled navigation and restrained color make a dense compliance program easier to scan; spatial views keep their 2D paths. The palette and layout are defined in `DESIGN.md`.
 
 **Wedge offers.**
 

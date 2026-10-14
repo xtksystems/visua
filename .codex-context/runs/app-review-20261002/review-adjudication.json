@@ -1,0 +1,81 @@
+{
+  "status": "complete",
+  "source_head": "1dc5ed126dced52c364b403dd29f9ce62829b4da",
+  "integration_owner": "Codex",
+  "reports": [
+    "docs/reviews/full-app-review-2026-10-02.md",
+    "docs/development-phase-2.md"
+  ],
+  "source_hashes_match": true,
+  "raw_review_findings": {
+    "security": {
+      "count": 12,
+      "output_sha256": "2f742f3d57ed52625f62321d30f8e22fba97c158f3b812919c448bd90f1a3b3a",
+      "requested_model": "claude-opus-5-5",
+      "usage_reported_models": [
+        "claude-opus-5-5"
+      ],
+      "authentication": {
+        "loggedIn": true,
+        "authMethod": "claude.ai",
+        "apiProvider": "firstParty",
+        "subscriptionType": "max",
+        "forcedLoginMethod": "claudeai"
+      },
+      "status": "reconciled against source; retained raw output"
+    },
+    "product": {
+      "count": 12,
+      "output_sha256": "5e80b941dfd9ac1c4605983952280967e7dcb21a1ef8ed3679b74926f679835e",
+      "requested_model": "claude-opus-5-5",
+      "usage_reported_models": [
+        "claude-opus-5-5"
+      ],
+      "authentication": {
+        "loggedIn": true,
+        "authMethod": "claude.ai",
+        "apiProvider": "firstParty",
+        "subscriptionType": "max",
+        "forcedLoginMethod": "claudeai"
+      },
+      "status": "reconciled against source; retained raw output"
+    },
+    "governance": {
+      "count": 12,
+      "output_sha256": "1b8bf4f3bc360473d2aff4784fff6bc90c69a8c40e89c5bb3e39ba810cec808f",
+      "requested_model": "claude-opus-5-5",
+      "usage_reported_models": [
+        "claude-opus-5-5"
+      ],
+      "authentication": {
+        "loggedIn": true,
+        "authMethod": "claude.ai",
+        "apiProvider": "firstParty",
+        "subscriptionType": "max",
+        "forcedLoginMethod": "claudeai"
+      },
+      "status": "reconciled against source; retained raw output"
+    }
+  },
+  "severity_note": "Raw Opus severity is not automatically accepted; synthesized report separates confirmed defects from intentional policy and conditional risks.",
+  "confirmed_runtime_cases": [
+    "accepted-evidence-edit",
+    "invalid-evidence-date",
+    "web-posture-loopback",
+    "seed-before-bootstrap",
+    "dev-bind-default",
+    "browser-stale-owner",
+    "browser-dialog-escape",
+    "viewer-write-affordances"
+  ],
+  "source_adjudications": [
+    "evidence/security-adjudication.json",
+    "evidence/governance-adjudication.json"
+  ],
+  "all_expected_workers_complete": true,
+  "limitations": [
+    "Application Claude API behavior not executed",
+    "Production IdP, capacity/load, corpus legal freshness, and official OSCAL conformance unverified"
+  ],
+  "finished_utc": "2026-10-02T07:32:06.020423+00:00"
+}

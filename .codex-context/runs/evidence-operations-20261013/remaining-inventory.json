@@ -1,0 +1,805 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "inventory",
+  "input_sha256": "3e6332de9a78df281d8ad93b8032e8f87564f147adadbc3f0cd8bdaa29f79fb8",
+  "baseline_commit": "b34cf1fe846920c98aa71df3121712284880dc1a",
+  "generated_at": "2026-10-13T06:51:04.490890+00:00",
+  "scope": "Milestones 3 and 4 with milestone 2 dependencies; source and test inventory",
+  "summary": "Milestones 3 and 4 remain incomplete. Existing review/file/audit/snapshot foundations can be reused. Finish evidence identity/effective lifecycle, durable execution and current authorization before supported public claims and a frozen auditor package.",
+  "rows": [
+    {
+      "id": "owned-work-and-files",
+      "requirements": [
+        "M2.1",
+        "M2.2"
+      ],
+      "status": "implemented_foundation",
+      "implemented": [
+        "Stable tenant member assignments, external-owner labels, explicit dates/requirement links and My work are implemented.",
+        "Metadata-only evidence reads, server SHA-256, scoped immutable file references, 10 MiB verified upload/download, local and S3 adapters are implemented."
+      ],
+      "remaining_work": [
+        "Preserve these foundations and their tenancy/audit checks while extending lifecycle; do not build a second storage path."
+      ],
+      "source_evidence": [
+        "apps/server/src/services/visua.ts: workspaceMembers, myWork, createTask, updateTask, createFileEvidence, getEvidenceFile, reviewEvidence",
+        "apps/server/src/blobs/{shared,local,s3}.ts",
+        "apps/server/src/storage/store.ts: EvidenceCollection (114), metadataGet, metadataList and explicit inline-body reads/writes",
+        "apps/server/src/evidence-http.ts: evidenceUpload"
+      ],
+      "existing_test_source": [
+        "apps/server/test/member-work.test.ts: canonicalizes task and requirement assignment names from the selected member",
+        "apps/server/test/member-work.test.ts: validates edited links against enabled assessable requirements and retains source/licensing provenance",
+        "apps/server/test/evidence-files.test.ts: requires workspace access for metadata, detail, upload and download; a hash grants no access",
+        "apps/server/test/evidence-content.test.ts: verifies stored bytes for retrieval and review, preserving decisions when storage is corrupted",
+        "e2e/evidence-files.spec.ts: upload links CSF and SOC 2 requirements, downloads exact bytes and binds a review"
+      ],
+      "test_execution": "not run; test names are source evidence only",
+      "implementation_package": "P1"
+    },
+    {
+      "id": "evidence-contract",
+      "requirements": [
+        "M2.3",
+        "M2.5"
+      ],
+      "status": "partial",
+      "implemented": [
+        "Evidence has coarse source/kind, connectorId, artifact reference, hash, dates and append-only reviewHistory with hash/link/date scope.",
+        "Connector observations and uploaded file references cannot be edited; protected changes return acceptance to pending.",
+        "Task contentRequirementIds retain original licensing provenance after relinking."
+      ],
+      "remaining_work": [
+        "Add explicit collection origin, immutable checkResultId/source-run reference, assurance scope, observation series/policy-version supersession and licensing provenance on evidence itself.",
+        "Evidence currently lacks contentRequirementIds or equivalent immutable content classification; connector evidence copies checkId/observed but not the immutable check-result id.",
+        "Policy rows overwrite the current body; accepted policy evidence preserves some old bodies but is not a complete immutable policy version store.",
+        "Define backward-compatible migration: preserve legacy reviews/hashes/audit history, never infer unsupported assurance or retrofit approval."
+      ],
+      "source_evidence": [
+        "packages/core/src/types.ts: Evidence, EvidenceReviewScope, CheckResult, Policy",
+        "apps/server/src/services/visua.ts: evidenceFromCheck (1504), createEvidence (1123), updateEvidence (1272), updatePolicy (1331)",
+        "apps/server/src/services/evidence.ts: artifactHash, evidenceAuditSnapshot",
+        "apps/server/src/storage/migrations.ts: evidenceApprovalBinding, evidenceContentSeparation"
+      ],
+      "existing_test_source": [
+        "apps/server/test/evidence-binding.test.ts: binds an acceptance, appends history, and records before/after audit values",
+        "apps/server/test/evidence-binding.test.ts: keeps connector observations immutable while links and expiry require review",
+        "apps/server/test/member-work.test.ts: initializes and monotonically retains server-owned task text provenance despite hostile patches"
+      ],
+      "test_execution": "not run; test names are source evidence only",
+      "implementation_package": "P1"
+    },
+    {
+      "id": "effective-evidence-state",
+      "requirements": [
+        "M2.5",
+        "M2.6"
+      ],
+      "status": "partial",
+      "implemented": [
+        "isEvidenceValid enforces current bound acceptance, collection date and expiry.",
+        "Renewal forecasts use accepted alternatives and stop at the first actual coverage gap.",
+        "Core monitoring selection already retains latest per connector/check/requirement; independent failing checks contribute risk."
+      ],
+      "remaining_work": [
+        "deriveStatus counts every expired evidence item as risk when current > 0, including obsolete artifacts; no explicit supersession exists.",
+        "Introduce one effective-state evaluator at a supplied time, excluding validly superseded same-series artifacts without suppressing independent failures.",
+        "Propagate effective state consistently to scoring, overview/attention, renewals, lenses, reports and public measures; distinguish point-in-time validity from operating-period coverage."
+      ],
+      "source_evidence": [
+        "packages/core/src/status.ts: isEvidenceValid, evidenceFreshness, deriveStatus",
+        "packages/core/src/evidence-renewal.ts: accepted-alternative coverage calculation",
+        "packages/core/src/scoring.ts: buildSnapshot (latest connector/check/requirement)",
+        "apps/server/src/services/{views,attention,evidence-renewal,score-history}.ts"
+      ],
+      "existing_test_source": [
+        "packages/core/test/evidence-renewal.test.ts: extends through gap-free future records but stops at the first actual gap",
+        "packages/core/test/evidence-renewal.test.ts: never bridges with pending, rejected, legacy, stale, or malformed acceptance",
+        "apps/server/test/attention.test.ts: lets newer results supersede each failed requirement independently and deduplicates multi-links",
+        "apps/server/test/score-history.test.ts: records exact weighted denominators, scoped valid proof and metadata only at one instant"
+      ],
+      "test_execution": "not run; test names are source evidence only",
+      "implementation_package": "P2"
+    },
+    {
+      "id": "review-and-lineage",
+      "requirements": [
+        "M2.4",
+        "M2.6"
+      ],
+      "status": "partial",
+      "implemented": [
+        "EvidenceDialog loads a detached reviewed detail snapshot, shows hash/dates/requirements/reviewer/history/content/data and verified download.",
+        "CheckDialog shows an individual source observation; deep links from attention/renewals and requirement links exist.",
+        "Review scope prevents stale approval; service accepts an optional decision note."
+      ],
+      "remaining_work": [
+        "The Reject action currently sends no reason, and the UI has no withdrawal workflow.",
+        "Add explicit design/operating/attestation assurance labels and explain unmet verification conditions.",
+        "Join requirement or measure through effective evidence to immutable check/run/policy version in a coherent 2D lineage view.",
+        "Finish the keyboard CSF and SOC 2 assign/upload/reject-with-reason/replace/accept/verify/expire/refresh journey."
+      ],
+      "source_evidence": [
+        "apps/web/src/pages/EvidencePage.tsx: EvidenceDialog (review mutation around 104), CheckDialog",
+        "apps/server/src/services/visua.ts: reviewEvidence, evidenceDecision",
+        "packages/core/src/types.ts: EvidenceStatus only pending-review/accepted/rejected/expired"
+      ],
+      "existing_test_source": [
+        "e2e/evidence-files.spec.ts: metadata-only ledger loads legacy content on inspection and keeps the inspected snapshot",
+        "e2e/evidence-renewal.spec.ts: mobile keyboard navigation retains impact links and restores the inspection trigger",
+        "e2e/page-roles.spec.ts: approver can accept inspected evidence and approve a policy through page controls"
+      ],
+      "test_execution": "not run; test names are source evidence only",
+      "implementation_package": "P3"
+    },
+    {
+      "id": "durable-runs-and-cancellation",
+      "requirements": [
+        "M3.1"
+      ],
+      "status": "partial",
+      "implemented": [
+        "Runs and actual collect/analyze boundaries are persisted; cancellation persists cancelled status and aborts this instance local controller.",
+        "executeRun refuses to overwrite cancelled status during stage/final saves.",
+        "Shutdown drains detached runs before storage close within server deadline; connector work has a four-slot local limit and 30-second budget."
+      ],
+      "remaining_work": [
+        "Add durable worker ownership, fenced leases, heartbeat, bounded agent concurrency/queue and startup recovery for abandoned queued/running records.",
+        "RunRecorder.step publishes/persists regardless of cancelled state; createProposal never checks parent run status/ownership. Gate both inside the correct transaction.",
+        "hostFor.runConnector does not propagate host.signal, and runConnector calls kind.run without signal; propagate abort and refuse post-cancel result/proposal writes.",
+        "Cancellation through instance B must stop or fence work on A, including cancellation racing a completed connector. Define terminal-state transitions and bounded graceful cancellation."
+      ],
+      "source_evidence": [
+        "apps/server/src/services/visua.ts: RunRecorder.step (138), running Map (167), startRun (1544), launch (1571), drainRuns (1588), cancelRun (1604), executeRun (1616), hostFor (1704), createProposal (1805)",
+        "apps/server/src/services/visua.ts: runConnector (1457)",
+        "apps/server/src/connectors/{index,limits}.ts: signal-capable ConnectorKind and withConnectorBudget",
+        "apps/server/src/server.ts: startServer stop",
+        "packages/core/src/types.ts: AgentRun has no owner/lease/heartbeat fields; migrations end at version 7"
+      ],
+      "existing_test_source": [
+        "apps/server/test/agent-stages.test.ts: does not start analysis after cancellation during collection",
+        "apps/server/test/agent-stages.test.ts: does not record analysis completion after cancellation wins",
+        "apps/server/test/startup.test.ts: waits for detached agent writes before closing the store",
+        "apps/server/test/connector-boundaries.test.ts: refuses excess work without queueing, and keeps cancelled slots until work stops",
+        "Missing source tests for cross-instance cancel fencing, leases, restart reconciliation and post-cancel proposals."
+      ],
+      "test_execution": "not run; test names are source evidence only",
+      "implementation_package": "P4"
+    },
+    {
+      "id": "stream-auth-and-resync",
+      "requirements": [
+        "M3.2"
+      ],
+      "status": "partial",
+      "implemented": [
+        "workspaceAccess authenticates initial SSE request; shutdown unsubscribes streams.",
+        "Browser EventSource open invalidates all id-keyed workspace queries, with a reconnect browser test.",
+        "PostgreSQL relay reconnects with backoff; compactEvent bounds NOTIFY bytes. EventBus scopes workspace channels."
+      ],
+      "remaining_work": [
+        "Recheck current session/token/membership/require-SSO authorization before delivering payloads and periodically while idle; discard queued data after revocation.",
+        "Bound SSE queue bytes/count, event payloads and connections; local EventBus payloads currently bypass relay compaction.",
+        "The PostgreSQL LISTEN relay can lose events while the browser SSE stays open; emit explicit resync after relay recovery or otherwise guarantee client invalidation.",
+        "No durable replay exists; define resync contract and test missed events/revocation with two instances."
+      ],
+      "source_evidence": [
+        "apps/server/src/app.ts: GET /api/workspaces/:ws/events (734): unbounded string[] queue and no authorization recheck",
+        "apps/server/src/storage/events.ts: compactEvent, PgEventRelay.listen/reconnectLater",
+        "apps/server/src/bus.ts: EventBus.publish/deliver",
+        "apps/web/src/lib/events.ts: useWorkspaceEvents open listener"
+      ],
+      "existing_test_source": [
+        "e2e/workspace-recovery.spec.ts: reconnecting events refresh changes missed while disconnected",
+        "apps/server/test/relay.test.ts: keeps reconnecting, with backoff, while the database is unreachable",
+        "apps/server/test/relay.test.ts: sizes NOTIFY payloads in bytes, so text with multibyte characters is compacted",
+        "apps/server/test/storage.test.ts: relays live events between instances through Postgres",
+        "apps/server/test/startup.test.ts: closes a live event stream on shutdown without waiting for its heartbeat"
+      ],
+      "test_execution": "not run; test names are source evidence only",
+      "implementation_package": "P5"
+    },
+    {
+      "id": "oidc-cache-version",
+      "requirements": [
+        "M3.2"
+      ],
+      "status": "partial",
+      "implemented": [
+        "OIDC configuration discovery is guarded; local save/delete evicts local cache.",
+        "Each oidcFor call rereads connection enabled state. DNS ownership rechecks already coordinate across instances."
+      ],
+      "remaining_work": [
+        "Cache is Map<connectionId,{config,at}> with one-hour TTL; an update through A leaves B using prior issuer/client settings.",
+        "Key cache by persisted configuration generation/fingerprint, including secret rotation, and bind/revalidate login flows against the intended provider version.",
+        "Add a two-instance provider replacement test; DNS domain-recheck tests do not establish configuration-cache correctness."
+      ],
+      "source_evidence": [
+        "apps/server/src/auth/service.ts: oidcConfigs (104), oidcFor (664), save/delete local eviction (525,642)",
+        "apps/server/src/storage/identity.ts: SsoConnection and SsoConnections.put"
+      ],
+      "existing_test_source": [
+        "apps/server/test/auth.test.ts: lets only owners choose a connection's identity provider, and never sends its secret to another one",
+        "apps/server/test/sso-recheck.test.ts: looks each due domain up once when two instances tick together",
+        "Missing source test for stale OIDC configuration across instances."
+      ],
+      "test_execution": "not run; test names are source evidence only",
+      "implementation_package": "P5"
+    },
+    {
+      "id": "proposal-contract-and-autonomy",
+      "requirements": [
+        "M3.3"
+      ],
+      "status": "partial",
+      "implemented": [
+        "Tool inputs have zod schemas; service checkProposal validates selected scope/date/link/assignment constraints and refuses RMF authorization decisions.",
+        "Approval previews bind exact payload and target snapshots; HTTP approvals cannot edit the inspected payload.",
+        "Connector checkResultId and evidence review target/scope are retained through service approval edits.",
+        "Narrative artifact hashes are already server-computed from canonical content and data."
+      ],
+      "remaining_work": [
+        "Validate all proposal payloads with strict discriminated per-type schemas at the service boundary; current payload is Record<string,unknown> and branches often coerce/cast.",
+        "propose_evidence accepts arbitrary text labeled automated-check or attestation without check/witness provenance; distinguish generated narrative from observed artifacts and refuse fake provenance.",
+        "Constrain autonomy to an explicit reviewed allowlist and safe immutable check-backed cases. updateWorkspace currently accepts arbitrary boolean keys and createProposal honors ws.autonomy[type].",
+        "Preserve the existing exact-review/check-reference binding and document migration for existing autonomy settings."
+      ],
+      "source_evidence": [
+        "packages/agents/src/tools.ts: proposeEvidence (586), runChecks (692)",
+        "apps/server/src/services/visua.ts: checkProposal (1741), createProposal (1805), decideProposal (1898), applyProposal (1939)",
+        "apps/server/src/app.ts: Schemas.updateWorkspace autonomy z.record",
+        "apps/server/src/services/evidence.ts: artifactHash"
+      ],
+      "existing_test_source": [
+        "apps/server/test/evidence-binding.test.ts: retains a connector proposal's check reference and validates edited narrative validity",
+        "apps/server/test/proposal-review.test.ts: requires an HTTP approval snapshot, applies it, and records the authenticated actor",
+        "apps/server/test/proposal-review.test.ts: does not let RMF proposals carry an authorization decision",
+        "apps/server/test/api.test.ts: autonomy lets an agent apply a proposal type without approval",
+        "apps/server/test/evidence-binding.test.ts: hashes data and content together and refuses acceptance of metadata-only records"
+      ],
+      "test_execution": "not run; test names are source evidence only",
+      "implementation_package": "P6"
+    },
+    {
+      "id": "citation-validation",
+      "requirements": [
+        "M3.4"
+      ],
+      "status": "partial",
+      "implemented": [
+        "Corpus search returns cited chunks; hitToCitation retains document/page/locator.",
+        "Model routing withholds licensed AICPA text unless operator permission is declared."
+      ],
+      "remaining_work": [
+        "normalizeCitations only checks document existence and truncates arbitrary supplied quote to 600 chars; no chunk/quote/page/locator verification occurs.",
+        "Validate references against actual chunk identity and text, preserve origin/provenance, and reject fabricated citations at service and tool boundaries.",
+        "Search index chunks are private; add a controlled corpus-reference resolver rather than fuzzy search as validation."
+      ],
+      "source_evidence": [
+        "packages/agents/src/tools.ts: CitationInput, normalizeCitations (53), hitToCitation",
+        "packages/frameworks/src/search.ts: SearchIndex private chunks and search",
+        "packages/core/src/types.ts: Citation",
+        "apps/server/src/services/visua.ts: createProposal copies citations unchanged"
+      ],
+      "existing_test_source": [
+        "apps/server/test/api.test.ts: copilot answers with citations and drives the 3D focus",
+        "packages/agents/test/licensing.test.ts: withholds AICPA text from Claude by default",
+        "No fabricated-document/page/locator/quote regression located."
+      ],
+      "test_execution": "not run; test names are source evidence only",
+      "implementation_package": "P7"
+    },
+    {
+      "id": "crosswalk-and-policy-basis",
+      "requirements": [
+        "M3.4"
+      ],
+      "status": "partial",
+      "implemented": [
+        "Crosswalk edges retain mapping authority and relationship; comparison API/UI presents source authority.",
+        "Offline crosswalk proposals label rationale as projection and require approval by default."
+      ],
+      "remaining_work": [
+        "projectLevels averages raw source levels, caps every target at 4, and promotes any two sources to medium confidence even if both are weak relationships.",
+        "Use source/target family scales and relationship strength; prevent weak mappings from masquerading as observed implementation/evidence. Persist projection provenance.",
+        "templateFor matches raw code prefixes and falls back to the first template for every unknown requirement; replace with explicit applicable mappings or an honest unsupported outcome."
+      ],
+      "source_evidence": [
+        "packages/core/src/crosswalk.ts: STRENGTH, projectLevels (110)",
+        "packages/agents/src/offline.ts: crosswalkAnalyst (596) proposes medium/high projections",
+        "packages/agents/src/policies.ts: templateFor (203)",
+        "apps/server/src/services/crosswalk.ts: crosswalkMatrix rows include authority/documentId",
+        "apps/server/src/services/crosswalk-comparison.ts and apps/web/src/components/crosswalk/ComparisonMatrix.tsx"
+      ],
+      "existing_test_source": [
+        "packages/core/test/core.test.ts: projects progress with confidence (only existing happy-path projection assertion)",
+        "apps/server/test/crosswalk-comparison.test.ts (mapping comparison coverage)",
+        "No targeted weak-only mappings/family-scale/policy-fallback tests located."
+      ],
+      "test_execution": "not run; test names are source evidence only",
+      "implementation_package": "P7"
+    },
+    {
+      "id": "monitoring-and-public-measures",
+      "requirements": [
+        "M3.5"
+      ],
+      "status": "partial",
+      "implemented": [
+        "Private evidence UI selects latest checks by connectorId/checkId; core scoring includes requirement identity; attention uses the same selection.",
+        "Overview provides asOf and explicit calculation explanations; score history records formula, scope, target and catalog fingerprints.",
+        "Public publishing choices keep threat catalogs out and state-law measures opt-in."
+      ],
+      "remaining_work": [
+        "Public GET /api/trust/:slug dedupes by checkId alone over recent 100 checks, hiding one of two targets; include connector/target identity and avoid arbitrary history truncation for latest selection.",
+        "Public metrics omit basis, formula/scope and asOf; updatedAt is workspace mutation time rather than evaluation time.",
+        "Free-text headline is shown without organization-authored label, despite ReportsPage claiming no free-text claims.",
+        "Add two-target opposite-outcome tests and date/scope consistency against effective evidence state."
+      ],
+      "source_evidence": [
+        "apps/server/src/app.ts: trust route (803) and Schemas.updateWorkspace.trustCenter",
+        "apps/web/src/pages/TrustPage.tsx: TrustData and headline/monitoring output",
+        "apps/web/src/pages/EvidencePage.tsx: latestChecks (245)",
+        "packages/core/src/scoring.ts: buildSnapshot (191)",
+        "apps/server/src/services/views.ts: overview asOf; services/score-history.ts: recordScoreObservation"
+      ],
+      "existing_test_source": [
+        "apps/server/test/attention.test.ts: lets newer results supersede each failed requirement independently and deduplicates multi-links",
+        "apps/server/test/overview.test.ts (fresh metric time/expiry coverage)",
+        "e2e/overview-attention.spec.ts: overview explains scoped metrics and puts the complete attention queue before frameworks",
+        "No two-target public-monitoring regression located."
+      ],
+      "test_execution": "not run; test names are source evidence only",
+      "implementation_package": "P8"
+    },
+    {
+      "id": "limits-and-diagnostics",
+      "requirements": [
+        "M3.6"
+      ],
+      "status": "partial",
+      "implemented": [
+        "Upload request bytes, upload concurrency, connector concurrency/timeout/egress and query limits are bounded.",
+        "Readiness probes storage; connector failures are audited; relay failures log to console; run records expose states."
+      ],
+      "remaining_work": [
+        "General body() uses c.req.json before schema validation and has no shared request-body cap; no general/auth/public rate limiter located.",
+        "Add bounded safe diagnostics for request counts/latency/error, run queue/leases/states, connector failures, SSE queue pressure and relay reconnect/gap counts.",
+        "Preserve privacy: operational diagnostics should avoid secrets, raw evidence and full goals/content.",
+        "Capacity targets and time-to-first-accepted-artifact baselines need real pilot measurements; fixtures can test instrumentation, not establish production capacity."
+      ],
+      "source_evidence": [
+        "apps/server/src/app.ts: body (242), createApp middleware/onError",
+        "apps/server/src/evidence-http.ts: withEvidenceUpload, evidenceUpload",
+        "apps/server/src/connectors/limits.ts",
+        "apps/server/src/readiness.ts",
+        "apps/server/src/storage/events.ts: console diagnostics"
+      ],
+      "existing_test_source": [
+        "apps/server/test/evidence-files.test.ts: cancels a stalled body when its caller aborts",
+        "apps/server/test/api.test.ts: returns 503 and records an audited failure when connector capacity is full",
+        "apps/server/test/startup.test.ts: bounds a stalled readiness query and shares it across repeated probes",
+        "No general rate/body limit or diagnostic snapshot tests located."
+      ],
+      "test_execution": "not run; test names are source evidence only",
+      "implementation_package": "P9"
+    },
+    {
+      "id": "existing-export-foundation",
+      "requirements": [
+        "M4.1",
+        "M4.3"
+      ],
+      "status": "partial",
+      "implemented": [
+        "Eight gated export kinds exist: CSF profile, AI RMF profile, action plan, evidence index, SOC 2 PBC, readiness Markdown, OSCAL SSP and POAM.",
+        "CSF includes current/target states and applicability rationale; evidence index includes hash/reviewer/validity; readiness disclaims audit opinion/certification.",
+        "Auditor capability permits existing exports."
+      ],
+      "remaining_work": [
+        "Refactor these builders around one frozen export context rather than invoking fresh store reads and wall clocks independently.",
+        "The existing evidence CSV omits evidence ids, review history, check/source refs and file references; it is not an auditor package.",
+        "No one-download bundle with actual artifact bytes, manifest, PBC records, frozen states/scope/approved policy versions and offline presentation/verifier is implemented."
+      ],
+      "source_evidence": [
+        "apps/server/src/services/exports.ts: csfProfileCsv, actionPlanCsv, evidenceIndexCsv, aiRmfProfileCsv, soc2PbcCsv, readinessMarkdown, oscalSsp, oscalPoam",
+        "apps/server/src/app.ts: GET /api/workspaces/:ws/exports/:kind (776)",
+        "apps/web/src/pages/ReportsPage.tsx: export cards"
+      ],
+      "existing_test_source": [
+        "apps/server/test/api.test.ts: exports the CSF Organizational Profile with the official template columns",
+        "apps/server/test/api.test.ts: exports an OSCAL SSP and POA&M",
+        "apps/server/test/auth.test.ts: lets auditors export but not change anything"
+      ],
+      "test_execution": "not run; test names are source evidence only",
+      "implementation_package": "P10"
+    },
+    {
+      "id": "frozen-package-and-period",
+      "requirements": [
+        "M4.1",
+        "M4.3"
+      ],
+      "status": "missing_contract_with_reusable_snapshot_pattern",
+      "implemented": [
+        "recordScoreObservation captures metrics under workspace transaction/lock at one supplied clock, records revision and catalog/scope/target fingerprints.",
+        "SOC 2 settings contain reportType and observationStart/End; description filters activity changes by that period."
+      ],
+      "remaining_work": [
+        "Score snapshots do not retain the source artifact bytes/reviews/policies/complete states needed to reconstruct a past auditor package.",
+        "Define chosen-scope/as-of/period contract; validate dates and use consistent effective state across all reports/export members.",
+        "SOC 2 evidence/policies currently use current validity despite period-filtered activity; string observation dates are not strict validated dates in API schemas.",
+        "Freeze database metadata transactionally, read verified blobs outside long transactions, and detect revision/reference races before publishing a complete package.",
+        "Use stable content ordering and identifiers; generation timestamp belongs in explicit metadata. No absent historical state should be invented."
+      ],
+      "source_evidence": [
+        "apps/server/src/services/score-history.ts: recordScoreObservation",
+        "apps/server/src/services/soc2.ts: soc2Description evidence/changes selection",
+        "apps/server/src/app.ts: createWorkspace/enableFramework soc2 date schemas",
+        "apps/server/src/services/exports.ts: context and individual generators"
+      ],
+      "existing_test_source": [
+        "apps/server/test/score-history.test.ts: stores readable scope and target changes and preserves earlier observations",
+        "apps/server/test/score-history.test.ts: rolls observation, audit and revision back together on a late failure",
+        "No frozen package determinism, missing-reference or selected-period test located."
+      ],
+      "test_execution": "not run; test names are source evidence only",
+      "implementation_package": "P10"
+    },
+    {
+      "id": "audit-digests-checkpoint",
+      "requirements": [
+        "M4.2"
+      ],
+      "status": "partial",
+      "implemented": [
+        "Audit events hash canonical event bodies with prevHash; log uses workspace lock and mutation transaction, actorId and monotonic sequence.",
+        "Evidence changes include artifact-hash metadata and before/after review snapshots.",
+        "Activity chain and current head can be read and verified."
+      ],
+      "remaining_work": [
+        "Many task/policy/requirement mutations only log summary/partial data; define entity/content digests sufficient for exported state linkage.",
+        "Export ordered audit events and a checkpoint (workspace, sequence, head, snapshot revision/time); verifier must check expected checkpoint and referenced content.",
+        "Current verifyAuditTrail has no independently retained expected terminal head: deleting trailing events can leave a valid prefix. Correct UI absolute deletion-detection claim.",
+        "Describe unsigned bundle/checkpoint as internal consistency. Independent truncation/authenticity claims require a separately retained checkpoint or an operator-controlled signature and verification trust root.",
+        "Do not rehash historical audit rows during migration."
+      ],
+      "source_evidence": [
+        "apps/server/src/audit.ts: canonical, chainHash",
+        "apps/server/src/services/visua.ts: log (203), verifyAuditTrail (233)",
+        "apps/server/src/services/evidence.ts: evidenceAuditSnapshot",
+        "apps/web/src/pages/ReportsPage.tsx: audit chain deletion claim"
+      ],
+      "existing_test_source": [
+        "apps/server/test/api.test.ts: keeps a tamper-evident, hash-chained audit trail",
+        "apps/server/test/storage.test.ts: keeps the audit chain linear under concurrent writers",
+        "Missing independent-checkpoint mismatch and trailing-truncation tests."
+      ],
+      "test_execution": "not run; test names are source evidence only",
+      "implementation_package": "P11"
+    },
+    {
+      "id": "export-stability-safety-oscal",
+      "requirements": [
+        "M4.3"
+      ],
+      "status": "partial",
+      "implemented": [
+        "CSV quoting escapes comma, quote and newline; OSCAL declares version 1.1.2.",
+        "Requirement ids and user exclusion rationale are retained in domain state."
+      ],
+      "remaining_work": [
+        "CSV formula-leading cells are not neutralized; add spreadsheet-safe export values.",
+        "OSCAL uses fresh randomUUID calls for document/parties/components/control implementations on each export; replace with stable valid UUID strategy.",
+        "implementationStatus maps zero to planned; use accurate allowed state/remarks for no recorded implementation without implying a plan.",
+        "SSP filters excluded controls out and only says with tailoring; include explicit tailoring rationale.",
+        "Vendor/obtain the chosen official OSCAL schemas and validate full exports, including POAM required structure, against that version. Existing tests only inspect selected fields/counts."
+      ],
+      "source_evidence": [
+        "apps/server/src/services/exports.ts: csvCell (10), implementationStatus (240), oscalSsp (248), oscalPoam (323)",
+        "apps/server/test/api.test.ts: exports an OSCAL SSP and POA&M (123)"
+      ],
+      "existing_test_source": [
+        "apps/server/test/api.test.ts: exports an OSCAL SSP and POA&M checks sensitivity/control count and nonempty poam-items only",
+        "No official schema-validation, unchanged-export determinism or spreadsheet-formula tests located."
+      ],
+      "test_execution": "not run; test names are source evidence only",
+      "implementation_package": "P12"
+    },
+    {
+      "id": "auditor-view-access-log-and-pbc",
+      "requirements": [
+        "M4.4"
+      ],
+      "status": "partial",
+      "implemented": [
+        "Auditor role grants read/export without mutation capability; pages gate/disable writes with role tests.",
+        "Visua-authored SOC 2 skeleton is available; corpus licensing/model routing guardrails already exist.",
+        "PBC CSV is generated from criterion pointsOfFocus where available."
+      ],
+      "remaining_work": [
+        "Provide a scope/period-frozen read-only auditor presentation with no write affordances.",
+        "Access/download/export events currently have no separate event store/path; log them without assessment revision/score changes. VisuaService.log always bumps workspace revision.",
+        "Skeleton has no pointsOfFocus, so soc2PbcCsv Evidence requested becomes blank; add Visua-authored PBC request language on skeleton installations.",
+        "Preserve licensing classification in bundle text/attachments and avoid granting tenant entitlement merely because a licensed file is installed. Operator entitlement decisions remain external when licensed text is used."
+      ],
+      "source_evidence": [
+        "packages/core/src/access.ts: ROLE_CAPABILITIES.auditor",
+        "apps/web/src/pages/ReportsPage.tsx: canExport/canConfigure controls",
+        "apps/server/src/app.ts: exports route has no access logging",
+        "apps/server/src/services/exports.ts: soc2PbcCsv (178)",
+        "packages/frameworks/src/ingest/tsc-skeleton.ts",
+        "apps/server/src/services/visua.ts: log bumps revision"
+      ],
+      "existing_test_source": [
+        "apps/server/test/auth.test.ts: lets auditors export but not change anything",
+        "e2e/page-roles.spec.ts: auditor can view every workspace destination with controls matching server capabilities (parameterized case)",
+        "packages/agents/test/licensing.test.ts: withholds AICPA text from Claude by default",
+        "No frozen auditor-view, access-log-separation or skeleton PBC-content regression located."
+      ],
+      "test_execution": "not run; test names are source evidence only",
+      "implementation_package": "P13"
+    },
+    {
+      "id": "backup-restore",
+      "requirements": [
+        "M4.5"
+      ],
+      "status": "missing_productized_workflow",
+      "implemented": [
+        "Database drivers/migrations, private local/S3 blob adapters and byte verification exist.",
+        "Historical deployment context records manual local consistent backups, but those are not a source-level backup/restore test or hosted runbook."
+      ],
+      "remaining_work": [
+        "Implement a coherent backup fixture/workflow covering database, referenced blobs, configuration needed to resolve storage and checkpoint metadata.",
+        "Restore into isolated fixture installation, verify audit chain/checkpoint and exact artifact bytes, and test missing/tampered blob failures.",
+        "Document deployment/upgrade/auth/restore/artifact retention, including consistency boundary, owner and restore verification.",
+        "Actual hosted backup scheduling, durable retention/signing location, recovery objectives and restoration ownership need operator decisions and selected provider."
+      ],
+      "source_evidence": [
+        "apps/server/src/storage/{sqlite,postgres,migrations}.ts",
+        "apps/server/src/blobs/{shared,local,s3}.ts",
+        "apps/server/src/services/visua.ts: verifiedFile/getEvidenceFile",
+        "scripts/ contains check/corpus/screens/scene-profile, no database-plus-blob backup/restore facility located"
+      ],
+      "existing_test_source": [
+        "apps/server/test/blob-store.test.ts (adapter roundtrip/isolation/integrity source tests)",
+        "apps/server/test/evidence-content.test.ts: verifies stored bytes for retrieval and review, preserving decisions when storage is corrupted",
+        "No database-plus-blob restore fixture or package-artifact restore test located."
+      ],
+      "test_execution": "not run; test names are source evidence only",
+      "implementation_package": "P14"
+    }
+  ],
+  "implementation_packages": [
+    {
+      "id": "P1",
+      "name": "Evidence identity, provenance and version contract",
+      "depends_on": [],
+      "covers": [
+        "M2.3",
+        "M2.5"
+      ],
+      "deliverable": "Typed origin/assurance/check/policy/series references and conservative migration; retain license source classification."
+    },
+    {
+      "id": "P2",
+      "name": "Effective evidence and supersession",
+      "depends_on": [
+        "P1"
+      ],
+      "covers": [
+        "M2.5",
+        "M2.6"
+      ],
+      "deliverable": "One time-aware evaluator reused by status/scoring/renewal/attention; independent failures and superseded history tests."
+    },
+    {
+      "id": "P3",
+      "name": "Review and 2D lineage journey",
+      "depends_on": [
+        "P1",
+        "P2"
+      ],
+      "covers": [
+        "M2.4",
+        "M2.6",
+        "M2 gate"
+      ],
+      "deliverable": "Reasoned rejection, withdrawal, assurance labels, source lineage and complete keyboard CSF/SOC2 lifecycle gate."
+    },
+    {
+      "id": "P4",
+      "name": "Durable agent execution and cancellation",
+      "depends_on": [],
+      "covers": [
+        "M3.1"
+      ],
+      "deliverable": "Lease/heartbeat/fencing, bounded runs, restart recovery, abort propagation and post-cancel write guards. Integrate new source-run refs from P1."
+    },
+    {
+      "id": "P5",
+      "name": "Stream revocation, gap resync and OIDC cache generations",
+      "depends_on": [],
+      "covers": [
+        "M3.2"
+      ],
+      "deliverable": "Bound streams, fresh authorization, reconnect/gap resync and configuration-version cache tests across two instances."
+    },
+    {
+      "id": "P6",
+      "name": "Strict proposal provenance and safe autonomy",
+      "depends_on": [
+        "P1",
+        "P4"
+      ],
+      "covers": [
+        "M3.3"
+      ],
+      "deliverable": "Per-type service schemas, fake provenance rejection, immutable check identity and explicit constrained autonomy migration."
+    },
+    {
+      "id": "P7",
+      "name": "Corpus-backed claims and projections",
+      "depends_on": [
+        "P6"
+      ],
+      "covers": [
+        "M3.4"
+      ],
+      "deliverable": "Verified chunk references, projection provenance/family scales/weak confidence and appropriate policy selection."
+    },
+    {
+      "id": "P8",
+      "name": "Supported public measures and target identity",
+      "depends_on": [
+        "P2",
+        "P7"
+      ],
+      "covers": [
+        "M3.5"
+      ],
+      "deliverable": "Shared effective basis/as-of, correct latest target/check feed and organization-authored headline labeling."
+    },
+    {
+      "id": "P9",
+      "name": "Request controls and operation diagnostics",
+      "depends_on": [
+        "P4",
+        "P5"
+      ],
+      "covers": [
+        "M3.6",
+        "M3 gate"
+      ],
+      "deliverable": "Body/rate controls and bounded diagnostics; execute two-instance PG gate with cancel/revoke/provider replace/event loss scenarios."
+    },
+    {
+      "id": "P10",
+      "name": "Frozen scope/period export context and artifact package",
+      "depends_on": [
+        "P1",
+        "P2",
+        "P3",
+        "P6"
+      ],
+      "covers": [
+        "M4.1",
+        "M4.3"
+      ],
+      "deliverable": "Extend existing export builders to frozen complete snapshot, verified evidence bytes, deterministic manifest and offline presentation data."
+    },
+    {
+      "id": "P11",
+      "name": "Auditor integrity and checkpoint verifier",
+      "depends_on": [
+        "P10"
+      ],
+      "covers": [
+        "M4.2"
+      ],
+      "deliverable": "Entity/content digests, ordered audit export, checkpoint trust boundary and offline tamper/mismatch verification."
+    },
+    {
+      "id": "P12",
+      "name": "Stable safe report and OSCAL exports",
+      "depends_on": [
+        "P10"
+      ],
+      "covers": [
+        "M4.3"
+      ],
+      "deliverable": "Stable ids/order, consistent date scope, tailoring/zero-state semantics, CSV safety and official-version schema tests."
+    },
+    {
+      "id": "P13",
+      "name": "Auditor presentation and separate access audit",
+      "depends_on": [
+        "P10",
+        "P11",
+        "P12"
+      ],
+      "covers": [
+        "M4.4"
+      ],
+      "deliverable": "Read-only package view, access/export records without assessment revision churn, authored skeleton PBC and licensing guard."
+    },
+    {
+      "id": "P14",
+      "name": "Restore evidence and operating runbook",
+      "depends_on": [
+        "P10",
+        "P11",
+        "P13"
+      ],
+      "covers": [
+        "M4.5",
+        "M4 gate"
+      ],
+      "deliverable": "Database-plus-blob isolated restore fixture, tamper/missing reference tests and documented ownership/retention procedures."
+    }
+  ],
+  "recommended_dependency_order": [
+    "P1",
+    "P2",
+    "P3",
+    "P4",
+    "P5",
+    "P6",
+    "P7",
+    "P8",
+    "P9",
+    "P10",
+    "P11",
+    "P12",
+    "P13",
+    "P14"
+  ],
+  "parallelism_note": "P4 and P5 are foundational and can start independently of evidence UI work; strict provenance/public/export integration depends on P1/P2. P11/P12 can be independently implemented after frozen export contract P10. Milestone gates still run in plan order.",
+  "external_prerequisites": [
+    {
+      "id": "pilot-host",
+      "needed_for": "Hosted pilot deployment and real two-instance operations",
+      "prerequisite": "Operator-selected deployment/provider/domain, PostgreSQL and object store, actual OIDC tenant credentials and responsible operator.",
+      "blocks_source_implementation": false
+    },
+    {
+      "id": "pilot-baseline",
+      "needed_for": "Milestone 3.6 capacity decisions and phase outcome claims",
+      "prerequisite": "Real pilot users/representative traffic and agreed measurement window; source tests cannot establish baseline or time saved.",
+      "blocks_source_implementation": false
+    },
+    {
+      "id": "retention-trust",
+      "needed_for": "Hosted retention, independently authentic checkpoints and recovery commitment",
+      "prerequisite": "Owner-approved retention/deletion rights, backup location and restore owner, independent checkpoint retention or signing trust root if authenticity/truncation is claimed.",
+      "blocks_source_implementation": false
+    },
+    {
+      "id": "licensed-content",
+      "needed_for": "Use/export/model routing of licensed corpus content beyond authored skeleton",
+      "prerequisite": "Actual entitlement/permission; skeleton implementation and tests can proceed without licensed text.",
+      "blocks_source_implementation": false
+    },
+    {
+      "id": "schema-source",
+      "needed_for": "Official OSCAL schema validation",
+      "prerequisite": "Pin chosen official OSCAL version and retrieve official schemas during implementation; this inventory did not browse or download them.",
+      "blocks_source_implementation": false
+    }
+  ],
+  "acceptance_gaps": [
+    "M2: explicit same-series supersession/clock transitions and complete CSF+SOC2 assign/reject-replace/verify-expire-refresh browser journey on top of both storage backends.",
+    "M3: two live server instances on PostgreSQL; start A/cancel B; membership removal with open stream; IdP replacement A used by B; client and relay gaps; no post-cancel proposals or post-revocation payloads.",
+    "M3: fabricated citations, edited/forged automated-check or attestation provenance, weak crosswalk confidence and two targets with opposite outcomes.",
+    "M4: one offline-verifiable download with actual artifacts and no missing refs; deterministic unchanged state; tampered bytes/checkpoint mismatches detected; referenced artifacts restored from backup fixture."
+  ],
+  "limitations": [
+    "Read-only source inventory at baseline b34cf1fe846920c98aa71df3121712284880dc1a; no tests, services, database access or runtime verification were performed.",
+    "Existing test names demonstrate checked-in coverage only and are not represented as current passes.",
+    "Negative findings are bounded to inspected application/core/agent source, relevant test files, scripts and file searches; historical deployment artifacts were not treated as implemented source capabilities.",
+    "No broad internet research or official-schema validation was performed; official OSCAL validity remains unverified.",
+    "The root task may concurrently modify application files after this baseline inventory; reconcile findings against subsequent patches.",
+    "Deferred SAML/SCIM, framework expansion, broad providers and 3D additions are excluded. The GitHub API connector remains a separate optional extension after the M3 gate."
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "pid": 22071,
+  "process_group_id": 22071,
+  "started_utc": "2026-10-02T07:16:02.162527+00:00",
+  "binary": "/Users/artem/.local/share/claude/versions/2.1.287",
+  "request_sha256": "ac914c9a9952be86bda71bfa8bb646190825899cdd90fda540e0601638aa353e",
+  "brief_sha256": "383663d26ddb01d96edef276dd040a7038c933335a14d060f50f90b38a0671ad",
+  "identity_note": "Verify a still-running process before signaling; stored PIDs may be reused."
+}

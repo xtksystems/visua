@@ -1,0 +1,54 @@
+{
+  "integrity": "ok",
+  "tables": {
+    "workspaces": {
+      "count": 1,
+      "sha256": "723bac728f07b2e5e4e1dfa5c3aee9b466f72fd430b84efaa6aabd346405ac3b",
+      "identitiesSha256": "00f266ccf50df64f5f3f009ab152e2f5461f82a23bcfe0650ad5613a0ea47fa8",
+      "contentSha256": "e3b2f6a2df830b9a61aa56a48f9c5e300e4d0fa79b78d0ab3db27ae801e714ff"
+    },
+    "requirement_states": {
+      "count": 1487,
+      "sha256": "b1bf77d07290f2f3954c8014c5f93d71b36cce6cbbfeb0be24259adf8df7dac6",
+      "identitiesSha256": "ab7d3cfb1108757b20eda6fe2a2d1c298a75672ff640b6b3d02cfef34769ba18",
+      "contentSha256": "2afade4ba60c4854512da8316e6d9f325d859685b1def9c101bd807a030e445e"
+    },
+    "tasks": {
+      "count": 18,
+      "sha256": "dcc2f35263b173d21dc717cb113a5f7d7c4f29e3b3a6dff3913e3e3a54aebbfe",
+      "identitiesSha256": "605bd80ff74162275558f75529512e1bd4377984ef8fbfcbccae218de30e7a18",
+      "contentSha256": "91001180ba4840391bec04de5059aea005f87304dcdd16382106eb56f6d768ff"
+    },
+    "activity": {
+      "count": 88,
+      "sha256": "3fd99c430256566e19365de20004ca92f3d5f8ab3c7a3c1ae343a59474f2d6b3",
+      "identitiesSha256": "663e14fb9c4cbc25981d4c2d7590c662cc387310224791d4a44f6e72f5f04ef3",
+      "contentSha256": "0d092201b31761cc9276527f4f3b08d1ed0a4eb63a497b62d65c0c138e8760ad"
+    },
+    "tenants": {
+      "count": 2,
+      "sha256": "083b6bb6af191b1214286474e6b852d82f8d00d11202bbf6aa074fca50528d99",
+      "identitiesSha256": "bc1fa6bd1327270392ec6f9d5213e6648ee652958b870db5de57280ae3dec19c",
+      "contentSha256": "9dededba2c64f04f6883d8e2a934a123f772d408ddf6127d0220667ee25fff72"
+    },
+    "memberships": {
+      "count": 9,
+      "sha256": "48981855f1c5c7d0df44ea34af1686f8ba6e820939c565ba9937763206f7b47b",
+      "identitiesSha256": "c672f5896a65ba680ce5fd2adaf56e935b48032ab98dbc291303465f0b3edd16",
+      "contentSha256": "48981855f1c5c7d0df44ea34af1686f8ba6e820939c565ba9937763206f7b47b"
+    }
+  },
+  "evidenceStatuses": {
+    "accepted": 18
+  },
+  "maxActivitySeq": 79,
+  "migrations": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "evidenceCount": 18,
+  "evidenceIdentitiesSha256": "f9b2763bab4149f1c1c11abe1995d206845a48ec6dcbf751702d5d8d86179b0e",
+  "legacyReviewCount": 0
+}

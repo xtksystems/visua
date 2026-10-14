@@ -1,0 +1,19 @@
+{
+  "run_id": "visual-followthrough-20261013",
+  "node_id": "profile-stages-review",
+  "input_sha256": "8ee2cb9cd9190bae0867d4e39f1a378b39b2e88aa5583901775e89153807cc93",
+  "status": "complete",
+  "summary": "Independent review complete with three medium findings: API-token decisions called human, legacy runtime failure attributed to Apply, and tier draft loss on ancestor summary refresh failure. All 29 focused tests passed; product source untouched.",
+  "evidence": [
+    "Report: .codex-context/runs/visual-followthrough-20261013/profile-stages-review.json",
+    "Report SHA-256: c9425b2af5e34353c0943208e85b67f7e476b1a715bc0c33883fb1d56c88ec11",
+    "All six source hashes match profile-stages-review-source.json at review start and finish; HEAD 9755c01873444647c30821ac1d0b88aa16023632.",
+    "pnpm exec vitest run apps/web/test/profile.test.ts apps/web/test/agent-stages.test.ts apps/server/test/agent-stages.test.ts: 3 files / 29 tests passed.",
+    "Inline Node execution confirmed both agent projection defects; source ancestry trace supports the profile lifetime defect."
+  ],
+  "limitations": [
+    "No application edits, browser/server/build runs, full test suite, PostgreSQL-specific lane or production access were performed. The lead owns integration and browser verification.",
+    "The tier draft loss is supported by the actual component/query lifetime trace but was not executed in a browser under the review contract.",
+    "Focused unit passes do not cover the two newly reproduced projection edge cases; their current results are the reported failures. This report remains bound to the original snapshot; subsequent lead fixes require their own affected verification."
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "apps/web/src/pages/ObservatoryPage.tsx": "d024e86d65381191e4175e0f42329926ebc048d2016e178f58543198f97f6a12",
+  "apps/web/src/components/inspector/Inspector.tsx": "f51fd73fd262cc498f9f06567c9943b5a893f99956c03f26f9cf717d06690bd9",
+  "apps/web/src/components/inspector/Threats.tsx": "688e8a808909ae7e21ce8da42bf3ec8148893b2f8db6d13deb6bd344d674aea9",
+  "apps/web/src/lib/observatory.ts": "a114ab49f3d3d8fb96d74e66e76dc065e11cac6b5f696fbafa10dbe312864ca6",
+  "e2e/observatory-presets.spec.ts": "dbb5615915d4c5100a047d3e40a81b89f40721ec34d12b3cdd617ed6ee3e0742",
+  "e2e/keyboard-outline.spec.ts": "18c8559d83b4c7f873e38f6f4bf9feef462c5afa636b3ff2367809be9d06dceb"
+}

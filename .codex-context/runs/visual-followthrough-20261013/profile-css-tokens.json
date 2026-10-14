@@ -1,0 +1,31 @@
+{
+  "used": [
+    "--color-error",
+    "--color-framework-csf",
+    "--color-on-surface",
+    "--color-on-surface-muted",
+    "--color-outline",
+    "--color-outline-strong",
+    "--color-primary",
+    "--color-primary-container",
+    "--color-surface-raised",
+    "--font-body-md-family",
+    "--font-body-md-line-height",
+    "--font-body-md-size",
+    "--font-body-sm-family",
+    "--font-body-sm-size",
+    "--font-code-md-size",
+    "--font-headline-lg-family",
+    "--font-headline-lg-size",
+    "--radius-md",
+    "--radius-xs",
+    "--space-lg",
+    "--space-md",
+    "--space-sm",
+    "--space-xl",
+    "--space-xs",
+    "--table-row-bg"
+  ],
+  "undefined": [],
+  "passed": true
+}

@@ -1,0 +1,98 @@
+{
+  "task": "Frozen auditor ZIP and standalone offline verifier",
+  "status": "implemented-and-focused-verification-passed",
+  "completedAt": "2026-10-13T10:00:21.068147+00:00",
+  "worktree": "/Users/artem/visua/.check/evidence-auditor-20261013",
+  "sourceChangesInRoot": false,
+  "files": [
+    {
+      "path": "apps/server/src/services/auditor-bundle.ts",
+      "sha256": "02ff6b6ccd70e770b96ce1d223bb91f0919b5f2133b6961376384c8087da3e32",
+      "bytes": 19494
+    },
+    {
+      "path": "apps/server/src/services/bundle-verifier.mjs",
+      "sha256": "929c480e96ae30f965bb31219eecc36b56fa33a9ebc5a8db092e6aeb702f26e0",
+      "bytes": 11526
+    },
+    {
+      "path": "apps/server/test/auditor-bundle.test.ts",
+      "sha256": "3227b3448eb1880a6f9599562697e5263372a437fe8cccb0445b84a0c2215d2e",
+      "bytes": 19555
+    }
+  ],
+  "integrationDependencies": [
+    {
+      "path": "apps/server/src/services/export-snapshot.ts",
+      "sha256": "2d185bc312573a53c1da2a87c5e1785fef5a9c4491483e0d624519b1ca8606c6"
+    },
+    {
+      "path": "apps/server/src/services/exports.ts",
+      "sha256": "af4c7599e04fbc24a95bb98e90e51c28922d9ffa70aa9d58fabe15e09c0eda7d"
+    },
+    {
+      "path": "apps/server/package.json",
+      "sha256": "fdae1311de9c3b97be463619a642f18424200f6b815011cdcb0e83b886d6e898"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "cd6f0a2c4595b1b6f211c86a6912842aa368425caa2ee5b3ef09d1125d92626b"
+    }
+  ],
+  "api": "buildAuditorBundle(svc, ws, selection = {}) -> Promise<{bytes,manifestSha256,contentSha256,snapshot,filename}>",
+  "verification": [
+    {
+      "command": "VISUA_TEST_DATABASE_URL='' VISUA_DATABASE_URL='' pnpm exec vitest run apps/server/test/auditor-bundle.test.ts --maxWorkers=1",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "status": "passed",
+      "tests": 9,
+      "durationSeconds": 15.66
+    },
+    {
+      "command": "pnpm --filter @visua/server typecheck",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "status": "passed"
+    },
+    {
+      "command": "node --check apps/server/src/services/bundle-verifier.mjs",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "status": "passed"
+    }
+  ],
+  "coverage": [
+    "Real ZIP extraction and execution of both separately trusted and extracted standalone verifier",
+    "Binary original bytes, canonical inline and connector artifacts, explicit metadata-only evidence",
+    "Review history, current/target states and exclusion rationale",
+    "Current source check records and retained versus unavailable historic approved-policy bytes",
+    "No business writes or audit changes during capture/build",
+    "Mutation completes inside blob.get after SQL capture transaction released; bundle keeps frozen revision",
+    "Stable content digest and artifact names with fixed asOf across generation timestamps",
+    "Tampered/missing bytes, missing artifact references and rewritten audit event rejected",
+    "Coordinated audit truncation with recomputed included checksums passes unpinned consistency but fails retained checkpoint/manifest pins",
+    "Hostile original filename/evidence ID never become archive paths; HTML escapes markup",
+    "Traversal paths, duplicate entries, duplicate JSON keys, symlink, unexpected files, malformed manifests rejected",
+    "Builder count/declared-byte/concurrency/time budgets; verifier file count/manifest and actual sparse-file byte bounds"
+  ],
+  "limits": {
+    "uncompressedBytes": 67108864,
+    "artifactCountIncludingInline": 256,
+    "concurrentBuildsPerProcess": 2,
+    "workBudgetMilliseconds": 60000,
+    "manifestBytes": 2097152,
+    "verifierFiles": 512,
+    "verifierEntities": 20000
+  },
+  "trustBoundary": "Unsigned included hashes prove internal consistency. A separately retained checkpoint binds the audit chain only; a separately trusted manifest hash binds all files. Use a separately trusted verifier for an untrusted package. No audit opinion or certification.",
+  "notRun": [
+    "Root integration/full check/browser/PostgreSQL/live data/deployment/backup restore",
+    "No Git mutations or external-provider work"
+  ],
+  "notes": [
+    "Package preserves current records evaluated at asOf rather than historical replay.",
+    "Source/license metadata included; no catalog corpus files bundled. Existing frozen exporters are reused.",
+    "Normal BlobStore implementations enforce their own 15-second bounded reads; overall work budget is checked around capture, artifact reads, serialization and ZIP construction.",
+    "Stored ZIP mode avoids compression CPU load; generated safe filenames and fixed metadata timestamps.",
+    "Standalone verifier also checks report inventory references and snapshot/manifest identity.",
+    "No tests or code require database/network ports. Tests use SQLite memory and temporary extracted files."
+  ]
+}

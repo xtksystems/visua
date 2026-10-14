@@ -1,0 +1,210 @@
+{
+  "version": 1,
+  "run_id": "observatory-20261013",
+  "base_head": "9755c01873444647c30821ac1d0b88aa16023632",
+  "scope": {
+    "root": "/Users/artem/visua",
+    "files": {
+      "apps/server/src/services/views.ts": "34dd5fa29b74198ded2cf994a0359e7068489cbd71d2b4d057e4e87882ffe33e",
+      "apps/server/test/observatory.test.ts": "a513dca7e1a221667eb1d7df36ec895bb48336814094c08eaecf85aa32c85247",
+      "apps/web/src/components/inspector/Inspector.tsx": "f51fd73fd262cc498f9f06567c9943b5a893f99956c03f26f9cf717d06690bd9",
+      "apps/web/src/components/inspector/Threats.tsx": "688e8a808909ae7e21ce8da42bf3ec8148893b2f8db6d13deb6bd344d674aea9",
+      "apps/web/src/lib/observatory.ts": "a114ab49f3d3d8fb96d74e66e76dc065e11cac6b5f696fbafa10dbe312864ca6",
+      "apps/web/src/lib/queries.ts": "fe4fc0bf92a2a5b2e0e7ca682763891c017857cef651409f0271227406fc3aee",
+      "apps/web/src/lib/types.ts": "50ac233170c0a0debb785acf1862bfd4607d1e346f310203a98f1d0cf1360835",
+      "apps/web/src/pages/ObservatoryPage.tsx": "649ab9c4480f959cb04e2d7c5a8bc991db746efdf730a41d54353f30fb91378c",
+      "apps/web/src/pages/observatory.css": "d9c83ce05b3916c743273599044689ad02a87606270dd19181ad719de2668379",
+      "apps/web/test/observatory.test.ts": "48ebbff3d5705ed7048a63da26ea6add68b9cfe4f5d97cc301a9242118638b4c",
+      "docs/architecture.md": "47cce8948c29033be516da762fdaf87ae6de7ae4c64d2701bceb83874960d865",
+      "docs/workspace.md": "1da83b04d859ead7bbd637b9ab1b7464a3ce7d6532170c781a193aeaeb08baf4",
+      "e2e/keyboard-outline.spec.ts": "dad4bdede5978b0076d2e90f7898ec0aa95048b018b053af8cbffcdc22054193",
+      "e2e/observatory-presets.spec.ts": "5d00ebbddacce29b94ecf123358e8e7294bafd124e6810321aee2c63107fa9aa"
+    }
+  },
+  "nodes": [
+    {
+      "id": "server",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "input": "server-brief.txt",
+      "input_sha256": "b919ea346047dbc611bed6d56a34bc150983e7078490d1907dd0fdae195178cc",
+      "result": "server-result.json",
+      "worker_id": "/root/observatory_server",
+      "result_sha256": "c6d8aa0bec8027b4e742ac00109e499561155edcf7138bc4e27091f3710d488b"
+    },
+    {
+      "id": "ui",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "input": "ui-brief.txt",
+      "input_sha256": "6719c831bcd64f674e583dd9d722c6feb4074e7edfa96ea86c73c81356c7966b",
+      "result": "ui-result.json",
+      "worker_id": "/root/observatory_ui",
+      "ownership_amendment": "Lead authorized optional navigation prop/header slot only in apps/web/src/components/inspector/Threats.tsx; communicated to worker.",
+      "result_sha256": "9d722501ebdc4f0fa8656d0669c961c7c0131b90842ad6d36db68ecfd8ac249d"
+    },
+    {
+      "id": "review",
+      "depends_on": [
+        "server",
+        "ui"
+      ],
+      "status": "complete",
+      "accepted": true,
+      "input": "review-brief.txt",
+      "input_sha256": "f734a0f6b18a46248ef5e130f9859af0631ddaf5180f45d7b9ce1fd32c84633a",
+      "result": "review-result.json",
+      "context": "fresh",
+      "attempt": 1,
+      "provider_reported": "unknown",
+      "model_reported": "unknown",
+      "worker_id": "/root/observatory_review",
+      "result_sha256": "6f6657f4bbae2d1e5489979f33f251f5149d41b3d241147811b6824c94d30d96",
+      "verdict": "findings",
+      "finding_status": "Resolved; see lead-delta-review.json and final browser evidence."
+    },
+    {
+      "id": "review-fix",
+      "depends_on": [
+        "review"
+      ],
+      "status": "complete",
+      "accepted": true,
+      "input": "review-fix-brief.txt",
+      "input_sha256": "c2e512e9afa131208b14f5ccffd867725ab31aa5937a38b92a0185d4109941f1",
+      "result": "review-fix-result.json",
+      "worker_id": "/root/observatory_review",
+      "context": "follow-up",
+      "attempt": 1,
+      "result_sha256": "c21097a74b4a55b05cf88af9e4d5f056b9c695a7f2c41c83ae0d853f086ca848",
+      "verdict": "findings",
+      "finding_status": "Resolved; see lead-delta-review.json and final browser evidence."
+    }
+  ],
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "source-verification.json",
+      "delivery-source.json",
+      "lead-delta-review.json",
+      "visual-result.json",
+      "browser-full.log",
+      "browser-final-focus.log",
+      "typecheck-final-focus.log",
+      "check-no-e2e.log"
+    ]
+  },
+  "next_action": "Observatory is complete and uncommitted. Next visual-review implementation is the Crosswalk comparison matrix. Local Docker remains e867494.",
+  "checks": {
+    "focused_browser": {
+      "session": 4410,
+      "status": "failed",
+      "log": "browser-focused.log",
+      "exit_code": 1,
+      "passed": 11,
+      "failed": 1,
+      "reason": "Phone fixture omitted touch emulation; corrected fixture targeted pass."
+    },
+    "non_browser": {
+      "session": 11135,
+      "status": "passed",
+      "log": "check-no-e2e.log",
+      "exit_code": 0,
+      "sqlite_passed": 540,
+      "sqlite_skipped": 2,
+      "postgres_passed": 542
+    },
+    "phone": {
+      "status": "passed",
+      "exit_code": 0,
+      "passed": 1,
+      "log": "browser-phone.log"
+    },
+    "focus_reproduction": {
+      "status": "failed",
+      "exit_code": 1,
+      "log": "browser-focus-reproduction.log",
+      "reason": "Confirmed keyboard focus lost after Next sibling changed keyed inspector."
+    },
+    "focused_final": {
+      "status": "failed",
+      "session": 9978,
+      "log": "browser-focused-final.log",
+      "exit_code": 1,
+      "passed": 12,
+      "failed": 1,
+      "reason": "Rapid search composed from stale router params; route correction needed."
+    },
+    "route_only": {
+      "status": "failed",
+      "exit_code": 1,
+      "passed": 12,
+      "failed": 1,
+      "log": "browser-focused-after-route-fix.log",
+      "reason": "Delayed UI selection broke immediate blank-canvas click and arrow. Approach rejected."
+    },
+    "current_url": {
+      "status": "passed",
+      "session": 77816,
+      "log": "browser-focused-current-url.log",
+      "exit_code": 0,
+      "passed": 13,
+      "duration": "55.5s"
+    },
+    "typecheck_final": {
+      "status": "passed",
+      "exit_code": 0,
+      "log": "typecheck-final.log"
+    },
+    "full_browser": {
+      "status": "passed",
+      "session": 58117,
+      "log": "browser-full.log",
+      "source": "final-source.json",
+      "exit_code": 0,
+      "passed": 123,
+      "duration": "11.0m"
+    },
+    "blur_reproduction": {
+      "status": "failed",
+      "session": 62696,
+      "log": "browser-blur-reproduction.log",
+      "exit_code": 1,
+      "reason": "Confirmed stale navigation focus returns after plain-text click and live assessment refresh."
+    },
+    "final_affected": {
+      "status": "failed",
+      "session": 27672,
+      "log": "browser-final-affected.log",
+      "source": "blur-source.json",
+      "exit_code": 1,
+      "passed": 12,
+      "failed": 1,
+      "reason": "Inspector blur regression passed. Existing slash shortcut deferred focus stole focus back from tree after fast search and Tab."
+    },
+    "typecheck_final_blur": {
+      "status": "passed",
+      "session": 5488,
+      "log": "typecheck-final-blur.log",
+      "exit_code": 0
+    },
+    "final_focus": {
+      "status": "passed",
+      "session": 81360,
+      "log": "browser-final-focus.log",
+      "source": "delivery-source.json",
+      "exit_code": 0,
+      "passed": 13,
+      "duration": "1.2m"
+    },
+    "typecheck_final_focus": {
+      "status": "passed",
+      "session": 72148,
+      "log": "typecheck-final-focus.log",
+      "exit_code": 0
+    }
+  },
+  "final_pins": 287
+}

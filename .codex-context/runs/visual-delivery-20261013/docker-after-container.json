@@ -1,0 +1,12 @@
+{
+  "id": "912206102fba902f71c6fce64034df271eb18fc1db1e1243902e6763068a54dd",
+  "image": "sha256:9445b2515087f4b8bf9eaf46929c45fdf8e57e8c26a90b61a66d1c59fe3eea66",
+  "revision": "783ed286691b1ce4e078cdf1b6e668634a7d7dd3",
+  "health": "healthy",
+  "mounts": [
+    {
+      "name": "visua_visua-data",
+      "destination": "/app/data"
+    }
+  ]
+}

@@ -1,0 +1,336 @@
+{
+  "at": "2026-10-13T09:32:42.214109+00:00",
+  "root_head": "2f82c735859a10dc1d378ae702d5931b0cda6275",
+  "source": "/Users/artem/visua/.check/evidence-automation-20261013",
+  "files": {
+    "apps/server/src/app.ts": {
+      "baseline": "ff2ab11f2f81fe7c97e0b42b58d0a88ba1b1677693391fdc9f5c1b27dfb14502",
+      "root_before": "ff2ab11f2f81fe7c97e0b42b58d0a88ba1b1677693391fdc9f5c1b27dfb14502",
+      "integrated": "cb24d7eaa22611d53092bf6295becc5fb307abdf059970b43267cacc13480c57",
+      "overlap_reviewed": false
+    },
+    "apps/server/src/auth/http.ts": {
+      "baseline": "f9f6cd220902c6ed6beb5a53f0d0ce7e5240a7e7b2cccc7e7468ff05106e1408",
+      "root_before": "f9f6cd220902c6ed6beb5a53f0d0ce7e5240a7e7b2cccc7e7468ff05106e1408",
+      "integrated": "39aaef9c85ac8c630f62cc96da2dc4a5b66247d0f9451327d912bd4ccbb063a8",
+      "overlap_reviewed": false
+    },
+    "apps/server/src/auth/service.ts": {
+      "baseline": "cee5feeb04f5693b5b9a1777d73c7d40669bbfcc1892956826a3d3bfdc6eb08f",
+      "root_before": "cee5feeb04f5693b5b9a1777d73c7d40669bbfcc1892956826a3d3bfdc6eb08f",
+      "integrated": "71bb1be021f0110af7992b16937e0f9cd37ba7b620d5de1bd5c76ee550298f97",
+      "overlap_reviewed": false
+    },
+    "apps/server/src/bus.ts": {
+      "baseline": "36f2b9a2e2fc9d9c10912569732dd97a755ea8512adf58c71c3a49f48452426e",
+      "root_before": "36f2b9a2e2fc9d9c10912569732dd97a755ea8512adf58c71c3a49f48452426e",
+      "integrated": "6ea4c5b06b7429f0a52db557b6c09b9d3e98951b0bcd138f8df5c9890f2e4a50",
+      "overlap_reviewed": false
+    },
+    "apps/server/src/connectors/limits.ts": {
+      "baseline": "15d36e1c61d66ceae1ae555eaf58d248da3a645c17a422f0b128e521d657d08f",
+      "root_before": "15d36e1c61d66ceae1ae555eaf58d248da3a645c17a422f0b128e521d657d08f",
+      "integrated": "6e379084b19e0bcadbea21d4179d8813c0e88c9a2d8f81573546e05759edda88",
+      "overlap_reviewed": false
+    },
+    "apps/server/src/context.ts": {
+      "baseline": "0a400ee6179dce5e394d63392b2f6a478bd6d6fadbfb7557077f8f504ced8b2d",
+      "root_before": "0a400ee6179dce5e394d63392b2f6a478bd6d6fadbfb7557077f8f504ced8b2d",
+      "integrated": "175b33033c0b5e8d043daf3e88d829c5e9aa8f1b190d1f4dc59a3e318a0bf757",
+      "overlap_reviewed": false
+    },
+    "apps/server/src/diagnostics.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "116bc150c428e247098d173f9dc0a2d7750ea130a0c225b86b959d24806ff17a",
+      "overlap_reviewed": false
+    },
+    "apps/server/src/request-controls.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "1bc425d48f78f182215a899593849d96f820df4f9f5c10c7cdf1186a9f48b5cb",
+      "overlap_reviewed": false
+    },
+    "apps/server/src/seed/demo.ts": {
+      "baseline": "8d506f75574667eba03411cdbf2226c130bafd00feb8d63bafda688bf2d5bcdd",
+      "root_before": "8d506f75574667eba03411cdbf2226c130bafd00feb8d63bafda688bf2d5bcdd",
+      "integrated": "5f0d533019b96c60865d3807b83aba6bbd26eacf80c8e777ef99bfc21e3d52cb",
+      "overlap_reviewed": false
+    },
+    "apps/server/src/server.ts": {
+      "baseline": "b24ee5af9525faec68d68ec59a3ef389c267da8710a51bc702fcf228f44ec50a",
+      "root_before": "b24ee5af9525faec68d68ec59a3ef389c267da8710a51bc702fcf228f44ec50a",
+      "integrated": "b9b5e304ab6ab8b78567e5a7ae8d8e5ca3182cd5e2c32d360068e9341dab06ec",
+      "overlap_reviewed": false
+    },
+    "apps/server/src/services/proposal-review.ts": {
+      "baseline": "0557777626d49dd1ab99ea0550c0aaef8215f79100bb8874f2e8fe20072a43e9",
+      "root_before": "0557777626d49dd1ab99ea0550c0aaef8215f79100bb8874f2e8fe20072a43e9",
+      "integrated": "0dd28f5483806c141c5d084ae45b4bc4c27312c3c062ab65317ae87f84179823",
+      "overlap_reviewed": false
+    },
+    "apps/server/src/services/proposal-validation.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "bb90630e85a16522b17ac07edeb38486ba012e99e83e985d3a9292e0203a20b6",
+      "overlap_reviewed": false
+    },
+    "apps/server/src/services/run-execution.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "13bdcf03ffd1f81f70126f86433f14ed7c286f8adc3741fd2a4ff432191168f6",
+      "overlap_reviewed": false
+    },
+    "apps/server/src/services/trust.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "c9521ad2a4e10ee001b9677d2385b60c55afa048a3e39f869c51872e1e0d9a93",
+      "overlap_reviewed": false
+    },
+    "apps/server/src/services/visua.ts": {
+      "baseline": "297b5fda2215ae80be7e1a93853b26519c0b76ae54c968d03fde3fdfc0508084",
+      "root_before": "0f15856d71c751c57c7f3024393f6cb7756835648fedb33b6cf845692365738c",
+      "integrated": "62cc2d38b884cce656dd78c96727c700188785781b60c40b111624beadbe3d69",
+      "overlap_reviewed": true
+    },
+    "apps/server/src/storage/events.ts": {
+      "baseline": "0538bf546b8a072cc88fef0d3f947efd27892195a2053746b18c9d8fc93bddbc",
+      "root_before": "0538bf546b8a072cc88fef0d3f947efd27892195a2053746b18c9d8fc93bddbc",
+      "integrated": "dd65e8f8d7618ebd28b787ea9b9ba851e46199f150bc108baa46d36e94b731b8",
+      "overlap_reviewed": false
+    },
+    "apps/server/src/storage/identity.ts": {
+      "baseline": "d287e809b71e878825b3193ce9b2fb550c454ab0d51c7e332c5d437681d93d1d",
+      "root_before": "d287e809b71e878825b3193ce9b2fb550c454ab0d51c7e332c5d437681d93d1d",
+      "integrated": "509feec94a2abb93d972c86ef49ff8f5b8691346d5e7d8330088b0b5564ad184",
+      "overlap_reviewed": false
+    },
+    "apps/server/src/storage/store.ts": {
+      "baseline": "60e4eb9c280a9868e062772353b08befad7a92da875d3cb3053cb34c5221c9a3",
+      "root_before": "60e4eb9c280a9868e062772353b08befad7a92da875d3cb3053cb34c5221c9a3",
+      "integrated": "28123725a4f8e82e2ac0fef1bc6ccf5391725fcfa1a3d62456ba6efab9514515",
+      "overlap_reviewed": false
+    },
+    "apps/server/src/workspace-events.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "e8a831589f30c4a69558c7016a0c9ae547ad4982f7808c507f0335e208206755",
+      "overlap_reviewed": false
+    },
+    "apps/server/test/api.test.ts": {
+      "baseline": "2a70a92cee41c0e69d83f94aa887d72caf651ef02b45b0f0abc3838e8f2ae1d8",
+      "root_before": "2a70a92cee41c0e69d83f94aa887d72caf651ef02b45b0f0abc3838e8f2ae1d8",
+      "integrated": "95387c887e82b11796d72f1404a596fbd815e9f9c5a12dafda27056020d85b02",
+      "overlap_reviewed": false
+    },
+    "apps/server/test/attention.test.ts": {
+      "baseline": "f46c7c2bb6519a03e4842b042df2b85ea36dc28679e926d9f50c1bf8385eac37",
+      "root_before": "f46c7c2bb6519a03e4842b042df2b85ea36dc28679e926d9f50c1bf8385eac37",
+      "integrated": "a994a650191b6bc3d98a888e43612505ef3ab1c2bc1e55932abbb51015f8458f",
+      "overlap_reviewed": false
+    },
+    "apps/server/test/diagnostics.test.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "d02cedbcf3977eca163bb1fc0fcea05e63359b0b681a0e49ee9dfedee8169e2e",
+      "overlap_reviewed": false
+    },
+    "apps/server/test/mock-idp.ts": {
+      "baseline": "8feff328a439efe53100dff2a7c0ee18cf537824383efd1af503cdec87d855c6",
+      "root_before": "8feff328a439efe53100dff2a7c0ee18cf537824383efd1af503cdec87d855c6",
+      "integrated": "ed13db8850b8dfe643849d879fea870a0b9b00b7594ce69c9c5fcc5f322809ea",
+      "overlap_reviewed": false
+    },
+    "apps/server/test/oidc-current.test.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "22ba86a2bd535a8b962f829800432b7a5f5b3a86d14a89ce16b41d269cbbea54",
+      "overlap_reviewed": false
+    },
+    "apps/server/test/proposal-review.test.ts": {
+      "baseline": "2f46c0e115ffc53bdcb0ff56e5ea4f4ba83f79c3df16345a6ec386e6df0c811c",
+      "root_before": "2f46c0e115ffc53bdcb0ff56e5ea4f4ba83f79c3df16345a6ec386e6df0c811c",
+      "integrated": "77e773494ef1fd16dad39c7b79409a51eb1ea28e01ced5353f1105e426f0b53b",
+      "overlap_reviewed": false
+    },
+    "apps/server/test/proposal-validation.test.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "97c9a41276315fed4f2095d858a6fd1660f696aac4193a0040f59a9928586249",
+      "overlap_reviewed": false
+    },
+    "apps/server/test/relay.test.ts": {
+      "baseline": "b5453258e87ecf1c95a3166384fc96279733f2bab5479efdea24c26eac1e1efc",
+      "root_before": "b5453258e87ecf1c95a3166384fc96279733f2bab5479efdea24c26eac1e1efc",
+      "integrated": "343d75d8463d01c4439992ef13567d65bd8003189a8428cce78311df2cc99b5c",
+      "overlap_reviewed": false
+    },
+    "apps/server/test/request-controls.test.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "f0fd9e6133e70dd0f2c15844fc8dfb942a0a275bf80654e9c7d269030618a00a",
+      "overlap_reviewed": false
+    },
+    "apps/server/test/run-reliability.test.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "77d6495ccba2f7b91f28de2b79d945135eb1eb331a6bf6830c5aec51f4e666e8",
+      "overlap_reviewed": false
+    },
+    "apps/server/test/startup.test.ts": {
+      "baseline": "f843cf46b0dbc31b8ccbac5101bed50e10850bdc38b6505319e7c12adff66ff9",
+      "root_before": "f843cf46b0dbc31b8ccbac5101bed50e10850bdc38b6505319e7c12adff66ff9",
+      "integrated": "752b5940e82f323f6e6e4a5d987c06757d9a940de2f4057e5188dcc69e7b4b72",
+      "overlap_reviewed": false
+    },
+    "apps/server/test/stream-auth.test.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "987cc84a1ba33074f77a4715f5ddba25925dc1cd10749d3c7b3672e03e45d9a2",
+      "overlap_reviewed": false
+    },
+    "apps/server/test/trust.test.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "11436e1158a8e7dfe8bd1043d6803d7e0bd0b9df18beb8a13c49195ed624db0a",
+      "overlap_reviewed": false
+    },
+    "apps/server/test/two-instance-automation.test.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "ac168eeb6690b3e55ed79dcdbe004d998b0e6a26a76eb164a27f0478774eea00",
+      "overlap_reviewed": false
+    },
+    "apps/server/test/workspace-events.test.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "b53ff6cfb5aff81f38352552a32f5bfa43f202dff47d9b11d4da994eea9a94da",
+      "overlap_reviewed": false
+    },
+    "apps/web/src/lib/events.ts": {
+      "baseline": "4e57038566452d231e14e2f64c1eb3d38454cf069df94bb68933915327afd4eb",
+      "root_before": "4e57038566452d231e14e2f64c1eb3d38454cf069df94bb68933915327afd4eb",
+      "integrated": "f94758268be187ef131533e67b8dc1789b805568562cdd25372d49f0d78bc083",
+      "overlap_reviewed": false
+    },
+    "apps/web/src/pages/EvidencePage.tsx": {
+      "baseline": "ff40e62d8921fc4c90ef36d14d9a38e30ed66a9c996d889e1649c3cfcf78b9f2",
+      "root_before": "b820a61360ff7884b2d45cc0f218570e829605b194ae65f7c3ad992c3dd092bf",
+      "integrated": "69de835b0783593df118a7740aedd0af3d438c11ec427b89619004a05e140a0a",
+      "overlap_reviewed": true
+    },
+    "apps/web/src/pages/ReportsPage.tsx": {
+      "baseline": "4cb4aac41172f04d184e7a6079ffc88776a6e6655b84c84b76312720dc039445",
+      "root_before": "4cb4aac41172f04d184e7a6079ffc88776a6e6655b84c84b76312720dc039445",
+      "integrated": "592205f52c741fb9370374a0a0e697d64a359a38ab41552441280bea1b8511ac",
+      "overlap_reviewed": false
+    },
+    "apps/web/src/pages/SettingsPage.tsx": {
+      "baseline": "ac8276beabd0b2539aaecc8613aaf8a5ab9f90ee5b4995d9907a91179dc774d6",
+      "root_before": "ac8276beabd0b2539aaecc8613aaf8a5ab9f90ee5b4995d9907a91179dc774d6",
+      "integrated": "5892ab67ccb4106eb5282fcaf38524ca3a9bbcf0c9de50bbe7e5956c2c2d485d",
+      "overlap_reviewed": false
+    },
+    "apps/web/src/pages/TrustPage.tsx": {
+      "baseline": "9f053b5b4734e5e8f748d6565dc9f6435c8075f0b9be0a706e291979184a92d0",
+      "root_before": "9f053b5b4734e5e8f748d6565dc9f6435c8075f0b9be0a706e291979184a92d0",
+      "integrated": "63ddbad61743048221788472827465964442002498b386e274dd4f31faf01fba",
+      "overlap_reviewed": false
+    },
+    "apps/web/test/events.test.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "3ddb8c16f613daacdca1f531957ca9e202a25bde5aec222e9f076f981c7e0727",
+      "overlap_reviewed": false
+    },
+    "e2e/automation-claims.spec.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "32e68067ff301458558fad653b890364f3e34e866331f809cf2100634c438abd",
+      "overlap_reviewed": false
+    },
+    "packages/agents/src/agents.ts": {
+      "baseline": "786686e13245de781cbf15fe5efb727e58b59577b5c2830da4bc82ea4d76668f",
+      "root_before": "786686e13245de781cbf15fe5efb727e58b59577b5c2830da4bc82ea4d76668f",
+      "integrated": "2fd2feb74e7cc417cd038f6e1ed10bf00eda5bb649c14e24db7f9ef0919e1e2c",
+      "overlap_reviewed": false
+    },
+    "packages/agents/src/offline.ts": {
+      "baseline": "9fd45a837a839e48a32895263dbbc892322b67a1aa2b438cc752e979609a6aa2",
+      "root_before": "9fd45a837a839e48a32895263dbbc892322b67a1aa2b438cc752e979609a6aa2",
+      "integrated": "3b9ee46121b9a29d85b481a2466db89741f2fb7ea5aecc9243c764e727f33044",
+      "overlap_reviewed": false
+    },
+    "packages/agents/src/policies.ts": {
+      "baseline": "43377066e739248aa2660969217857ec5db68c1fdb41203b418d8d3f84eeeae5",
+      "root_before": "43377066e739248aa2660969217857ec5db68c1fdb41203b418d8d3f84eeeae5",
+      "integrated": "0a9b4f46d83031a651360e51f578131d1df290c9b6ceb05c4b4618dcb2c0c9f2",
+      "overlap_reviewed": false
+    },
+    "packages/agents/src/tools.ts": {
+      "baseline": "8f51116f6fa9bcd092b9bc6fe918f96fed85deb0d0699d8e65f375b637436cca",
+      "root_before": "8f51116f6fa9bcd092b9bc6fe918f96fed85deb0d0699d8e65f375b637436cca",
+      "integrated": "e2ad806a35eb9749fa3e03dfbd57f85f399658c85a09137fd22d1feb308226cf",
+      "overlap_reviewed": false
+    },
+    "packages/agents/test/corpus-claims.test.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "cc0a337d20c52bf716bdd92930bd68b5ad96677e93308c5050d66170a4ec9520",
+      "overlap_reviewed": false
+    },
+    "packages/agents/test/evidence-provenance.test.ts": {
+      "baseline": "1ef4a709bff1634af9da70cb848b610eae333739907b06b7c78d77e5c810dc7e",
+      "root_before": "1ef4a709bff1634af9da70cb848b610eae333739907b06b7c78d77e5c810dc7e",
+      "integrated": "f10b9cb69d3604a1e2e333064c997e8bbef8781d3885ec68a8858ebeffbb2c7f",
+      "overlap_reviewed": false
+    },
+    "packages/core/src/crosswalk.ts": {
+      "baseline": "2d28065612fc08dd51d509ee81d2b3462ff90e2efcd63f46defe67ae2a80395c",
+      "root_before": "2d28065612fc08dd51d509ee81d2b3462ff90e2efcd63f46defe67ae2a80395c",
+      "integrated": "36bdba35f0e93cb5a4982d11ce1f835a5e5617914927bb46c1cb2919e0359f05",
+      "overlap_reviewed": false
+    },
+    "packages/core/src/types.ts": {
+      "baseline": "dc00306b7062726d4ea92c0ea5c3a77a97f5f9847d09db376bcc431e13cc01d9",
+      "root_before": "dc00306b7062726d4ea92c0ea5c3a77a97f5f9847d09db376bcc431e13cc01d9",
+      "integrated": "b091929edfe13e5dcdeef47e0390a528d1ddfbe47fa83188cbbdbaa568429072",
+      "overlap_reviewed": false
+    },
+    "packages/core/test/core.test.ts": {
+      "baseline": "76c56c24410dfb536febb723bcdb3489c3d317d803a77037221ab2140979c448",
+      "root_before": "76c56c24410dfb536febb723bcdb3489c3d317d803a77037221ab2140979c448",
+      "integrated": "e9f8dff53b86cfcc2a2c0f84194b6b9b1a0862d9442e58a05a71e5ac5374178f",
+      "overlap_reviewed": false
+    },
+    "packages/core/test/crosswalk-projections.test.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "31e4e747e565c925021f6afbf6518c0be84227f39874b4f8faebb2f4488f8211",
+      "overlap_reviewed": false
+    },
+    "packages/frameworks/src/index.ts": {
+      "baseline": "a6a6909e080d4377a23b79b532c20e1a11d51a2a14d1815aa2ba3adc8f5a6edd",
+      "root_before": "a6a6909e080d4377a23b79b532c20e1a11d51a2a14d1815aa2ba3adc8f5a6edd",
+      "integrated": "5c587e023602ccae83a8416848ec8d2ce4a62e902bf25943a3e945d28d130abb",
+      "overlap_reviewed": false
+    },
+    "packages/frameworks/src/search.ts": {
+      "baseline": "4b709b81e7b0195cd9927656ae5bbd5955a50f206038db3af72d76a450ba05a1",
+      "root_before": "4b709b81e7b0195cd9927656ae5bbd5955a50f206038db3af72d76a450ba05a1",
+      "integrated": "ea966c8b96e8f50232bb6fcfeaf9ad149e32b1d2895e0d085dd1647717259bc0",
+      "overlap_reviewed": false
+    },
+    "packages/frameworks/test/search-citations.test.ts": {
+      "baseline": null,
+      "root_before": null,
+      "integrated": "afa5a96bc9e5591c46d63461a3ca7b31afeb7f2ffaf5073590b5815f8edac837",
+      "overlap_reviewed": false
+    }
+  },
+  "notes": [
+    "Only source deltas relative to the recorded M2 overlay copied.",
+    "Visua review identity binding and EvidencePage named focusable ledger retained.",
+    "Scheduler limits hydrated rows, not total SQL scan work; pilot capacity measurement remains pending."
+  ]
+}

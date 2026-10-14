@@ -1,0 +1,220 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "Source-only review of the packet (nothing executed; the lead's 214 passed / 2 skipped Vitest result was not re-run). Visua ships a coherent path from onboarding through assessment, planning, evidence, agent proposals and exports, but it is not yet safe to hand to a real multi-role team without a hardening pass.\n\nLaunch blockers (as read from source):\n- **Wrong-requirement write:** the inspector's assessment form is not keyed by requirement, so a stale owner can be saved to a different requirement.\n- **Role gating:** only the approval decisions and Settings are capability-gated; most contributor and configuration actions render for viewers and auditors, and several fail silently.\n- **Keyboard path:** the Observatory's global key handler collides with dialogs and focused buttons, and outline rows are not focusable.\n- **Live refresh:** SSE invalidation is keyed by workspace id while most queries are keyed by slug, so live updates may not reach most pages if the two differ.\n- **Trust centre:** the public headline is free text, despite the \"computed facts only\" guardrail.\n\nProduct judgement: a team can reach a computed readiness figure, but the last stretch to \"supported readiness and auditor handoff\" is thin. Tasks cannot be assigned or dated in the UI, and owners are free text. Evidence is pasted text with no validity or rejection reason at review. Verification is a one-way button with no visible record. Handoff is a set of separate file downloads rather than an auditor view or package.\n\nRecommended next phase: one workflow, \"gap \u2192 owned task \u2192 evidence \u2192 review \u2192 verified \u2192 auditor packet\", for CSF or SOC 2, preceded by the hardening fixes. Connector breadth, new frameworks, the time scrubber and the questionnaire agent are growth work for later.",
+  "coverage": [
+    "Routing, sign-in and landing: apps/web/src/App.tsx, pages/LoginPage.tsx, lib/auth.ts, lib/api.ts",
+    "Shell: navigation rail, top bar, account menu, command palette, mobile drawer (components/shell/Shell.tsx, styles/global.css)",
+    "Onboarding and Overview (pages/OnboardingPage.tsx, pages/HomePage.tsx)",
+    "Action plan: board, timeline, task dialog (pages/PlanPage.tsx)",
+    "Evidence ledger, connectors and the inspector's evidence tab (pages/EvidencePage.tsx, components/inspector/Inspector.tsx)",
+    "Agents: launcher, flight recorder, approvals inbox, proposal cards (pages/AgentsPage.tsx, components/agents/Proposals.tsx)",
+    "Policy lifecycle (pages/PoliciesPage.tsx)",
+    "Programs: CSF profile and tiers, SOC 2, RMF, AI governance, state AI laws, overlay panels (ProfilePage, Soc2Page, RmfPage, AiPage, LawsPage, laws/Timeline.tsx, overlays/OverlayPanels.tsx)",
+    "Threat views and threat inspector (pages/ThreatsPage.tsx, inspector/Threats.tsx, threats/Coverage.tsx)",
+    "Observatory and Crosswalk Nexus: page logic, outline twin, keyboard map, lenses, labels, framing, demand rendering (ObservatoryPage, CrosswalkPage, scene/*)",
+    "Reports, exports, audit trail, trust centre (pages/ReportsPage.tsx, pages/TrustPage.tsx, server services/exports.ts and views.ts as supplied)",
+    "Organization and Settings (pages/OrganizationPage.tsx, pages/SettingsPage.tsx)",
+    "Server-state plumbing: query keys, SSE invalidation, mutations (lib/queries.ts, lib/events.ts)",
+    "Role model and status derivation as they shape the UI (packages/core access.ts, status.ts, trust.ts)",
+    "Design system, responsive CSS and e2e expectations (DESIGN.md, styles/global.css, e2e/visua.spec.ts)",
+    "Product docs and roadmap, to separate shipped behaviour from missing capability (README.md, docs/architecture.md, docs/workspace.md, docs/roadmap.md)"
+  ],
+  "findings": [
+    {
+      "severity": "high",
+      "location": "apps/web/src/components/inspector/Inspector.tsx:22-80, 301-342 (Assessment); apps/web/src/pages/ObservatoryPage.tsx:504; apps/web/src/pages/ThreatsPage.tsx:454; apps/web/src/lib/queries.ts:74-84",
+      "mechanism": "Launch blocker. Inspector and its Assessment child are rendered without a key per requirement. When the newly selected requirement is already in the query cache, useNodeDetail returns data immediately, the same component instances are reused, and the uncontrolled Owner input (defaultValue) keeps the previous requirement's value. Its onBlur compares the DOM value with the new requirement's owner and PATCHes the difference. The local rationale state is carried over the same way into the 'Mark not applicable' dialog. Trigger: open requirement A (owner 'Alice'), open B, return to A, select B again within the cache lifetime, then focus and leave the Owner field (tabbing through the form is enough). B is saved with owner 'Alice' and the change lands in the audit trail under the user's name.",
+      "evidence": "Inspector.tsx:340 `<input className=\"input\" defaultValue={state.owner ?? \"\"} ... onBlur={(e) => e.target.value !== (state.owner ?? \"\") && set({ owner: e.target.value })} />`; Inspector.tsx:307 `useState(state.applicabilityRationale ?? \"\")`; ObservatoryPage.tsx:504 `<Inspector nodeId={selectedId} .../>` with no key; queries.ts:82 placeholder data only for the same node id, so a cached node renders without the 'Loading\u2026' branch that would otherwise remount the form. Source inference, not executed.",
+      "recommendation": "Key the inspector, or at least Assessment, by node id (`<Inspector key={selectedId} \u2026>`), and make Owner a controlled field with an explicit save. Add an e2e test: visit A, B, A, B, tab through the form and assert that no PATCH is sent."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/web/src/pages/PlanPage.tsx:204-311; EvidencePage.tsx:133-138, 239-250; PoliciesPage.tsx:84-86, 122-137, 161-176; AiPage.tsx:165-214; Soc2Page.tsx:64-128, 214; RmfPage.tsx:295; ReportsPage.tsx:199-230; ProfilePage.tsx:195; Inspector.tsx:425-537; Shell.tsx:340",
+      "mechanism": "Launch blocker for multi-role teams. Capability gating in the UI covers approval decisions and Settings only. A viewer or auditor (auditors are the handoff audience) still sees and can press: quick-add task, drag cards, Generate plan, Plan with agent, Add connector, Run connector, Collect with agent, policy Draft/Edit/Submit, AI inventory add/edit/remove, SOC 2 scope save, 'Enable \u2026' framework buttons, trust-centre Public toggle and Save, tier assessment save, the inspector's 'Add task', 'Execute' and 'Add evidence', and the palette's 'New workspace'. The server is documented to refuse these. Several of the calls have no onError handler, so the action appears to do nothing.",
+      "evidence": "PlanPage has no useCan call. Missing onError: Inspector.tsx:457 (`create.mutate(title.trim(), { onSuccess })`), Inspector.tsx:510 (evidence add), PoliciesPage.tsx:164-172 (body save), Soc2Page.tsx:124, RmfPage.tsx:158 and 273, ProfilePage.tsx:195, ReportsPage.tsx:200 and 228, AiPage.tsx:211 (remove), SettingsPage.tsx:183, 213 and 263 (`api.del(...).then(...)` with no catch). The e2e viewer test (visua.spec.ts:338-350) checks only the agents and reports pages.",
+      "recommendation": "Add one `useCan`-driven pattern (hide, or disable with a reason) to every write affordance, using the capability floors in packages/core/src/access.ts. Give `useWsMutation` a default onError toast. Extend the viewer and auditor e2e tests to walk every page and assert that no enabled write control is present."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/web/src/pages/ObservatoryPage.tsx:36-49, 76-82, 174-220",
+      "mechanism": "Launch blocker for the accessible 2D navigation invariant. Three defects in the keyboard path:\n1. The window-level key handler ignores only inputs, selects and the palette. Enter, Escape, Backspace and arrow keys also fire while focus is on any button, tab or dialog. Escape in the 'Mark not applicable' dialog (focus on Cancel) closes the dialog and also moves the selection to the parent, swapping the inspector to another requirement. Enter on a focused HUD chip, 'Terrain' or 'Mark verified' activates the button and also drills into the first child. Arrow keys are preventDefault-ed, so they cannot scroll the inspector or move within the lens group.\n2. Outline rows are plain divs with onClick. Treeitems have no tabindex, roving focus or aria-activedescendant, so there is no focusable row, no visible focus and nothing for a screen reader to land on. The 'keyboard-first' twin works only through the global handler.\n3. The scroll-into-view lookup passes a CSS-escaped id to getElementById. Node ids contain ':' and '.', so the lookup never matches and the selected row is not scrolled into view.",
+      "evidence": "ObservatoryPage.tsx:178 `if (target.closest(\"input, textarea, select, [contenteditable]\") || useUi.getState().paletteOpen) return;`; lines 195-203 (Enter, Escape, Backspace with no focus-context check); lines 76-82 (li role=treeitem wrapping a div with onClick and no tabIndex); line 47 ``document.getElementById(`outline-${CSS.escape(selectedId)}`)`` against id ``outline-${n.id}`` at line 78. The e2e test at visua.spec.ts:109 calls `.focus()` on a non-focusable treeitem, so it exercises only the global handler. Source inference.",
+      "recommendation": "Scope the key map to the outline tree and canvas (onKeyDown on a focusable tree with roving tabindex or aria-activedescendant). Ignore keys when a dialog is open or focus is inside the inspector or a button. Replace the lookup with getElementById on the raw id. Add an e2e test for 'Escape in the N/A dialog keeps the selection' and a focus-visible assertion on outline rows."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/web/src/components/shell/Shell.tsx:421; apps/web/src/lib/events.ts:13-29; apps/web/src/lib/queries.ts:25-43; HomePage.tsx:148; ObservatoryPage.tsx:134; PlanPage.tsx:207",
+      "mechanism": "SSE invalidation is keyed by workspace id (`useWorkspaceEvents(data?.workspace.id)` \u2192 `['ws', id, group]`). Most queries are keyed by the route slug: workspace summary and approvals badge, tasks, evidence, runs, proposals, policies, activity, node detail. A minority use the id (framework state in Observatory, Profile, RMF, SOC 2; NextBestActions). If id and slug differ, changes by other users or agents never refresh slug-keyed views until the 15s stale time plus a remount, and a local mutation (`useWsMutation(slug)`) never invalidates id-keyed framework state. The documented 'live approvals badge' and agent run updates would not be live. NextBestActions also builds links as `/w/<id>/\u2026`, moving the URL from slug to id and splitting the cache.",
+      "evidence": "events.ts:24-27 invalidates `['ws', ws]` and `keys.workspace(ws)` with ws set to the id passed from Shell.tsx:421. Shell.tsx:413 `useWorkspace(ws)` uses the slug. HomePage.tsx:148 `<NextBestActions ws={data.workspace.id} \u2026>` feeding the link at line 53. Conditional: whether ids equal slugs is not visible in the packet. If the seeded demo happens to have id equal to slug, e2e would pass while onboarding-created workspaces break.",
+      "recommendation": "Normalise on one identifier for query keys (canonicalise the slug to the id once in Shell and pass it by context, or have events.ts invalidate both). Add a test with a workspace whose id differs from its slug, asserting that the approvals badge and task board update from an SSE event."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/web/src/components/ui/index.tsx:126-142; used at EvidencePage.tsx:199-201, PlanPage.tsx:121-123, PoliciesPage.tsx:150-152, components/agents/Proposals.tsx:60-62, HomePage.tsx:45",
+      "mechanism": "Traceability dead end. Outside the Observatory, clicking a requirement code only sets UI state (`focus([id])`) and does not navigate. On the Evidence ledger, the task dialog, a policy, a proposal card or the Overview, the tag's tooltip says 'Show X in the Observatory' and nothing visible happens. The move a reviewer or auditor makes most (evidence \u2192 requirement, proposal \u2192 requirement) is unavailable from those surfaces. The click also leaves a hidden selection that appears the next time the Observatory opens on that framework.",
+      "evidence": "ui/index.tsx:136 `if (onNavigate) onNavigate(id); else focus([id]);`. Only Inspector.tsx:565 and AgentsPage.tsx:84-91 pass onNavigate. DESIGN.md:672-673 says 'clicking one always flies the camera to that requirement'.",
+      "recommendation": "Make CodeTag navigate by default to `/w/:ws/observatory/:framework?select=:id` (or the threat view via nodeHref) when it is not already on the Observatory, and render it as a link so it can be opened in a new tab."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/web/src/pages/ReportsPage.tsx:199-230; apps/web/src/pages/TrustPage.tsx:27",
+      "mechanism": "Integrity guardrail gap. The trust centre is described as publishing 'only computed facts \u2014 no free-text claims', but its headline is a free-text field rendered as the public page's H1. Anyone who can save it can publish 'SOC 2 Type 2 certified' above the computed figures. The Public checkbox also publishes immediately on a single click with no confirmation, and its mutation has no error handler.",
+      "evidence": "ReportsPage.tsx:205 'Publishes only computed facts \u2026 No free-text claims.' next to lines 213-216 (headline input). TrustPage.tsx:27 `<h1 \u2026>{data.headline}</h1>`. ReportsPage.tsx:200 `onChange={(e) => saveTrust.mutate({ enabled: e.target.checked, \u2026 })}`. The claim-consistency agent that would police this is unshipped (docs/roadmap.md:64).",
+      "recommendation": "Until claim checking exists, replace the headline with a fixed template (organization name plus 'security and compliance overview') or label it 'statement by the organization, not verified' on the public page. Require a confirmation dialog that previews what will be published before going public."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/web/src/pages/AgentsPage.tsx:104, 132-136, 292-297; apps/web/src/components/agents/Proposals.tsx:57, 78-87",
+      "mechanism": "Approval ergonomics undercut 'agents propose, people approve'. 'Approve all N' applies every pending proposal of a run in one click (evidence, assessment levels and scope decisions included) with no confirmation, no per-type breakdown and no error handler. In the approvals inbox, cards are compact: the rationale is hidden, citations sit behind 'Review', and Approve is the visible primary button. Rejection captures no reason, which is a gap for the audit narrative.",
+      "evidence": "AgentsPage.tsx:133 `approveAll.mutate(undefined, { onSuccess: () => toast(...) })` with no onError and no confirm. Proposals.tsx:57 `{!compact && <div \u2026>{truncate(proposal.rationale, 320)}</div>}`. Proposals.tsx:30 decision body is `{ decision }` only.",
+      "recommendation": "Confirm 'Approve all' with a summary by proposal type. Exclude or separately confirm evidence, scope and level changes. Show the rationale and citation count on compact cards. Capture an optional rejection reason. Add error toasts."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/web/src/components/shell/Shell.tsx:449-453; apps/web/src/App.tsx:30-51; apps/web/src/pages/OnboardingPage.tsx:47-60",
+      "mechanism": "Error states collapse into redirects or endless loading:\n1. Any error loading the workspace summary (a transient 500 or network blip after one retry, not only 404) navigates to '/', which redirects to the first workspace. The deep link is lost and no message is shown.\n2. Landing has no error branch: a failed `/workspaces` call shows 'Loading Visua\u2026' forever.\n3. Onboarding's `/meta` and `/recommend` calls have no catch: a failure leaves step 4 on 'Composing your path\u2026' with 'Create workspace' disabled and no retry.\n4. /onboarding is reachable by roles that cannot create a workspace, who complete four steps before a 403 toast.",
+      "evidence": "Shell.tsx:450 `if (error) navigate(\"/\");`. App.tsx:50 returns the loading text whenever data is undefined. OnboardingPage.tsx:48 and 55 `void api.get(...).then(...)` and `void api.post(...).then(...)` without catch. App.tsx:74 and Shell.tsx:340 do not check capability.",
+      "recommendation": "Distinguish 404 (redirect) from other errors (inline error with retry, URL kept). Add error and retry states to Landing and Onboarding. Guard /onboarding with `workspace.configure`."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/web/src/components/ui/index.tsx:201-212, 252-275; apps/web/src/pages/AgentsPage.tsx:60; apps/web/src/components/shell/Shell.tsx:376-405; Inspector.tsx:410-415",
+      "mechanism": "Focus management and ARIA semantics fall short of the WCAG 2.2 AA target in DESIGN.md:\n- Dialog declares aria-modal but does not move focus in, trap it or restore it on close, so keyboard users keep tabbing through the page behind it.\n- Tabs expose role=tab with no tabpanel, aria-controls or arrow-key movement.\n- Flight-recorder step details expand only by mouse click on a div.\n- Level buttons combine role=radio with aria-pressed and offer no arrow-key group behaviour.\n- The palette input references aria-activedescendant without combobox, aria-controls or aria-expanded.\n- Task cards are role=button but respond only to Enter, not Space.",
+      "evidence": "ui/index.tsx:252-275 (the only effect is the Escape listener). ui/index.tsx:203-208 (tabs). AgentsPage.tsx:60 `<div \u2026 onClick={() => setOpen(!open)}>`. Inspector.tsx:412 `role=\"radio\" aria-checked \u2026 aria-pressed`. Shell.tsx:378-389. PlanPage.tsx:28 `onKeyDown={(e) => e.key === \"Enter\" && onOpen()}`.",
+      "recommendation": "Use the native `<dialog>` element or a focus-trap utility with initial focus and restore. Implement the tab pattern once in Tabs. Make expandable steps buttons with aria-expanded. Pick one of radio or toggle semantics. Add an axe pass to e2e for each page and each open dialog."
+    },
+    {
+      "severity": "low",
+      "location": "apps/server/src/services/views.ts:154-155, 179; apps/web/src/scene/colors.ts:72-80, 124-126; apps/web/src/scene/FrameworkScene.tsx:405-435",
+      "mechanism": "The Evidence lens and evidence crystals count accepted evidence without checking validity. A requirement whose only evidence has expired is shown as 'Evidence on file' in the verified colour, although the lens is described as 'accepted, unexpired evidence'. The same lens uses a fixed `current >= 2` cutoff for 'Implemented, no evidence' instead of comparing with the target.",
+      "evidence": "views.ts:155 `if (e.status === \"accepted\") \u2026 evidenceCount.set(...)` with no isEvidenceValid check. colors.ts:74 'Whether implemented work is backed by accepted, unexpired evidence.' colors.ts:125-126 `if (unit.evidence > 0) return \u2026 verified; return \u2026 unit.current >= 2 ? at-risk : not-started`.",
+      "recommendation": "Count only `isEvidenceValid` items in the state bundle (or send valid and expired counts separately). Colour expired-only units as at risk. Use `current >= target` for the 'implemented, no evidence' class."
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/src/components/inspector/Inspector.tsx:364-368; apps/web/src/pages/RmfPage.tsx:226-278",
+      "mechanism": "Decision records important to an auditor are thin in the UI:\n- 'Mark verified' is a one-way button. Once verifiedAt is set there is no control to revoke it. The date and verifier are not shown outside the History tab. The button is offered when there is no accepted evidence (status then stays 'implemented' with no explanation) and when the target is 0.\n- An ATO or DATO authorization can be recorded with no authorizing official and no termination date.",
+      "evidence": "Inspector.tsx:364 `canDecide && state.applicable && state.current >= state.target && !state.verifiedAt`, with no else branch that shows or clears verifiedAt. status.ts:68-71 requires `target > 0` and valid evidence for 'verified'. RmfPage.tsx:233 sends `authorizingOfficial: ao || undefined`, and the button at line 273 is disabled only by role.",
+      "recommendation": "Show 'Verified <date> by <person>' with a 'Withdraw verification' action. Disable 'Mark verified' with a reason until valid evidence exists. Require the official's name (and a termination date for ATO) before recording a non-pending authorization."
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/src/components/inspector/Inspector.tsx:608-620; apps/web/src/components/shell/Shell.tsx:271-280; HomePage.tsx:98-100, 178-180; AgentsPage.tsx:249; PlanPage.tsx:156-157",
+      "mechanism": "Navigation friction around agent work and approvals:\n- useRunAgent's navigation branch is a no-op, so the toast says 'watch it work \u2026 in Agents' but nothing links to the run.\n- The palette navigates to /agents rather than the run it just created.\n- 'N awaiting approval', 'Review N' and the rail badge all open the Runs tab; the approvals inbox is local tab state with no URL.\n- The plan timeline has a 900px minimum width inside a horizontally scrolling panel, which contradicts the documented 'no panel scrolls sideways' rule on phones and at 1024px.",
+      "evidence": "Inspector.tsx:615 `if (!opts.stay) void navigate;`. Shell.tsx:274-276 discards the POST response and calls `navigate(`/w/${ws}/agents`)`. AgentsPage.tsx:249 `useState<\"runs\" | \"inbox\">(\"runs\")`. PlanPage.tsx:156-157 `overflowX: \"auto\"` and `minWidth: 900`; the sideways-scroll e2e test (visua.spec.ts:510-537) loads /plan only in board view.",
+      "recommendation": "Return the run from useRunAgent and put an 'Open run' action in the toast (or navigate unless `stay`). Add `?tab=inbox` and use it from the badge and Overview. Give the timeline a stacked list form on narrow screens."
+    }
+  ],
+  "limitations": [
+    "Packet-only, read-only review. No tests, build, browser or server were run; every finding is inferred from source. The lead's 214 passed / 2 skipped figure was not independently verified.",
+    "Server routes (app.ts), VisuaService, storage and auth middleware were not in the packet. Statements that the server refuses an action rest on the documentation and on packages/core/src/access.ts.",
+    "Whether workspace ids differ from slugs is not visible in the packet; the SSE query-key finding depends on that.",
+    "Whether the default SOC 2 skeleton carries pointsOfFocus is not visible; the note that PBC requests may be empty in a fresh clone is an inference from README and architecture wording.",
+    "Separation-of-duties rules (an author accepting their own evidence or approving their own policy) could not be checked without the service code.",
+    "Visual quality, contrast as rendered, real GPU performance, and label layout were not observed. Responsiveness comments come from the CSS and the e2e expectations.",
+    "Agent runtime, offline playbooks, corpus licensing, tenancy, SSO and the audit-chain implementation belong to other lanes and were touched only where they surface in the UI.",
+    "State-law dates and counts were reviewed as code behaviour, not as current law."
+  ],
+  "strengths": [
+    "Clear information architecture: a labelled Workspace / Explore / Manage rail, program pages per framework, consistent page headers, and cross-links between each program page and its 3D view (Shell.tsx:53-90, HomePage.tsx:137-144).",
+    "Decision actions are role-aware where it matters most: proposal decisions, evidence accept/reject, N/A and verification, law applicability, RMF categorize/tailor/authorize, exports and Settings all check capabilities and explain who can act (Proposals.tsx:73-77, Inspector.tsx:314-316, RmfPage.tsx:158, ReportsPage.tsx:127-131).",
+    "Integrity is visible in the UI: N/A requires a rationale of at least 12 characters marked 'visible to auditors', 'out of scope' is distinguished from a person's exclusion and links to the scope page, and 'mapping is not evidence' and 'not an audit opinion' notes appear at the point of use (Inspector.tsx:344-397, CrosswalkPage.tsx:96-98).",
+    "Evidence provenance comes first: source class, SHA-256, reviewer, freshness, and a clear split between connector, agent and manual evidence (EvidencePage.tsx:21-36, 285-308).",
+    "The agent flight recorder shows steps, tool inputs and outputs, citations, token usage and proposals, and offline mode is labelled honestly in the top bar and Settings (AgentsPage.tsx:100-164, Shell.tsx:227-230).",
+    "Threat views are kept distinct from assessment throughout: no level controls, coverage grouped by publication and route, link-status badges and a shared link filter, and an arrow-key matrix with a single tab stop (Threats.tsx, ThreatsPage.tsx:69-143; e2e 472-495).",
+    "State AI laws are handled carefully: scope follows recorded roles, upcoming obligations are scored apart, the timeline has a list twin and keyboard-focusable months, and decisions show who and when (LawsPage.tsx, Timeline.tsx).",
+    "The action plan board holds optimistic moves per task with a saving state, rollback and an error toast (PlanPage.tsx:215-237).",
+    "Responsive behaviour is deliberate: container queries, stacked tables with data-labels, one-pane master-detail, bottom-sheet inspector, phone-first outline, reduced-motion support, and e2e checks for sideways scroll and label collisions (global.css; e2e 510-620).",
+    "Status never relies on colour alone: glyphs plus labels, text alternatives on stacked bars, and provenance styled by border rather than hue (ui/index.tsx:12-109, Coverage.tsx).",
+    "Exports cover the main handoff artifacts (CSF profile in NIST's columns, PBC list, evidence index with hashes, OSCAL SSP and POA&M, readiness report) and the audit chain's verification state is surfaced on Overview and Reports."
+  ],
+  "opportunities": [
+    {
+      "priority": "now",
+      "outcome": "Hardening release (launch blocker): every role sees only the actions it can perform, no write fails silently, and the inspector cannot save to the wrong requirement.",
+      "evidence": "The high and medium findings above: unkeyed Assessment form (Inspector.tsx:340), ungated writes across Plan, Evidence, Policies, AI, SOC 2 and Reports, missing onError handlers, Shell.tsx:450 redirect on any error, SSE id/slug key mismatch (events.ts:24-28).",
+      "acceptance": "Playwright suites for viewer, auditor, contributor and approver walk every route and find zero enabled controls that return 403. An injected 500 on each mutation produces a visible error. The A\u2192B\u2192A\u2192B inspector test sends no PATCH. A workspace whose id differs from its slug gets a live approvals badge and task board from SSE. A transient workspace-load 500 keeps the URL and shows a retry.",
+      "dependencies": [
+        "Capability map in packages/core/src/access.ts confirmed against server routes (integration lane)",
+        "Seed or fixture with workspace id \u2260 slug",
+        "Default onError in useWsMutation"
+      ]
+    },
+    {
+      "priority": "now",
+      "outcome": "Keyboard and screen-reader users can complete assess \u2192 evidence \u2192 approve entirely in the 2D outline and dialogs.",
+      "evidence": "Global key handler conflicts and non-focusable treeitems (ObservatoryPage.tsx:76-82, 174-220), the broken scroll-into-view lookup (line 47), Dialog with no focus trap (ui/index.tsx:252-275), tabs without the tab pattern.",
+      "acceptance": "axe-core reports no serious or critical violations on each page and each open dialog. An e2e test completes 'select requirement, set level, add evidence, mark N/A with rationale, approve a proposal' with the keyboard only. Escape inside a dialog never changes the selection. The outline shows visible roving focus.",
+      "dependencies": [
+        "Shared Dialog and Tabs primitives refactor",
+        "axe integration in the Playwright suite"
+      ]
+    },
+    {
+      "priority": "next",
+      "outcome": "Owned work: every gap has a named member as owner, a due date and a personal queue, so the team progresses without a side spreadsheet.",
+      "evidence": "TaskDialog shows assignee and dates read-only (PlanPage.tsx:111-116). Quick add creates a task with only a title and no requirement (PlanPage.tsx:239). Requirement owner is free text (Inspector.tsx:338-341). There is no 'assigned to me' view and no notifications. The members list exists but is unused for assignment (OrganizationPage.tsx:146).",
+      "acceptance": "A contributor can assign a task or requirement to an organization member and set a due date from the dialog and the inspector. A 'My work' filter shows it. Overdue items appear on Overview per owner. On the seeded demo, at least 90% of open gaps can be given an owner and date without leaving the app. Owner changes are audited with actorId.",
+      "dependencies": [
+        "Member picker backed by /tenants/:id/members with read access for contributors",
+        "Task PATCH fields for assignee and dates (route appears to exist; verify)",
+        "Decision on free-text owners for people outside the organization"
+      ]
+    },
+    {
+      "priority": "next",
+      "outcome": "Evidence request-to-acceptance loop: a requirement's needed evidence is requested, uploaded as a file, reviewed with a validity window and a reason, and only then verified.",
+      "evidence": "Evidence is pasted text only (Inspector.tsx:529-532); file storage is roadmap item 2. Review is a bare accept or reject icon with no validity date, no rejection reason, and no action inside the detail dialog (EvidencePage.tsx:207-216, 284-309). 'Mark verified' is not tied to valid evidence in the UI (Inspector.tsx:364). The Evidence lens ignores expiry (views.ts:155).",
+      "acceptance": "A contributor uploads a file, which is SHA-256 hashed and downloadable. The approver's review dialog requires a validity window on acceptance and a reason on rejection. A requirement cannot be marked verified without valid evidence, and the verification shows who and when and can be withdrawn. Expired evidence turns the requirement at risk in the lens, list and Overview within the hourly score window. An e2e test covers the whole loop for one CSF outcome and one SOC 2 criterion.",
+      "dependencies": [
+        "Object storage for evidence files (roadmap 'Evidence file storage')",
+        "Evidence model fields: rejection reason, reviewedAt surfaced, verifier identity",
+        "Product decision on whether an uploader may accept their own evidence"
+      ]
+    },
+    {
+      "priority": "next",
+      "outcome": "Auditor handoff packet and auditor view: an external auditor with the Auditor role gets a read-only workspace and one downloadable, verifiable package.",
+      "evidence": "Handoff is eight separate downloads through plain links (ReportsPage.tsx:107-145). There is no audit-trail export and no bundle with the chain head. The auditor role sees the same write-oriented pages. The PBC 'Evidence requested' column derives from points of focus, which may be absent on the default skeleton (exports.ts:185-192; inference). The evidence index lacks links to artifacts. 'Auditor workspace' is roadmap item 9.",
+      "acceptance": "For a seeded SOC 2 Type 2 workspace, one action produces a zip containing the PBC list with evidence ids and hashes, the evidence index, in-scope criteria with N/A rationales, approved policies, the audit-trail export with head hash, and a verification manifest. An Auditor-role session sees no write controls, and its reads and exports are logged. The PBC list has a request for every in-scope criterion on a fresh clone. Opening the packet requires no Visua access.",
+      "dependencies": [
+        "Hardening release (role gating)",
+        "Evidence file storage",
+        "Visua-authored request wording per criterion for skeleton installs, within the licensing rule",
+        "Audit-trail export endpoint"
+      ]
+    },
+    {
+      "priority": "next",
+      "outcome": "Guided first week after onboarding: a new workspace shows a short readiness path instead of a bare dashboard.",
+      "evidence": "Onboarding ends by navigating to Overview (OnboardingPage.tsx:64). Overview has next-best actions, but no setup checklist, no empty-state guidance for evidence, connectors or members, and the approvals links land on the Runs tab (HomePage.tsx:98-100, AgentsPage.tsx:249).",
+      "acceptance": "A newly created workspace shows a dismissible checklist: confirm scope, invite an approver, assign owners to the top 10 gaps, add the first connector, accept the first evidence. Progress is computed from workspace state. In a moderated test, a first-time user reaches 'first evidence accepted' without documentation. The approvals badge deep-links to the inbox.",
+      "dependencies": [
+        "Owned-work phase (assignment)",
+        "Inbox deep link (?tab=inbox)"
+      ]
+    },
+    {
+      "priority": "later",
+      "outcome": "Trust-centre and policy claims are checked against evidence before publication.",
+      "evidence": "Free-text headline on the public page (TrustPage.tsx:27; ReportsPage.tsx:213-216). Policies can be approved and become evidence with no review-date field, version diff or retire action in the UI (PoliciesPage.tsx:133-147). The claim-consistency agent is roadmap item 4.",
+      "acceptance": "Publishing shows a preview and blocks or labels any statement not backed by a computed fact. The policy UI has a next-review date, version history with diff, and retire. An expired review date marks governed requirements at risk.",
+      "dependencies": [
+        "Claim-consistency agent (roadmap)",
+        "Policy model: review date and version history exposure"
+      ]
+    },
+    {
+      "priority": "later",
+      "outcome": "Growth: Type 2 observation-window continuity (time scrubber), connector depth (cloud, IdP, HRIS, MDM) and the questionnaire agent. None is needed for the first supported-readiness workflow.",
+      "evidence": "The SOC 2 page shows only a progress bar for the window (Soc2Page.tsx:38-62). Connectors cover web posture and repository hygiene only (architecture.md:619-620). Roadmap items 3, 5 and 6.",
+      "acceptance": "For a Type 2 window, each in-scope criterion shows evidence coverage by month with gaps flagged. At least one identity and one cloud connector file proposals as evidence, each labelled with its automation depth. Acceptance for each is defined when scheduled.",
+      "dependencies": [
+        "Evidence loop and auditor packet delivered first",
+        "Evidence history retained by period",
+        "Connector credentials and secret storage design"
+      ]
+    }
+  ]
+}

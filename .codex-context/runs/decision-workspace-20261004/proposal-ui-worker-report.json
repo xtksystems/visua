@@ -1,0 +1,35 @@
+{
+  "run_id": "decision-workspace-20261004",
+  "node_id": "proposal-ui",
+  "input_sha256": "dfaf646cb73d872f3aa267740b9394de5d3e7eb52068307c0946464504fdb655",
+  "status": "complete",
+  "summary": "Implemented proposal review and batch decision UI with server-derived Current/Proposed changes, actual affected requirements, supporting sources, unknowns, qualified confidence, frozen snapshot/token approval, explicit stale refresh, capability gates, pending guards, deep-link recovery and selection identity validation. Authored seven browser cases and updated page-role review assertions.",
+  "files": [
+    "apps/web/src/components/agents/Proposals.tsx",
+    "apps/web/src/components/agents/proposals.css",
+    "apps/web/src/pages/AgentsPage.tsx",
+    "e2e/proposal-review.spec.ts",
+    "e2e/page-roles.spec.ts"
+  ],
+  "evidence": [
+    {
+      "command": "pnpm --filter @visua/web typecheck",
+      "cwd": "/Users/artem/visua",
+      "result": "passed",
+      "scope": "Web implementation including dialog, CSS import, run/deep-link components. A final expectedRunId prop and guard were added afterward; integrated validation belongs to the lead."
+    },
+    {
+      "check": "Source review",
+      "result": "Reviewed workspace/run/proposal identity lifetime, aborted preview loads, exact snapshot decision request, mutation failure handling, batch-result persistence after pending count changes, and modal focus integration."
+    },
+    {
+      "check": "Browser coverage authored",
+      "result": "Seven cases: actual single apply; stale scalar preview; changed batch member; simulated late arrival with partial outcomes; preview/mutation retry and pending closure guard; mobile keyboard deep link; missing proposal and failed run recovery."
+    }
+  ],
+  "limitations": [
+    "Browser tests and full build not run by this worker to avoid resource contention. Lead started integrated browser lane after source freeze.",
+    "The late-arrival/partial-outcome browser case uses mocked live run and batch-result responses; other approval/staleness cases use real API/storage.",
+    "No commits, pushes, deployments, full suites, or changes outside assigned product/test files and this result envelope."
+  ]
+}

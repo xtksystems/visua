@@ -7,10 +7,12 @@
  * `store.atomic()` / `store.transaction()` that is the open transaction, so a
  * service method and everything it calls commit or roll back together.
  */
-import type { ActivityEvent, AgentRun, CheckResult, Connector, Evidence, Policy, Proposal, RequirementState, Risk, Task, Workspace } from "@visua/core";
+import type { ActivityEvent, AgentRun, CheckResult, Connector, Evidence, Policy, Proposal, RequirementState, Risk, Task, Workspace, ScoreObservation, ScoreHistory } from "@visua/core";
 import { parseJson, txContext, type Dialect, type SqlDriver, type TxContext } from "./driver.ts";
 import { IdentityStore } from "./identity.ts";
+import { AccessTable } from "./access.ts";
 import { Repo, type StoreContext } from "./repo.ts";
+import { evidenceMetadata } from "../services/evidence.ts";
 
 type Entity = { id: string; workspaceId: string };
 type DataRow = { data: unknown };
@@ -83,6 +85,160 @@ export class Collection<T extends Entity> extends Repo {
   async count(workspaceId: string): Promise<number> {
     const [row] = await this.db.query<{ n: number }>(`SELECT COUNT(*) AS n FROM ${this.table} WHERE workspace_id = ?`, [workspaceId]);
     return Number(row?.n ?? 0);
+  }
+}
+
+/** Read only active execution metadata; terminal history never needs backfilling. */
+export class RunCollection extends Collection<AgentRun> {
+  constructor(store: StoreContext) { super(store, "agent_runs"); }
+
+  /** A bounded sweep in insertion order, unaffected by heartbeats or other updates. */
+  async scanActive(cursor?: { after: number; through: number }, limit = 256): Promise<{ runs: AgentRun[]; cursor?: { after: number; through: number } }> {
+    const through = cursor?.through ?? Number((await this.db.query<{ through: number | null }>(`SELECT MAX(${this.pos}) AS through FROM agent_runs`))[0]?.through ?? 0);
+    const size = Math.max(1, Math.min(1024, Math.floor(limit)));
+    const status = this.store.dialect === "postgres" ? "data->>'status'" : "json_extract(data, '$.status')";
+    const rows = await this.db.query<DataRow & { position: number }>(
+      `SELECT data, ${this.pos} AS position FROM agent_runs WHERE ${this.pos} > ? AND ${this.pos} <= ? AND ${status} IN ('queued', 'running') ORDER BY ${this.pos} ASC LIMIT ?`,
+      [cursor?.after ?? 0, through, size],
+    );
+    const after = rows.at(-1)?.position;
+    return {
+      runs: rows.map((row) => parseJson<AgentRun>(row.data)),
+      // New inserts wait for the next sweep, so a busy producer cannot prevent wraparound.
+      cursor: rows.length === size && after !== undefined && after < through ? { after, through } : undefined,
+    };
+  }
+
+  /** Aggregate only; diagnostic collection never hydrates goals or event payloads. */
+  async queuedCount(): Promise<number> {
+    const status = this.store.dialect === "postgres" ? "data->>'status'" : "json_extract(data, '$.status')";
+    const [row] = await this.db.query<{ count: number | string }>(`SELECT COUNT(*) AS count FROM agent_runs WHERE ${status} = 'queued'`);
+    return Number(row?.count ?? 0);
+  }
+
+  async owned(ownerId: string): Promise<AgentRun[]> {
+    const owner = this.store.dialect === "postgres" ? "data->'execution'->>'ownerId'" : "json_extract(data, '$.execution.ownerId')";
+    const status = this.store.dialect === "postgres" ? "data->>'status'" : "json_extract(data, '$.status')";
+    const rows = await this.db.query<DataRow>(`SELECT data FROM agent_runs WHERE ${owner} = ? AND ${status} = 'running'`, [ownerId]);
+    return rows.map((row) => parseJson<AgentRun>(row.data));
+  }
+
+  async active(workspaceId?: string, limit = 256): Promise<AgentRun[]> {
+    const status = this.store.dialect === "postgres" ? "data->>'status'" : "json_extract(data, '$.status')";
+    const where = workspaceId === undefined ? "" : " AND workspace_id = ?";
+    const params: unknown[] = workspaceId === undefined ? [] : [workspaceId];
+    params.push(Math.max(1, Math.min(1024, Math.floor(limit))));
+    const rows = await this.db.query<DataRow>(`SELECT data FROM agent_runs WHERE ${status} IN ('queued', 'running')${where} ORDER BY updated_at ASC, ${this.pos} ASC LIMIT ?`, params);
+    return rows.map((row) => parseJson<AgentRun>(row.data));
+  }
+}
+
+/** Append-only observations: callers cannot overwrite an existing snapshot. */
+export class ScoreHistoryTable extends Repo {
+  async append(observation: ScoreObservation): Promise<void> {
+    await this.db.execute(`INSERT INTO score_snapshots (id, workspace_id, observed_at, revision, reason, data) VALUES (?, ?, ?, ?, ?, ${this.J})`,
+      [observation.id, observation.workspaceId, observation.observedAt, observation.revision, observation.reason, JSON.stringify(observation)]);
+  }
+
+  async recent(workspaceId: string, limit = 60): Promise<ScoreHistory> {
+    const bounded = Math.max(1, Math.min(200, Math.floor(limit)));
+    const rows = await this.db.query<DataRow>(`SELECT data FROM score_snapshots WHERE workspace_id = ? ORDER BY observed_at DESC, revision DESC, id DESC LIMIT ?`, [workspaceId, bounded + 1]);
+    return { workspaceId, hasOlder: rows.length > bounded, observations: rows.slice(0, bounded).reverse().map(row => parseJson<ScoreObservation>(row.data)) };
+  }
+
+  async latestScheduledAt(workspaceId: string): Promise<string | undefined> {
+    const [row] = await this.db.query<{ observed_at: string }>(`SELECT observed_at FROM score_snapshots WHERE workspace_id = ? AND reason = 'scheduled' ORDER BY observed_at DESC LIMIT 1`, [workspaceId]);
+    return row?.observed_at;
+  }
+
+  async deleteWorkspace(workspaceId: string): Promise<void> {
+    await this.db.execute(`DELETE FROM score_snapshots WHERE workspace_id = ?`, [workspaceId]);
+  }
+}
+
+/** Evidence metadata stays small; only explicit artifact reads hydrate inline bodies. */
+export class EvidenceCollection extends Collection<Evidence> {
+  constructor(store: StoreContext) {
+    super(store, "evidence");
+  }
+
+  async metadataGet(id: string): Promise<Evidence | undefined> {
+    return super.get(id);
+  }
+
+  async metadataList(workspaceId: string): Promise<Evidence[]> {
+    return super.list(workspaceId);
+  }
+
+  private async hydrate(evidence: Evidence[]): Promise<Evidence[]> {
+    const inline = evidence.filter((e) => !e.artifact);
+    const bodies = new Map<string, Pick<Evidence, "content" | "data">>();
+    for (let i = 0; i < inline.length; i += CHUNK) {
+      const ids = inline.slice(i, i + CHUNK).map((e) => e.id);
+      const rows = await this.db.query<{ evidence_id: string; data: unknown }>(`SELECT evidence_id, data FROM evidence_content WHERE evidence_id IN (${ids.map(() => "?").join(", ")})`, ids);
+      for (const row of rows) bodies.set(row.evidence_id, parseJson<Pick<Evidence, "content" | "data">>(row.data));
+    }
+    return evidence.map((e) => ({ ...e, ...bodies.get(e.id) }));
+  }
+
+  override async get(id: string): Promise<Evidence | undefined> {
+    const [row] = await this.db.query<{ metadata: unknown; body: unknown }>(`SELECT e.data AS metadata, c.data AS body FROM evidence e LEFT JOIN evidence_content c ON c.evidence_id = e.id WHERE e.id = ?`, [id]);
+    return row ? this.readJoined(row) : undefined;
+  }
+
+  override async list(workspaceId: string): Promise<Evidence[]> {
+    const rows = await this.db.query<{ metadata: unknown; body: unknown }>(`SELECT e.data AS metadata, c.data AS body FROM evidence e LEFT JOIN evidence_content c ON c.evidence_id = e.id WHERE e.workspace_id = ? ORDER BY e.updated_at ASC, e.${this.pos} ASC`, [workspaceId]);
+    return rows.map((row) => this.readJoined(row));
+  }
+
+  override async recent(workspaceId: string, limit: number): Promise<Evidence[]> {
+    const rows = await this.db.query<{ metadata: unknown; body: unknown }>(`SELECT e.data AS metadata, c.data AS body FROM evidence e LEFT JOIN evidence_content c ON c.evidence_id = e.id WHERE e.workspace_id = ? ORDER BY e.updated_at DESC, e.${this.pos} DESC LIMIT ?`, [workspaceId, Math.max(0, Math.floor(limit))]);
+    return rows.map((row) => this.readJoined(row));
+  }
+
+  private readJoined(row: { metadata: unknown; body: unknown }): Evidence {
+    const metadata = parseJson<Evidence>(row.metadata);
+    return !metadata.artifact && row.body != null ? { ...metadata, ...parseJson<Pick<Evidence, "content" | "data">>(row.body) } : metadata;
+  }
+
+  override async put(entity: Evidence, updatedAt: string = now()): Promise<Evidence> {
+    return this.store.atomic(async () => {
+      await super.put(evidenceMetadata(entity), updatedAt);
+      if (!entity.artifact && (entity.content !== undefined || entity.data !== undefined)) {
+        await this.db.execute(
+          `INSERT INTO evidence_content (evidence_id, workspace_id, data) VALUES (?, ?, ${this.J})
+           ON CONFLICT (evidence_id) DO UPDATE SET workspace_id = excluded.workspace_id, data = excluded.data`,
+          [entity.id, entity.workspaceId, JSON.stringify({ content: entity.content, data: entity.data })],
+        );
+      } else await this.db.execute(`DELETE FROM evidence_content WHERE evidence_id = ?`, [entity.id]);
+      return entity;
+    });
+  }
+
+  override async update(id: string, fn: (current: Evidence) => Evidence | undefined, updatedAt?: string): Promise<Evidence | undefined> {
+    return this.store.atomic(async () => {
+      const lock = this.store.dialect === "postgres" ? " FOR UPDATE" : "";
+      const [row] = await this.db.query<DataRow>(`SELECT data FROM evidence WHERE id = ?${lock}`, [id]);
+      if (!row) return undefined;
+      const current = (await this.hydrate([parseJson<Evidence>(row.data)]))[0]!;
+      const next = fn(current);
+      if (!next) return current;
+      return this.put(next, updatedAt);
+    });
+  }
+
+  override async delete(id: string): Promise<boolean> {
+    return this.store.atomic(async () => {
+      await this.db.execute(`DELETE FROM evidence_content WHERE evidence_id = ?`, [id]);
+      return super.delete(id);
+    });
+  }
+
+  override async deleteWorkspace(workspaceId: string): Promise<void> {
+    await this.store.atomic(async () => {
+      await this.db.execute(`DELETE FROM evidence_content WHERE workspace_id = ?`, [workspaceId]);
+      await super.deleteWorkspace(workspaceId);
+    });
   }
 }
 
@@ -228,14 +384,16 @@ export class Store implements StoreContext {
   readonly workspaces: WorkspaceTable;
   readonly states: StateTable;
   readonly tasks: Collection<Task>;
-  readonly evidence: Collection<Evidence>;
+  readonly evidence: EvidenceCollection;
   readonly policies: Collection<Policy>;
   readonly risks: Collection<Risk>;
   readonly connectors: Collection<Connector>;
   readonly checks: Collection<CheckResult>;
-  readonly runs: Collection<AgentRun>;
+  readonly runs: RunCollection;
   readonly proposals: Collection<Proposal>;
   readonly activity: ActivityLog;
+  readonly access: AccessTable;
+  readonly scoreHistory: ScoreHistoryTable;
   readonly identity: IdentityStore;
   private savepoints = 0;
   private readonly closers: (() => Promise<void>)[] = [];
@@ -245,14 +403,16 @@ export class Store implements StoreContext {
     this.workspaces = new WorkspaceTable(this);
     this.states = new StateTable(this);
     this.tasks = new Collection<Task>(this, "tasks");
-    this.evidence = new Collection<Evidence>(this, "evidence");
+    this.evidence = new EvidenceCollection(this);
     this.policies = new Collection<Policy>(this, "policies");
     this.risks = new Collection<Risk>(this, "risks");
     this.connectors = new Collection<Connector>(this, "connectors");
     this.checks = new Collection<CheckResult>(this, "check_results");
-    this.runs = new Collection<AgentRun>(this, "agent_runs");
+    this.runs = new RunCollection(this);
     this.proposals = new Collection<Proposal>(this, "proposals");
     this.activity = new ActivityLog(this);
+    this.access = new AccessTable(this);
+    this.scoreHistory = new ScoreHistoryTable(this);
     this.identity = new IdentityStore(this);
   }
 
@@ -334,7 +494,7 @@ export class Store implements StoreContext {
   async deleteWorkspace(id: string): Promise<void> {
     await this.atomic(async () => {
       await this.states.deleteWorkspace(id);
-      for (const c of [this.tasks, this.evidence, this.policies, this.risks, this.connectors, this.checks, this.runs, this.proposals, this.activity]) {
+      for (const c of [this.tasks, this.evidence, this.policies, this.risks, this.connectors, this.checks, this.runs, this.proposals, this.activity, this.scoreHistory]) {
         await c.deleteWorkspace(id);
       }
       await this.workspaces.delete(id);

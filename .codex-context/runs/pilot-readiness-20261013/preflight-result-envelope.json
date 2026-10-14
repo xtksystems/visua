@@ -1,0 +1,21 @@
+{
+  "run_id": "pilot-readiness-20261013",
+  "node_id": "preflight",
+  "input_sha256": "6d28468bfbfffc42b8376cca07208871c40d2a1730c41e862e55d5ef066448ef",
+  "status": "complete",
+  "summary": "Added an environment-only empty-install hosted configuration inspector and JSON CLI with safe static messages, stable checks, operator-review flags and explicit external verification requirements. Runtime behavior is unchanged.",
+  "limitations": [
+    "Configuration syntax and selected runtime-loader checks only; no provider credentials, live service access, DNS, database/blob operations or credential resolution were performed.",
+    "The profile is for an empty installation. Existing organization SSO, memberships and database contents cannot be inferred.",
+    "S3 syntax checks mirror existing constructor validation because there is no separate runtime S3 config loader; future constructor changes must keep this inspector aligned.",
+    "Passing configReady does not establish production readiness. Warning review statuses and all external checks still require operator evidence.",
+    "Focused tests and server typecheck only; broad suites, Docker, browser tests and hosted recovery/capacity drills were not run by this worker.",
+    "Lead owns package command wiring, documentation and rehearsal integration. Changes remain uncommitted."
+  ],
+  "evidence": [
+    "preflight-result.json: original worker evidence, source hashes, and limitations retained unchanged.",
+    "preflight-correction-result.json: correction and affected recheck evidence.",
+    "source-verification.json and rehearsal-release-result.json: lead combined validation."
+  ],
+  "normalization": "Lead normalized structured evidence references to the run-contract string array; original worker artifact retained."
+}

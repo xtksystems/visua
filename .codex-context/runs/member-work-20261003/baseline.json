@@ -1,0 +1,20 @@
+{
+  "head": "c8a1ed06a8043fe725381ccccd89779b6a3498e0",
+  "scope": {
+    "root": "/Users/artem/visua",
+    "files": {
+      "packages/core/src/types.ts": "ccd9b7dfe9ac54136155d21508af836f1c45ece25579f2d6a59acca5ec363f93",
+      "apps/server/src/app.ts": "9549e7879afff2082c9693376e7493d4fbd33d7814169bb8144165c7124a590d",
+      "apps/server/src/services/visua.ts": "1074914a3d42620e66f8a46ab4527d5130e16a054859d5fbada0d42c2e384b84",
+      "apps/web/src/pages/PlanPage.tsx": "f2c721932d8de7d5861a1e21838798d8374b32d039a6621f16001a348269d40d",
+      "apps/web/src/App.tsx": "72eeb872a583f5adeb3b9c3b74528bb30596b140f3ce7108a86b905c529a18cf",
+      "apps/web/src/components/shell/Shell.tsx": "061dc8f7afea061798c07f7c5b85f147c06bc34f8221fad840640cb6c0dddf5c",
+      "apps/web/src/components/inspector/Inspector.tsx": "ada41a35fae9bf97de3732f7c77fdc01fe978295607085581e337fea76367c3c",
+      "apps/web/src/lib/queries.ts": "16cfd9a535be5a74c756aa98131c4f63bb03035ed9e5bd46e0af4a7c4a3672b0",
+      "apps/web/src/lib/types.ts": "914684b1dda84b8ba9e203d1c2caee47a0104910b5051480e115d4a284ba95dd",
+      "compose.yaml": "8857cf45e6627114f71bbd9de32c617ff4b654aab47cc81257833cf97281b33e",
+      "Dockerfile": "3b6a96616e2d15f8f110b0f63c7d7de17ec496555151b6e3ab4505b2de398d2b",
+      ".dockerignore": "b69c12617a8a40e5ecde492305757c2b3b7a8a2466285d092e7d33597ea89eec"
+    }
+  }
+}

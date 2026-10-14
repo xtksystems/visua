@@ -1,0 +1,19 @@
+{
+  "run_id": "selection-roles-20261003",
+  "node_id": "selection-review",
+  "input_sha256": "3c45b23b6831fd5db0adfe1f781777271b45bf581e465666e279d4bdf6327b80",
+  "status": "complete",
+  "summary": "Original pinned source review completed with three medium and one low supported findings; root owns reproduction, fixes and final affected-flow re-review.",
+  "evidence": [
+    "selection-review.json: adversarial schema report with four source-supported findings and concrete coverage.",
+    "selection-review-evidence.json: original scope provenance and end-of-pass digest drift.",
+    "Initial source pin check: 61 of 61 matched; HEAD c8a1ed06a8043fe725381ccccd89779b6a3498e0.",
+    "Review artifact sha256: 69feb76b4a05c0dec4698119a1221baaad46b96a7813b5c6fc2bad3f382ad175",
+    "Evidence artifact sha256: ee8ca325ac854ddb73afd9c4796e729692c5fcf3e7c7f702efeacdb562c25507"
+  ],
+  "limitations": [
+    "Source-analysis review only. No builds, unit tests, server/browser execution, or runtime fault reproduction performed by this reviewer; the integration owner owns those checks.",
+    "The original 61-path pin matched at review start. During completion, the integration owner changed three new e2e specs and began application corrections; end-of-pass drift is recorded in selection-review-evidence.json. Findings bind to the original pinned source, not the final corrected working tree. A bounded affected-flow re-review is required.",
+    "Fresh delegated context; runtime provider/model identity was not established. Server tenancy/capability and evidence-review boundaries were traced for this package, rather than independently re-auditing prior startup/connector/evidence packages."
+  ]
+}

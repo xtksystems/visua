@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import type { Capability, Role } from "@visua/core";
 import { api, ApiError, setCsrfToken } from "./api.ts";
 import { useWorkspace } from "./queries.ts";
+import { useAgentActivity } from "../state/agentActivity.ts";
 
 export interface Me {
   authMode: "dev" | "oidc";
@@ -50,6 +51,7 @@ export const useAuthConfig = () => useQuery({ queryKey: ["auth", "config"], quer
 export function useResetSession() {
   const qc = useQueryClient();
   return async () => {
+    useAgentActivity.getState().reset();
     qc.removeQueries({ predicate: (q) => q.queryKey[0] !== "auth" });
     await qc.fetchQuery({ queryKey: meKey, queryFn: fetchMe, staleTime: 0 });
   };

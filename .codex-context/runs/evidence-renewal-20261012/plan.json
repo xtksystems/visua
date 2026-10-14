@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "run_id": "evidence-renewal-20261012",
+  "scope": {
+    "root": "/Users/artem/visua",
+    "files": {
+      "packages/core/src/evidence.ts": "4070e3e368e4820df5164aaf801e9468037b25ce68bc262e73fe679dbea65979",
+      "packages/core/src/status.ts": "1b9c1f2ebf40e36fc0c1578d4cf28702ba349e20ae18279a26c8c7eccac8cabe",
+      "apps/server/src/services/attention.ts": "8673655da5b26de410cf399681780518c224a335b8a229948d9b908521c197de",
+      "apps/web/src/pages/EvidencePage.tsx": "f234642c1d6b8ecf765e677d7c1086b39150a3422e21d79c8e1b192636dbfab5",
+      "apps/web/src/lib/events.ts": "eb5625a13d4998f420465060f6cccdebd69c730d342025bbb7ad677b200e6419"
+    }
+  },
+  "base_head": "833c0eb424e078d06bc01ad235efb5aa97be75db",
+  "nodes": [
+    {
+      "id": "analysis-server",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "input": "analysis-server-brief.txt",
+      "input_sha256": "ee5311e18993a19e7a2e9cc46c2f887eb7119e9b67ffdbbdd085414d4d9b6fd1",
+      "result": "analysis-server-result.json",
+      "worker_id": "/root/renewal_server",
+      "result_sha256": "3e029af32b1f9c6739bf3917eef25762eded85ae0d1d66544c08cfa88bf7539d"
+    },
+    {
+      "id": "analysis-ui",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "input": "analysis-ui-brief.txt",
+      "input_sha256": "f8a09dbc3eab8fc049b71f530c4934e8909f52e5dc554e6b050d777d21120aa2",
+      "result": "analysis-ui-result.json",
+      "worker_id": "/root/renewal_ui",
+      "result_sha256": "50f44a3b648206468594ee8ff6f233f61028cbc767e2dada27dc1b3403001363"
+    },
+    {
+      "id": "implementation-server",
+      "depends_on": [
+        "analysis-server",
+        "analysis-ui"
+      ],
+      "status": "complete",
+      "accepted": true,
+      "input": "implementation-server-brief.txt",
+      "input_sha256": "60c6c32e1f5f8303bec06f3bbb62134287dd3e2d026c9ccc1925c5504b092d83",
+      "result": "implementation-server-result.json",
+      "worker_id": "/root/renewal_server",
+      "result_sha256": "c7c80e14ef63407951b6cf2873a74b7256b6706a2716924fe417841e611beabf"
+    },
+    {
+      "id": "implementation-ui",
+      "depends_on": [
+        "analysis-server",
+        "analysis-ui"
+      ],
+      "status": "complete",
+      "accepted": true,
+      "input": "implementation-ui-brief.txt",
+      "input_sha256": "8431c65f3f264f8e20d8868e2da008a24a956d49fca51cef11ff10570f5c1cff",
+      "result": "implementation-ui-result.json",
+      "worker_id": "/root/renewal_ui",
+      "result_sha256": "c9640f7472ba2413617be8a426612cac54579532657e08a46c48e37f4d380d37"
+    },
+    {
+      "id": "independent-review",
+      "depends_on": [
+        "implementation-server",
+        "implementation-ui"
+      ],
+      "status": "complete",
+      "accepted": true,
+      "input": "review-brief.txt",
+      "input_sha256": "200fd276d3796798ef6f624dde8821cc7feef55f58b3c3b99b17a3c1b218f462",
+      "result": "independent-review.json",
+      "context": "fresh",
+      "attempt": 1,
+      "provider_reported": "unknown",
+      "model_reported": "unknown",
+      "worker_id": "/root/renewal_review",
+      "result_sha256": "0ba09ebf225447486ca9b39e139e5ca6a9a8086e3e8a690731c229ddddaaca35",
+      "result_envelope": "independent-review-result.json",
+      "envelope_sha256": "4295109a9264af4175c9e34d203a9a02f1384905ccde05a520f060ec205ffcfe"
+    }
+  ],
+  "integration": {
+    "status": "verified",
+    "evidence": [
+      "final-source.json",
+      "source-verification.json",
+      "independent-review.json",
+      "lead-delta-review.json",
+      "visual-result.json"
+    ],
+    "authoritative_root": "/Users/artem/visua",
+    "note": "Isolated worker checkout preserves the earlier reviewed snapshot. Main checkout additionally contains verified lead fixes and final copy; never recopy the earlier worker snapshot over it.",
+    "browser_coverage": "115 full-lane passes plus 2 targeted rerun passes; 117 unique cases; no single clean final full-browser run."
+  },
+  "next_action": "Evidence renewal implementation and verification complete, uncommitted and not deployed. Preserve explicit source paths and concise records for its next delivery; leave raw diagnostics and prior visual review unstaged.",
+  "implementation_root": "/Users/artem/visua/.check/evidence-renewal-worktree",
+  "source_commit": "e867494",
+  "lead_owned_files": [
+    "apps/web/src/lib/events.ts",
+    "apps/web/src/components/work/AttentionQueue.tsx",
+    "docs/workspace.md",
+    "docs/architecture.md",
+    "apps/server/test/api.test.ts",
+    "e2e/visua.spec.ts"
+  ],
+  "lead_progress": "14 worker/lead paths integrated; ledger date semantics aligned and keyboard test waits for selection. Connector timeout traced to two full-checkout scans; approval integration test now uses bounded real filesystem fixture.",
+  "checks": {
+    "first_no_e2e": {
+      "session": 50374,
+      "status": "failed",
+      "log": "check-no-e2e.log",
+      "exit_code": 1,
+      "sqlite_passed": 523,
+      "sqlite_failed": 1,
+      "postgres_passed": 526
+    },
+    "focused_browser": {
+      "status": "failed",
+      "passed": 6,
+      "failed": 1,
+      "log": "e2e-focused.log"
+    },
+    "focus_debug": {
+      "session": 38542,
+      "status": "passed",
+      "log": "focus-debug.log",
+      "exit_code": 0
+    },
+    "connector_fixed": {
+      "status": "passed",
+      "passed": 1,
+      "log": "connector-fixed.log",
+      "note": "Existing approval flow uses bounded real fixture; scanner/timeouts unchanged."
+    },
+    "final_no_e2e": {
+      "status": "passed",
+      "session": 6399,
+      "log": "check-final-no-e2e.log",
+      "sqlite_passed": 524,
+      "exit_code": 0,
+      "sqlite_skipped": 2,
+      "postgres_passed": 526,
+      "duration_seconds": 473
+    },
+    "visual": {
+      "status": "passed",
+      "session": 80851,
+      "log": "visual.log",
+      "exit_code": 0,
+      "result": "visual-result.json",
+      "captures_inspected": [
+        "renewal-7d-1440.png",
+        "renewal-expired-390.png",
+        "renewal-7d-390-impact.png"
+      ]
+    },
+    "final_browser": {
+      "status": "failed",
+      "session": 66314,
+      "log": "e2e-final.log",
+      "source": "full-browser-source.json",
+      "renewal_cases_passed": 7,
+      "most_recent_passed": 68,
+      "failure": "Viewer role route.fetch ECONNRESET in existing agent run interception; focused unchanged retry pending after lane.",
+      "failures": [
+        "Existing viewer role route.fetch ECONNRESET; unchanged retry pending.",
+        "Existing bound-review test expects lowercase pending review, but intentional label now Review: Pending review; update assertion and rerun after lane."
+      ],
+      "most_recent_completed": 103,
+      "preserved_traces": ".check/evidence-renewal-browser-failures-20261012",
+      "exit_code": 1,
+      "passed": 115,
+      "failed": 2,
+      "duration": "24.0m"
+    },
+    "final_typecheck": {
+      "status": "passed",
+      "session": 67621,
+      "log": "typecheck-final.log",
+      "exit_code": 0
+    },
+    "targeted_rerun": {
+      "status": "passed",
+      "session": 25496,
+      "log": "e2e-final-rerun.log",
+      "source": "final-source.json",
+      "cases": [
+        "viewer workspace destination/capability matrix, unchanged",
+        "bound evidence review/history/stale-snapshot, expected label strings updated"
+      ],
+      "exit_code": 0,
+      "passed": 2,
+      "duration": "53.4s"
+    }
+  },
+  "status": "complete",
+  "completed_utc": "2026-10-13T01:37:25.949862+00:00"
+}

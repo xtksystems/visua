@@ -1,0 +1,128 @@
+{
+  "status": "passed",
+  "integrity": "ok",
+  "tables": {
+    "schema_migrations": {
+      "preserved": 7,
+      "added": 0,
+      "originalRowsSha256": "e2e55dd6269a51c7d5faaf3b719dd6945957eb9f40f96b440e9c972b714a6333"
+    },
+    "tenants": {
+      "preserved": 2,
+      "added": 0,
+      "originalRowsSha256": "fca239ad7be90237e93b1fffbedd4f037c427518f2d47f7658d51d465d433e8d"
+    },
+    "users": {
+      "preserved": 8,
+      "added": 0,
+      "originalRowsSha256": "bdee92018340049203a4656132d2cfe9912be56a82c6aa1d5aedcd67faef8200"
+    },
+    "memberships": {
+      "preserved": 9,
+      "added": 0,
+      "originalRowsSha256": "596ef41a7977958e90b56e45f604dd89bb0ed241753f1e690ccb5697d83ecbe6"
+    },
+    "identities": {
+      "preserved": 0,
+      "added": 0,
+      "originalRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "sessions": {
+      "preserved": 27,
+      "added": 0,
+      "originalRowsSha256": "ef7776375726de29d8d88298714be39ced59fc1df1ef51a706b3ad3ba4a01d16"
+    },
+    "api_tokens": {
+      "preserved": 0,
+      "added": 0,
+      "originalRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "sso_connections": {
+      "preserved": 0,
+      "added": 0,
+      "originalRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "login_flows": {
+      "preserved": 0,
+      "added": 0,
+      "originalRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "workspaces": {
+      "preserved": 1,
+      "added": 0,
+      "originalRowsSha256": "97d9188b3551adafa514fa48ffd5bec5c71326acf6cd996e06cfd5c5040dc46f"
+    },
+    "requirement_states": {
+      "preserved": 1487,
+      "added": 0,
+      "originalRowsSha256": "e90b6496028419b41191e73a9192189c26b2350624ab8273ee2bd008b0b14e80"
+    },
+    "tasks": {
+      "preserved": 18,
+      "added": 0,
+      "originalRowsSha256": "f009986f1444ac92d667b68cef7ca8db1e6328c7dc5e07fe27ae9469dadf35dc"
+    },
+    "evidence": {
+      "preserved": 18,
+      "added": 0,
+      "originalRowsSha256": "34b9da161af989e280a6e755b7a4163363688f7310cce2d54ff40f4013fb7142"
+    },
+    "policies": {
+      "preserved": 3,
+      "added": 0,
+      "originalRowsSha256": "1db815eea11651fe0e7c34010de32719b8c5c2be659728dc6102e9e49f704dcd"
+    },
+    "risks": {
+      "preserved": 2,
+      "added": 0,
+      "originalRowsSha256": "f790a5edb5276c4c04c3042f79ceffd3003182d915e8cf848430c3d8a7257b4e"
+    },
+    "connectors": {
+      "preserved": 2,
+      "added": 0,
+      "originalRowsSha256": "dcbe1d3437ad80c8600ee1deb81a06af66066a4fdd1a000edc04a3651c267f60"
+    },
+    "check_results": {
+      "preserved": 18,
+      "added": 0,
+      "originalRowsSha256": "79508293f29d9634527c215c5ed9c7a4ce2733849d1ee3e99e066de646f9212a"
+    },
+    "agent_runs": {
+      "preserved": 2,
+      "added": 0,
+      "originalRowsSha256": "3c9d1098dec2d7afc8678b8235e78543557b386fb4d8d2ef1b11105081431ee2"
+    },
+    "proposals": {
+      "preserved": 20,
+      "added": 0,
+      "originalRowsSha256": "ec567d3acad623ee98c11616a5b331b979ede9ec10e0bd90f125d49b678feb7b"
+    },
+    "activity": {
+      "preserved": 113,
+      "added": 0,
+      "originalRowsSha256": "c04deb76540f4fa7dea0c2e314cf3950d160a02bfc9b882a8d30269cc7ea71fd"
+    },
+    "sso_domains": {
+      "preserved": 0,
+      "added": 0,
+      "originalRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "evidence_content": {
+      "preserved": 18,
+      "added": 0,
+      "originalRowsSha256": "66b4f397c8633cfc5f67d14c706301552016f137c3ab943dcb0bef247649744f"
+    },
+    "score_snapshots": {
+      "preserved": 1,
+      "added": 0,
+      "originalRowsSha256": "b7541e85acd4d2765c0ae89ae5962b6ff8417741e0f8b74da91735516869a496"
+    }
+  },
+  "newActivity": [],
+  "snapshots": [
+    {
+      "reason": "scheduled",
+      "count": 1
+    }
+  ]
+}

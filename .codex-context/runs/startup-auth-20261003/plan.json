@@ -1,0 +1,168 @@
+{
+  "version": 1,
+  "run_id": "startup-auth-20261003",
+  "scope": {
+    "root": "/Users/artem/visua",
+    "branch": "feat/light-workspace-design",
+    "head": "c8a1ed06a8043fe725381ccccd89779b6a3498e0",
+    "files": {
+      "apps/server/src/server.ts": "446762ed807c3e9fe3a610ff511bb0cc503c7c96323ed7a60892e92cd3bc8b6d",
+      "apps/server/src/startup.ts": "d919759dc14a4c983819c05ca492b40ce3caf4ba4489fb5336a3495c1aeecaf9",
+      "apps/server/src/readiness.ts": "e247912971ee1f53f30eb28f83d7aef53f3953af0f2e3cf73f14b86d3b559c33",
+      "apps/server/src/index.ts": "c502c67cced4b6ed5ed7bbfdbb7e47356de9c709c74a8dfd4b66e3c98d39fcf7",
+      "apps/server/src/app.ts": "3c714de9332cdf58d8c9605640b24571033bd0d2cac0d47824215300881def59",
+      "apps/server/src/context.ts": "2532d128f5e1bf001c313bee24c5b864d17b0640f6faf31ce5a876499e636838",
+      "apps/server/src/auth/config.ts": "209c74005e490d18393ecd71f51ac84914f8b345ebcfb7a5615f9eacf70da2f7",
+      "apps/server/src/auth/http.ts": "f9f6cd220902c6ed6beb5a53f0d0ce7e5240a7e7b2cccc7e7468ff05106e1408",
+      "apps/server/src/auth/recheck-ticker.ts": "361f6d8938b8edf1bba0b6a4fff99bf56650a5028ecc69a5b44c9fa57491ddd2",
+      "apps/server/src/services/visua.ts": "12c0a045c3d5f3c6f741b78559930a87e90008d48b424be4f8897fb0f0ded46f",
+      "apps/server/test/startup.test.ts": "882cba246505fff992609a637028fe8c0a1abef440d9f0ce7a3787b28f9bd8e4",
+      "apps/server/test/domain-recheck.test.ts": "d297ae725c6a2e0f8709655c193f1804321fc4273e5f4e23ad08583958f20fb3",
+      "compose.yaml": "8857cf45e6627114f71bbd9de32c617ff4b654aab47cc81257833cf97281b33e",
+      "README.md": "21452ccdd59e6d5400adb0d9ee2becf922ae3f50aecff0a51580d3ec9e95dade",
+      "docs/architecture.md": "f72048b8e01378e06db77c53800da358097b49d9dccbee98dbe6587f400b9688",
+      "apps/server/test/sso-recheck.test.ts": "e1c14ddf49c4e7fd297a86315394b185186081eddd82b4537b30f6e0c9a307d8",
+      "docs/development-phase-2.md": "9502a3917b2db7d4d6936bd6f2bfbe6dc6bb10c4d834505e5de7aa292fcb3707",
+      ".codex-context/project.md": "7f02bb81073fafa366eddf0228d7b03aa0b3d72f1187bc80e9b59951fcf03b43",
+      ".codex-context/architecture.md": "123a73f6c172fc49a44cf02823191be9e60a7b52476106d75735da68ddeb7b9f",
+      ".codex-context/invariants.md": "ba6a2a05726000610ca4ae8fe6097453c247397ea6ea9b17b6c2582c09524d32"
+    }
+  },
+  "nodes": [
+    {
+      "id": "review",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "input": "brief.txt",
+      "result": "result.json",
+      "input_sha256": "6d1eab96e4df77742247d3a4a8a3dcd4419af5560dbf8623bf78956b7932682b",
+      "worker": "/root/startup_review",
+      "backend": "native",
+      "fresh_context": true,
+      "started_utc": "2026-10-03T05:53:54.321427+00:00",
+      "result_sha256": "966cb0e837efd86aefbcbe3665f6dbf06e12fa6b7d6ab3f3913d5699ae599467",
+      "completed_utc": "2026-10-03T06:01:17.452451+00:00"
+    },
+    {
+      "id": "review-fix",
+      "depends_on": [
+        "review"
+      ],
+      "status": "complete",
+      "accepted": true,
+      "input": "fix-brief.txt",
+      "input_sha256": "868433f30aeea8f16eb6b769f6dc008fc267576717b86b070874e3b8bff5c0f8",
+      "result": "result-fix.json",
+      "worker": "/root/startup_review",
+      "backend": "native",
+      "fresh_context": false,
+      "started_utc": "2026-10-03T06:01:59.756521+00:00",
+      "result_sha256": "80d5ae1df41677a74cae90d7d71def3b29cf9a9e02b56747a8b8424e48d5679f",
+      "completed_utc": "2026-10-03T06:05:47.528096+00:00"
+    }
+  ],
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "full-check-final.log: exit 0, all seven lanes, 229 SQLite passed / 2 skipped, 231 PostgreSQL passed, 23 Playwright passed",
+      "review-adjudication.json and fix-review.json: startup cleanup finding resolved",
+      "README and phase/context local Markdown links validated; git diff --check and untracked whitespace checks passed",
+      "Isolated Node v22.23.3 container: current server source, ready=true, clean stop; Compose config remains host-loopback"
+    ]
+  },
+  "review_scope": {
+    "root": "/Users/artem/visua",
+    "branch": "feat/light-workspace-design",
+    "head": "c8a1ed06a8043fe725381ccccd89779b6a3498e0",
+    "files": {
+      "apps/server/src/server.ts": "6f14cdd34dde50a9159b876a16cba35a73768fc2dc036e6cf30e0d21872fc202",
+      "apps/server/src/startup.ts": "d919759dc14a4c983819c05ca492b40ce3caf4ba4489fb5336a3495c1aeecaf9",
+      "apps/server/src/readiness.ts": "e247912971ee1f53f30eb28f83d7aef53f3953af0f2e3cf73f14b86d3b559c33",
+      "apps/server/src/index.ts": "c502c67cced4b6ed5ed7bbfdbb7e47356de9c709c74a8dfd4b66e3c98d39fcf7",
+      "apps/server/src/app.ts": "3c714de9332cdf58d8c9605640b24571033bd0d2cac0d47824215300881def59",
+      "apps/server/src/context.ts": "2532d128f5e1bf001c313bee24c5b864d17b0640f6faf31ce5a876499e636838",
+      "apps/server/src/auth/config.ts": "209c74005e490d18393ecd71f51ac84914f8b345ebcfb7a5615f9eacf70da2f7",
+      "apps/server/src/auth/http.ts": "f9f6cd220902c6ed6beb5a53f0d0ce7e5240a7e7b2cccc7e7468ff05106e1408",
+      "apps/server/src/auth/recheck-ticker.ts": "361f6d8938b8edf1bba0b6a4fff99bf56650a5028ecc69a5b44c9fa57491ddd2",
+      "apps/server/src/services/visua.ts": "12c0a045c3d5f3c6f741b78559930a87e90008d48b424be4f8897fb0f0ded46f",
+      "apps/server/test/startup.test.ts": "551c0c78500e2945f42eda574b15aa19ce6bc4159a023167f73bea238fea2b60",
+      "apps/server/test/domain-recheck.test.ts": "d297ae725c6a2e0f8709655c193f1804321fc4273e5f4e23ad08583958f20fb3",
+      "compose.yaml": "8857cf45e6627114f71bbd9de32c617ff4b654aab47cc81257833cf97281b33e",
+      "README.md": "21452ccdd59e6d5400adb0d9ee2becf922ae3f50aecff0a51580d3ec9e95dade",
+      "docs/architecture.md": "0cf90887e535c82da6d24cc2548e1f378148de9f5be9da063b153fb9637b2a8c"
+    }
+  },
+  "commands": {
+    "first_full_check": {
+      "session_id": 7756,
+      "status": "failed",
+      "log": "full-check.log",
+      "sqlite": "228 passed / 2 skipped",
+      "postgres": "failed: SSO fixture 30-second timeout with cascading errors",
+      "exit_code": 1,
+      "e2e": "23 passed",
+      "corpus": "passed",
+      "design": "passed"
+    },
+    "focused_postgres": {
+      "session_id": 47370,
+      "status": "failed",
+      "log": "postgres-focused-final.log",
+      "exit_code": 1,
+      "note": "SSO fix passed; new startup tests had artificial short resource deadlines."
+    },
+    "focused_postgres_2": {
+      "status": "passed",
+      "exit_code": 0,
+      "log": "postgres-focused-final-2.log",
+      "summary": "25 passed; real Postgres production bootstrap and lifecycle; seeded failure fault test intentionally in-memory SQLite"
+    },
+    "final_full_check": {
+      "status": "passed",
+      "log": "full-check-final.log",
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_DB -u VISUA_TEST_DATABASE_URL -u NODE_ENV VISUA_AGENT_MODE=offline VISUA_AUTH_MODE=dev VISUA_PUBLIC_URL=http://localhost:8799 pnpm check",
+      "session_id": 3765,
+      "sqlite": "229 passed / 2 skipped",
+      "postgres": "231 passed",
+      "typecheck": "passed",
+      "later_changes": "Prose wrap and source relationship correction only in phase/context documentation; application source/tests remain unchanged.",
+      "exit_code": 0,
+      "e2e": "23 passed",
+      "corpus": "passed",
+      "design": "passed",
+      "wall_seconds": 624,
+      "completed_utc": "2026-10-03T06:18:08.868422+00:00"
+    }
+  },
+  "fix_review_scope": {
+    "root": "/Users/artem/visua",
+    "branch": "feat/light-workspace-design",
+    "head": "c8a1ed06a8043fe725381ccccd89779b6a3498e0",
+    "files": {
+      "apps/server/src/server.ts": "446762ed807c3e9fe3a610ff511bb0cc503c7c96323ed7a60892e92cd3bc8b6d",
+      "apps/server/src/startup.ts": "d919759dc14a4c983819c05ca492b40ce3caf4ba4489fb5336a3495c1aeecaf9",
+      "apps/server/src/readiness.ts": "e247912971ee1f53f30eb28f83d7aef53f3953af0f2e3cf73f14b86d3b559c33",
+      "apps/server/src/index.ts": "c502c67cced4b6ed5ed7bbfdbb7e47356de9c709c74a8dfd4b66e3c98d39fcf7",
+      "apps/server/src/app.ts": "3c714de9332cdf58d8c9605640b24571033bd0d2cac0d47824215300881def59",
+      "apps/server/src/context.ts": "2532d128f5e1bf001c313bee24c5b864d17b0640f6faf31ce5a876499e636838",
+      "apps/server/src/auth/config.ts": "209c74005e490d18393ecd71f51ac84914f8b345ebcfb7a5615f9eacf70da2f7",
+      "apps/server/src/auth/http.ts": "f9f6cd220902c6ed6beb5a53f0d0ce7e5240a7e7b2cccc7e7468ff05106e1408",
+      "apps/server/src/auth/recheck-ticker.ts": "361f6d8938b8edf1bba0b6a4fff99bf56650a5028ecc69a5b44c9fa57491ddd2",
+      "apps/server/src/services/visua.ts": "12c0a045c3d5f3c6f741b78559930a87e90008d48b424be4f8897fb0f0ded46f",
+      "apps/server/test/startup.test.ts": "7a2c11669d6dd29a29e4131d9ff37b2681447837160e59a0b805d2f71549a7be",
+      "apps/server/test/domain-recheck.test.ts": "d297ae725c6a2e0f8709655c193f1804321fc4273e5f4e23ad08583958f20fb3",
+      "compose.yaml": "8857cf45e6627114f71bbd9de32c617ff4b654aab47cc81257833cf97281b33e",
+      "README.md": "21452ccdd59e6d5400adb0d9ee2becf922ae3f50aecff0a51580d3ec9e95dade",
+      "docs/architecture.md": "0cf90887e535c82da6d24cc2548e1f378148de9f5be9da063b153fb9637b2a8c",
+      "apps/server/test/sso-recheck.test.ts": "e1c14ddf49c4e7fd297a86315394b185186081eddd82b4537b30f6e0c9a307d8"
+    }
+  },
+  "supplemental_checks": {
+    "compose_config": "passed: container host explicit 0.0.0.0; host publication remains 127.0.0.1:8787; health uses /api/ready; stop grace 15s",
+    "local_demo": "isolated memory store: 0.0.0.0 listener, ready=true, 8 personas, northwind-health workspace, clean stop",
+    "node22_container": "passed in isolated no-network container with current server source mounted read-only: Node v22.23.3, listener 0.0.0.0, ready=true, 0 tenants, clean stop; existing deployment untouched"
+  },
+  "status": "complete",
+  "completed_utc": "2026-10-03T06:18:08.868422+00:00"
+}

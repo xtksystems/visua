@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "baseline": "docker-before-preservation.json",
+  "upgraded": "docker-after-migration.json",
+  "unchanged_tables": [
+    "tasks",
+    "requirement_states",
+    "tenants",
+    "memberships"
+  ],
+  "workspace_content_and_identity_preserved": true,
+  "historical_activity_preserved": 88,
+  "legacy_evidence_ids_preserved": 18,
+  "legacy_reviews_archived": 18,
+  "pending_review": 18,
+  "migration_events_appended": 18,
+  "database_integrity": "ok"
+}

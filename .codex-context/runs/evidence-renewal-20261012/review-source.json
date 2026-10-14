@@ -1,0 +1,16 @@
+{
+  "apps/server/src/app.ts": "f145ce46f3aed1e9c8461b5be8211a6a4e9c11eb1be94a96161bd8cb6f17e31b",
+  "apps/server/src/services/evidence-renewal.ts": "5341c0d4cfdab9153c6d4efb4ec6d921ba1778f32a397d4dd9876a465319ceb8",
+  "apps/server/test/evidence-renewal.test.ts": "07e35d9865169a211e769b2809ff72f10d67c986bdfee8302a14d1be9c678652",
+  "apps/web/src/components/work/AttentionQueue.tsx": "1f6c4ae9c3c1b51dcaec0957e4c878d2bf74433df88cc9cc0eb26bd6fbe3fc67",
+  "apps/web/src/components/work/EvidenceRenewal.tsx": "1f5be2f555cb795644824edaff74a8fb7bb933ead3cc2fb474c912bae657ff63",
+  "apps/web/src/components/work/evidence-renewal.css": "b7bc63f7f761db35cc9b3732320c60eb05b1e12ef9d95b8df1b29fa232d4cd5f",
+  "apps/web/src/lib/events.ts": "4e57038566452d231e14e2f64c1eb3d38454cf069df94bb68933915327afd4eb",
+  "apps/web/src/pages/EvidencePage.tsx": "13a7e0c2d5a8ca98b2eff13e527e946c963865d2fca1b660084d70806e837545",
+  "docs/architecture.md": "f699b2ea97d8e6c313e50180800cb70901725248a3a14725581eb453306d5d68",
+  "docs/workspace.md": "2d41676363445fa926ac2e69e6d6456635f4aeb821042dabae1f2e53c9d63bac",
+  "e2e/evidence-renewal.spec.ts": "eedae249b71427196d05f1c7a99285a55ca37d64083a50cc52dd7ae95f0ccf82",
+  "packages/core/src/evidence-renewal.ts": "193c7937040939a8d3a14fcd3d1b7919beb18b626672267036b5ab581bdb60d8",
+  "packages/core/src/index.ts": "06af438dfddad5cd868c66e07f0cec16a3d0a32b967028d739961bb7f2c170c2",
+  "packages/core/test/evidence-renewal.test.ts": "8c27798a5af20530bbd7cb9a3e71543fd246157d374ba5ee33184ae7228637b0"
+}

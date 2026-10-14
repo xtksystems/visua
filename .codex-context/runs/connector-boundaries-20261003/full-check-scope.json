@@ -1,0 +1,27 @@
+{
+  "root": "/Users/artem/visua",
+  "files": {
+    "apps/server/src/auth/egress.ts": "2ab012de4343cb4c6993e307106044e7f494f7d982fc00bc1cc0cb2f24d82d65",
+    "apps/server/src/connectors/index.ts": "a8bb0456924e3d0fefd1146aa4f116109cc4d960b787e66cc8beec84f69a77dd",
+    "apps/server/src/connectors/web-posture.ts": "0dfea58badab0e20c25c6a14956fbd13b8e092e5b547025c05d250622df53101",
+    "apps/server/src/connectors/repo-scan.ts": "64c3eee44e89dc8a6a65c56066bc47a63d4dfccc771d4c11f5350bde7e07d991",
+    "apps/server/src/services/visua.ts": "1acc98507a9c58bc1dea3cff7776a930299146f8ecb5ff92d4acae3cbc903649",
+    "apps/server/test/egress.test.ts": "02895b407108ffa0bb12176fa23d96296bac81d91ff08ef7cceedf5cc629c3ae",
+    "apps/server/test/api.test.ts": "46824ff2cbbf7e8a4fec60fa15a9abfe329849e5aae52392687d8fe2acd4f0fc",
+    "apps/server/src/connectors/limits.ts": "c4c699277ba7f251c1adfc24195ebe044cbe6ca5af5f260c411e5565402788e3",
+    "apps/server/src/connectors/network.ts": "dc051eda6f440b75da1dc5fa5c089bbec062ef68b2077798e9373f3f2bef65d2",
+    "apps/server/test/connector-boundaries.test.ts": "29cbfcd9ddd7e0c509d965df847d7c52ecfb08167e3e0fd74e8f9e626d8ab4d6",
+    "apps/server/test/repo-scan.test.ts": "99563e106512c2171877b63af1df23df544c95858cb8290dd6d45c6fa6269c94",
+    "README.md": "8c72c49fc005b84fde6a572f19a56e2a34174285e44e46e2373bd81a152a8607",
+    "docs/architecture.md": "b8f95951232174490dbf35617a005dd6027978a73f12e57ca3ed8b296d1ed069",
+    "docs/development-phase-2.md": "9502a3917b2db7d4d6936bd6f2bfbe6dc6bb10c4d834505e5de7aa292fcb3707",
+    ".codex-context/project.md": "7f02bb81073fafa366eddf0228d7b03aa0b3d72f1187bc80e9b59951fcf03b43",
+    ".codex-context/architecture.md": "6fdbfa8281855f9085cbec48d72055109b42ffd57c04abec802b362e6cd9973a",
+    ".codex-context/invariants.md": "ce421072f6d6ddf33d9cf9baf3b00722ee236a508abc6be727013bc14f275391",
+    "apps/server/src/context.ts": "1c77d872779be8cfc55e4de52b9ec7a9b56e7f6d816f502775f3a9ea02b7f17b",
+    "apps/server/src/server.ts": "a890a5e1dd10a52186e6082984f6c911af7558a324dada3e31998f2339e863f5",
+    "apps/server/test/startup.test.ts": "f3f436945b3231ffc41530a67c4dddbe057edd9ffcabe0721c946b016432d312",
+    "apps/server/test/egress-dns.test.ts": "5a1aae32a5e3f0f6963725619e0c473b1ed2786ed1fde07b91e142924863aa36",
+    "apps/server/src/app.ts": "9a7c4980d89379328610c31fd094b4ee22bdc8d6cb5356d318361dc99394953e"
+  }
+}

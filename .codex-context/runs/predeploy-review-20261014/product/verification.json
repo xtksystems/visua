@@ -1,0 +1,19 @@
+{
+  "cwd": "/Users/artem/visua",
+  "head": "cb438d1083e9ae3e2a38dd8e5d7dba4c778b2e89",
+  "commands": [
+    {
+      "command": "node .codex-context/runs/predeploy-review-20261014/product/browser-review.mjs",
+      "exit_code": 1,
+      "log": "browser-review.log"
+    },
+    {
+      "command": "node .codex-context/runs/predeploy-review-20261014/product/browser-followup.mjs",
+      "exit_code": 1,
+      "log": "browser-followup.log"
+    }
+  ],
+  "port8841_listener_after_shutdown": false,
+  "json_parse_and_required_field_checks": "passed",
+  "brief_sha256": "62d53f2dfcf8bb7bdf2fe8ac95cf8aa71bbec40f7f5942e61645e6cb56ec4b45"
+}

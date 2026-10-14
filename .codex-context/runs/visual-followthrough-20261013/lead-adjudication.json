@@ -1,0 +1,105 @@
+{
+  "run_id": "visual-followthrough-20261013",
+  "status": "complete; fixes verified",
+  "reviews": [
+    "crosswalk-plan-review.json",
+    "profile-stages-review.json",
+    "history-review.json"
+  ],
+  "findings": [
+    {
+      "finding": "Plan rounded legacy timestamp deadlines to a UTC day",
+      "resolution": "Use canonical isTaskOverdue while preserving UTC day projection for the timeline. Added timestamp and offset regression.",
+      "evidence": [
+        "apps/web/test/plan-urgency.test.ts",
+        "review-delta-unit.log"
+      ]
+    },
+    {
+      "finding": "Crosswalk query-key changes removed the focused control",
+      "resolution": "Restore logical initiating control after the new query loads only if focus has not moved elsewhere. Never present prior pair data. Delayed keyboard pagination and cell tests verify the replacement control.",
+      "evidence": [
+        "e2e/crosswalk-comparison.spec.ts",
+        "browser-packages.log"
+      ]
+    },
+    {
+      "finding": "API-token approvals presented as human decisions",
+      "resolution": "Use neutral recorded-decision wording for persisted non-autonomy actor labels; preserve known granted-autonomy attribution.",
+      "evidence": [
+        "apps/web/test/agent-stages.test.ts",
+        "review-delta-unit.log"
+      ]
+    },
+    {
+      "finding": "Legacy run failure inferred an Apply runtime boundary from a failed proposal",
+      "resolution": "Runtime failure attribution uses only recorded Collect/Analyze boundaries. Separate proposal outcomes remain visible.",
+      "evidence": [
+        "apps/web/test/agent-stages.test.ts",
+        "review-delta-unit.log"
+      ]
+    },
+    {
+      "finding": "Tier draft lost when Shell unmounted on transient background error",
+      "resolution": "Reproduced draft loss with GET503. Retain cached same-workspace subtree on transient failures; fatal access errors still unmount. Browser verifies precise answer retention after retry and questionnaire removal after GET404.",
+      "evidence": [
+        "profile-draft-reproduction.log",
+        "e2e/profile-analysis.spec.ts",
+        "browser-packages.log"
+      ]
+    }
+  ],
+  "integration_corrections": [
+    {
+      "finding": "Existing migration tests expected only versions 5/6",
+      "resolution": "Extend explicit expected migration lists with 7; preserve artifact, audit, rollback and idempotence assertions.",
+      "evidence": [
+        "sqlite-initial-failed.log",
+        "apps/server/test/evidence-binding.test.ts",
+        "apps/server/test/evidence-content.test.ts"
+      ]
+    },
+    {
+      "finding": "Phone history SVG shrank axis labels below readable size",
+      "resolution": "Preserve 680px chart width inside a labeled keyboard-scrollable region; phone regression exercises horizontal scroll and page overflow.",
+      "evidence": [
+        "apps/web/src/components/work/score-history.css",
+        "e2e/score-history.spec.ts"
+      ]
+    },
+    {
+      "finding": "The generic narrow-screen test excluded only ATLAS from its no-local-scroll rule",
+      "resolution": "Keep page overflow forbidden; permit only explicitly listed comparison/history/Plan scrollers that fit the viewport and have region name and keyboard focus.",
+      "evidence": [
+        "full-end-to-end-playwright.log",
+        "e2e/visua.spec.ts"
+      ]
+    },
+    {
+      "finding": "Phone keyboard-scroll assertion failed after scripted DOM focus; native Tab navigation had not been exercised",
+      "resolution": "Application diagnostics showed that assigning DOM focus was not equivalent to entering the native scrolling target; document activation and a held key alone were insufficient. The regression now enters with Tab from the framework selector, verifies chart focus, then asserts ArrowRight scrolling and a separate touch swipe. Both pass; no product code changed.",
+      "evidence": [
+        "history-keyboard-reproduction.log",
+        "history-scroll-diagnostic.json",
+        "history-focus-diagnostic.json",
+        "history-app-scroll-diagnostic.json",
+        "e2e/score-history.spec.ts",
+        "history-app-scroll-instant-key.json",
+        "history-key-timing-diagnostic.log",
+        "browser-activation-only.log",
+        "browser-final-delta.log"
+      ]
+    }
+  ],
+  "limitations": [
+    "Original independent reviews remain bound to their recorded source snapshots; this adjudication accepts only the documented lead deltas after affected verification.",
+    "No production/deployment operations or private external providers were used."
+  ],
+  "final_source": "delivery-source.json",
+  "verification": [
+    "626 SQLite + 2 PostgreSQL-only skips",
+    "628 PostgreSQL",
+    "136 full-run browser passes; 4 final affected browser passes; union 138 cases",
+    "13 desktop/touch captures inspected"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "local_links_checked": 97,
+  "broken": [],
+  "files": {
+    "README.md": "4937969eeee1d1399a876d8f867580c9ad2bc081f0794730d2a0a6a6b522275f",
+    "docs/operations.md": "5e08a851c822c152f8d9ff1579d4aff8521f674e636f69689f35fc31efd2fb29",
+    "docs/pilot-acceptance.md": "ea2f44ac2f8598a014e1746b3a2a55150028d07359a0862f108888d7f358e12e",
+    "docs/development-phase-2.md": "731af73d12fff0125cb5009f1fede0317084ec4e29942ca19e7e643185d587a3",
+    "docs/roadmap.md": "739aaeea58de304ad2eb35df7450e5ae5f8aeed25dc61ee09b8e77431df529f0",
+    ".codex-context/tasks/pilot-readiness-20261013.md": "e6003d50e7515abbdab3f69443c8bdacb6cf0d8c3bacce9b65db997a752a3614",
+    ".codex-context/project.md": "6363249e3cb81f2fe6c45970622551f81877f14c2d6d8ac89f42abd8b86ee5a1"
+  }
+}

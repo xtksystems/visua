@@ -1,0 +1,19 @@
+{
+  "packages/core/src/types.ts": "ccd9b7dfe9ac54136155d21508af836f1c45ece25579f2d6a59acca5ec363f93",
+  "packages/core/src/status.ts": "d118c764df121c01f90ec5abcb4d4944c2ef6e39eea5c15c12bf073ab4a03980",
+  "packages/core/src/index.ts": "43684ba61b49ebb474ca85fad36eb26125770b206376f223534c1f34575d9a5f",
+  "packages/core/src/evidence.ts": "4070e3e368e4820df5164aaf801e9468037b25ce68bc262e73fe679dbea65979",
+  "packages/core/test/core.test.ts": "974edb754381e1353d8c2c20d9139cb1659f960d8776e11b9b34a4ea980f8dc2",
+  "packages/core/test/evidence.test.ts": "d2fb69570f8c9c97e6e76aca34d9078e5b7cc7f2cf5b3c74edc7f00615ad2982",
+  "apps/server/src/services/visua.ts": "1074914a3d42620e66f8a46ab4527d5130e16a054859d5fbada0d42c2e384b84",
+  "apps/server/src/services/evidence.ts": "8d30215a29341293c06f18f6b86b1a1d33d90bf3a5721980fd875ca4624f2208",
+  "apps/server/src/audit.ts": "ad3dfb78365569914af8a1d46ab8b4cf1fa0b573057cd26f8328b6a4e111d52b",
+  "apps/server/src/app.ts": "9549e7879afff2082c9693376e7493d4fbd33d7814169bb8144165c7124a590d",
+  "apps/server/src/storage/migrations.ts": "2b4be72b96b47912937aed8c60298c12a8e4d36bcea8d684a3258a6e37713d2b",
+  "apps/server/src/seed/demo.ts": "a924f0dabb3cc619a33ce540e6b7251fd5b443cea54b9f0227d4377b25ded6ad",
+  "apps/server/src/services/views.ts": "6b1f1175578289d5f7d1717c02c856b507814018f07ef0fe745f8ee193d62c11",
+  "apps/server/test/api.test.ts": "b33452d5c20d0bc8fd80d2b4807e69ca54da2cca5ea4afaa7e135a0edcf9fa41",
+  "apps/server/test/evidence-binding.test.ts": "bc818fdfd485cd20736234fb06eff805658bbea9e58a2c367f6e31eb3881b35e",
+  "apps/web/src/pages/EvidencePage.tsx": "b7b263d385e99ae75c5c5d0090bbb81070d85cb56fb01172bc79f3c879511806",
+  "packages/agents/src/tools.ts": "1dc6e6aec33742015ae903422ff37ad6a28e8dc84b7aca7993a4b255e5c0501a"
+}

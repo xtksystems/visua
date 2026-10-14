@@ -1,0 +1,9 @@
+{
+  "failure": "full-check-release PostgreSQL readiness recovery assertion false instead oftrue; startup.test.ts295 realSELECT1 after releasing mockedquery exceeded10ms",
+  "fix": "first query remains held; following queries resolve deterministically; assert3probes share1query then recovery startssecond query; finally restoresmock",
+  "source_delta_since_browser_start": [
+    "apps/server/test/startup.test.ts"
+  ],
+  "runtime_and_browser_test_delta": [],
+  "validation": "Final pnpm check --no-e2e exit 0, 474 SQLite/476 PostgreSQL; readiness regression passed on both backends"
+}
