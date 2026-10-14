@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "run_id": "pilot-readiness-20261013",
+  "base_head": "a0fee8b5b4101a489163d499265c64d33ab51e11",
+  "scope": {
+    "root": "/Users/artem/visua",
+    "files": {
+      "README.md": "4937969eeee1d1399a876d8f867580c9ad2bc081f0794730d2a0a6a6b522275f",
+      "apps/server/test/pilot-preflight.test.ts": "f757d5e42a58843d15cca9b12e54407301d110fcc9b08ba2e77f31214d31168c",
+      "apps/server/test/pilot-rehearsal.test.ts": "31d0fd6e8c461201dc02fb9781e2a4defec70e0546e35b3e1cf35ade4e21c61d",
+      "apps/server/src/operations/pilot-preflight.ts": "c61ffe0be962d1d0c897b5793ebe887ebb850eeb028afe60fc6cd6513d8ed3a8",
+      "package.json": "b3a9ef209021b3bae6dd4f324f262db8a6bbed02bb3e84c1548c5cffade0e14b",
+      "apps/server/src/request-controls.ts": "1bc425d48f78f182215a899593849d96f820df4f9f5c10c7cdf1186a9f48b5cb",
+      "apps/server/test/fixtures/pilot-startup-failure.mjs": "9ad0c6bc956f4e0e66486792a93d26eeaf5bdb85b8af573e0004768bb6b0f660",
+      "scripts/pilot/resources.mjs": "f66eae3e71a15ee77dc13e9ce631dcce184a438a5d52206526063bda27e9f934",
+      "scripts/pilot-rehearsal.mjs": "44cb592e272fca78cb20ee6f0a3b2ed83c941771ff8bfa1e636cfb5951f7d44d",
+      "apps/server/src/blobs/s3.ts": "72a3e9b3ee3c6d7d3698ae157bd1e6fc932357314eebb2ab6b7ce4e5cb0c914a",
+      "docs/development-phase-2.md": "731af73d12fff0125cb5009f1fede0317084ec4e29942ca19e7e643185d587a3",
+      "docs/operations.md": "5e08a851c822c152f8d9ff1579d4aff8521f674e636f69689f35fc31efd2fb29",
+      "docs/pilot-acceptance.md": "ea2f44ac2f8598a014e1746b3a2a55150028d07359a0862f108888d7f358e12e",
+      "apps/server/src/startup.ts": "d919759dc14a4c983819c05ca492b40ce3caf4ba4489fb5336a3495c1aeecaf9",
+      "apps/server/src/auth/config.ts": "209c74005e490d18393ecd71f51ac84914f8b345ebcfb7a5615f9eacf70da2f7",
+      "apps/server/src/blobs/index.ts": "f21034309a3d42c75976c9bd5ca1baa526cfa42eff40b71c7cc5aa0ba924f1d5",
+      "scripts/pilot-preflight.ts": "1836cbeb76e17408bda14b2411474e5b9790261f9fa984b8d94723647a6a8d0c",
+      "docs/roadmap.md": "739aaeea58de304ad2eb35df7450e5ae5f8aeed25dc61ee09b8e77431df529f0",
+      "pnpm-lock.yaml": "cd6f0a2c4595b1b6f211c86a6912842aa368425caa2ee5b3ef09d1125d92626b"
+    }
+  },
+  "nodes": [
+    {
+      "id": "preflight",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "input": "preflight-brief.txt",
+      "input_sha256": "6d28468bfbfffc42b8376cca07208871c40d2a1730c41e862e55d5ef066448ef",
+      "result": "preflight-result-envelope.json",
+      "worker": "/root/pilot_preflight",
+      "result_sha256": "e70e51e969aea119740fb4798daca4f2f06813161b058323931a89a2ebe6695c",
+      "acceptance": "Final affected tests and integrated rehearsal; see source-verification.json when final gate completes.",
+      "worker_result": "preflight-result.json",
+      "worker_result_sha256": "0331409847c14701caf449a35a2523a080fe16e0620374a0d3180203537455cb"
+    },
+    {
+      "id": "resources",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "input": "resources-brief.txt",
+      "input_sha256": "ca7ec9703c3795828aa5a372c202407d9607bc28183d322f19ce9e9d7da122d8",
+      "result": "resources-result-envelope.json",
+      "worker": "/root/pilot_resources",
+      "result_sha256": "3aad4f76c795b5cb67da39c1a8c8d3376738c9f6b37cf1037c7b434e4590c860",
+      "acceptance": "Final affected tests and integrated rehearsal; see source-verification.json when final gate completes.",
+      "worker_result": "resources-result.json",
+      "worker_result_sha256": "f4b97107b8a1f72f99e8ad911645e2114006f433c59d1d5fc06af0ce351c7955"
+    },
+    {
+      "id": "pilot-review",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "input": "pilot-review-brief.txt",
+      "input_sha256": "944b79cc5b6aa18a23c3c88aa61f2fe1ea63c911ce9dcf825bd355ab9099f46f",
+      "result": "pilot-review-result-envelope.json",
+      "worker": "/root/pilot_review",
+      "fresh_context": true,
+      "result_sha256": "a70708c62746bbde722ea84c5974b8da14b1fd0e815b7504232edb8be3293ee4",
+      "acceptance": "Final affected tests and integrated rehearsal; see source-verification.json when final gate completes.",
+      "worker_result": "pilot-review-result.json",
+      "worker_result_sha256": "31334e2e7c1cb4e1a2024254a8308082d02a8ee34da9cb8183e9a57a87c53d72"
+    }
+  ],
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "source-verification.json: final944SQLite/953PostgreSQL and61 focused utility cases passed; no web change, browser not rerun.",
+      "rehearsal-release-result.json: two-process OIDC/PG/S3 workflow,80reads,quiesced restore/entity digests/audit/encryptedSSO/offline bundle passed; local fixtures only.",
+      "pilot-review-result.json: both supported findings corrected and affected reproductions passed."
+    ]
+  },
+  "next": "Commit/push verified tooling, rebuild local Docker image, quiesced backup and source/data-preserving delivery.",
+  "review_resolution": {
+    "supported_findings": 2,
+    "resolved": 2,
+    "rechecks": "pilot-review-result.json; preflight-correction-result.json; resources-correction-result.json; corrections-test-final.log",
+    "extra_lead_regression": "apps/server/test/pilot-rehearsal.test.ts executes the real modules with isolated Docker stubs for persistent and recoverable partial-startup cleanup failure."
+  },
+  "updated_utc": "2026-10-14T01:48:47.054959+00:00"
+}

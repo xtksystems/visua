@@ -1,0 +1,49 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "Fresh bounded review found one medium startup-cleanup reporting defect and one low malformed-wildcard configuration mismatch. Preflight focused suite passed all 48 tests; both findings have isolated reproductions.",
+  "coverage": [
+    "Fully inspected apps/server/src/operations/pilot-preflight.ts, apps/server/test/pilot-preflight.test.ts, scripts/pilot-preflight.ts, scripts/pilot-rehearsal.mjs and scripts/pilot/resources.mjs for the assigned isolation, cleanup, secrets, recovery and runtime-alignment lenses.",
+    "Traced actual auth/startup/request-control loaders, PostgreSQL URL selection, S3 adapter configuration, private-issuer normalization, mock IdP, and auditor verifier contracts. Reviewed application child environment allowlist, nonce ownership validation, private credential files, bounded Docker/S3 commands, writer shutdown before dump, fresh database/prefix restore, byte/hash verification and evidence/audit/SSO assertions.",
+    "Executed pnpm exec vitest run apps/server/test/pilot-preflight.test.ts from /Users/artem/visua: one file and 48 tests passed (Node v26.0.0).",
+    "Executed isolated real-module stub reproduction of startup inspection failure plus owned-container cleanup failure: status failed, AggregateError, cleanupComplete true, resources absent and cleanupFailures absent; no Docker process was spawned; private temporary report tree removed afterwards.",
+    "Executed pure-function runtime comparison for VISUA_OIDC_PRIVATE_ISSUERS=[*]: preflight passed the no-wildcard check and configReady, runtime privateHostAllowed accepted unlisted.internal and 169.254.169.254; no network calls.",
+    "SHA-256 apps/server/src/operations/pilot-preflight.ts: b2dc67a95a8c3401931198ca5c553a82f30fc096daf07179ae0fecc9e50666ac",
+    "SHA-256 apps/server/test/pilot-preflight.test.ts: 8b23f2e68708af9e1913be4e94e9ea16773e71dba0e73068caeae912478a95fd",
+    "SHA-256 scripts/pilot-preflight.ts: 1836cbeb76e17408bda14b2411474e5b9790261f9fa984b8d94723647a6a8d0c",
+    "SHA-256 scripts/pilot-rehearsal.mjs: de5e608a38b2bc334724e81a65b587e1e0fc77225eb79abc170f9b03937d304f",
+    "SHA-256 scripts/pilot/resources.mjs: 277f1a61d20bb290fbc94c7e7bbcc22ce7513b699fdec2ca893f696660b2e43e",
+    "SHA-256 apps/server/src/auth/config.ts: 209c74005e490d18393ecd71f51ac84914f8b345ebcfb7a5615f9eacf70da2f7",
+    "SHA-256 apps/server/src/startup.ts: d919759dc14a4c983819c05ca492b40ce3caf4ba4489fb5336a3495c1aeecaf9",
+    "SHA-256 apps/server/src/request-controls.ts: 1bc425d48f78f182215a899593849d96f820df4f9f5c10c7cdf1186a9f48b5cb",
+    "SHA-256 apps/server/src/auth/egress.ts: cc9ab29b352cc7ad743f7062b056c5d52574dc1d219de334d3ff75967989b775",
+    "SHA-256 apps/server/src/blobs/index.ts: f21034309a3d42c75976c9bd5ca1baa526cfa42eff40b71c7cc5aa0ba924f1d5",
+    "SHA-256 apps/server/src/blobs/s3.ts: 72a3e9b3ee3c6d7d3698ae157bd1e6fc932357314eebb2ab6b7ce4e5cb0c914a",
+    "SHA-256 apps/server/src/context.ts: 175b33033c0b5e8d043daf3e88d829c5e9aa8f1b190d1f4dc59a3e318a0bf757",
+    "SHA-256 apps/server/src/storage/index.ts: 2a804e9a6490508a8518d03be900937c71135dc235c7becb1295b2641d74ca82",
+    "SHA-256 apps/server/test/mock-idp.ts: ed13db8850b8dfe643849d879fea870a0b9b00b7594ce69c9c5fcc5f322809ea",
+    "SHA-256 apps/server/src/services/bundle-verifier.mjs: 747260d69efe77f057213edab338ff976a65caf6f35dbab7288d16f3452c29d3"
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "scripts/pilot-rehearsal.mjs:276 (startup assignment at line 180; cleanup dispatch at line 273)",
+      "mechanism": "Trigger: Docker creates an owned fixture, subsequent startup inspection fails, and startResources internal cleanup also fails. The await rejects before resources is assigned. Its AggregateError is reduced to the generic failure kind, finally has no resource handle, and cleanupComplete is computed from an empty local cleanup list. A live owned container can remain while the saved report explicitly claims cleanupComplete=true and omits its resource identity/cleanup failure.",
+      "evidence": "Actual modules were executed with node:child_process.spawn replaced before import. Stub sequence was info,image,image,run,inspect,inspect,rm, with metadata inspect and rm returning failure. Observed JSON: {status:failed,failure:{stage:resource-startup,kind:AggregateError},cleanupComplete:true,resourcesPresent:false,cleanupFailuresPresent:false}; real Docker calls: 0. Counterevidence: report.status correctly remains failed and ordinary successful startup exposes resources.close, so this defect is restricted to failed startup with failed internal cleanup. Original main SHA-256 de5e608a38b2bc334724e81a65b587e1e0fc77225eb79abc170f9b03937d304f and resources SHA-256 277f1a61d20bb290fbc94c7e7bbcc22ce7513b699fdec2ca893f696660b2e43e. Exact runnable reproduction is in pilot-review-result.json evidence[1].script.",
+      "recommendation": "Carry safe attempted resource identities, cleanup status and a retryable close handle through startup failure; recover that state in the caller before finally. Report cleanupComplete=false whenever owned cleanup failed or remains unverified, and preserve safe cleanup targets for operators."
+    },
+    {
+      "severity": "low",
+      "location": "apps/server/src/operations/pilot-preflight.ts:96 (private issuer normalization at line 80)",
+      "mechanism": "Trigger: operator supplies a bracketed wildcard such as VISUA_OIDC_PRIVATE_ISSUERS=[*]. Preflight only trims each entry and checks exact *, but runtime privateHostAllowed removes surrounding brackets before building its allowlist. The preflight claims no wildcard allowance and configReady=true although tenant-selected SSO providers can access every private host.",
+      "evidence": "Executed inspectPilotConfig with an otherwise valid synthetic hosted profile and [*], then loadAuthConfig plus the actual privateHostAllowed from apps/server/src/auth/egress.ts:109-112. Observed no-wildcard status pass, configReady true, runtime allows unlisted.internal true, runtime allows 169.254.169.254 true. Counterevidence: normal * is rejected; a private-issuer-exceptions review warning is still emitted; the mismatch requires unusual malformed operator input, hence low severity. Exact runnable reproduction is in pilot-review-result.json evidence[2].script.",
+      "recommendation": "Apply the same host normalization as privateHostAllowed before checking wildcard presence (or reject malformed bracket forms), and add a focused regression covering bracketed wildcard input."
+    }
+  ],
+  "limitations": [
+    "Bounded fresh first pass on the supplied working-tree snapshot at base a0fee8b5b4101a489163d499265c64d33ab51e11. Any subsequent edits require affected rechecks; this report preserves original findings and hashes.",
+    "No Docker daemon, external provider, localhost:8787, existing application data, full rehearsal, broad suite, hosted TLS, IAM, real IdP, remote recovery or capacity checks were executed. Cleanup fault injection used a built-in spawn stub; it demonstrates reporting/control flow, not Docker daemon behavior.",
+    "Lead-owned documentation was excluded because it was not stable. Existing dependencies were examined only where directly relevant to configuration interpretation, identity, startup/shutdown, resource lifetime and recovery verification.",
+    "No supported secret disclosure or backup-consistency defect was identified within the assigned bounded source review; absence of a finding is not a production-readiness claim."
+  ]
+}

@@ -256,7 +256,11 @@ completion-rate measurement exists yet.
 All required software packages are delivered locally. Continue with hosted pilot
 preparation once an operator and pilot team are available. The
 [evidence operations task](../.codex-context/tasks/evidence-operations-20261013.md)
-records verification and remaining dependencies. Complete these steps in order:
+records verification and remaining dependencies. Portable configuration inspection
+and a disposable PostgreSQL/S3/OIDC rehearsal are available in the
+[operations guide](operations.md). Use the
+[pilot acceptance worksheet](pilot-acceptance.md) for the remaining external
+decisions and validation. Complete these steps in order:
 
 1. Select the deployment target, PostgreSQL service, object store, public origin,
    and identity provider. Assign service, recovery, and review owners.

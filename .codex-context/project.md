@@ -224,3 +224,13 @@ binary recovery is covered by the test fixture. Desktop/phone checks passed and
 the synthetic workspace/blob were removed. All approved local software work is
 complete. Hosted configuration, retention ownership, capacity, and pilot
 measurements remain unverified prerequisites.
+
+Portable pilot preparation now provides `pnpm pilot:preflight` for secret-safe,
+environment-only configuration inspection and `pnpm pilot:rehearse` for isolated
+PostgreSQL/S3/OIDC validation. See the [task](tasks/pilot-readiness-20261013.md),
+[source verification](runs/pilot-readiness-20261013/source-verification.json), and
+[operator worksheet](../docs/pilot-acceptance.md). Final checks pass 944 SQLite
+tests plus nine PostgreSQL-only skips and 953 PostgreSQL-lane tests. The local
+two-process rehearsal verifies four roles, 80 concurrent reads, real binary
+evidence, fresh database/object-prefix recovery, entity digests, audit, and
+encrypted SSO. It does not establish hosted capacity or provider recovery.

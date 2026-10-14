@@ -1,0 +1,83 @@
+{
+  "status": "passed",
+  "at": "2026-10-14T01:48:09.729655+00:00",
+  "base_head": "a0fee8b5b4101a489163d499265c64d33ab51e11",
+  "scope": "Portable empty-install preflight and disposable local production-mode pilot rehearsal; no runtime application behavior or web changes.",
+  "files": {
+    "apps/server/src/operations/pilot-preflight.ts": "c61ffe0be962d1d0c897b5793ebe887ebb850eeb028afe60fc6cd6513d8ed3a8",
+    "apps/server/test/pilot-preflight.test.ts": "f757d5e42a58843d15cca9b12e54407301d110fcc9b08ba2e77f31214d31168c",
+    "apps/server/test/pilot-rehearsal.test.ts": "31d0fd6e8c461201dc02fb9781e2a4defec70e0546e35b3e1cf35ade4e21c61d",
+    "apps/server/test/fixtures/pilot-startup-failure.mjs": "9ad0c6bc956f4e0e66486792a93d26eeaf5bdb85b8af573e0004768bb6b0f660",
+    "scripts/pilot-preflight.ts": "1836cbeb76e17408bda14b2411474e5b9790261f9fa984b8d94723647a6a8d0c",
+    "scripts/pilot-rehearsal.mjs": "44cb592e272fca78cb20ee6f0a3b2ed83c941771ff8bfa1e636cfb5951f7d44d",
+    "scripts/pilot/resources.mjs": "f66eae3e71a15ee77dc13e9ce631dcce184a438a5d52206526063bda27e9f934",
+    "package.json": "b3a9ef209021b3bae6dd4f324f262db8a6bbed02bb3e84c1548c5cffade0e14b",
+    "pnpm-lock.yaml": "cd6f0a2c4595b1b6f211c86a6912842aa368425caa2ee5b3ef09d1125d92626b",
+    "README.md": "4937969eeee1d1399a876d8f867580c9ad2bc081f0794730d2a0a6a6b522275f",
+    "docs/operations.md": "5e08a851c822c152f8d9ff1579d4aff8521f674e636f69689f35fc31efd2fb29",
+    "docs/pilot-acceptance.md": "ea2f44ac2f8598a014e1746b3a2a55150028d07359a0862f108888d7f358e12e",
+    "docs/development-phase-2.md": "731af73d12fff0125cb5009f1fede0317084ec4e29942ca19e7e643185d587a3",
+    "docs/roadmap.md": "739aaeea58de304ad2eb35df7450e5ae5f8aeed25dc61ee09b8e77431df529f0"
+  },
+  "checks": {
+    "integration": {
+      "command": "pnpm check --no-e2e",
+      "log": "check-final.log",
+      "sqlite_passed": 944,
+      "sqlite_postgres_only_skipped": 9,
+      "postgres_lane_passed": 953,
+      "typecheck": "passed",
+      "licensing": "passed",
+      "corpus": "passed",
+      "design": "passed"
+    },
+    "browser": {
+      "status": "not rerun",
+      "reason": "No web app changes; actual HTTP OIDC/role/evidence/recovery journey exercised by standalone rehearsal."
+    },
+    "focused": {
+      "command": "pnpm exec vitest run apps/server/test/pilot-preflight.test.ts apps/server/test/pilot-rehearsal.test.ts",
+      "log": "corrections-test-final.log",
+      "passed": 61
+    },
+    "rehearsal": {
+      "command": "node scripts/pilot-rehearsal.mjs --requests 80 --concurrency 4",
+      "log": "rehearsal-release.log",
+      "result": "rehearsal-release-result.json",
+      "status": "passed",
+      "final_script": "Includes complete exported entity digest comparison after the database gate; final rehearsal verifies it."
+    }
+  },
+  "review": {
+    "report": "pilot-review.json",
+    "correction_checks": "pilot-review-result.json",
+    "supported_findings": 2,
+    "resolved": 2,
+    "additional_corrections": [
+      "preflight-correction-result.json",
+      "resources-correction-result.json"
+    ]
+  },
+  "prior_attempts": [
+    {
+      "log": "rehearsal-first.log",
+      "status": "failed",
+      "reason": "Fixture used nested review.status instead of top-level Evidence.status; corrected; owned resources cleaned."
+    },
+    {
+      "log": "corrections-test.log",
+      "status": "failed",
+      "reason": "Regression fixture supplied nonexistent argv[1] path; corrected to actual entry point; final61 passed."
+    },
+    {
+      "log": "check.log",
+      "status": "passed",
+      "scope": "Before review corrections,931SQLite/940PG."
+    }
+  ],
+  "limits": [
+    "Mock IdP and loopback HTTP, actual disposable PostgreSQL17 and pinned MinIO fixture only.",
+    "80 closed-loop synthetic requests, concurrency4,167 requirements,1workspace,4users,1binary artifact; not hosted capacity.",
+    "Source and restored databases share a temporary container. IAM, provider/IdP recovery, retention, domain/TLS, operator ownership and pilot-user acceptance remain external."
+  ]
+}

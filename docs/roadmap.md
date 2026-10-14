@@ -55,9 +55,16 @@ Crosswalk comparison, Plan urgency, CSF profile, agent stages, accessibility
 consistency, and snapshot-backed history. Its verification and delivery status
 are tracked separately from the platform work below.
 
+All required [phase 2 software packages](development-phase-2.md) are now delivered
+locally: evidence lifecycle, reliable automation, frozen auditor packages, logged
+read-only access, and verified local recovery. Hosted setup and team acceptance
+remain open in the [pilot worksheet](pilot-acceptance.md). The items below retain
+the broader, separately deferred platform scope.
+
 1. **Identity follow-ups.** SAML and SCIM provisioning.
-2. **Evidence file storage.** Object storage for evidence files, content-addressed by
-   SHA-256, and Postgres row-level security as a second tenancy guard.
+2. **Storage hardening.** Private local and S3-compatible evidence storage with
+   server-computed SHA-256 and verified downloads is delivered. PostgreSQL
+   row-level security remains a separate proposed second tenancy guard.
 3. **Connector depth.** Label each connector by automation depth (API-automated,
    agent-assisted, manual):
    - AWS (Config, IAM, CloudTrail, KMS), Azure and GCP
@@ -78,8 +85,9 @@ are tracked separately from the platform work below.
 8. **SOC 2 extraction tooling in the repository.** A Node extractor (unpdf) that
    rebuilds the structured TSC and DC 200 files from an installation's own licensed
    PDFs.
-9. **Auditor workspace.** Read-only, logged access. OSCAL assessment-plan and
-   assessment-results import and export. Visua never drafts auditor conclusions.
+9. **Auditor interoperability.** Read-only logged access and frozen verifiable
+   packages are delivered. OSCAL assessment-plan and assessment-results import
+   and export remain future work. Visua never drafts auditor conclusions.
 
 ## Next frameworks
 

@@ -1,0 +1,94 @@
+{
+  "status": "failed",
+  "result": {
+    "status": "failed",
+    "startedAt": "2026-10-14T01:36:25.245Z",
+    "fixture": "local-production-mode-rehearsal",
+    "workload": {
+      "requests": 80,
+      "concurrency": 4,
+      "appProcesses": 2,
+      "tenants": 1,
+      "workspaces": 1,
+      "frameworks": [
+        "nist-csf-2.0",
+        "aicpa-tsc-2017"
+      ],
+      "users": 4,
+      "evidenceFiles": 1,
+      "evidenceBytes": 65536
+    },
+    "checks": [
+      "Empty production bootstrap, developer login refusal, four OIDC roles, and a second application process on shared PostgreSQL"
+    ],
+    "limitations": [
+      "Loopback HTTP, a local mock IdP, and cached MinIO/PostgreSQL fixture images; no hosted TLS, DNS, provider IAM, or real identity-provider recovery validated.",
+      "Closed-loop synthetic reads on one small workspace measure this local run only. No sustained saturation, hosted capacity, recovery objective, or pilot-user acceptance claim.",
+      "Recovery restores application SQL and S3 object bytes into a new database/prefix. Cluster roles, remote provider configuration, key custody, retention, and offsite recovery remain operator work."
+    ],
+    "resources": {
+      "startedAt": "2026-10-14T01:36:25.248Z",
+      "storage": "disposable tmpfs",
+      "containers": [
+        {
+          "name": "visua-pilot-pg-325c82dfcd5329fb56bd5151",
+          "image": "postgres:17",
+          "id": "de0f706f79f891adf34c22061e924056174a5db367918488aabb8b3d20d3cb40",
+          "imageId": "sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f",
+          "host": "127.0.0.1",
+          "port": 49191
+        },
+        {
+          "name": "visua-pilot-s3-325c82dfcd5329fb56bd5151",
+          "image": "quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z",
+          "id": "f8fcc3185f7bc510a210b970e5bd6bcf5a16c1f1d79eae4951cd87919071738b",
+          "imageId": "sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e",
+          "host": "127.0.0.1",
+          "port": 49249
+        }
+      ],
+      "cleanup": {
+        "status": "complete",
+        "completedAt": "2026-10-14T01:36:33.008Z"
+      },
+      "docker": {
+        "id": "e457ea15-eeec-407a-9b26-90c505a4183a",
+        "name": "docker-desktop",
+        "serverVersion": "29.7.2",
+        "operatingSystem": "Docker Desktop"
+      },
+      "images": [
+        {
+          "image": "postgres:17",
+          "id": "sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f",
+          "repoDigests": [
+            "postgres@sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f"
+          ]
+        },
+        {
+          "image": "quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z",
+          "id": "sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e",
+          "repoDigests": [
+            "quay.io/minio/minio@sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e"
+          ]
+        }
+      ],
+      "readyInMs": 4476,
+      "s3": {
+        "endpoint": "http://127.0.0.1:49249",
+        "bucket": "visua-pilot",
+        "region": "us-east-1",
+        "prefix": "evidence",
+        "privacy": "fresh bucket; no public policy or ACL configured"
+      }
+    },
+    "failure": {
+      "stage": "evidence-workflow",
+      "kind": "TypeError"
+    },
+    "completedAt": "2026-10-14T01:36:33.008Z",
+    "cleanupComplete": true
+  },
+  "script_sha256": "7bfddbc964ac228c509b6a316a04aded4c631acf66419c9c43e5f4ba77f95865",
+  "diagnosis": "Fixture asserted accepted.review.status, but Evidence stores status at the top level. Resources cleaned up; no production application change."
+}

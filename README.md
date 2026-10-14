@@ -246,7 +246,9 @@ close the event relay and database. The server exits with code `0` after a clean
 stop. If the shutdown deadline expires, it closes remaining HTTP connections
 and exits with code `1`. Configure the process manager's stop grace period to
 exceed `VISUA_SHUTDOWN_MS`; Compose uses 15 seconds for the default 10-second
-deadline. Durable agent recovery after a forced stop remains future work.
+deadline. Durable ownership and leases fence stale attempts after a forced stop;
+expired attempts become interrupted failures. See the
+[architecture guide](docs/architecture.md) for execution and recovery boundaries.
 
 ## Official documentation corpus and licensing
 
@@ -295,7 +297,9 @@ Details: [`docs/architecture.md`](docs/architecture.md). Design system:
 pnpm check           # local CI: every check below, with a summary (--quick: guard, typecheck, SQLite tests)
 pnpm typecheck       # all packages (TypeScript 7)
 pnpm test            # Unit, API, storage and auth tests (Vitest; add VISUA_TEST_DATABASE_URL=postgres://… for Postgres)
-pnpm test:e2e        # 22 Playwright end-to-end tests against the production build (WebGL via SwiftShader)
+pnpm test:e2e        # Playwright end-to-end tests against the production build (WebGL via SwiftShader)
+pnpm pilot:preflight # read-only hosted configuration report; no provider access or secret output
+pnpm pilot:rehearse  # disposable local PostgreSQL/S3/OIDC workflow and recovery rehearsal
 pnpm screens         # screenshots of every view at 1440×900, 1024×768 and 390×844 into .screens/ (git-ignored)
 pnpm screens --docs  # regenerate the README images in docs/images/
 pnpm design:lint     # DESIGN.md lint
@@ -311,9 +315,10 @@ NIST AI RMF with NIST's AI security overlays, the U.S. state AI laws, and AI thr
 (MITRE ATLAS, OWASP, NIST AI 100-2). It includes the 3D Observatory and Nexus, eight
 agents, reviewed evidence with provenance and supersession, bounded automation,
 frozen auditor packages with offline verification, and a trust center, with
-organizations, roles, SSO, and PostgreSQL storage. The local SQLite/file recovery
-fixture is verified; hosted identity, object-storage recovery, retention ownership,
-and pilot-user measurements require the selected operator environment. See the
+organizations, roles, SSO, and PostgreSQL storage. Local SQLite/file recovery and
+the disposable PostgreSQL/S3/OIDC rehearsal are verified. Hosted identity,
+provider recovery, retention ownership, capacity, and pilot-user measurements
+require the selected operator environment. See the
 [phase plan and remaining prerequisites](docs/development-phase-2.md),
-[operations runbook](docs/operations.md), and
+[operations runbook](docs/operations.md), [pilot worksheet](docs/pilot-acceptance.md), and
 [AI governance research](docs/research/ai-governance-landscape.md).

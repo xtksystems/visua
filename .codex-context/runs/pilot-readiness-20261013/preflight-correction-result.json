@@ -1,0 +1,74 @@
+{
+  "run_id": "pilot-readiness-20261013",
+  "node_id": "preflight-correction",
+  "input_sha256": "6d28468bfbfffc42b8376cca07208871c40d2a1730c41e862e55d5ef066448ef",
+  "status": "complete",
+  "summary": "Aligned private-issuer preflight normalization with loadAuthConfig plus privateHostAllowed. Bracketed and unmatched-bracket wildcard forms now fail the hosted profile; ignored empty brackets no longer produce a named-exception warning.",
+  "evidence": {
+    "recorded_utc": "2026-10-14T01:43:01.052334+00:00",
+    "cwd": "/Users/artem/visua",
+    "original_result": {
+      "path": ".codex-context/runs/pilot-readiness-20261013/preflight-result.json",
+      "sha256": "0331409847c14701caf449a35a2523a080fe16e0620374a0d3180203537455cb",
+      "preserved": true
+    },
+    "source_before_sha256": {
+      "apps/server/src/operations/pilot-preflight.ts": "b2dc67a95a8c3401931198ca5c553a82f30fc096daf07179ae0fecc9e50666ac",
+      "apps/server/test/pilot-preflight.test.ts": "8b23f2e68708af9e1913be4e94e9ea16773e71dba0e73068caeae912478a95fd",
+      "scripts/pilot-preflight.ts": "1836cbeb76e17408bda14b2411474e5b9790261f9fa984b8d94723647a6a8d0c"
+    },
+    "source_sha256": {
+      "apps/server/src/operations/pilot-preflight.ts": "c61ffe0be962d1d0c897b5793ebe887ebb850eeb028afe60fc6cd6513d8ed3a8",
+      "apps/server/test/pilot-preflight.test.ts": "f757d5e42a58843d15cca9b12e54407301d110fcc9b08ba2e77f31214d31168c",
+      "scripts/pilot-preflight.ts": "1836cbeb76e17408bda14b2411474e5b9790261f9fa984b8d94723647a6a8d0c"
+    },
+    "runtime_authority_sha256": {
+      "apps/server/src/auth/config.ts": "209c74005e490d18393ecd71f51ac84914f8b345ebcfb7a5615f9eacf70da2f7",
+      "apps/server/src/auth/egress.ts": "cc9ab29b352cc7ad743f7062b056c5d52574dc1d219de334d3ff75967989b775"
+    },
+    "commands": [
+      {
+        "command": "pnpm exec vitest run apps/server/test/pilot-preflight.test.ts -t 'private-issuer|normalized named exceptions'",
+        "exit_code": 1,
+        "status": "reproduced_before_fix",
+        "result": "5 failed, 6 passed, 48 skipped. Four wildcard false passes and one false named-exception warning reproduced against the actual runtime predicate."
+      },
+      {
+        "command": "pnpm exec vitest run apps/server/test/pilot-preflight.test.ts",
+        "exit_code": 0,
+        "status": "passed_after_fix",
+        "result": "1 file; 59 tests passed; duration 1.92s"
+      },
+      {
+        "command": "pnpm --filter @visua/server typecheck",
+        "exit_code": 0,
+        "status": "passed_after_fix",
+        "result": "tsc -p tsconfig.json completed without diagnostics"
+      }
+    ],
+    "normalization_cases": [
+      "literal wildcard",
+      "surrounding whitespace",
+      "bracketed wildcard",
+      "unmatched leading bracket",
+      "unmatched trailing bracket",
+      "comma-separated entries",
+      "interior bracket whitespace",
+      "nested brackets",
+      "mixed-case named host",
+      "bracketed IPv6",
+      "ignored empty brackets"
+    ],
+    "runtime_unchanged": true,
+    "files_changed": [
+      "apps/server/src/operations/pilot-preflight.ts",
+      "apps/server/test/pilot-preflight.test.ts"
+    ]
+  },
+  "limitations": [
+    "Targeted correction only; production runtime enforcement is unchanged.",
+    "Preflight mirrors runtime normalization to avoid importing network transport into the inspector. Regression expectations use the actual runtime privateHostAllowed predicate.",
+    "No broad suites, Docker, provider access or hosted external verification were performed by this correction worker.",
+    "The original environment-only scope, required operator reviews and external-readiness limitations remain in effect."
+  ]
+}

@@ -6,6 +6,83 @@ loopback access, developer sign-in, offline agents, SQLite, and private local bl
 The automated recovery fixture verifies SQLite plus referenced local files.
 Hosted PostgreSQL, object storage, identity-provider recovery, retention periods,
 and production capacity require an operator's environment and validation.
+Use the [pilot acceptance worksheet](pilot-acceptance.md) to record the selected
+environment, owners, and outcomes.
+
+## Configuration preflight
+
+For an empty hosted installation, inspect its intended environment before
+starting the application:
+
+```sh
+node --env-file=/secure/path/visua.env scripts/pilot-preflight.ts
+```
+
+The command reads configuration only. It doesn't connect to services, resolve
+credentials, inspect existing organizations, or print environment values. Its
+JSON report distinguishes failed configuration checks, operator review flags,
+and external checks that remain required. Exit codes are 0 for valid configuration
+or `--help`, 1 for failed configuration, and 2 for invalid command usage. You can
+also run `pnpm pilot:preflight` with an already configured environment.
+
+This profile requires production mode, OIDC, an HTTPS public origin, a non-default
+server secret, explicitly disabled seeding, a platform IdP and bootstrap owner,
+PostgreSQL, and S3 storage. It accepts public PKCE clients without a client secret
+and role-based AWS credentials without static access keys. It does not replace
+the application's runtime configuration. Existing installations using only
+organization SSO need a separate operator assessment of the platform-IdP and
+bootstrap checks.
+
+`configReady: true` establishes configuration syntax only. You must still verify
+TLS, actual sign-in, database transport and access, private bucket policy,
+credentials, coordinated recovery, retention, capacity, and operational ownership.
+
+## Disposable local rehearsal
+
+The rehearsal creates new PostgreSQL and MinIO containers with random credentials,
+loopback ports, and temporary storage. It starts two application processes in
+production authentication mode and uses a local test IdP. It never accepts a live
+database URL or deployment target. Install repository dependencies and cache its
+fixture images first:
+
+```sh
+docker pull postgres:17
+docker pull quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+pnpm pilot:rehearse
+```
+
+The pinned MinIO release is a disposable compatibility fixture, not a selection
+for hosted deployment. The command records actual image identities and refuses
+missing cached images; it doesn't pull automatically. Keep Docker on your local
+development context. It creates resources only under unique `visua-pilot-` names
+and removes only containers whose ownership labels and IDs match its records.
+
+The scenario covers these contracts:
+
+- Empty-install OIDC owner bootstrap and refusal of developer sign-in.
+- Four roles, member assignment, an actual signed S3 upload, approver acceptance,
+  contributor approval refusal, and auditor write refusal.
+- Exact binary downloads and auditor bundles checked with separately retained
+  receipt hashes and a trusted verifier.
+- Bounded concurrent reads through both processes, with latency/status counts
+  and no assessment audit changes.
+- Stopped writers, a real PostgreSQL dump and fresh-database restore, copied and
+  verified object bytes in a separate prefix, unchanged reviews and audit
+  checkpoint, retained access records, and restored encrypted organization SSO.
+
+The default workload is 80 reads at concurrency 4. Use `--requests` (16–400) and
+`--concurrency` (1–8) to change that bounded sample. Results include workload size,
+latency percentiles, errors, image identities, recovery digests, and cleanup
+outcomes. Private backup bytes, extracted packages, receipts, and `report.json`
+remain under a new ignored `.check/pilot-*` directory. Retain those artifacts
+according to your local policy; the script removes its temporary credentials.
+
+The local IdP permits HTTP and uses test identities. The fixture bucket uses
+generated root credentials. These choices exercise application behavior without
+establishing production TLS, IAM, IdP recovery, or provider configuration.
+Source and restored databases share one disposable PostgreSQL container. The
+short closed-loop workload is a local observation, not a hosted capacity result
+or recovery-time commitment. Pilot users and real provider drills remain required.
 
 ## Deployment and authentication
 

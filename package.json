@@ -23,7 +23,9 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "screens": "node scripts/screens.ts",
-    "check": "node scripts/check.ts"
+    "check": "node scripts/check.ts",
+    "pilot:preflight": "node scripts/pilot-preflight.ts",
+    "pilot:rehearse": "node scripts/pilot-rehearsal.mjs"
   },
   "devDependencies": {
     "@google/design.md": "0.4.0",
