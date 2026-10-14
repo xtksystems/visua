@@ -1,0 +1,27 @@
+{
+  "run_id": "predeploy-review-20261014",
+  "node_id": "product",
+  "input_sha256": "62d53f2dfcf8bb7bdf2fe8ac95cf8aa71bbec40f7f5942e61645e6cb56ec4b45",
+  "status": "complete",
+  "summary": "Completed the bounded product/frontend source review of cb438d1083e9ae3e2a38dd8e5d7dba4c778b2e89. Two medium findings: stale live Crosswalk Nexus data and monitoring read failures presented as empty history. One low finding: opening the mobile navigation drawer leaves forward keyboard navigation behind its overlay. Crosswalk and drawer behavior were reproduced in isolated Chromium; the monitoring issue is source-supported only. No high or critical product finding was established.",
+  "evidence": [
+    "review.json",
+    "source-evidence.log",
+    "browser-review.mjs",
+    "browser-review.log",
+    "browser-followup.mjs",
+    "browser-followup.log",
+    "server-8841.log",
+    "crosswalk-stale.png",
+    "mobile-nav-focus.png",
+    "verification.json"
+  ],
+  "limitations": [
+    "This is a bounded product/frontend review, not a security/authentication or operational deployment sign-off. Source files were sampled by the stated journey scope; no claim of exhaustive line-by-line coverage.",
+    "The lead owns the full pnpm check and dependency audit; this reviewer did not execute the existing unit/e2e suites or a shared build. Both custom browser scripts exited nonzero after useful observations due review-harness locator mistakes; their logs preserve those failures and must not be represented as passing suites.",
+    "Monitoring failure finding is source-supported only. Its attempted runtime assertion was blocked by a wrong heading locator and was not retried beyond the assigned bounded follow-up.",
+    "Mobile smoke covered seeded pages at390x844 in Chromium with a resized desktop browser context. It did not exercise every full workflow, native touch browser, screen reader, contrast audit or all viewport sizes. Auditor capture/ZIP and proposal decisions were reviewed in source and existing test coverage, not executed here.",
+    "Large-data render behavior was inspected in source but no tenant-scale benchmark, CPU trace, memory profile, Web Vitals measurement or slow-device capacity threshold was established. Full-list Plan/Evidence/Auditor rendering remains a deployment capacity question rather than a supported quantified performance defect.",
+    "No service8787 access/writes, external credentials, live tenant writes, product edits, shared builds, subagents or external model calls. All runtime mutations were in a disposable in-memory workspace, deleted after reproduction."
+  ]
+}

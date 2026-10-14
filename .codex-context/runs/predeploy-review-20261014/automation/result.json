@@ -1,0 +1,20 @@
+{
+  "run_id": "predeploy-review-20261014",
+  "node_id": "automation",
+  "input_sha256": "62389f2a69970ce4fe4a57a41eb46560230d67459182f58dccee539c91a8cc07",
+  "status": "complete",
+  "summary": "Completed targeted agent, connector and event reliability review at cb438d1083e9ae3e2a38dd8e5d7dba4c778b2e89. One medium recovery defect was reproduced: temporary connector overload removes that connector from subsequent agent attempts until a person retries it. No supported high or critical finding was identified within this scope.",
+  "evidence": [
+    "review.json",
+    "reproduce.mjs",
+    "reproduce.log",
+    "evidence.json",
+    "validation.log"
+  ],
+  "limitations": [
+    "This was one bounded source review with targeted synthetic fixtures, not exhaustive path or load testing. Source-only analyses of production PostgreSQL failover, process crashes, DNS rebinding, repository path races and real provider streaming were not newly reproduced.",
+    "The repository test names and bodies cited as inspected were not executed by this worker; the lead owns full pnpm check, dependency audit and shared build/test lanes.",
+    "No live tenant, external credentials, local service at port 8787, external models, production provider endpoints or container/service mutations were used. Hosted capacity and operator configuration remain outside this evidence.",
+    "The fixture uses a synthetic connector behind the actual budget and service boundary; it establishes overload classification and retry eligibility, not real remote endpoint behavior."
+  ]
+}

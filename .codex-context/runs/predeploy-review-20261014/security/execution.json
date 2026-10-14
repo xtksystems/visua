@@ -1,0 +1,10 @@
+{
+  "status": "failed",
+  "reason": "Agent errored: content flagged for possible cybersecurity risk.",
+  "report_returned": false,
+  "artifact_files": [
+    "brief.txt"
+  ],
+  "preliminary_claim": "resolveIdentity may skip verified-domain admission for already globally linked identities; no completed worker reproduction or review returned.",
+  "retry": "Not retried or redirected to another provider."
+}

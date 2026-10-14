@@ -1,0 +1,14 @@
+{
+  "container": {
+    "exit_code": 0,
+    "result": "healthy 0af95208b3b87150290bce7683ef0bd11b0670e7 sha256:5a354d9c0e67ab7a5f70fcf793b703d30ea3865dc81f0a43e7c64196a569d98f"
+  },
+  "readiness": {
+    "exit_code": 0,
+    "result": "{\"ok\":true}"
+  },
+  "image_user": {
+    "exit_code": 0,
+    "result": "node"
+  }
+}

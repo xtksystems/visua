@@ -1,0 +1,162 @@
+{
+  "cwd": "/Users/artem/visua",
+  "head": "cb438d1083e9ae3e2a38dd8e5d7dba4c778b2e89",
+  "node": "v26.0.0",
+  "inspected_file_sha256": {
+    "Dockerfile": "ac72e727e331af0cff014d4681c78aba382d84a0e8b6d47947df495ace6d9c9f",
+    "compose.yaml": "db69a9995822fe82fb68ea748c9090b362719959fdc728590e448508e762a8d1",
+    ".dockerignore": "fa43a592d91042786c65ddcf94352ef38251f46e23df891fbac3e278a2bf9f05",
+    "package.json": "b3a9ef209021b3bae6dd4f324f262db8a6bbed02bb3e84c1548c5cffade0e14b",
+    "pnpm-lock.yaml": "cd6f0a2c4595b1b6f211c86a6912842aa368425caa2ee5b3ef09d1125d92626b",
+    "pnpm-workspace.yaml": "56e509a3d9aebc5fcd68a3be1507127b64d043713b1849488bad07556c2308f9",
+    "apps/server/package.json": "fdae1311de9c3b97be463619a642f18424200f6b815011cdcb0e83b886d6e898",
+    "apps/web/package.json": "28cdfa9daccf9b026e7558a1e0b3fd036d49ff9d69f7321ae322e75189832f71",
+    "packages/frameworks/package.json": "430e1bd99ee8bbf21db6876c0efb50f58fc60723bc999efcddef23082f0bcf66",
+    "packages/agents/package.json": "bb4ef03b886261261cc579a1b84e3d0ad5d004643a1e1d09f165c9a0a86797dd",
+    "apps/server/src/index.ts": "c502c67cced4b6ed5ed7bbfdbb7e47356de9c709c74a8dfd4b66e3c98d39fcf7",
+    "apps/server/src/server.ts": "b9b5e304ab6ab8b78567e5a7ae8d8e5ca3182cd5e2c32d360068e9341dab06ec",
+    "apps/server/src/startup.ts": "d919759dc14a4c983819c05ca492b40ce3caf4ba4489fb5336a3495c1aeecaf9",
+    "apps/server/src/readiness.ts": "e247912971ee1f53f30eb28f83d7aef53f3953af0f2e3cf73f14b86d3b559c33",
+    "apps/server/src/diagnostics.ts": "116bc150c428e247098d173f9dc0a2d7750ea130a0c225b86b959d24806ff17a",
+    "apps/server/src/request-controls.ts": "1bc425d48f78f182215a899593849d96f820df4f9f5c10c7cdf1186a9f48b5cb",
+    "apps/server/src/context.ts": "175b33033c0b5e8d043daf3e88d829c5e9aa8f1b190d1f4dc59a3e318a0bf757",
+    "apps/server/src/auth/config.ts": "209c74005e490d18393ecd71f51ac84914f8b345ebcfb7a5615f9eacf70da2f7",
+    "apps/server/src/auth/http.ts": "39aaef9c85ac8c630f62cc96da2dc4a5b66247d0f9451327d912bd4ccbb063a8",
+    "apps/server/src/storage/postgres.ts": "dc3686f017fe4f979d4bc775f9ec33a5b0d2050da6fa77b54208cb5d47518628",
+    "apps/server/src/storage/index.ts": "2a804e9a6490508a8518d03be900937c71135dc235c7becb1295b2641d74ca82",
+    "apps/server/src/storage/events.ts": "dd65e8f8d7618ebd28b787ea9b9ba851e46199f150bc108baa46d36e94b731b8",
+    "apps/server/src/storage/migrations.ts": "732fb0397c8aebbe20b8f65bdff61c00dda0fcc516d2a14c737bdec3e98818e0",
+    "apps/server/src/blobs/s3.ts": "72a3e9b3ee3c6d7d3698ae157bd1e6fc932357314eebb2ab6b7ce4e5cb0c914a",
+    "apps/server/src/blobs/shared.ts": "29f74295fc9686c4b4a40631228f283c1b879c805b47b730f6d08f690684bd18",
+    "apps/server/src/evidence-http.ts": "12319c71e5a379eea719cf3735f574cb4ba9ff8241885c246cd77f472b67cea9",
+    "apps/server/src/operations/local-backup.ts": "a05cdfdc7cf18833d51b941c4c8719860284d8fe5d739d2afba4a600e3f05f1e",
+    "apps/server/src/operations/pilot-preflight.ts": "c61ffe0be962d1d0c897b5793ebe887ebb850eeb028afe60fc6cd6513d8ed3a8",
+    "scripts/check.ts": "bd2720e33a2a0400328f2db509a6087ea4f0a35854d394a8d149435978c6df1b",
+    "scripts/backup-local.ts": "4b9757faf0b65ccfb6a3bb8a099ffaaa437bfacba0e13bc65e20bfb5dea68f58",
+    "scripts/pilot-preflight.ts": "1836cbeb76e17408bda14b2411474e5b9790261f9fa984b8d94723647a6a8d0c",
+    "scripts/pilot-rehearsal.mjs": "44cb592e272fca78cb20ee6f0a3b2ed83c941771ff8bfa1e636cfb5951f7d44d",
+    "scripts/pilot/resources.mjs": "f66eae3e71a15ee77dc13e9ce631dcce184a438a5d52206526063bda27e9f934",
+    "docs/operations.md": "5e08a851c822c152f8d9ff1579d4aff8521f674e636f69689f35fc31efd2fb29",
+    "docs/pilot-acceptance.md": "ea2f44ac2f8598a014e1746b3a2a55150028d07359a0862f108888d7f358e12e"
+  },
+  "production_dependency_audit": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0
+    },
+    "dependencies": 138,
+    "devDependencies": 0,
+    "optionalDependencies": 0,
+    "totalDependencies": 138
+  },
+  "all_dependency_audit": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 3,
+      "high": 8,
+      "critical": 0
+    },
+    "dependencies": 433,
+    "devDependencies": 0,
+    "optionalDependencies": 0,
+    "totalDependencies": 433
+  },
+  "dependency_advisories": [
+    {
+      "module_name": "ajv",
+      "severity": "moderate",
+      "github_advisory_id": "GHSA-2g4f-4pwh-qvx6",
+      "patched_versions": ">=8.18.0"
+    },
+    {
+      "module_name": "uuid",
+      "severity": "moderate",
+      "github_advisory_id": "GHSA-w5hq-g745-h8pq",
+      "patched_versions": ">=11.1.1"
+    },
+    {
+      "module_name": "fast-uri",
+      "severity": "high",
+      "github_advisory_id": "GHSA-v2hh-gcrm-f6hx",
+      "patched_versions": ">=3.1.4"
+    },
+    {
+      "module_name": "fast-uri",
+      "severity": "high",
+      "github_advisory_id": "GHSA-7p8r-x3mc-p8w7",
+      "patched_versions": ">=3.1.5"
+    },
+    {
+      "module_name": "fast-uri",
+      "severity": "high",
+      "github_advisory_id": "GHSA-f65p-4m7j-42xc",
+      "patched_versions": ">=3.1.6"
+    },
+    {
+      "module_name": "fast-uri",
+      "severity": "high",
+      "github_advisory_id": "GHSA-fph4-wmhf-6fwf",
+      "patched_versions": ">=3.1.6"
+    },
+    {
+      "module_name": "fast-uri",
+      "severity": "high",
+      "github_advisory_id": "GHSA-jqff-g426-hqxp",
+      "patched_versions": ">=3.1.6"
+    },
+    {
+      "module_name": "fast-uri",
+      "severity": "high",
+      "github_advisory_id": "GHSA-4c8g-83qw-93j6",
+      "patched_versions": ">=3.1.3"
+    },
+    {
+      "module_name": "fast-uri",
+      "severity": "high",
+      "github_advisory_id": "GHSA-qw65-cvwx-89v3",
+      "patched_versions": ">=3.1.7"
+    },
+    {
+      "module_name": "fast-uri",
+      "severity": "moderate",
+      "github_advisory_id": "GHSA-hrr3-gc8f-f4qj",
+      "patched_versions": ">=3.1.8"
+    },
+    {
+      "module_name": "source-map-js",
+      "severity": "high",
+      "github_advisory_id": "GHSA-68fv-2mgg-jv7q",
+      "patched_versions": ">=1.2.2"
+    }
+  ],
+  "image_dependency_presence": {
+    "exit_code": 0,
+    "packages": [
+      "ajv@8.17.1",
+      "fast-uri@3.1.2",
+      "source-map-js@1.2.1",
+      "uuid@8.3.2"
+    ],
+    "scope": "Read-only listing of installed package directories; not proof of runtime reachability or exploitability."
+  },
+  "runtime_readonly": {
+    "container": {
+      "exit_code": 0,
+      "result": "healthy 0af95208b3b87150290bce7683ef0bd11b0670e7 sha256:5a354d9c0e67ab7a5f70fcf793b703d30ea3865dc81f0a43e7c64196a569d98f"
+    },
+    "readiness": {
+      "exit_code": 0,
+      "result": "{\"ok\":true}"
+    },
+    "image_user": {
+      "exit_code": 0,
+      "result": "node"
+    }
+  },
+  "executed_fixture_command": "node .codex-context/runs/predeploy-review-20261014/operations/pg-failure-fixture.mjs",
+  "fixture_log": "pg-failure-fixture.log"
+}

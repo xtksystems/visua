@@ -238,3 +238,17 @@ Source `0af9520` is pushed and deployed locally. The
 [delivery record](runs/pilot-readiness-20261013/delivery.json) confirms 209 source
 hashes, a fresh verified backup, identical database tables, and the image's
 working preflight command. Actual hosted inputs and acceptance remain open.
+
+The October 14 predeployment review supersedes any implication that completed
+local feature work establishes live readiness. The
+[review report](../docs/reviews/predeployment-review-2026-10-14.md) records eleven
+open findings, a twice-failing mobile-history browser check, and an incomplete
+independent security assessment. Five other application review lenses and the
+independent deployment-plan review completed. A fresh portable PostgreSQL/S3/OIDC
+rehearsal and restore passed, but live deployment remains held. The
+[Google Cloud deployment plan](../docs/live-deployment-plan.md) includes project
+and billing setup, Workspace identity, Cloudflare DNS, staging, and recovery.
+Domain names will be supplied later; region, budget, workload, and operators are
+pending. See the [review task](tasks/predeploy-review-20261014.md) and
+[verification](runs/predeploy-review-20261014/verification.json). Product source
+and the running local service were not changed during this review.

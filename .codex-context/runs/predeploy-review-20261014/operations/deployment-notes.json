@@ -1,0 +1,53 @@
+{
+  "subject": "cb438d1083e9ae3e2a38dd8e5d7dba4c778b2e89",
+  "confirmed_configuration_constraints": [
+    {
+      "location": "apps/server/src/startup.ts:6",
+      "detail": "Listener reads VISUA_PORT (default 8787), not generic PORT. Configure the platform container port to 8787 or supply VISUA_PORT explicitly. OIDC binds 0.0.0.0 by default."
+    },
+    {
+      "location": "apps/server/src/server.ts:97; apps/server/src/services/visua.ts:1691",
+      "detail": "Run scheduling, lease heartbeats, score-history capture and SSO domain rechecks are process timers. Select a hosting configuration that provides CPU and at least one running process independently of incoming requests; prove behavior across restarts and multiple instances."
+    },
+    {
+      "location": "apps/server/src/storage/postgres.ts:48; apps/server/src/storage/events.ts:133",
+      "detail": "Each process may use 10 pooled database connections plus one persistent LISTEN connection. Pool max has no environment setting in openStore. Bound application scaling/concurrency against the selected database connection budget; verify the chosen connection path supports LISTEN/NOTIFY."
+    },
+    {
+      "location": "apps/server/src/request-controls.ts:181; apps/server/src/request-controls.ts:248",
+      "detail": "Peer identity is the direct adapter socket, and forwarded headers are intentionally ignored. Behind a proxy, users may share the same peer bucket (1200/minute default; auth 120/minute). Configure trusted-edge admission and measure shared-proxy behavior before deciding application rates; do not blindly trust forwarded headers."
+    },
+    {
+      "location": "apps/server/src/auth/config.ts:67; apps/server/src/auth/http.ts:63",
+      "detail": "Canonical HTTPS VISUA_PUBLIC_URL controls secure __Host cookies, HSTS and the OIDC callback. Actual Google Workspace IdP registration, verified-email behavior, owner bootstrap and Cloudflare TLS/DNS remain deployment checks, not established by source review."
+    },
+    {
+      "location": "apps/server/src/blobs/s3.ts:35",
+      "detail": "The S3 adapter accepts an operator endpoint, standard AWS credential chain, path-style option and explicit ChecksumSHA256 PUT followed by verified GET. Verify the exact sequence, private policy and chosen credential method with the candidate R2 account; no R2 compatibility or access has been established here."
+    },
+    {
+      "location": "apps/server/src/readiness.ts:7; docs/operations.md:103",
+      "detail": "Readiness bounds a shared SELECT 1 probe to 1 second and returns false while stopping. It does not check blob, IdP, web artifact or scheduler health. Collect structured diagnostics plus synthetic upload/download and sign-in monitoring."
+    },
+    {
+      "location": "docs/operations.md:120; docs/operations.md:190",
+      "detail": "Use stopped-writer coordinated database/object backups and new restore targets; code rollback alone cannot undo startup migrations. Secret custody, provider configuration, retention and measured RPO/RTO require operator records and a real restore drill."
+    },
+    {
+      "location": "Dockerfile:1; Dockerfile:24",
+      "detail": "Frozen pnpm lockfile and non-root runtime are positives. Base image remains a floating node:22-bookworm-slim tag, and the complete build /app tree including development dependencies is copied into runtime. Record immutable image digest/SBOM and scan both OS and all shipped packages; consider pruning build/test-only dependencies."
+    }
+  ],
+  "supply_chain_counterevidence": "Lead production-dependency audit reports zero advisories. Full lockfile audit reports 8 high and 3 moderate advisories in development dependency chains; prior runtime package listing confirms ajv, fast-uri, source-map-js and uuid are present. Repository imports of ajv occur in export tests, and exceljs occurs in ingest tooling. No network-reachable affected call path was established, so these are not reported as exploitable application vulnerabilities.",
+  "runtime_binding": "Read-only runtime evidence names deployed revision 0af95208b3b87150290bce7683ef0bd11b0670e7, which differs from reviewed HEAD cb438d1083e9ae3e2a38dd8e5d7dba4c778b2e89. Health at the older deployed revision does not validate a release built from reviewed HEAD.",
+  "remaining_operator_decisions": [
+    "Cloud compute account/project and region",
+    "Actual public HTTPS origin and DNS/TLS route",
+    "Budget and application resource/concurrency/scaling ceilings",
+    "Database transport, role ownership and backup policy",
+    "Private object-store access and versioned/coordinated recovery strategy",
+    "Secret and IdP recovery custody",
+    "Accountable operators, alert response, retention periods and pilot roles"
+  ],
+  "restrictions_observed": "No product edits, build, full suite, service mutation, live tenant access, credential access or external model calls. Only assigned artifacts and disposable loopback mock processes were created."
+}

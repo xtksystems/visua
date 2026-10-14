@@ -1,0 +1,31 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "Reviewed evidence, audit, storage, snapshot export, verifier and local recovery integrity at cb438d1083e9ae3e2a38dd8e5d7dba4c778b2e89. One medium issue is runtime-confirmed: cached inspector scores remain verified after intra-hour evidence expiry. No high-severity integrity blocker was identified within the inspected scope. Isolated checks passed for atomic rollback, approval invalidation, tenant blob isolation, pinned bundle verification, and exact binary/review/audit restore.",
+  "coverage": [
+    "Inspected effective CLAUDE.md/AGENTS.md, declared startup project context and workflow, review contract, output schema, and pinned HEAD; tracked source remained unchanged.",
+    "Inspected storage/store.ts, driver.ts, sqlite.ts, postgres.ts, repo.ts, migrations.ts, index.ts, access.ts and events.ts: transaction context, nested savepoints, row/advisory locks, evidence body separation, audit sequencing, revision updates, migrations and post-commit events. Surveyed identity.ts repository entry points; identity/auth business logic is outside this integrity lens.",
+    "Traced VisuaService.mutate/log, evidence creation/update/review/file I/O, replacement validation, provenance and review scope binding; inspected services/evidence.ts, audit.ts, packages/core/src/evidence.ts, status.ts, scoring.ts and service scope/state reapplication and score-history capture.",
+    "Inspected complete export-snapshot.ts, auditor-bundle.ts and bundle-verifier.mjs: locked detached capture, dependency closure, byte/count bounds, blob reads after commit, artifact/entity digests, complete audit checkpoint, external pins and offline filesystem checks.",
+    "Inspected complete operations/local-backup.ts, blobs/shared.ts, local.ts, s3.ts, memory.ts, index.ts and docs/operations.md recovery guidance: tenant/workspace paths, checked references, immutable binary metadata, digest verification, sidecar refusal, quiesced backup assertion, new-path restore and operator trust assumptions.",
+    "Inspected relevant test source in evidence-binding.test.ts, evidence-lifecycle.test.ts, evidence-files.test.ts, blob-store.test.ts, export-snapshot.test.ts, auditor-bundle.test.ts, local-backup.test.ts and packages/core/test/core.test.ts. Reading test definitions is not claimed as executing those suites.",
+    "Executed node .codex-context/runs/predeploy-review-20261014/integrity/integrity-fixture.mjs against isolated in-memory SQLite: confirmed inspector expiry inconsistency, evidence/revision/audit rollback together, changed artifact forces renewed review and stale review is rejected. Actual output: integrity-fixture.log.",
+    "Executed node .codex-context/runs/predeploy-review-20261014/integrity/recovery-fixture.mjs using synthetic data and private local files only in this node directory: foreign-tenant blob read refused; binary mutation refused; exported bundle passes separately trusted verifier with retained manifest and checkpoint pins; incorrect manifest pin refused; quiesced backup restores exact binary, bound review, revision and audit. Actual output: recovery-fixture.log."
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "apps/server/src/services/visua.ts:933 (consumer: apps/server/src/services/views.ts:61)",
+      "mechanism": "When the inspector first computes a score before an accepted evidence item expires, subsequent inspector reads in the same UTC hour reuse that score as long as workspace revision is unchanged. Expiry changes no revision. The cached status and evidence coverage therefore remain verified/covered until the next hour, although the current evidence is invalid and the framework view has recomputed at-risk. This can mislead an approver inspecting a requirement for up to nearly one hour.",
+      "evidence": "Runtime reproduction at pinned HEAD: integrity-fixture.mjs creates an implemented, verified CSF requirement and bound accepted evidence expiring at 12:30, reads nodeDetail at 12:10, then reads again at 12:40 without any mutation. integrity-fixture.log records evidenceCurrentlyValid=false, inspectorStatus=verified, inspectorEvidenceCoverage=1, frameworkStatus=at-risk, frameworkValidEvidenceCount=0. Counterevidence: frameworkState (views.ts:148) and workspaceSummary deliberately recompute with current metadata; their corrected behavior does not cover nodeDetail. Evidence validity itself correctly rejects the expired item; the defect is the remaining hour cache consumer.",
+      "recommendation": "Compute nodeDetail score from the same fresh metadata and clock used for its returned evidence/state, as frameworkState already does; alternatively expire cached scores at the earliest evidence/review/task transition instead of only the hour boundary. Add a targeted regression that reads the inspector before and after a within-hour expiry without a revision change."
+    }
+  ],
+  "limitations": [
+    "This bounded review is not exhaustive proof of correctness. Full pnpm check and dependency audit are owned by the lead and were not run here.",
+    "PostgreSQL locking, transactions and migrations were reviewed in source only; no PostgreSQL instance or multi-process migration race was exercised by this node. S3 adapter was reviewed in source only; no external object service or credentials were accessed.",
+    "No live tenant, container, deployed service, production backup or actual recovery target was read or mutated. Recovery evidence uses only a small synthetic SQLite/local-blob fixture; it does not establish hosted recovery, capacity, key recovery, retention or power-loss durability.",
+    "Backup consistency depends on the documented operator assertion that all writers and parent-directory mutations are stopped. Included backup hashes are not authenticity; separately protected manifest/checkpoint retention and restore-time authentication configuration remain operator responsibilities.",
+    "Identity repository entry points were surveyed for storage context; authentication policy and authorization coverage belong to the separate security lens. No browser rendering was exercised here."
+  ]
+}
