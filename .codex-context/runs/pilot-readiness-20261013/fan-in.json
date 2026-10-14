@@ -27,7 +27,8 @@
     "evidence": [
       "source-verification.json: final944SQLite/953PostgreSQL and61 focused utility cases passed; no web change, browser not rerun.",
       "rehearsal-release-result.json: two-process OIDC/PG/S3 workflow,80reads,quiesced restore/entity digests/audit/encryptedSSO/offline bundle passed; local fixtures only.",
-      "pilot-review-result.json: both supported findings corrected and affected reproductions passed."
+      "pilot-review-result.json: both supported findings corrected and affected reproductions passed.",
+      "delivery.json: healthy local image,209matching runtime/tooling pins,identical database tables after fresh quiesced backup."
     ]
   },
   "complete": true

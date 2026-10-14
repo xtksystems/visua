@@ -76,15 +76,23 @@
     "evidence": [
       "source-verification.json: final944SQLite/953PostgreSQL and61 focused utility cases passed; no web change, browser not rerun.",
       "rehearsal-release-result.json: two-process OIDC/PG/S3 workflow,80reads,quiesced restore/entity digests/audit/encryptedSSO/offline bundle passed; local fixtures only.",
-      "pilot-review-result.json: both supported findings corrected and affected reproductions passed."
+      "pilot-review-result.json: both supported findings corrected and affected reproductions passed.",
+      "delivery.json: healthy local image,209matching runtime/tooling pins,identical database tables after fresh quiesced backup."
     ]
   },
-  "next": "Commit/push verified tooling, rebuild local Docker image, quiesced backup and source/data-preserving delivery.",
+  "next": "Await operator hosting/domain/IdP inputs, assign owners/retention, execute actual hosted drills and pilot-team acceptance from docs/pilot-acceptance.md.",
   "review_resolution": {
     "supported_findings": 2,
     "resolved": 2,
     "rechecks": "pilot-review-result.json; preflight-correction-result.json; resources-correction-result.json; corrections-test-final.log",
     "extra_lead_regression": "apps/server/test/pilot-rehearsal.test.ts executes the real modules with isolated Docker stubs for persistent and recoverable partial-startup cleanup failure."
   },
-  "updated_utc": "2026-10-14T01:48:47.054959+00:00"
+  "updated_utc": "2026-10-14T01:53:22.254064+00:00",
+  "status": "complete_portable_preparation",
+  "delivery": {
+    "status": "passed",
+    "commit": "0af95208b3b87150290bce7683ef0bd11b0670e7",
+    "pushed": true,
+    "result": "delivery.json"
+  }
 }

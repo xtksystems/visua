@@ -234,3 +234,7 @@ tests plus nine PostgreSQL-only skips and 953 PostgreSQL-lane tests. The local
 two-process rehearsal verifies four roles, 80 concurrent reads, real binary
 evidence, fresh database/object-prefix recovery, entity digests, audit, and
 encrypted SSO. It does not establish hosted capacity or provider recovery.
+Source `0af9520` is pushed and deployed locally. The
+[delivery record](runs/pilot-readiness-20261013/delivery.json) confirms 209 source
+hashes, a fresh verified backup, identical database tables, and the image's
+working preflight command. Actual hosted inputs and acceptance remain open.

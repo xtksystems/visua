@@ -1,6 +1,6 @@
 # Prepare portable hosted pilot validation
 
-Status: implemented and verified; commit/push and local image delivery pending.
+Status: complete for portable preparation; committed, pushed, and locally deployed.
 The user requested continued autonomous work after delivery of
 the phase 2 software. This package prepares and exercises the remaining portable
 operational checks. Actual hosted deployment still needs a target, public domain,
@@ -55,6 +55,13 @@ owned disposable containers and temporary credentials were removed.
 Independent review found two supported defects: partial startup cleanup reporting
 and bracketed issuer wildcard interpretation. Both are corrected and reproduced
 in regression checks. No supported finding remains open.
+
+Source `0af9520` is pushed and running in the local Docker service. All 209
+runtime/tooling source hashes match. A fresh quiesced backup verifies, its private
+host copy matches, and every database table is identical after deployment. The
+image's preflight command correctly rejects the local development environment
+as a hosted profile. See the
+[delivery record](../runs/pilot-readiness-20261013/delivery.json).
 
 Actual hosted target, public domain, IdP, owners, retention decisions, sustained
 capacity testing, and pilot-team acceptance remain outstanding. The
