@@ -2,13 +2,13 @@
 system: "codex-context"
 session_id: "20261014T030902Z-feat-light-workspace-design-678eb49f0063"
 created_utc: "2026-10-14T03:09:02+00:00"
-updated_utc: "2026-10-14T03:33:31.825228+00:00"
-task: "Predeployment review and Google Cloud deployment plan"
+updated_utc: "2026-10-14T04:02:22.894150+00:00"
+task: "Predeployment review and XTK Systems office deployment plan"
 status: "complete_with_gaps"
 repo_root: "/Users/artem/visua"
 worktree_id: "fbce6dbefa7b12a8"
 branch: "feat/light-workspace-design"
-head: "cb438d1083e9ae3e2a38dd8e5d7dba4c778b2e89"
+head: "e3149dd11f1fa67b4955b4eec3d998aa82be284e"
 ---
 
 # Session handoff
@@ -21,10 +21,14 @@ not a clean security or release signoff. Application source is unchanged.
   counterevidence. Five of six independent application review agents completed.
   Security worker stopped under a platform cybersecurity restriction without a
   report; it was not retried or redirected. Lead F01 is source-supported only.
-- [Plan](../../docs/live-deployment-plan.md): Google Cloud project/billing setup,
-  Cloud Run/Cloud SQL candidate, Workspace OIDC, Cloudflare DNS, candidate R2,
-  staging, recovery, release gates. A seventh agent reviewed the exact document
-  digest and found no supported technical errors; hosted validation remains open.
+- [Current plan](../../docs/live-deployment-plan.md): XTK Systems office hosting
+  for three users supersedes Google Cloud compute/storage. Proposed dedicated
+  Linux VM on Hyper-V, PostgreSQL/local evidence, independent backups, Workspace
+  identity, and Cloudflare DNS. Inventory, access, UPS, and backup answers pending.
+  [Office task](../tasks/office-deployment-plan-20261014.md) and
+  [review run](../runs/office-plan-20261014/plan.json) record a fresh bounded
+  feasibility review: pass, no supported findings. This does not replace the
+  missing application-security review or establish actual office readiness.
 - [Task](../tasks/predeploy-review-20261014.md),
   [run](../runs/predeploy-review-20261014/plan.json), and
   [verification](../runs/predeploy-review-20261014/verification.json) preserve
@@ -48,11 +52,18 @@ without established application exploitability. Actual release OS scan is open.
 
 ## Constraints and next action
 
-The user chose new Google Workspace identity and Cloudflare DNS and requested
-Google Cloud setup. Domain names will be supplied later. Region/residency,
-workload, budget, owners, and recovery objectives remain open. No live provider
-resources, existing assessment data, or service configuration were changed.
-The local service remains on `0af9520`; its product source matches reviewed HEAD.
+The latest user instruction selects XTK Systems office infrastructure: six Dell
+7920 servers, two Windows Server Hyper-V hosts each with three Windows 11 VDIs,
+and two Windows 11 workstations. Whether the hosts overlap the six Dells is
+unknown. Three users confirmed. Questions about host versions/free resources,
+access path, backups and UPS are pending; names will be supplied later. Prior
+Workspace/Cloudflare identity and domain choices are retained assumptions.
+
+This planning update changed only documentation and review artifacts. All 380
+original source digests still match; product tests were not rerun. Office
+preflight, production packaging, and PostgreSQL/local-file recovery still need
+implementation and validation. The local service and all office infrastructure
+were untouched. The prior cloud plan remains accessible at commit e3149dd.
 
 Next implementation: prioritize F01 admission, F02/F03 database failures, and
 T01; then F04–F11, full verification, and missing independent security coverage.

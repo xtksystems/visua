@@ -246,9 +246,22 @@ open findings, a twice-failing mobile-history browser check, and an incomplete
 independent security assessment. Five other application review lenses and the
 independent deployment-plan review completed. A fresh portable PostgreSQL/S3/OIDC
 rehearsal and restore passed, but live deployment remains held. The
-[Google Cloud deployment plan](../docs/live-deployment-plan.md) includes project
-and billing setup, Workspace identity, Cloudflare DNS, staging, and recovery.
-Domain names will be supplied later; region, budget, workload, and operators are
-pending. See the [review task](tasks/predeploy-review-20261014.md) and
+[original Google Cloud proposal](https://github.com/xtksystems/visua/blob/e3149dd11f1fa67b4955b4eec3d998aa82be284e/docs/live-deployment-plan.md)
+covered cloud hosting, Workspace identity, Cloudflare DNS, staging, and recovery.
+See the [review task](tasks/predeploy-review-20261014.md) and
 [verification](runs/predeploy-review-20261014/verification.json). Product source
 and the running local service were not changed during this review.
+
+The user subsequently selected **XTK Systems office hosting for three users**:
+six Dell 7920 local servers, two Windows Server Hyper-V hosts with three Windows
+11 VDIs each (six VMs), and two Windows 11 workstations. It is unknown whether
+the Windows hosts are among the six Dells. Host versions, spare resources,
+LAN/VPN versus remote access, UPS, backups, and recovery objectives remain open.
+Google Workspace identity and the Cloudflare domain remain planning assumptions;
+domain names will be supplied later. The [current plan](../docs/live-deployment-plan.md)
+proposes a dedicated Linux VM, one Visua instance, PostgreSQL, local evidence,
+and independent backups. Google cloud-hosted compute/storage are superseded;
+an OAuth registration project remains relevant. Office preflight and PostgreSQL
+plus local-file recovery need preparation and validation. See the
+[office planning task](tasks/office-deployment-plan-20261014.md). No live office
+infrastructure or product code was changed by this planning update.

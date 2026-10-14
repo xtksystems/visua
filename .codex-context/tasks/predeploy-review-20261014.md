@@ -24,7 +24,7 @@ independent application reviews returned; the security worker stopped under a
 platform cybersecurity safety restriction without a report. It was not retried
 or redirected. Lead source inspection is not a substitute security signoff.
 A seventh agent independently reviewed the
-[deployment plan](../../docs/live-deployment-plan.md) and found no supported
+[original Google Cloud plan](https://github.com/xtksystems/visua/blob/e3149dd11f1fa67b4955b4eec3d998aa82be284e/docs/live-deployment-plan.md) and found no supported
 technical errors within its bounded scope.
 
 Fresh `pnpm check`: typecheck, licensing, corpus/design, 944 SQLite tests and 953
@@ -49,3 +49,8 @@ open; no cloud resources were created.
    missing independent security assessment; do not label this review a pass.
 3. Supply deployment inputs, price the infrastructure, and prepare staging.
    Execute real-provider, recovery, and pilot gates before admitting evidence.
+
+Subsequent steering selects XTK Systems office hosting for three users. The
+[office planning task](office-deployment-plan-20261014.md) and
+[current deployment plan](../../docs/live-deployment-plan.md) own that revision;
+the review findings and original worker artifacts above remain historical evidence.

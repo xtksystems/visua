@@ -7,6 +7,11 @@ the real-provider gates in the [deployment plan](../live-deployment-plan.md)
 before admitting live evidence. This report describes source and isolated local
 checks, not an assessment of your Google Workspace or Cloudflare accounts.
 
+The deployment target subsequently changed to XTK Systems' office infrastructure
+for three users. The [current plan](../live-deployment-plan.md) supersedes the
+Google Cloud hosting proposal reviewed in this report. Application findings and
+the incomplete independent security assessment remain open.
+
 ## Scope and independence
 
 The reviewed revision is `cb438d1083e9ae3e2a38dd8e5d7dba4c778b2e89` on

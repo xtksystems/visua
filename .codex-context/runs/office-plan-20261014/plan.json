@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "run_id": "office-plan-20261014",
+  "base_head": "e3149dd11f1fa67b4955b4eec3d998aa82be284e",
+  "branch": "feat/light-workspace-design",
+  "scope": {
+    "root": "/Users/artem/visua",
+    "files": {
+      "docs/live-deployment-plan.md": "1795013e045861e7b79c1560b30b8a12067ccf128367b7e462d5f12aa3b9a553",
+      "docs/operations.md": "5e08a851c822c152f8d9ff1579d4aff8521f674e636f69689f35fc31efd2fb29",
+      "docs/pilot-acceptance.md": "ea2f44ac2f8598a014e1746b3a2a55150028d07359a0862f108888d7f358e12e",
+      "compose.yaml": "db69a9995822fe82fb68ea748c9090b362719959fdc728590e448508e762a8d1",
+      "Dockerfile": "ac72e727e331af0cff014d4681c78aba382d84a0e8b6d47947df495ace6d9c9f",
+      "apps/server/src/operations/pilot-preflight.ts": "c61ffe0be962d1d0c897b5793ebe887ebb850eeb028afe60fc6cd6513d8ed3a8",
+      "apps/server/src/operations/local-backup.ts": "a05cdfdc7cf18833d51b941c4c8719860284d8fe5d739d2afba4a600e3f05f1e",
+      "apps/server/src/blobs/index.ts": "f21034309a3d42c75976c9bd5ca1baa526cfa42eff40b71c7cc5aa0ba924f1d5",
+      "apps/server/src/storage/index.ts": "2a804e9a6490508a8518d03be900937c71135dc235c7becb1295b2641d74ca82",
+      "apps/server/src/storage/postgres.ts": "dc3686f017fe4f979d4bc775f9ec33a5b0d2050da6fa77b54208cb5d47518628",
+      "apps/server/src/storage/sqlite.ts": "eb8a891df91057e305a612e3b748e886f882d939e0d12a0092abcf58d94fc85f"
+    }
+  },
+  "nodes": [
+    {
+      "id": "review",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "input": "review/brief.txt",
+      "input_sha256": "f5bbe601e6bd01d0ea220847f0c77c15cf3206167a95bbfcf4930eb96fa54fdd",
+      "result": "review/result.json",
+      "fresh_context": true,
+      "provider_reported": "unknown",
+      "model_reported": "unknown",
+      "worker": "/root/office_plan_review",
+      "started_at": "2026-10-14T03:59:37.778923+00:00",
+      "result_sha256": "3d4db1405eab5136cd0699775b5def1af2ae32adc0f8a5bbdd57182272d4c10d",
+      "ended_at": "2026-10-14T04:02:22.894150+00:00",
+      "acceptance": "Lead inspected full report, source compatibility and exact document digest. Accepted bounded feasibility review; deployment readiness and application security remain unverified.",
+      "format_correction": "Initial envelope evidence contained objects; worker converted these to strings without changing review.json or reviewed document. No repeated review."
+    }
+  ],
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "Exact revised document and ten source/support files match the independent review snapshot.",
+      "Source/adapters and explicit missing office preflight and PostgreSQL/local-file recovery work checked by lead and reviewer.",
+      "Local Markdown links and whitespace checked; 380 original reviewed source hashes remain unchanged.",
+      "Documentation-only integration. Earlier F01-F11/T01 and missing security coverage remain open; no tests or actual deployment performed in this update."
+    ]
+  },
+  "next": "Await host placement/resources, access path and backup/UPS answers; execute application remediation and office preparation before staging. Domain names will be provided later.",
+  "operator_inputs": {
+    "company": "XTK Systems",
+    "users": 3,
+    "dell_7920_servers": 6,
+    "windows_server_hyperv_hosts": 2,
+    "windows_11_vdis_per_host": 3,
+    "windows_11_vdis_total": 6,
+    "windows_11_workstations": 2,
+    "host_count_overlap": "Unknown",
+    "host_versions_capacity": "Pending answer",
+    "access_path": "Pending answer; LAN/VPN proposed",
+    "backup_ups": "Pending answer",
+    "domain_names": "User will provide later",
+    "identity_domain": "Google Workspace and Cloudflare retained as planning assumptions"
+  }
+}

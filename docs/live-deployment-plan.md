@@ -1,218 +1,233 @@
-# Live deployment plan: Google Workspace and Cloudflare
+# Live deployment plan: XTK Systems office
 
-Prepare a restricted Visua pilot in your Google Cloud organization, using
-Google Workspace for sign-in and your Cloudflare-managed domain. This is a
-deployment plan, not an executed deployment. Resolve the
-[predeployment review](reviews/predeployment-review-2026-10-14.md) before
-admitting real evidence. No cloud resources, billing accounts, DNS records, or
-identity settings were changed during the review.
+Deploy a three-user Visua pilot on XTK Systems' office infrastructure. This
+replaces the earlier Google Cloud hosting proposal. Google Workspace sign-in
+and the Cloudflare-managed domain remain the working identity and DNS choices.
+No office host, VM, firewall, DNS record, or provider setting has been changed.
 
-## Decisions and open inputs
+The [predeployment review](reviews/predeployment-review-2026-10-14.md) still
+holds release. Its independent plan review covered the
+[earlier Google Cloud proposal](https://github.com/xtksystems/visua/blob/e3149dd11f1fa67b4955b4eec3d998aa82be284e/docs/live-deployment-plan.md),
+not this office topology. All sizing below is a proposal pending inventory and
+acceptance measurements, not a hardware inspection or capacity guarantee.
 
-You selected Google Workspace and Cloudflare and asked to include Google Cloud
-setup. You will provide domain names later. The remaining inputs determine the
-resource configuration and estimate; none of the placeholders is a real target.
+## Confirmed inventory and open inputs
 
-| Decision | State | Needed before |
+The following inventory comes from your description. Device counts do not
+establish available CPU, memory, disk capacity, or resilience.
+
+| Item | Reported state | Placement implication |
 | --- | --- | --- |
-| Google Cloud organization, project, and billing | Include new setup; identifiers pending | Provisioning |
-| Workspace email domain and bootstrap owner | Pending | OAuth registration and first sign-in |
-| Cloudflare zone and application hostname | You will supply later | DNS, certificate, and callback registration |
-| Region and data residency | Pending | Database, object storage, and backup selection |
-| Pilot users, concurrent activity, artifact volume | Pending | Sizing and capacity acceptance |
-| Monthly budget | Pending | Resource estimate and creation |
-| Internal-only users or external auditors | Internal-only pilot proposed; confirm participants | OAuth audience and invitations |
-| Retention, deletion rights, recovery objectives | Pending named operator decisions | Real evidence admission |
-| Service, identity, recovery, and incident owners | Unassigned | Operational acceptance |
+| Visua users | Three | One application instance is the proposed starting point. |
+| Dell 7920 machines | Six, used as local servers | Operating systems, workloads, and spare capacity pending. |
+| Windows Server hosts | Two, running Hyper-V | Whether these are included in the six Dells is pending. |
+| Windows 11 VDIs | Three on each Windows Server; six VMs total | Existing workloads must retain their resources. |
+| Windows 11 workstations | Two | Browser clients and administration endpoints. |
+| Identity and domain | Google Workspace and Cloudflare from the earlier brief | Exact Workspace domain, hostname, and owner supplied later. |
+| Network and recovery | Not yet described | Confirm LAN/VPN versus remote browser access, backup destination, UPS, and recovery objectives. |
 
-Use separate staging and production resources and secrets. Start with an empty
-installation; the existing local demo database stays local. Importing existing
-assessment data would require its own reviewed migration and reconciliation.
+Before allocating a VM, identify the Windows Server versions, supported guest
+OS, free RAM/SSD capacity during busy VDI use, storage health, and host maintenance
+windows. Record the selected host and a different machine or NAS for backups.
+Do not assume the Windows hosts are additional to the six Dell machines.
 
 ## Proposed architecture
 
-Use a Node container on Cloud Run, Cloud SQL for PostgreSQL, and a private
-S3-compatible evidence bucket. Cloudflare R2 is a candidate for that bucket;
-its compatibility and recovery gates below must pass before selecting it.
-This reuses the current application, SQL backend, and blob adapter.
+Run a dedicated Linux VM on an existing Hyper-V host with sufficient measured
+headroom. Use Docker Engine and Compose inside Linux for one Visua instance,
+PostgreSQL, and the selected HTTPS ingress. Keep evidence on a private persistent
+Linux filesystem. Use an independent backup destination and an isolated staging
+VM or separately isolated staging stack before production admission.
 
 ```mermaid
 flowchart LR
-    U[Pilot browser] --> D[Cloudflare DNS]
-    D --> L[Google HTTPS load balancer]
-    L --> A[Visua on Cloud Run]
-    U <--> I[Google Workspace OIDC]
-    A <--> I
-    A --> P[Cloud SQL PostgreSQL]
-    A --> B[Private evidence bucket]
-    S[Secret Manager] --> A
-    A --> M[Logs and operational alerts]
-    P --> R[Coordinated recovery set]
-    B --> R
+    U[Three users: VDIs and workstations] --> E[Chosen HTTPS access path]
+    E --> A[Visua container]
+    U <--> G[Google Workspace sign-in]
+    A <--> G
+    subgraph V[Dedicated Linux VM on Hyper-V]
+        A --> P[PostgreSQL container]
+        A --> F[Private evidence files]
+    end
+    P --> B[Coordinated backup set]
+    F --> B
+    B --> R[Separate backup host or NAS]
+    R --> O[Protected offsite or offline copy]
 ```
 
-The diagram shows DNS resolution as part of the access path; DNS does not proxy
-application requests. Use a Google external Application Load Balancer with a
-serverless backend and a certificate for the chosen hostname. Google recommends
-this custom-domain path; direct Cloud Run domain mapping remains Preview.
-Point only the application DNS records at the load balancer. Preserve Workspace
-MX, SPF, DKIM, DMARC, and verification records.
-[Google custom-domain options](https://docs.cloud.google.com/run/docs/mapping-custom-domains).
+Use Ubuntu Server 24.04 LTS as the initial guest candidate, subject to the actual
+host version and patch policy. Microsoft's support matrix includes this guest
+on Windows Server Hyper-V, and Docker documents its Ubuntu Engine installation.
+Use Linux containers inside this VM; leave the existing Windows 11 VDIs as
+clients. [Microsoft guest support](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/supported-ubuntu-virtual-machines-on-hyper-v)
+and [Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/).
 
-Start with Cloudflare DNS-only records so the first acceptance run has one HTTP
-proxy layer. If you subsequently enable Cloudflare proxying, use **Full (strict)**,
-retain a valid origin certificate, bypass cache for authenticated/API responses,
-and repeat uploads, OIDC callbacks, and event-stream reconnect tests. Choose and
-verify an origin access policy before relying on Cloudflare-only enforcement.
-[Cloudflare TLS mode](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/).
+Start the sizing discussion at **4 vCPU, 8 GiB RAM, an 80 GiB OS disk, and a
+separate 200 GiB data disk**. These are provisional allocations, not minimum
+requirements. Adjust to measured host headroom, evidence volume, database growth,
+and temporary export/backup space. Separate virtual disks on one host do not
+create an independent failure domain. No GPU is proposed for the server.
+Test rendering and interaction on the actual Windows 11 VDI sessions.
 
-### Runtime and database constraints
+Use one active application VM initially. A second host can be a tested manual
+recovery destination if capacity permits; it is not automatic failover. Multiple
+application replicas with host-local evidence would not share artifact bytes.
+Adding replicas requires a separately designed shared-storage and recovery path.
 
-Cloud Run must supply CPU between requests because Visua uses timers for runs,
-leases, score observations, and domain rechecks. Plan instance-based billing
-with at least one minimum instance. Minimum instances do not guarantee that a
-particular process survives; exercise restart and lease recovery. This has a
-standing cost that belongs in the estimate.
-[Cloud Run CPU and billing](https://docs.cloud.google.com/run/docs/configuring/billing-settings).
+### Storage choice and preparation gaps
 
-Build an immutable `linux/amd64` image, retain its digest and source revision,
-and scan its actual packages and base OS. Configure container port **8787** and
-`VISUA_PORT=8787`, with `VISUA_HOST=0.0.0.0`; Visua does not consume Cloud Run's
-generic `PORT` setting. Container files are ephemeral, so SQL and evidence must
-use external storage. Test termination within Cloud Run's ten-second window;
-choose an application shutdown deadline with margin after measuring the drain.
-[Cloud Run container contract](https://docs.cloud.google.com/run/docs/container-contract).
+PostgreSQL plus local evidence uses existing runtime adapters and avoids adding
+an object-storage service for this three-user installation. Pin and scan the
+selected PostgreSQL 17 image; the repository's local rehearsal exercises major
+version 17. Keep SQL on a private container network with no host-published port.
+Persist SQL and artifact volumes on operator-owned Linux filesystems with tested
+permissions and sufficient free space.
 
-Use a dedicated database and application role. The current startup performs
-migrations using that role, so a future split between migration and runtime
-roles needs an implemented migration entry point; it is not already supported.
-Initialize one instance before scaling out. Each application process can consume
-ten pooled connections plus one event-listener connection. Include rollout
-overlap, recovery tools, and administration in the database connection budget.
-The connection path must support persistent `LISTEN/NOTIFY` sessions.
+SQLite plus local files remains an alternative for a strictly single-instance
+installation, with an existing stopped-writer backup helper. PostgreSQL is the
+proposed baseline because it is the repository's designated production backend.
+This is an operational choice, not a claim that three users require PostgreSQL.
+F02/F03 database resilience repairs remain release prerequisites for this choice.
 
-Prove the Cloud SQL connection method with the exact image. Cloud SQL supports
-Cloud Run integrations through connectors, sockets, and private connectivity.
-Visua currently accepts a PostgreSQL connection string; it does not embed the
-Google connector library. Select an authenticated proxy/socket or verified TLS
-path that the driver and preflight both support. Do not disable certificate
-verification to make a connection work.
-[Cloud SQL connection guidance](https://docs.cloud.google.com/sql/docs/postgres/connect-run).
+Two preparation gaps must be closed before staging acceptance:
 
-Keep Cloud Run ingress restricted to the chosen load-balancer path. Application
-OIDC handles user sign-in; verify the platform invoker configuration with that
-browser flow. Test the default service URL cannot bypass the intended ingress.
-Do not assume end-user IP rate limits work through the proxy: current application
-limits use the direct peer and may combine users behind it. Validate edge and
-application admission together before increasing instance counts.
+- `pnpm pilot:preflight` currently requires **PostgreSQL and S3**. Add and test an
+  explicit office profile for PostgreSQL/local files, preserving production
+  authentication checks. The current command must not be described as passing
+  this topology or have failures silently ignored.
+- `scripts/backup-local.ts` supports **SQLite/local files only**. Prepare and
+  rehearse the PostgreSQL-plus-files procedure below. The existing PostgreSQL/S3
+  rehearsal does not establish recovery for this exact storage arrangement.
 
-### Google Workspace identity
+The repository's [compose.yaml](../compose.yaml) is a development demonstration
+with developer sign-in. Prepare a separate production definition, secrets, mounts,
+and network rules. Do not start the demo configuration as the office service.
 
-Create the Cloud project under the Workspace-associated organization. Configure
-an OAuth web client and **Internal** audience for the proposed employee-only
-pilot. Register the exact callback
-`https://<VISUA_HOSTNAME>/api/auth/oidc/callback`, and request only
-`openid email profile`. Use Google's issuer `https://accounts.google.com` and
-retain the client secret in Secret Manager. Add explicit Visua members and roles;
-keep organization JIT provisioning disabled until review finding F01 is fixed.
-[Google OAuth audience setup](https://developers.google.com/workspace/guides/configure-oauth-consent)
-and [Internal audience requirements](https://support.google.com/cloud/answer/15549945).
+## Access and identity
 
-Verify owner bootstrap, a permitted member, a nonmember, and an outside account
-with the actual provider. Visua uses issuer/subject identity and verified email;
-it currently has no Google-specific `hd` claim policy. Google's `hd` request
-hint is not an authorization boundary. If access is to depend on Workspace
-membership beyond the Internal-client restriction, implement and test the
-verified `hd` claim requirement before claiming that restriction. External
-auditors need a deliberate audience/access design.
-[Google OIDC claims](https://developers.google.com/identity/openid-connect/reference).
+The access choice remains open. The baseline recommendation is the office LAN
+and an existing or separately configured VPN. Remote browser access through
+Cloudflare is an alternative if that better fits how the three users work.
 
-### Evidence storage and recovery
+| Access path | Configuration and acceptance |
+| --- | --- |
+| Office LAN/VPN | Resolve the owned hostname to the private HTTPS ingress using internal DNS. Provision a browser-trusted certificate and renewal, with DNS validation where appropriate. Permit only the intended LAN/VPN and management routes. Verify the registered Google callback from those clients. |
+| Remote browser through Cloudflare | Create a self-hosted Access application allowing the three named identities, then publish the hostname through an outbound Tunnel. Configure Access token validation at the connector, keep direct origin access closed, and test both Access and Visua sessions. |
 
-For R2, create private buckets with separate application and recovery access.
-Use bucket-scoped S3 credentials, the account's HTTPS S3 endpoint, and region
-`auto`; store credential values in Secret Manager. Leave public bucket access
-disabled. Test Visua's exact SHA-256 upload, subsequent verified read, review,
-download, and cleanup behavior with the installed AWS SDK before selection.
-The local MinIO rehearsal establishes no R2-specific result.
-[R2 S3 setup](https://developers.cloudflare.com/r2/get-started/s3/).
+Tunnel does not require a publicly routable origin IP. Cloudflare recommends
+creating the Access application before publishing the tunnel route and supports
+connector-side token validation. This option still depends on office Internet
+and power. Application requests and evidence transfers traverse Cloudflare;
+on-premises storage does not mean all processing stays inside the office.
+[Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/)
+and [self-hosted Access applications](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/self-hosted-public-app/).
 
-Do not assume S3 bucket versioning exists on R2: its compatibility table lists
-`PutBucketVersioning` as unsupported. Visua stores its own artifact identifiers
-but does not manage provider version retention. Pair a stopped-writer SQL
-snapshot with separately retained artifact copies and a manifest under distinct
-recovery credentials, or select another proven recovery design. Test missing
-and corrupt objects and restored reviews against independently retained pins.
-Confirm residency and retention suitability before choosing the bucket.
-[R2 compatibility](https://developers.cloudflare.com/r2/api/s3/api/).
+For either route, expose only the selected HTTPS ingress. Keep application port
+8787 restricted to the proxy/connector and SQL private. Test SSE delivery and
+reconnect, upload limits, large auditor downloads, and certificate renewal.
+Cloudflare Access is an additional admission layer; Visua still needs its own
+OIDC sessions and roles. Do not infer a Visua role from an unverified proxy header.
+Preserve Workspace MX, SPF, DKIM, DMARC, and verification records during DNS work.
+
+Retain a Google Cloud project for OAuth registration, under the Workspace
+organization. Cloud Run, Cloud SQL, R2, and a Google load balancer are no longer
+selected resources. The earlier cloud-hosting billing work is superseded;
+identity registration and any separately chosen paid services are distinct work.
+Configure an Internal OAuth web client for the proposed employee-only pilot,
+scopes `openid email profile`, and callback
+`https://<VISUA_HOSTNAME>/api/auth/oidc/callback`. Keep the client secret in an
+operator-controlled secret store. [Google OAuth setup](https://developers.google.com/workspace/guides/configure-oauth-consent).
+
+Bootstrap the named owner, add the other two named members, and assign roles
+according to their work. Keep organization JIT disabled until F01 is repaired
+and independently checked. Test a permitted member, a nonmember, an outside
+account, member removal, and restore of encrypted SSO settings. The application
+has no Google-specific `hd` claim policy; do not claim domain restriction from
+an email suffix or login hint alone. External auditors need a separate audience
+and membership decision. New sign-ins depend on Internet access to Google.
+
+## Production configuration to prepare
+
+Record exact nonsecret settings and secret references for staging and production.
+Keep secrets outside Git, out of process logs, and recoverable independently.
+The application consumes environment values; a container secret file alone does
+not inject them without an explicit, reviewed startup mechanism.
+
+| Setting | Office profile |
+| --- | --- |
+| `NODE_ENV`, `VISUA_AUTH_MODE`, `VISUA_SEED` | `production`, `oidc`, `0` |
+| `VISUA_PUBLIC_URL` | Exact HTTPS hostname, pending |
+| `VISUA_HOST`, `VISUA_PORT` | `0.0.0.0`, `8787` inside the private container network |
+| `VISUA_SECRET` | Generated nondefault secret, retained for SSO recovery |
+| `VISUA_OIDC_ISSUER` | `https://accounts.google.com` |
+| `VISUA_OIDC_CLIENT_ID`, `VISUA_OIDC_CLIENT_SECRET` | Registered client and protected secret |
+| `VISUA_BOOTSTRAP_OWNER_EMAIL` | Named Workspace owner, pending |
+| `VISUA_DATABASE_URL` | PostgreSQL URL on the private container network; protected credentials |
+| `VISUA_BLOB_STORE`, `VISUA_BLOB_DIR` | `local`, `/app/data/blobs`, backed by a persistent volume |
+| `VISUA_AGENT_MODE` | `offline` for infrastructure acceptance; external models require a separate data/credential decision |
+| `VISUA_REPO_SCAN_ROOTS` | `[]` until specific trusted repository mounts are selected |
+| OIDC HTTP/email-trust overrides | Disabled; retain domain verification and rechecks |
+
+Use an immutable application image with source revision and digest, persistent
+volumes, restart policy, readiness checks, and a stop grace period exceeding the
+configured application drain deadline. Preserve the non-root container user and
+test volume ownership before starting. Record CPU/RAM use, disk space, container
+restarts, database errors, backup freshness, and certificate/tunnel status from
+outside the application VM where possible. Test delivery of an operational alert.
+
+The infrastructure inventory does not authorize automated scans of those servers.
+Current web-posture connectors target public endpoints; Hyper-V/Windows inventory
+collection would be separate integration work.
+
+## Backup and recovery
+
+Choose a named operator, backup destination, retention schedule, and recovery
+objectives before real evidence admission. An initial proposal is a nightly
+backup plus one before every upgrade. That schedule can lose up to a day's work;
+set the schedule from the acceptable data-loss window and measure recovery time.
+UPS protection, host backup, RAID, and VM checkpoints complement this procedure;
+none replaces a verified database-and-artifact recovery set.
+
+Prepare this procedure as an executable, tested runbook before production:
+
+1. Stop every Visua writer and keep them stopped through SQL and artifact capture.
+   Keep PostgreSQL running for a compatible `pg_dump` custom-format archive.
+2. Copy the complete private artifact tree while it is unchanged. Record file
+   identifiers, sizes, hashes, source revision, database archive hash, and audit
+   checkpoint in a recovery manifest. Validate referenced artifacts against SQL.
+3. Preserve database roles/configuration and the corresponding `VISUA_SECRET`,
+   OAuth registration, and deployment secrets through protected recovery custody.
+4. Verify the complete set, copy it to independent backup storage, and retain a
+   separate manifest digest. Keep a protected offsite or offline copy for office
+   loss. Resume service and verify readiness and an exact evidence download.
+5. Restore to a **fresh database and fresh artifact volume** on an isolated VM.
+   Use compatible `pg_restore` with errors treated as failures; never clean or
+   overwrite the live database as a drill. Point the test app at restored paths.
+6. Check exact artifact downloads, reviews, tasks, audit continuity, access
+   records, roles, restored SSO, and externally pinned auditor bundles. Record
+   elapsed time, backup age, and every discrepancy.
+
+The [operations guide](operations.md#postgresql-and-object-storage) supplies the
+SQL dump/restore constraints; adapting capture to local files and proving the
+combined restore is new preparation work. An image rollback alone cannot undo
+startup migrations. On upgrade failure, stop and preserve the new state, restore
+new destinations, run the compatible prior image, and reconcile later writes.
 
 ## Deployment sequence and gates
 
-Complete these stages in order. Each gate records revision, operator, time,
-expected result, actual result, and evidence. A failed or missing gate stays open.
-Assignments below name functions, not people who have already accepted ownership.
+Complete these stages in order; inventory and packaging design can proceed while
+application repairs are developed. Record actual evidence against each gate.
 
-| Stage | Work and exit evidence | Responsible function |
-| --- | --- | --- |
-| 1. Resolve review | Fix or explicitly disposition every finding. Prioritize F01 admission, F02/F03 database failure handling, and the failing browser check. Complete the interrupted independent security review. Recheck affected paths and the full suite. | Application maintainer and independent reviewer |
-| 2. Establish accounts | Verify Workspace organization, create staging/production Google projects, link billing, choose region, budget controls, and operator access. Record a priced bill of materials before creation of runtime services. | Cloud and identity owners |
-| 3. Define infrastructure | Prepare reviewable infrastructure definitions for registry, service identity, secrets, SQL, bucket, load balancer, certificates, DNS, logs, backups, and deletion protection. Keep secret values out of source and plans. | Cloud operator |
-| 4. Build release | Pin source/base/image identities; remove unnecessary tooling or document exceptions; retain SBOM and OS/package scans. Run the full check and failure fixtures in the target runtime. | Release owner |
-| 5. Prepare staging | Create isolated database/bucket, configure OAuth and HTTPS, load secrets, run preflight, start one empty instance, inspect migration and bootstrap. Verify no demo accounts/data exist. | Cloud and identity owners |
-| 6. Prove application | Exercise all four roles, cross-organization denial, assigned CSF/SOC 2 work, reject/replace/accept evidence, exact download, pinned auditor ZIP, and keyboard/mobile journeys. | Pilot reviewer |
-| 7. Prove operations | Test database disconnect/stall, process replacement, dropped SSE, membership removal, object failure, coordinated restore, and realistic concurrent read/write/upload/export/run load. Record recovery and alert delivery. | Recovery and service owners |
-| 8. Prepare production | Create production-specific identities/secrets/data resources. Apply the tested revision/configuration, repeat preflight and smoke, and validate routing/certificates. Keep general admission closed until evidence is reviewed. | Release owner |
-| 9. Admit pilot | Add named users, retain their acceptance record, watch backlog/errors/storage/costs, and record the first operating period before broadening access. | Accountable service owner |
-
-Stages 2–3 can be planned while fixes are developed. Live provisioning and
-cutover are separate execution work after this review and plan.
-
-### Required configuration
-
-Record secret references and exact nonsecret settings for each environment.
-Use the existing [preflight](operations.md#configuration-preflight), which checks
-syntax and leaves real provider checks open.
-
-| Setting | Planned value or constraint |
+| Stage | Work and exit evidence |
 | --- | --- |
-| `NODE_ENV`, `VISUA_AUTH_MODE`, `VISUA_SEED` | `production`, `oidc`, `0` |
-| `VISUA_PUBLIC_URL` | Exact HTTPS application origin, pending hostname |
-| `VISUA_SECRET` | Generated nondefault secret; preserve for encrypted SSO recovery |
-| `VISUA_OIDC_ISSUER` | `https://accounts.google.com` |
-| `VISUA_OIDC_CLIENT_ID`, `VISUA_OIDC_CLIENT_SECRET` | Environment-specific registered client and secret reference |
-| `VISUA_BOOTSTRAP_OWNER_EMAIL` | Named permitted Workspace owner, pending |
-| `VISUA_DATABASE_URL` | Selected Cloud SQL connection path and protected credentials |
-| `VISUA_BLOB_STORE` | `s3` |
-| `VISUA_BLOB_S3_BUCKET`, `VISUA_BLOB_S3_REGION` | Private selected bucket; `auto` if R2 is accepted |
-| `VISUA_BLOB_S3_ENDPOINT`, `VISUA_BLOB_S3_PREFIX` | Selected HTTPS endpoint and environment-owned prefix |
-| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | Bucket-scoped R2 credentials if R2 is selected |
-| `VISUA_AGENT_MODE` | `offline` for initial infrastructure acceptance; live models need an explicit data/credential decision |
-| `VISUA_REPO_SCAN_ROOTS` | `[]` until specific trusted repository mounts are approved |
-| OIDC HTTP/email trust overrides | Disabled; retain DNS verification and rechecks |
+| 1. Repair and review | Resolve or explicitly disposition F01–F11 and T01. Prioritize admission, PostgreSQL disconnect/stall handling, and the failed browser test. Complete missing independent security coverage. Run affected regressions and the full check. |
+| 2. Confirm placement | Identify host/version/headroom, Linux guest, network path, three users, backup destination, UPS, and operators. Confirm existing VDI workloads remain healthy. |
+| 3. Prepare office packaging | Produce a production Compose definition, office preflight profile, secret injection, persistent volumes, HTTPS configuration, backup/restore runbook, and alerts. Validate without live data. |
+| 4. Stage | Use isolated staging data and credentials; build/scan the release image, start an empty production-mode installation, and verify Google login plus denied access cases. |
+| 5. Prove operations | Exercise PostgreSQL disconnect/stall, VM restart, power-loss recovery planning, disk/storage failure, network loss, and the fresh-VM restore. Measure representative concurrent use by all three users and verify VDI browser usability. |
+| 6. Admit production | Create separate production data/secrets, register the final hostname, deploy the tested revision, repeat smoke and recovery checks, and add the named users. Keep local demo data separate. |
+| 7. Operate | Retain acceptance, monitor the first operating period, verify scheduled backups/alerts, and rehearse recovery before expanding scope. |
 
-Choose CPU, memory, concurrency, instance ceiling, SQL tier, backup storage, log
-retention, and alert thresholds after the region, budget, and workload are known.
-Include the always-running service, database, load balancer, network egress,
-evidence backups, logs, secrets, and any later model usage in the estimate. No
-monthly price or capacity promise has been established.
-
-## Recovery, cutover, and acceptance
-
-Before the first production write, assign backup/key custody and test restoration
-to a fresh SQL database and private artifact destination. Preserve SQL roles,
-provider configuration, and the original `VISUA_SECRET` alongside protected
-backup references. A database point-in-time recovery without corresponding
-artifact bytes is insufficient. Record measured recovery time and backup age.
-
-During an upgrade, stop all writers and retain a verified coordinated backup.
-If acceptance fails, stop the new revision and preserve its state. Restore to
-new destinations and run the compatible previous image; do not assume a traffic
-rollback reverses migrations. Check audit continuity, accepted artifact bytes,
-roles, and sign-in before returning traffic. Reconcile any writes after the
-backup explicitly; never silently discard them.
-
-The admission record must include the resolved review, exact image/configuration,
-real Google login results, private object access, provider recovery, capacity,
-alert ownership, retention decisions, and participant acceptance. Use the
-[pilot worksheet](pilot-acceptance.md) for the workflow measurements. Local tests
-and review completion alone do not authorize a claim of hosted readiness.
+The [pilot worksheet](pilot-acceptance.md) remains the acceptance record. Domain
+names will be supplied later. No live provisioning or network change is part of
+this planning update, and the previous release hold remains in effect.

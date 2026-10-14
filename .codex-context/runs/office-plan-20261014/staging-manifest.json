@@ -1,0 +1,17 @@
+{
+  "purpose": "Office deployment planning only. Excludes all unrelated untracked diagnostics and prior generated data.",
+  "files": {
+    "docs/live-deployment-plan.md": "1795013e045861e7b79c1560b30b8a12067ccf128367b7e462d5f12aa3b9a553",
+    "docs/reviews/predeployment-review-2026-10-14.md": "39a7f9aedbc46e04bf629b32aed9746e15b083898ffb0230ff3cc81e51bfcc86",
+    ".codex-context/project.md": "4c4f209c29b06dd2077c925f9d5953e2a1bf470e6160bf723fef257d6a15e2bd",
+    ".codex-context/tasks/predeploy-review-20261014.md": "7affca94613bd38340a90e0d70e452938fd384c39e4d924ef6236a82e6f0d08b",
+    ".codex-context/tasks/office-deployment-plan-20261014.md": "24801c9afeff5a19dda81460d1caebf96ada69de1857300da4da51b378cd66b3",
+    ".codex-context/sessions/20261014T030902Z-feat-light-workspace-design-678eb49f0063.md": "33a209b1e54cfd7a8a5eb187f6285a2f713226ed61ef2a81cbacfdfab73874cb",
+    ".codex-context/runs/office-plan-20261014/plan.json": "5f74802e9647160091b285756cbd17d9a0070e85e5d771991f0789440d5f9f14",
+    ".codex-context/runs/office-plan-20261014/review/brief.txt": "f5bbe601e6bd01d0ea220847f0c77c15cf3206167a95bbfcf4930eb96fa54fdd",
+    ".codex-context/runs/office-plan-20261014/review/review.json": "fe06b5287d7cfb63f2f85c9f42a4db0d4369621b1e88648383fcf1ef6c6cdd1a",
+    ".codex-context/runs/office-plan-20261014/review/result.json": "3d4db1405eab5136cd0699775b5def1af2ae32adc0f8a5bbdd57182272d4c10d",
+    ".codex-context/runs/office-plan-20261014/fan-in.json": "bf4ccb453708d04222b5eb4988a95a1044a7b3e4d9e7fbb0faf773447de0c942",
+    ".codex-context/runs/office-plan-20261014/verification.json": "67ac60108f9a9bec767b6c230ceb6e944e5004a080d0ae8d807bcc5dde7f0c48"
+  }
+}
