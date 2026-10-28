@@ -265,3 +265,20 @@ an OAuth registration project remains relevant. Office preflight and PostgreSQL
 plus local-file recovery need preparation and validation. See the
 [office planning task](tasks/office-deployment-plan-20261014.md). No live office
 infrastructure or product code was changed by this planning update.
+
+On October 28, 2026 the user selected SSH host `reactor` for deployment. It is
+an existing Ubuntu 24.04 x86_64 Docker host, so no Hyper-V VM was created. A
+private Visua installation now runs in `/opt/visua`, listening only on
+`127.0.0.1:8787`, with PostgreSQL 17 and local evidence volumes. App source is
+`5450fc7`; 265 checked runtime source/data hashes match. Production OIDC is
+enabled, developer login refused, demo disabled, and there are zero users or
+workspaces. OAuth credentials, owner email, and hostname remain pending.
+See the [reactor task](tasks/reactor-deployment-20261028.md),
+[runbook](../deploy/reactor/README.md), and
+[delivery record](runs/reactor-deploy-20261028/state.json). Fresh non-browser
+checks pass 944 SQLite/953 PostgreSQL cases. Initial private backup restore and
+separate synthetic PostgreSQL/local-file binary/review/audit recovery passed.
+Two deployment-script review findings were fixed and independently rechecked.
+Backups remain on reactor pending independent retention. Prior application
+findings, browser failure, security review gap, and real sign-in/user acceptance
+remain open. Existing server workloads and local Mac demo were preserved.

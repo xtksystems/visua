@@ -1,0 +1,78 @@
+{
+  "source": {
+    "checked": 265,
+    "mismatches": []
+  },
+  "containers": [
+    {
+      "name": "visua-reactor-app-1",
+      "id": "a915eb3e9db81626305ffcecaaa4edac8d2727702ba2da4758f08ff6769d4475",
+      "image": "sha256:a0a92dfcf4edc9150b3632b59be0722608bcdeeea8b9c749ed63e4e1be7263c9",
+      "health": "healthy",
+      "ports": {
+        "8787/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "8787"
+          }
+        ]
+      },
+      "user": "node",
+      "read_only": true,
+      "revision": "5450fc7271332ba09892350c3af28646c0d12dc0",
+      "restart": "unless-stopped",
+      "mounts": [
+        {
+          "name": "visua-reactor_evidence_data",
+          "destination": "/app/data",
+          "read_only": false
+        }
+      ]
+    },
+    {
+      "name": "visua-reactor-postgres-1",
+      "id": "3ffaf4406451113aa13a5d17b8708faefc0f920bfca34e1090fa56aed57e1374",
+      "image": "sha256:81edcaa5ff2923f7be9c1f43d3e5076f29c6c9c216c86964b5fd038959404429",
+      "health": "healthy",
+      "ports": {
+        "5432/tcp": null
+      },
+      "user": "",
+      "read_only": false,
+      "revision": null,
+      "restart": "unless-stopped",
+      "mounts": [
+        {
+          "name": null,
+          "destination": "/docker-entrypoint-initdb.d/10-visua.sql",
+          "read_only": true
+        },
+        {
+          "name": null,
+          "destination": "/run/secrets/postgres_admin_password",
+          "read_only": true
+        },
+        {
+          "name": "visua-reactor_postgres_data",
+          "destination": "/var/lib/postgresql/data",
+          "read_only": false
+        }
+      ]
+    }
+  ],
+  "application_database_role": {
+    "superuser": false,
+    "create_database": false,
+    "create_role": false
+  },
+  "existing_service_names_preserved": 5,
+  "host_files": {
+    "compose.yaml": "af7bcf79c05edef725f529268fab7350a4ba5687ecd9d7f96170867310448a6c",
+    "initialize.py": "ae07c2804140a5fcf3a1979f8439267c17aaf75fd9a493c72e9a1f54b9302c28",
+    "preflight.py": "059945aa0d0278060af2c6e30ceb44c0304aafd6beb250dae91e16d7be6a9494",
+    "backup.py": "9d46d184cd25da150ac61b8400677cc11fd42e7f70a144aaeeae8b0d8f13c018"
+  },
+  "source_archive_sha256": "32f60fbd3aebdc34b36434fcb99005f4d582abccc5a2a798fb5fb5fb4f100e2c",
+  "identity": "Not configured",
+  "admission": "Private staged install only"
+}

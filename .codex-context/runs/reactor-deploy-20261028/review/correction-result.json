@@ -1,0 +1,20 @@
+{
+  "run_id": "reactor-deploy-20261028",
+  "node_id": "correction-review",
+  "input_sha256": "5ea86a3d7361ab8b2aca507beb8afa12831557a07b6959dd7a2f7abdf4f3aa70",
+  "status": "complete",
+  "summary": "Both original deployment-script findings are resolved at the current input digests; the bounded correction review passes with no supported remaining findings.",
+  "evidence": [
+    "review/correction-review.json records the correction review, current input hashes and limitations.",
+    "Independent tempfile/mock execution confirmed lock contention throughout all six Docker command stages including final writer restart.",
+    "Independent tempfile execution confirmed a preexisting shared directory with mode 0755 is rejected before secret creation.",
+    "Inspected lead six-check verification harness/report; all current plan digests matched and original report/result hashes remained unchanged."
+  ],
+  "limitations": [
+    "This is a follow-up correction pass with inherited knowledge of the two original findings, not a fresh application-security assessment or a complete repeat of the original infrastructure review.",
+    "No SSH, Docker, live service, live credentials, real backup/archive, restoration, application-integrity or off-host retention validation was executed. Mock command results establish script coordination only.",
+    "Locking serializes cooperating backup.py invocations. Writer quiescence still assumes no external app/database/artifact writer and no operator removal/replacement of the lock file; abrupt process/host failure is not a completed restart or recovery drill.",
+    "Correct directory ownership/modes were evaluated locally and by source; actual target permissions were not independently inspected in this pass. No current exposed-credential claim is made.",
+    "Package/base-image advisories, prior application findings, provider login, bootstrap ownership, public HTTPS, capacity and live-user admission remain outside this correction scope."
+  ]
+}

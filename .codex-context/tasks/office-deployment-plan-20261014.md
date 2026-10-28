@@ -39,3 +39,9 @@ Confirm placement/access/backups, adapt the pilot worksheet for local storage,
 prepare production packaging and the office
 preflight/recovery procedure, then run staging and real-provider acceptance.
 The current plan does not authorize live changes or attest to office capacity.
+
+On October 28 the user selected SSH `reactor`. The
+[reactor deployment task](reactor-deployment-20261028.md) records the private
+installation on existing Ubuntu with implemented profile checks and backup.
+The Hyper-V VM proposal is superseded for initial placement. Identity, final
+access, independent retention, and earlier application release gates remain open.

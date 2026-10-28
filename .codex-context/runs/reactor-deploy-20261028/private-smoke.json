@@ -1,0 +1,64 @@
+{
+  "responses": [
+    {
+      "path": "/api/health",
+      "status": 200,
+      "data": {
+        "ok": true,
+        "frameworks": 10,
+        "corpusChunks": 7025
+      }
+    },
+    {
+      "path": "/api/ready",
+      "status": 200,
+      "data": {
+        "ok": true
+      }
+    },
+    {
+      "path": "/api/auth/config",
+      "status": 200,
+      "data": {
+        "mode": "oidc",
+        "platform": null,
+        "sso": true,
+        "personas": []
+      }
+    },
+    {
+      "path": "/api/workspaces",
+      "status": 401,
+      "data": {
+        "error": "Sign in to continue"
+      }
+    },
+    {
+      "path": "/api/auth/dev/login",
+      "status": 403
+    }
+  ],
+  "browser": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "title": "Visua — Compliance Observatory",
+      "text": "VISUA\nSign in\n\nThe spatial, AI-first compliance workspace. Your organization decides how you sign in and what you can do.\n\nWork email\nContinue with single sign-on",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "title": "Visua — Compliance Observatory",
+      "text": "VISUA\nSign in\n\nThe spatial, AI-first compliance workspace. Your organization decides how you sign in and what you can do.\n\nWork email\nContinue with single sign-on",
+      "overflow": false,
+      "errors": []
+    }
+  ],
+  "scope": "Unauthenticated target checks through temporary SSH forwarding. Real Google login remains unconfigured."
+}

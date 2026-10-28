@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "manifest_pin": true,
+  "archive_checksums": true,
+  "fresh_database_restore": true,
+  "tables_with_equal_row_counts": 24,
+  "fresh_artifact_volume_restore": true,
+  "scope": "Current empty staged install. Binary/review/audit restore is separately exercised by synthetic recovery fixture.",
+  "backup": "/opt/visua/backups/20261028T215344Z-a0e55885",
+  "cleanup_complete": true
+}

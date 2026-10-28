@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "checks": [
+    "Permissive existing credential directory refused before writing secrets",
+    "Initialization refuses credential replacement",
+    "Preflight separates private staging from identity readiness and rejects permissive directories",
+    "Overlapping backup refused before Docker calls",
+    "Backup captures required archives/config and waits for writer restart",
+    "Failed dump still restarts writer and does not report completion"
+  ],
+  "scope": "Tempfiles and mocked Docker only; remote recovery reported separately."
+}

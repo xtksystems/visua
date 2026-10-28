@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "run_id": "reactor-deploy-20261028",
+  "base_head": "5450fc7271332ba09892350c3af28646c0d12dc0",
+  "scope": {
+    "root": "/Users/artem/visua",
+    "files": {
+      "deploy/reactor/compose.yaml": "af7bcf79c05edef725f529268fab7350a4ba5687ecd9d7f96170867310448a6c",
+      "deploy/reactor/initialize.py": "ae07c2804140a5fcf3a1979f8439267c17aaf75fd9a493c72e9a1f54b9302c28",
+      "deploy/reactor/backup.py": "9d46d184cd25da150ac61b8400677cc11fd42e7f70a144aaeeae8b0d8f13c018",
+      "deploy/reactor/preflight.py": "059945aa0d0278060af2c6e30ceb44c0304aafd6beb250dae91e16d7be6a9494",
+      "Dockerfile": "ac72e727e331af0cff014d4681c78aba382d84a0e8b6d47947df495ace6d9c9f",
+      "apps/server/src/auth/config.ts": "209c74005e490d18393ecd71f51ac84914f8b345ebcfb7a5615f9eacf70da2f7",
+      "apps/server/src/context.ts": "175b33033c0b5e8d043daf3e88d829c5e9aa8f1b190d1f4dc59a3e318a0bf757",
+      "apps/server/src/blobs/index.ts": "f21034309a3d42c75976c9bd5ca1baa526cfa42eff40b71c7cc5aa0ba924f1d5"
+    }
+  },
+  "nodes": [
+    {
+      "id": "review",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "input": "review/brief.txt",
+      "input_sha256": "6d6e0a64addfa429dbb8929cc89cb801cdf10f45861fc005052112616fe4f519",
+      "result": "review/result.json",
+      "fresh_context": true,
+      "provider_reported": "unknown",
+      "model_reported": "unknown",
+      "worker": "/root/reactor_deploy_review",
+      "started_at": "2026-10-28T21:49:26.761589+00:00",
+      "result_sha256": "4b8955ca19f57273559e25978385f321fa9d8b83becd9500109d3e9edaa31e39",
+      "acceptance": "Lead accepted two infrastructure-script findings; fixes implemented and independently rechecked in correction node. Original evidence remains preserved."
+    },
+    {
+      "id": "correction-review",
+      "depends_on": [
+        "review"
+      ],
+      "status": "complete",
+      "accepted": true,
+      "input": "review/correction-brief.txt",
+      "input_sha256": "5ea86a3d7361ab8b2aca507beb8afa12831557a07b6959dd7a2f7abdf4f3aa70",
+      "result": "review/correction-result.json",
+      "fresh_context": false,
+      "provider_reported": "unknown",
+      "model_reported": "unknown",
+      "result_sha256": "d999cd78db3115c23096ec9954cb58f58792e7a24c2dd8fcfdd71d249771a9b4",
+      "worker": "/root/reactor_deploy_review",
+      "ended_at": "2026-10-28T21:56:44.286832+00:00",
+      "acceptance": "Lead inspected correction report, preserved original findings, and matched deployed helper hashes. Six packaging checks and fresh target recovery passed."
+    }
+  ],
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "Private deployment packaging integrated and installed; 265 runtime source hashes match source5450fc7.",
+      "check-no-e2e.json:944SQLite+953Postgres pass; browser suite skipped with prior failure retained.",
+      "private-smoke.json:desktop/mobile login, health/readiness, anonymous401/dev403 through SSH.",
+      "backup-verification.json:current stopped-writer backup restored to fresh database and volume;24 table row counts match.",
+      "recovery-result.json:64KiB synthetic binary, bound review, audit/revision and fixed-asOf bundle restored; scratch resources cleaned. Initial fixture failure preserved separately.",
+      "review/correction-review.json:both new deployment-script findings resolved. Google login/public HTTPS/off-host recovery and prior application release findings remain open."
+    ]
+  },
+  "next": "Private runtime installed. Await hostname, Workspace owner and OAuth credential path to configure sign-in; retain application release gates before live evidence admission.",
+  "original_review_scope": {
+    "root": "/Users/artem/visua",
+    "files": {
+      "Dockerfile": "ac72e727e331af0cff014d4681c78aba382d84a0e8b6d47947df495ace6d9c9f",
+      "apps/server/src/auth/config.ts": "209c74005e490d18393ecd71f51ac84914f8b345ebcfb7a5615f9eacf70da2f7",
+      "apps/server/src/blobs/index.ts": "f21034309a3d42c75976c9bd5ca1baa526cfa42eff40b71c7cc5aa0ba924f1d5",
+      "apps/server/src/context.ts": "175b33033c0b5e8d043daf3e88d829c5e9aa8f1b190d1f4dc59a3e318a0bf757",
+      "deploy/reactor/backup.py": "4f797099198c08c76b4a7641a7a5afe96e7d667f760581eefc00d0b5d1f7be57",
+      "deploy/reactor/compose.yaml": "af7bcf79c05edef725f529268fab7350a4ba5687ecd9d7f96170867310448a6c",
+      "deploy/reactor/initialize.py": "2763c6a6ebb315cdd1cb9078674e81d0e74bb147ad821240accf81ec260bbb62",
+      "deploy/reactor/preflight.py": "c3e2439696aa4c1c0b00f0fa5fa8b8bdbc1eb8d1d365ebd74d5d07057346637b"
+    }
+  },
+  "scope_refresh_reason": "Inspected correction diff: per-install backup flock, private owner/mode checks. Affected checks rerun; original review snapshot preserved."
+}

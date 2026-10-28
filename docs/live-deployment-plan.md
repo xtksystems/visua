@@ -3,7 +3,10 @@
 Deploy a three-user Visua pilot on XTK Systems' office infrastructure. This
 replaces the earlier Google Cloud hosting proposal. Google Workspace sign-in
 and the Cloudflare-managed domain remain the working identity and DNS choices.
-No office host, VM, firewall, DNS record, or provider setting has been changed.
+On October 28, 2026, you selected SSH host `reactor`. Visua is now installed
+privately there with PostgreSQL and local evidence. Its listener is
+`127.0.0.1:8787`; Google OAuth, the owner email, and the final HTTPS hostname
+remain pending. See the [reactor runbook](../deploy/reactor/README.md).
 
 The [predeployment review](reviews/predeployment-review-2026-10-14.md) still
 holds release. Its independent plan review covered the
@@ -33,11 +36,11 @@ Do not assume the Windows hosts are additional to the six Dell machines.
 
 ## Proposed architecture
 
-Run a dedicated Linux VM on an existing Hyper-V host with sufficient measured
-headroom. Use Docker Engine and Compose inside Linux for one Visua instance,
-PostgreSQL, and the selected HTTPS ingress. Keep evidence on a private persistent
-Linux filesystem. Use an independent backup destination and an isolated staging
-VM or separately isolated staging stack before production admission.
+The selected host is the existing Ubuntu 24.04 machine `reactor`, with Docker
+Engine and Compose. No additional Hyper-V VM was created. It runs one private
+Visua instance, PostgreSQL, and persistent local evidence volumes. The original
+Hyper-V proposal below remains an option for later isolation or recovery.
+Independent backup storage and final HTTPS ingress remain open preparation.
 
 ```mermaid
 flowchart LR
@@ -45,7 +48,7 @@ flowchart LR
     E --> A[Visua container]
     U <--> G[Google Workspace sign-in]
     A <--> G
-    subgraph V[Dedicated Linux VM on Hyper-V]
+    subgraph V[reactor: existing Ubuntu host]
         A --> P[PostgreSQL container]
         A --> F[Private evidence files]
     end
@@ -55,19 +58,22 @@ flowchart LR
     R --> O[Protected offsite or offline copy]
 ```
 
-Use Ubuntu Server 24.04 LTS as the initial guest candidate, subject to the actual
+For a future VM, use Ubuntu Server 24.04 LTS as the guest candidate, subject to the actual
 host version and patch policy. Microsoft's support matrix includes this guest
 on Windows Server Hyper-V, and Docker documents its Ubuntu Engine installation.
 Use Linux containers inside this VM; leave the existing Windows 11 VDIs as
 clients. [Microsoft guest support](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/supported-ubuntu-virtual-machines-on-hyper-v)
 and [Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/).
 
-Start the sizing discussion at **4 vCPU, 8 GiB RAM, an 80 GiB OS disk, and a
+The original VM sizing proposal was **4 vCPU, 8 GiB RAM, an 80 GiB OS disk, and a
 separate 200 GiB data disk**. These are provisional allocations, not minimum
 requirements. Adjust to measured host headroom, evidence volume, database growth,
 and temporary export/backup space. Separate virtual disks on one host do not
 create an independent failure domain. No GPU is proposed for the server.
-Test rendering and interaction on the actual Windows 11 VDI sessions.
+Test rendering and interaction on the actual Windows 11 VDI sessions. Reactor
+reported 478 GiB available RAM and 713 GB free root disk at installation. The
+app has a 4 GiB memory ceiling and PostgreSQL 2 GiB; these are container ceilings,
+not reserved resources or a capacity benchmark.
 
 Use one active application VM initially. A second host can be a tested manual
 recovery destination if capacity permits; it is not automatic failover. Multiple
@@ -89,19 +95,22 @@ proposed baseline because it is the repository's designated production backend.
 This is an operational choice, not a claim that three users require PostgreSQL.
 F02/F03 database resilience repairs remain release prerequisites for this choice.
 
-Two preparation gaps must be closed before staging acceptance:
+The reactor packaging now addresses these preparation gaps with bounded checks:
 
-- `pnpm pilot:preflight` currently requires **PostgreSQL and S3**. Add and test an
-  explicit office profile for PostgreSQL/local files, preserving production
-  authentication checks. The current command must not be described as passing
-  this topology or have failures silently ignored.
-- `scripts/backup-local.ts` supports **SQLite/local files only**. Prepare and
-  rehearse the PostgreSQL-plus-files procedure below. The existing PostgreSQL/S3
-  rehearsal does not establish recovery for this exact storage arrangement.
+- `pnpm pilot:preflight` still requires **PostgreSQL and S3**. The separate
+  [reactor preflight](../deploy/reactor/preflight.py) checks the office profile
+  and reports identity configuration separately. Private staging checks pass;
+  its required identity check currently fails because OAuth is absent.
+- `scripts/backup-local.ts` still supports **SQLite/local files only**. The new
+  [reactor backup](../deploy/reactor/backup.py) captures PostgreSQL/local files
+  while the app is stopped. The initial backup restored into fresh destinations;
+  a separate synthetic drill restored exact bytes, review, audit/revision, and
+  auditor content. Off-host copies and operational retention remain pending.
 
-The repository's [compose.yaml](../compose.yaml) is a development demonstration
-with developer sign-in. Prepare a separate production definition, secrets, mounts,
-and network rules. Do not start the demo configuration as the office service.
+The repository's [compose.yaml](../compose.yaml) remains a development
+demonstration. Reactor uses the separate
+[production-mode definition](../deploy/reactor/compose.yaml), dedicated secrets,
+and private networks. Developer sign-in and demo seeding are disabled.
 
 ## Access and identity
 
@@ -228,6 +237,8 @@ application repairs are developed. Record actual evidence against each gate.
 | 6. Admit production | Create separate production data/secrets, register the final hostname, deploy the tested revision, repeat smoke and recovery checks, and add the named users. Keep local demo data separate. |
 | 7. Operate | Retain acceptance, monitor the first operating period, verify scheduled backups/alerts, and rehearse recovery before expanding scope. |
 
-The [pilot worksheet](pilot-acceptance.md) remains the acceptance record. Domain
-names will be supplied later. No live provisioning or network change is part of
-this planning update, and the previous release hold remains in effect.
+The [pilot worksheet](pilot-acceptance.md) remains the acceptance record. The
+[reactor delivery](../.codex-context/runs/reactor-deploy-20261028/state.json)
+records the private installation and checks. Domain names will be supplied later.
+Application findings, Google login, final access, off-host recovery, and user
+acceptance remain open before live admission.
