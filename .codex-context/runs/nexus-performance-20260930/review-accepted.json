@@ -1,0 +1,14 @@
+{
+  "run_id": "nexus-performance-20260930",
+  "node_id": "review",
+  "input_sha256": "c000ed26ba767e50db3bb07b3dea69bdff8f14bc884254637084387a72246bb3",
+  "status": "complete",
+  "summary": "Fresh source review returned two low-severity findings. Added explicit instance color/placement redraws and narrowed HUD observers; camera timing correction separately derived from failing browser trace. Lead integration pending.",
+  "evidence": [
+    "review/result.json",
+    "review/run.json"
+  ],
+  "limitations": [
+    "Source-only review; browser validation performed by lead. Final camera and observer corrections postdate review packet. Requested model claude-opus-5-5 reported in CLI initialization and usage; model_reported field absent."
+  ]
+}

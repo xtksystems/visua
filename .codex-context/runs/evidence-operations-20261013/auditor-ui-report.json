@@ -1,0 +1,195 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "auditor-ui",
+  "status": "complete",
+  "updated_utc": "2026-10-13T10:12:25.094774+00:00",
+  "worktree": "/Users/artem/visua/.check/evidence-auditor-20261013",
+  "base_head": "2f82c73",
+  "input_brief": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/auditor-ui-brief.txt",
+  "input_brief_sha256": "317f679d967618173c450f06334d0bd34f2c570266365caf20953a7e9ea66880",
+  "files": [
+    {
+      "path": "apps/server/src/app.ts",
+      "before_sha256": "85e8867657d3e974328fb7304c9743a07268229f9fcaba794a7c4b3ab69995ba",
+      "after_sha256": "0cb9b481dcfc0be25a460aa17389bd70ef25a080d651235f00e1b7312262f330"
+    },
+    {
+      "path": "apps/web/src/components/AuditorPanel.tsx",
+      "before_sha256": null,
+      "after_sha256": "3e20982cf1dba30a1367abbd538e7a6b6451c0f7b86ede7457c329d4ba690706"
+    },
+    {
+      "path": "apps/web/src/pages/ReportsPage.tsx",
+      "before_sha256": "592205f52c741fb9370374a0a0e697d64a359a38ab41552441280bea1b8511ac",
+      "after_sha256": "990c95802582e40a2a99afc744befb03c05d10052d34a59e5a8cbe57cfdbb0cd"
+    },
+    {
+      "path": "apps/web/src/lib/api.ts",
+      "before_sha256": "d08f44989a91526075fa4540e3bac31dc27f03ac14c8fe0de18d8c31d813269e",
+      "after_sha256": "3d2b009200f695a7178a4f4e5d5fca8ad4e42053c3ac46d1c0c52ad6813e8de9"
+    },
+    {
+      "path": "apps/server/test/auditor-http.test.ts",
+      "before_sha256": null,
+      "after_sha256": "ad3248f290e931ec0fecc06fca67b80dbda7c7db8379d44b25bfce4488fab33d"
+    },
+    {
+      "path": "e2e/auditor-handoff.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "60b74390bef057d3ff5228de08e09652aa6ecfaddc9bdf0ac5d5e39445545e5c"
+    },
+    {
+      "path": "apps/server/src/storage/access.ts",
+      "before_sha256": "c071c0488dcca2d862565e06c7db31b71911e96ee3c5ab13a92042822408c681",
+      "after_sha256": "0a19c3efb29656e746ee3cf205df9cef38f7a8f093697abd8ff31968ae2ee31c"
+    },
+    {
+      "path": "apps/server/src/storage/migrations.ts",
+      "before_sha256": "1268c6f09857192912b2b9d915bf740444313086cd718051e405c149b516af07",
+      "after_sha256": "732fb0397c8aebbe20b8f65bdff61c00dda0fcc516d2a14c737bdec3e98818e0"
+    },
+    {
+      "path": "apps/server/test/access-audit.test.ts",
+      "before_sha256": "43cad2a8fc6010fec26c8f0b4c9f19eeb9e17a6b945325ed6a9b95b849ecd9be",
+      "after_sha256": "76e712f4468a90f9e9d0eb31c138bdff0eabdab6f7b8003060c76cbf7ba99b3f"
+    }
+  ],
+  "ownership": {
+    "apps/server/src/app.ts": "Auditor/export imports, exports-region helpers+GET routes, evidence-file prepared-access hook only",
+    "apps/web/src/components/AuditorPanel.tsx": "Entire new component",
+    "apps/web/src/pages/ReportsPage.tsx": "AuditorPanel import/render keyed by canonical workspace; audit authenticity copy only",
+    "apps/web/src/lib/api.ts": "Binary response metadata helper sharing same-origin auth/401 handling; existing download delegates preserving Blob API",
+    "apps/server/test/auditor-http.test.ts": "Entire new focusedHTTP suite",
+    "e2e/auditor-handoff.spec.ts": "Entire new authored browser suite; never executed",
+    "apps/server/src/storage/access.ts": "Parent-authorized narrow principal label cap240\u2192512 only",
+    "apps/server/src/storage/migrations.ts": "Parent-authorized migration8 principal_label CHECK cap240\u2192512 only; no prior migration edited",
+    "apps/server/test/access-audit.test.ts": "Malformed label fixture length241\u2192513 only"
+  },
+  "additional_scope_authorization": "Lead explicitly authorized the 512-character label cap and maximal valid label regression. Other export corrections remain owned by auditor_export_corrections.",
+  "implementation": {
+    "preview": "GET /api/workspaces/:ws/auditor accepts only repeated framework plus single RFC3339 asOf/periodStart, captures once, uses exportScoreInput and svc.scoreOf at asOf, returns metadata-only requirement/evidence/source/review/effective validity, scope/reasons/owner/dependencies and checkpoint. No inline content/data bodies in JSON.",
+    "bundle": "GET /api/workspaces/:ws/exports/auditor-bundle.zip delegates buildAuditorBundle and returns private/no-store attachment with safe generated filename, nosniff, X-Visua-Manifest-SHA256 and X-Visua-Audit-Checkpoint workspace:seq:hash.",
+    "legacy_exports": "All8 existing kinds remain available at workspace.export floor, use one captured snapshot, log separate prepared access with revision and byte size. Safe attachment headers.",
+    "file_download": "Existing workspace.read floor preserved; successful verified bytes logged separately without paths/filenames.",
+    "authorization": "preparedAccess derives current credential as SSE does and calls auth.assertWorkspaceAccess after capture/blob I/O and before access append/response. No external I/O under SQL lock. No auth/http changes or POST auditor exception.",
+    "access_history": "GET /access needs workspace.export, strict bounded limit1\u2013200 default100, private/no-store; manual read does not itself append another view.",
+    "ui": "AuditorPanel requires workspace.export and is keyed by canonical workspace id. Enabled frameworks are selectable. UTC period inputs use end of day for past dates, the current instant for today, and capture time when blank. Preview, download and access history load only through explicit buttons. Requests cancel on unmount. Errors preserve selection and appear inline and as a toast. Receipt copy/save controls retain an independent pin. Read-only tables use named, focusable local horizontal scroll regions.",
+    "integrity_copy": "Explains current records evaluated at the selected instant, without historical replay or assurance across the entire period. Distinguishes unsigned internal consistency from an independently retained manifest hash/checkpoint and trusted verifier. Reports no longer claims a removed tail is detectable from the current chain alone.",
+    "label_correction": "A permitted 120-character name plus 200-character email and separators produces a 323-character server label. The bounded 512-character cap permits it. This supersedes the 240-character cap recorded in the prior access report.",
+    "scoring_integration": "Uses exportScoreInput from the correction worker to ignore future or invalid verification timestamps and future or nonfinite checks during evaluation. Raw captured records remain unchanged."
+  },
+  "verification": [
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/auditor-http.test.ts",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "exit_code": 1,
+      "outcome": "Initial9pass/1fail: test expected name only, server label correctly includes name+email; fixture corrected",
+      "log": "/Users/artem/visua/.check/evidence-auditor-20261013/.codex-context/runs/evidence-operations-20261013/auditor-ui-http-tests.log",
+      "log_sha256": "62810707a6352d8c87134f2d70dacfcc566e0f26a6da2f71f01a379cb0fcd4e2"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/auditor-http.test.ts",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "exit_code": 0,
+      "outcome": "Initial10HTTP cases passed before two added regressions",
+      "log": "/Users/artem/visua/.check/evidence-auditor-20261013/.codex-context/runs/evidence-operations-20261013/auditor-ui-http-tests-final.log",
+      "log_sha256": "45508da61d9ead5d073e960aa44f1d8fad8f292453c62940705c4f4279060cc0"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/auditor-http.test.ts -t 'long server-owned'",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "exit_code": 1,
+      "outcome": "New regression reproduced legitimate long server identity rejected400 by old240char access label cap",
+      "log": "/Users/artem/visua/.check/evidence-auditor-20261013/.codex-context/runs/evidence-operations-20261013/auditor-ui-label-regression-before.log",
+      "log_sha256": "b305cac591d24ae8f703ae976a672bffd4b38c8da6e3aa7ef68de8b5d6f40953"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/auditor-http.test.ts -t 'future verification'",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "exit_code": 1,
+      "outcome": "New regression reproduced future verification incorrectly shown verified",
+      "log": "/Users/artem/visua/.check/evidence-auditor-20261013/.codex-context/runs/evidence-operations-20261013/auditor-ui-verification-before.log",
+      "log_sha256": "03cdcc2ee6d76698af3f20651ea40ffb9fa7d328965690d2b18f0a19df9aaf67"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/auditor-http.test.ts apps/server/test/access-audit.test.ts",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "exit_code": 0,
+      "outcome": "21 passed: 12 HTTP and 9 access tests after the label correction and shared scoring helper integration.",
+      "log": "/Users/artem/visua/.check/evidence-auditor-20261013/.codex-context/runs/evidence-operations-20261013/auditor-ui-final-tests.log",
+      "log_sha256": "f5e8034d362a956be67aa0a4add111fc05c2ec4ace3f7b80569e6b4ce7873380"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/auditor-http.test.ts -t 'long server-owned'",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "exit_code": 0,
+      "outcome": "Final targeted rerun: 1 passed, 11 unrelated skipped after strengthening test data to the full permitted 120-character name and 200-character email.",
+      "log": "/Users/artem/visua/.check/evidence-auditor-20261013/.codex-context/runs/evidence-operations-20261013/auditor-ui-max-label-final.log",
+      "log_sha256": "98599d3a8042e7398c6060b393b86d7ffc07850b845463eeacefcacb79c86a59"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec tsc --noEmit -p apps/server/tsconfig.json",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "exit_code": 0,
+      "outcome": "Server typecheck passed including exportScoreInput integration; subsequent test-only strengthening changes string literals only",
+      "log": "/Users/artem/visua/.check/evidence-auditor-20261013/.codex-context/runs/evidence-operations-20261013/auditor-ui-server-typecheck-final.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec tsc --noEmit -p apps/web/tsconfig.json",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "exit_code": 0,
+      "outcome": "Web typecheck passed; web source unchanged afterward",
+      "log": "/Users/artem/visua/.check/evidence-auditor-20261013/.codex-context/runs/evidence-operations-20261013/auditor-ui-web-typecheck.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec tsc --noEmit --target ES2023 --module ESNext --moduleResolution Bundler --allowImportingTsExtensions --verbatimModuleSyntax --strict --skipLibCheck --jsx react-jsx e2e/auditor-handoff.spec.ts",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "exit_code": 1,
+      "outcome": "Initial standalone compiler invocation lacked scoped Node types; no browser executed",
+      "log": "/Users/artem/visua/.check/evidence-auditor-20261013/.codex-context/runs/evidence-operations-20261013/auditor-ui-browser-typecheck.log",
+      "log_sha256": "2e7ec99526b0d466a8d54a7288363aba624818aa0f275a8b6797f6b634d96b44"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec tsc --noEmit --target ES2023 --module ESNext --moduleResolution Bundler --allowImportingTsExtensions --verbatimModuleSyntax --strict --skipLibCheck --jsx react-jsx --typeRoots apps/server/node_modules/@types --types node e2e/auditor-handoff.spec.ts",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "exit_code": 0,
+      "outcome": "All three authored browser journeys typecheck. No browser executed.",
+      "log": "/Users/artem/visua/.check/evidence-auditor-20261013/.codex-context/runs/evidence-operations-20261013/auditor-ui-browser-typecheck-final.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "http_coverage": [
+    "Auditor reads succeed; viewer gets 403, other organization 404, anonymous 401. Auditor POST and assessment writes remain 403.",
+    "Selected frameworks, evaluation time and current-record basis are returned; inline bodies and raw observations are absent. Actor identity comes from the authenticated session.",
+    "Prepared access leaves assessment revision and hash head unchanged.",
+    "Actual ZIP unzips. Receipt digest matches manifest bytes, and checkpoint matches the captured chain. All eight legacy export kinds succeed.",
+    "Invalid query keys, repeated dates, empty or unknown frameworks, invalid or future dates, inverted periods and invalid access limits fail without an access record.",
+    "Viewer file downloads remain allowed and record the verified byte count with an opaque evidence id.",
+    "Revoking role, membership, session or workspace while blob I/O waits refuses output with 403, 404, 401 or 404 respectively; no receipt or access record is produced.",
+    "A maximal valid name and email succeeds with the complete 323-character server attribution.",
+    "A future verification timestamp produces implemented rather than verified status in the preview."
+  ],
+  "browser_authored_only": [
+    "Auditor selects scope and dates, explicitly opens metadata-only read-only preview, downloads an actual ZIP, saves its receipt, and loads separate access records.",
+    "Failed preview preserves selection for retry; changing workspace clears capture and date selection.",
+    "At 390 by 844 pixels, tables scroll locally using native Tab and ArrowRight, page width stays bounded, and the presentation contains no write controls."
+  ],
+  "dependency_hashes": {
+    "apps/server/src/services/export-snapshot.ts": "2d185bc312573a53c1da2a87c5e1785fef5a9c4491483e0d624519b1ca8606c6",
+    "apps/server/src/services/exports.ts": "edbbc096e66c57bc188c834c56cb955e4579e65a8815c7dda6affc23b4cac3d8",
+    "apps/server/src/services/auditor-bundle.ts": "02ff6b6ccd70e770b96ce1d223bb91f0919b5f2133b6961376384c8087da3e32"
+  },
+  "limits": [
+    "No Playwright execution, screenshots or measured browser overflow; three browser journeys were authored and typechecked only.",
+    "No full suite, PostgreSQL, Docker, live database, build, dependency installation, Git, commit, push, deploy or delegation.",
+    "Access records mean successfully prepared, not proof of client receipt or a human view.",
+    "Unsigned packages do not independently prove authenticity. Retain the receipt separately and use a trusted verifier.",
+    "Snapshot, bundle and export implementations remain owned by other workers. Dependency hashes describe the observed state, not ownership.",
+    "The binary helper was typechecked; its shared 401 behavior was preserved but not separately browser-executed.",
+    "Changes remain uncommitted in the isolated checkout. Assigned JSON reports are the only root writes."
+  ],
+  "pending_worker_edits": false,
+  "next_action": "Lead runs combined M4 review, SQLite/PostgreSQL gates and the three authored Playwright journeys after the root M3 browser lane. Inspect actual desktop and phone presentation. This worker has no pending edits."
+}

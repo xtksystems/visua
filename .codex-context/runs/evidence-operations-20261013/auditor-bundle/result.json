@@ -1,0 +1,23 @@
+{
+  "status": "implemented-and-focused-verification-passed",
+  "report": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/auditor-bundle-report.json",
+  "files": [
+    {
+      "path": "apps/server/src/services/auditor-bundle.ts",
+      "sha256": "02ff6b6ccd70e770b96ce1d223bb91f0919b5f2133b6961376384c8087da3e32",
+      "bytes": 19494
+    },
+    {
+      "path": "apps/server/src/services/bundle-verifier.mjs",
+      "sha256": "929c480e96ae30f965bb31219eecc36b56fa33a9ebc5a8db092e6aeb702f26e0",
+      "bytes": 11526
+    },
+    {
+      "path": "apps/server/test/auditor-bundle.test.ts",
+      "sha256": "3227b3448eb1880a6f9599562697e5263372a437fe8cccb0445b84a0c2215d2e",
+      "bytes": 19555
+    }
+  ],
+  "tests": 9,
+  "typecheck": "passed"
+}

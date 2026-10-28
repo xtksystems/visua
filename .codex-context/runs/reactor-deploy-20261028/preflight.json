@@ -1,0 +1,25 @@
+{
+  "profile": "reactor-postgresql-local",
+  "checks": {
+    "private_directories": true,
+    "private_config": true,
+    "production_oidc": true,
+    "seed_disabled": true,
+    "nondefault_secret": true,
+    "local_evidence": true,
+    "dedicated_postgresql": true,
+    "private_listener": true,
+    "offline_agents": true,
+    "repository_scan_disabled": true,
+    "no_identity_overrides": true
+  },
+  "identity_checks": {
+    "https_origin": false,
+    "google_issuer": false,
+    "oauth_client": false,
+    "bootstrap_owner": false
+  },
+  "private_install_ready": true,
+  "identity_configured": false,
+  "live_admission": "Requires real login, recovery, and release finding resolution."
+}

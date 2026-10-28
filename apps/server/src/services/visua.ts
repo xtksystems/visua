@@ -1,3 +1,4 @@
+import { processDiagnostics as diagnostics } from "../diagnostics.ts";
 /**
  * Application service: the single place where workspace state changes.
  * Every mutation is validated and runs in one transaction, serialized per
@@ -6,6 +7,10 @@
  */
 import {
   assessTiers,
+  evidenceReviewScope,
+  compatibleEvidenceSeries,
+  normalizeEvidenceDate,
+  sameEvidenceReviewScope,
   buildSnapshot,
   categorize,
   clampLevel,
@@ -15,6 +20,7 @@ import {
   obligationTiming,
   overlayPriority,
   planTasks,
+  projectLevels,
   recommend,
   scoreFramework,
   slugify,
@@ -29,6 +35,8 @@ import {
   type CheckResult,
   type Connector,
   type Evidence,
+  type EvidenceReviewScope,
+  type EvidenceProvenance,
   type FrameworkIndex,
   type FrameworkOverlay,
   type FrameworkScore,
@@ -36,11 +44,15 @@ import {
   type Policy,
   type Priority,
   type Proposal,
+  type ProposalPreview,
+  type ProposalBatchPreview,
+  type ProposalBatchResult,
   type RequirementNode,
   type RequirementState,
   type Risk,
   type RmfSettings,
   type Soc2Settings,
+  type Status,
   type Task,
   type TrustCenterSettings,
   type Workspace,
@@ -49,11 +61,20 @@ import {
 import { executeAgent, type AgentHost, type ProposalInput } from "@visua/agents";
 import type { FrameworkRegistry } from "@visua/frameworks";
 import { AsyncLocalStorage } from "node:async_hooks";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
+import { ownsRun, runExecutionOptions, RunLeaseLostError, type RunExecutionOptions, type RunFence } from "./run-execution.ts";
+import { canonical, chainHash, GENESIS } from "../audit.ts";
+import { artifactHash, evidenceAuditSnapshot, evidenceMetadata, type EvidencePatch, type FileEvidenceInput } from "./evidence.ts";
+import { MAX_BLOB_BYTES, MemoryBlobStore, type BlobScope, type BlobStore } from "../blobs/index.ts";
+import { isWorkDate, requirementWorkSnapshot, taskWorkSnapshot, type RequirementPatch, type TaskPatch } from "./work.ts";
+import { buildProposalPreview, proposalBatchPreview, ProposalReviewConflict } from "./proposal-review.ts";
+import { mayApplyAutonomously, parseAutonomy, parseProposalEnvelope, parseProposalPayload } from "./proposal-validation.ts";
+export { chainHash } from "../audit.ts";
 import type { EventBus, VisuaEventType } from "../bus.ts";
-import { FRAMEWORK_OF_REF, connectorKind, type RequirementRefs } from "../connectors/index.ts";
+import { CONNECTOR_KINDS, FRAMEWORK_OF_REF, connectorKind, type ConnectorKind, type RequirementRefs } from "../connectors/index.ts";
 import { txContext } from "../storage/driver.ts";
 import type { Store } from "../storage/index.ts";
+import { AccessInputSchema, AccessPrincipalSchema, type AccessInput, type AccessRecord } from "../storage/access.ts";
 
 export class NotFoundError extends Error {}
 
@@ -64,27 +85,8 @@ export interface Principal {
 }
 export const principalContext = new AsyncLocalStorage<Principal>();
 
-const GENESIS = "0".repeat(64);
-
-/** Canonical JSON (sorted keys) so the hash is independent of property order. */
-function canonical(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
-  if (value && typeof value === "object") {
-    return `{${Object.keys(value as Record<string, unknown>)
-      .filter((k) => (value as Record<string, unknown>)[k] !== undefined)
-      .sort()
-      .map((k) => `${JSON.stringify(k)}:${canonical((value as Record<string, unknown>)[k])}`)
-      .join(",")}}`;
-  }
-  return JSON.stringify(value);
-}
-
-export function chainHash(prevHash: string, event: ActivityEvent): string {
-  const { hash: _ignored, ...body } = event;
-  void _ignored;
-  return createHash("sha256").update(prevHash).update(canonical(body)).digest("hex");
-}
 export class ValidationError extends Error {}
+export class RunQueueFullError extends ValidationError {}
 
 const PRIORITY_ORDER: Priority[] = ["low", "medium", "high", "critical"];
 const STATE_LAWS = "us-state-ai-laws";
@@ -125,42 +127,36 @@ interface AgentSnapshot {
   score(frameworkId: string): FrameworkScore;
 }
 
-/**
- * The flight recorder of one agent run. Steps stream to the bus immediately
- * and are persisted in order, off the caller's transaction, through a queue.
- */
+/** Persist each bounded, ordered step before publishing it to observers. */
 class RunRecorder {
-  private chain: Promise<unknown> = Promise.resolve();
+  private chain: Promise<void> = Promise.resolve();
+  private failure: unknown;
+  private pending = 0;
+  readonly fence: RunFence;
   private readonly svc: VisuaService;
-  private readonly workspaceId: string;
-  private readonly run: Pick<AgentRun, "id" | "agent">;
+  private readonly signal: AbortSignal;
 
-  constructor(svc: VisuaService, workspaceId: string, run: Pick<AgentRun, "id" | "agent">) {
-    this.svc = svc;
-    this.workspaceId = workspaceId;
-    this.run = run;
+  constructor(svc: VisuaService, fence: RunFence, signal: AbortSignal) {
+    this.svc = svc; this.fence = fence; this.signal = signal;
   }
 
   step(step: Omit<AgentStep, "id" | "at">): AgentStep {
     const full: AgentStep = { ...step, id: newId("stp"), at: now() };
-    this.svc.bus.publish(this.workspaceId, "agent.step", { runId: this.run.id, agent: this.run.agent, step: full });
+    if (this.signal.aborted || this.failure) return full;
+    if (this.pending >= 256) throw new Error("Agent step queue is full");
+    this.pending++;
     txContext.exit(() => {
-      this.chain = this.chain
-        .then(() =>
-          this.svc.store.runs.update(this.run.id, (r) => ({
-            ...r,
-            steps: [...r.steps, full],
-            focusNodeIds: step.nodeIds?.length ? [...new Set([...r.focusNodeIds, ...step.nodeIds])].slice(-60) : r.focusNodeIds,
-          })),
-        )
-        .catch((err: unknown) => console.error("[visua] could not record agent step", err));
+      this.chain = this.chain.then(async () => {
+        if (this.signal.aborted || this.failure) return;
+        await this.svc.appendRunStep(this.fence, full);
+      }).catch((error: unknown) => { this.failure ??= error; }).finally(() => { this.pending--; });
     });
     return full;
   }
 
-  /** Resolves when every recorded step is persisted. */
-  flush(): Promise<unknown> {
-    return this.chain;
+  async flush(): Promise<void> {
+    await this.chain;
+    if (this.failure) throw this.failure;
   }
 }
 
@@ -168,13 +164,28 @@ export class VisuaService {
   readonly store: Store;
   readonly registry: FrameworkRegistry;
   readonly bus: EventBus;
+  readonly blobs: BlobStore;
   private readonly scoreCache = new Map<string, { rev: number; hour: string; score: WorkspaceScore }>();
   private readonly running = new Map<string, AbortController>();
+  private readonly executions = new Set<Promise<void>>();
+  private readonly connectorKinds: readonly ConnectorKind[];
+  private readonly runOwnerId = randomUUID();
+  private readonly runOptions: ReturnType<typeof runExecutionOptions>;
+  private readonly runFences = new Map<string, RunFence>();
+  private runTimer?: ReturnType<typeof setInterval>;
+  private runPump?: Promise<void>;
+  private runScanCursor?: { after: number; through: number };
+  private runsStopping = false;
+  private runStop?: Promise<void>;
 
-  constructor(store: Store, registry: FrameworkRegistry, bus: EventBus) {
+  constructor(store: Store, registry: FrameworkRegistry, bus: EventBus, connectorKinds: readonly ConnectorKind[] = CONNECTOR_KINDS, blobs: BlobStore = new MemoryBlobStore(), runOptions: RunExecutionOptions = {}) {
     this.store = store;
+    this.connectorKinds = connectorKinds;
     this.registry = registry;
     this.bus = bus;
+    this.blobs = blobs;
+    this.runOptions = runExecutionOptions(runOptions);
+    this.store.onClose(() => this.stopRuns());
   }
 
   // -------------------------------------------------------------------------
@@ -228,6 +239,29 @@ export class VisuaService {
       this.emit(workspaceId, "activity", event);
       return event;
     });
+  }
+
+  /** Record a successfully prepared response without changing assessment revision or activity. */
+  async recordAccess(workspaceId: string, input: AccessInput): Promise<AccessRecord> {
+    const parsed = AccessInputSchema.safeParse(input);
+    if (!parsed.success) throw new ValidationError("Invalid access record metadata");
+    const principal = AccessPrincipalSchema.safeParse(principalContext.getStore());
+    if (!principal.success) throw new ValidationError("An authenticated principal is required to record access");
+    return this.mutate(workspaceId, async ws => {
+      if (!ws.tenantId) throw new ValidationError("An organization is required to record workspace access");
+      const record: AccessRecord = {
+        ...parsed.data, id: newId("acc"), workspaceId: ws.id, tenantId: ws.tenantId, at: now(),
+        principalId: principal.data.id, principalLabel: principal.data.label, outcome: "prepared",
+      };
+      await this.store.access.append(record);
+      return record;
+    });
+  }
+
+  /** Access history does not itself record another view; protected routes enforce capability. */
+  async readAccess(workspaceId: string, limit = 100): Promise<AccessRecord[]> {
+    const ws = await this.workspace(workspaceId);
+    return this.store.access.recent(ws.id, limit);
   }
 
   /** Recompute every link of the audit trail; any edit, deletion or reordering breaks the chain. */
@@ -287,12 +321,74 @@ export class VisuaService {
     return out;
   }
 
+  /** Task links must be assessable units in an enabled framework of this workspace. */
+  private taskRequirements(ws: Workspace, ids: readonly string[] | undefined): string[] {
+    if (ids !== undefined && !Array.isArray(ids)) throw new ValidationError("Requirement links must be an array");
+    return [...new Set((ids ?? []).map((id) => this.assessableIn(ws, id).id))];
+  }
+
+  private workDate(value: unknown, field: string): string | undefined {
+    if (value === null || value === undefined) return undefined;
+    if (!isWorkDate(value)) throw new ValidationError(`${field} must be a valid calendar date (YYYY-MM-DD)`);
+    return value;
+  }
+
+  private taskDateRange(startDate: string | undefined, dueDate: string | undefined): void {
+    // Old records may contain timestamps. Only edited fields are revalidated, but their
+    // calendar days still participate in the effective range when a date is changed.
+    const start = startDate?.slice(0, 10), due = dueDate?.slice(0, 10);
+    if (isWorkDate(start) && isWorkDate(due) && due < start) throw new ValidationError("Due date must not precede start date");
+  }
+
+  private async memberName(ws: Workspace, userId: string): Promise<string> {
+    if (!ws.tenantId || typeof userId !== "string" || !userId) throw new ValidationError("Choose a current member of this workspace's organization");
+    // Serialize against membership removal, which uses the same organization lock.
+    await this.store.lock(`ws:${ws.tenantId}`);
+    const membership = await this.store.identity.memberships.get(ws.tenantId, userId);
+    const user = membership ? await this.store.identity.users.get(userId) : undefined;
+    if (!user) throw new ValidationError("Choose a current member of this workspace's organization");
+    return user.name;
+  }
+
+  private async taskAssignee(ws: Workspace, assignee: Task["assignee"] | null): Promise<Task["assignee"]> {
+    if (assignee === null || assignee === undefined) return undefined;
+    if (assignee.type === "person") return { type: "person", id: assignee.id, name: await this.memberName(ws, assignee.id) };
+    if (assignee.type !== "agent" && assignee.type !== "external") throw new ValidationError("Choose a member, agent, or external assignee");
+    if (typeof assignee.name !== "string" || !assignee.name.trim() || assignee.name.trim().length > 200) throw new ValidationError("An assignee needs a name of at most 200 characters");
+    if (assignee.type === "external" && assignee.id !== "external") throw new ValidationError("External assignees must use the external id");
+    if (typeof assignee.id !== "string" || !assignee.id) throw new ValidationError("An assignee needs an id");
+    return { type: assignee.type, id: assignee.id, name: assignee.name.trim() };
+  }
+
+  async workspaceMembers(workspaceId: string): Promise<{ id: string; name: string }[]> {
+    const ws = await this.workspace(workspaceId);
+    if (!ws.tenantId) return [];
+    return (await this.store.identity.memberships.forTenant(ws.tenantId)).map(({ user }) => ({ id: user.id, name: user.name }));
+  }
+
+  async myWork(workspaceId: string, userId: string | undefined): Promise<{ tasks: Task[]; requirements: { id: string; code: string; title: string; state: RequirementState; status: Status }[] }> {
+    const ws = await this.workspace(workspaceId);
+    if (!userId || !ws.tenantId || !(await this.store.identity.memberships.get(ws.tenantId, userId))) return { tasks: [], requirements: [] };
+    const [tasks, states] = await Promise.all([this.store.tasks.list(ws.id), this.store.states.list(ws.id)]);
+    const owned = states.flatMap((state) => {
+      if (state.ownerUserId !== userId) return [];
+      const node = this.registry.node(state.nodeId);
+      if (!node?.assessable || !this.frameworkSettings(ws, node.frameworkId)?.enabled || this.registry.framework(node.frameworkId)?.graph.framework.family === "threat") return [];
+      return [{ node, state }];
+    });
+    const scores = new Map(await Promise.all([...new Set(owned.map(({ node }) => node.frameworkId))].map(async (id) => [id, await this.score(ws.id, id)] as const)));
+    return {
+      tasks: tasks.filter((task) => task.assignee?.type === "person" && task.assignee.id === userId),
+      requirements: owned.map(({ node, state }) => ({ id: node.id, code: node.code, title: node.title, state, status: scores.get(node.frameworkId)?.statuses.get(node.id)?.status ?? "not-started" })),
+    };
+  }
+
   /**
    * The one rule for changing a requirement's assessment, for people and agents alike.
    * A requirement out of scope (by configuration or a documented exclusion) keeps no
    * levels, verification or status override; owner, notes and priority stay editable.
    */
-  private checkAssessment(node: RequirementNode, applicable: boolean, patch: Partial<RequirementState>, rationale: string | undefined): void {
+  private checkAssessment(node: RequirementNode, applicable: boolean, patch: Pick<RequirementPatch, "current" | "target" | "verifiedAt" | "statusOverride">, rationale: string | undefined): void {
     const touches: string[] = (["current", "target"] as const).filter((k) => patch[k] !== undefined);
     if (patch.verifiedAt) touches.push("verifiedAt");
     if (patch.statusOverride) touches.push("statusOverride");
@@ -487,6 +583,10 @@ export class VisuaService {
     patch: Partial<Pick<Workspace, "name" | "description" | "profile" | "autonomy">> & { trustCenter?: Partial<TrustCenterSettings> },
     actor = "user",
   ): Promise<Workspace> {
+    if (patch.autonomy !== undefined) {
+      try { patch = { ...patch, autonomy: parseAutonomy(patch.autonomy) }; }
+      catch (error) { throw new ValidationError((error as Error).message); }
+    }
     return this.mutate(id, async (ws) => {
       // Trust center settings merge: saving the headline never drops the publishing choices.
       let trustCenter = ws.trustCenter;
@@ -810,6 +910,7 @@ export class VisuaService {
    * (`upcoming`) and never counts toward today's readiness.
    */
   scoreOf(index: FrameworkIndex, input: { states: RequirementState[]; evidence: Evidence[]; tasks: Task[]; checks: CheckResult[] }, at = new Date()): WorkspaceScore {
+    input = { ...input, evidence: input.evidence.map(evidenceMetadata) };
     if (index.graph.framework.family !== "law") return scoreFramework(index, buildSnapshot(input), at);
     const today = at.toISOString().slice(0, 10);
     const states = input.states.map((s) => {
@@ -832,7 +933,7 @@ export class VisuaService {
     if (cached && cached.rev === rev && cached.hour === hour) return cached.score;
     const [states, evidence, tasks, checks] = await Promise.all([
       this.store.states.list(workspaceId, frameworkId),
-      this.store.evidence.list(workspaceId),
+      this.store.evidence.metadataList(workspaceId),
       this.store.tasks.list(workspaceId),
       this.store.checks.list(workspaceId),
     ]);
@@ -845,7 +946,7 @@ export class VisuaService {
   async updateState(
     workspaceId: string,
     nodeId: string,
-    patch: Partial<Pick<RequirementState, "current" | "target" | "priority" | "applicable" | "applicabilityRationale" | "owner" | "notes" | "statusOverride" | "verifiedAt">>,
+    patch: RequirementPatch,
     actor = "user",
   ): Promise<RequirementState> {
     return this.mutate(workspaceId, async (ws) => {
@@ -875,9 +976,25 @@ export class VisuaService {
         if (prev.target === 0 && patch.target === undefined) scoping.target = defaultTarget;
       }
       this.checkAssessment(node, scoping.applicable ?? prev.applicable, patch, scoping.applicabilityRationale ?? prev.applicabilityRationale);
+      const assignment: Partial<RequirementState> = {};
+      if (patch.owner !== null && patch.owner !== undefined && (typeof patch.owner !== "string" || patch.owner.length > 200)) throw new ValidationError("Owner must be a label of at most 200 characters");
+      if (patch.ownerUserId !== undefined) {
+        if (patch.ownerUserId === null) {
+          assignment.ownerUserId = undefined;
+          assignment.owner = patch.owner?.trim() || undefined;
+        } else {
+          assignment.ownerUserId = patch.ownerUserId;
+          assignment.owner = await this.memberName(ws, patch.ownerUserId);
+        }
+      } else if (Object.hasOwn(patch, "owner")) {
+        assignment.ownerUserId = undefined;
+        assignment.owner = patch.owner?.trim() || undefined;
+      }
+      if (Object.hasOwn(patch, "dueDate")) assignment.dueDate = this.workDate(patch.dueDate, "Due date");
       const next: RequirementState = {
         ...prev,
-        ...patch,
+        ...patch as Partial<RequirementState>,
+        ...assignment,
         ...scoping,
         nodeId: node.id,
         current: patch.current !== undefined ? clampLevel(patch.current) : prev.current,
@@ -886,13 +1003,17 @@ export class VisuaService {
         updatedBy: actor,
       };
       if (patch.statusOverride === null) delete next.statusOverride;
+      if (patch.verifiedAt === null) delete next.verifiedAt;
+      if (!next.owner) delete next.owner;
+      if (!next.ownerUserId) delete next.ownerUserId;
+      if (!next.dueDate) delete next.dueDate;
       if (!next.userExclusion) delete next.userExclusion;
       await this.store.states.put(ws.id, next);
       this.emit(ws.id, "state.updated", next);
       const changes = Object.entries(patch)
         .filter(([k, v]) => (prev as unknown as Record<string, unknown>)[k] !== v)
         .map(([k, v]) => `${k}: ${String((prev as unknown as Record<string, unknown>)[k] ?? "—")} → ${String(v)}`);
-      await this.log(ws.id, actor, "assessed", "requirement", node.id, `${node.code} ${changes.join(", ") || "updated"}`, { patch });
+      await this.log(ws.id, actor, "assessed", "requirement", node.id, `${node.code} ${changes.join(", ") || "updated"}`, { patch, before: requirementWorkSnapshot(prev), after: requirementWorkSnapshot(next) });
       return next;
     });
   }
@@ -903,7 +1024,11 @@ export class VisuaService {
 
   async createTask(workspaceId: string, input: Partial<Task> & Pick<Task, "title">, actor = "user"): Promise<Task> {
     return this.mutate(workspaceId, async (ws) => {
-      const requirementIds = this.linkedRequirements(input.requirementIds);
+      const requirementIds = this.taskRequirements(ws, input.requirementIds);
+      const assignee = await this.taskAssignee(ws, input.assignee);
+      const startDate = this.workDate(input.startDate, "Start date");
+      const dueDate = this.workDate(input.dueDate, "Due date");
+      this.taskDateRange(startDate, dueDate);
       const ts = now();
       const task: Task = {
         id: newId("task"),
@@ -914,9 +1039,10 @@ export class VisuaService {
         status: input.status ?? "todo",
         priority: input.priority ?? "medium",
         requirementIds,
-        assignee: input.assignee,
-        startDate: input.startDate,
-        dueDate: input.dueDate,
+        contentRequirementIds: [...requirementIds],
+        assignee,
+        startDate,
+        dueDate,
         effortHours: input.effortHours,
         checklist: (input.checklist ?? []).map((c) => ({ id: c.id || newId("chk"), text: c.text, done: !!c.done })),
         dependsOn: input.dependsOn ?? [],
@@ -929,7 +1055,7 @@ export class VisuaService {
       };
       await this.store.tasks.put(task);
       this.emit(ws.id, "task.created", task);
-      await this.log(ws.id, actor, "created", "task", task.id, `Task “${task.title}” created`);
+      await this.log(ws.id, actor, "created", "task", task.id, `Task “${task.title}” created`, { before: null, after: taskWorkSnapshot(task) });
       return task;
     });
   }
@@ -937,19 +1063,28 @@ export class VisuaService {
   async updateTask(
     workspaceId: string,
     taskId: string,
-    patch: Partial<Task>,
+    patch: TaskPatch,
     actor = "user",
   ): Promise<{ task: Task; suggestedLevels: { nodeId: string; code: string; from: number; to: number }[] }> {
     return this.mutate(workspaceId, async (ws) => {
       const prev = await this.store.tasks.get(taskId);
       if (!prev || prev.workspaceId !== ws.id) throw new NotFoundError(`Task '${taskId}' not found`);
-      if (patch.requirementIds) patch = { ...patch, requirementIds: this.linkedRequirements(patch.requirementIds) };
-      const next: Task = { ...prev, ...patch, id: prev.id, workspaceId: prev.workspaceId, updatedAt: now() };
+      const normalized: Partial<Task> = { ...patch as Partial<Task> };
+      if (Object.hasOwn(patch, "requirementIds")) normalized.requirementIds = this.taskRequirements(ws, patch.requirementIds);
+      if (Object.hasOwn(patch, "assignee")) normalized.assignee = await this.taskAssignee(ws, patch.assignee);
+      if (Object.hasOwn(patch, "startDate")) normalized.startDate = this.workDate(patch.startDate, "Start date");
+      if (Object.hasOwn(patch, "dueDate")) normalized.dueDate = this.workDate(patch.dueDate, "Due date");
+      const next: Task = { ...prev, ...normalized, id: prev.id, workspaceId: prev.workspaceId, source: prev.source, origin: prev.origin, updatedAt: now() };
+      next.contentRequirementIds = [...new Set([...(prev.contentRequirementIds ?? []), ...prev.requirementIds, ...next.requirementIds])];
+      if (Object.hasOwn(patch, "startDate") || Object.hasOwn(patch, "dueDate")) this.taskDateRange(next.startDate, next.dueDate);
+      if (!next.assignee) delete next.assignee;
+      if (!next.startDate) delete next.startDate;
+      if (!next.dueDate) delete next.dueDate;
       if (patch.status === "done" && prev.status !== "done") next.completedAt = now();
       if (patch.status && patch.status !== "done") delete next.completedAt;
       await this.store.tasks.put(next);
       this.emit(ws.id, "task.updated", next);
-      await this.log(ws.id, actor, "updated", "task", next.id, `Task “${next.title}”${patch.status && patch.status !== prev.status ? ` → ${patch.status}` : " updated"}`);
+      await this.log(ws.id, actor, "updated", "task", next.id, `Task “${next.title}”${patch.status && patch.status !== prev.status ? ` → ${patch.status}` : " updated"}`, { before: taskWorkSnapshot(prev), after: taskWorkSnapshot(next) });
       const suggestedLevels: { nodeId: string; code: string; from: number; to: number }[] = [];
       if (patch.status === "done" && prev.status !== "done") {
         const states = await this.store.states.getMany(ws.id, next.requirementIds);
@@ -993,7 +1128,7 @@ export class VisuaService {
       const ts = now();
       const created: Task[] = [];
       for (const p of planned) {
-        const task: Task = { ...p, createdAt: ts, updatedAt: ts };
+        const task: Task = { ...p, contentRequirementIds: [...p.requirementIds], createdAt: ts, updatedAt: ts };
         await this.store.tasks.put(task);
         created.push(task);
       }
@@ -1007,66 +1142,267 @@ export class VisuaService {
   // Evidence
   // -------------------------------------------------------------------------
 
-  async createEvidence(workspaceId: string, input: Partial<Evidence> & Pick<Evidence, "title">, actor = "user"): Promise<Evidence> {
+  private evidenceScope(e: Evidence): EvidenceReviewScope {
+    try { return evidenceReviewScope(e); }
+    catch (err) { throw new ValidationError((err as Error).message); }
+  }
+
+  private evidenceDecision(e: Evidence, decision: "accepted" | "rejected" | "withdrawn", actor: string, at: string, note?: string): Evidence {
+    const scope = this.evidenceScope(e);
+    if (decision !== "accepted" && !note?.trim()) throw new ValidationError("Rejection and withdrawal require a reason");
+    if (note && note.trim().length > 2000) throw new ValidationError("Review reason must be at most 2000 characters");
+    note = note?.trim();
+    if (decision === "accepted" && !scope.sha256) throw new ValidationError("Acceptance requires an artifact with a server-computed hash");
+    let reviewedAt: string;
+    try { reviewedAt = normalizeEvidenceDate(at); }
+    catch (err) { throw new ValidationError((err as Error).message); }
+    return {
+      ...e, status: decision, reviewedBy: actor, reviewedAt,
+      reviewHistory: [...(e.reviewHistory ?? []), { id: newId("rev"), decision, reviewedBy: actor, reviewedAt, scope, ...(note ? { note } : {}) }],
+    };
+  }
+
+  private contentSources(requirementIds: string[]): { sourceDocumentIds: string[]; restrictedContent: boolean } {
+    const nodes = requirementIds.map((id) => this.registry.node(id));
+    return {
+      sourceDocumentIds: [...new Set(nodes.flatMap((node) => node?.citation.documentId ? [node.citation.documentId] : []))].sort(),
+      restrictedContent: nodes.some((node) => node?.attributes?.["licensed"] === true),
+    };
+  }
+
+  private collectionProvenance(e: Pick<Evidence, "source" | "requirementIds">, actor: string, at: string, refs?: { check?: CheckResult; policy?: Policy; agent?: { runId: string; proposalId: string } }): EvidenceProvenance {
+    const provenance: EvidenceProvenance = {
+      origin: e.source === "upload" ? "upload" : "manual", recordedBy: principalContext.getStore()?.id ?? actor, recordedAt: at,
+      originalRequirementIds: [...e.requirementIds], ...this.contentSources(e.requirementIds),
+    };
+    if (refs?.check) {
+      const c = refs.check;
+      provenance.origin = "connector-check";
+      provenance.check = { resultId: c.id, connectorId: c.connectorId, connectorKind: c.source?.connectorKind ?? "not recorded", connectorName: c.source?.connectorName ?? "not recorded", checkId: c.checkId, observedAt: c.observedAt, ...(c.source ? { sourceConfigHash: c.source.configHash } : {}) };
+      // Legacy observations have no durable target identity; never infer it from current configuration.
+      if (c.source) provenance.seriesKey = createHash("sha256").update(canonical({ connectorId: c.connectorId, checkId: c.checkId, source: c.source.configHash })).digest("hex");
+    }
+    if (refs?.policy) {
+      const p = refs.policy;
+      provenance.origin = "approved-policy";
+      provenance.policy = { id: p.id, version: p.version, sha256: createHash("sha256").update(p.body).digest("hex"), approvedBy: p.approvedBy, approvedAt: p.approvedAt };
+      provenance.seriesKey = `policy:${p.id}`;
+    }
+    if (refs?.agent) { provenance.agent = { ...refs.agent }; if (!refs.check && !refs.policy) provenance.origin = "agent-proposal"; }
+    return provenance;
+  }
+
+  private async validateReplacement(evidence: Evidence): Promise<void> {
+    if (!evidence.supersedesId) return;
+    const previous = await this.store.evidence.metadataGet(evidence.supersedesId);
+    if (!previous || previous.workspaceId !== evidence.workspaceId) throw new NotFoundError("Replacement evidence not found in this workspace");
+    if (!compatibleEvidenceSeries(previous, evidence)) throw new ValidationError("Replacement must retain the assurance kind, scope and source series");
+    const seen = new Set([evidence.id]);
+    let item: Evidence | undefined = previous;
+    while (item) {
+      if (seen.has(item.id)) throw new ValidationError("Evidence replacement chain contains a cycle");
+      seen.add(item.id);
+      item = item.supersedesId ? await this.store.evidence.metadataGet(item.supersedesId) : undefined;
+      if (item && item.workspaceId !== evidence.workspaceId) throw new ValidationError("Replacement chain leaves this workspace");
+    }
+  }
+
+  /** Direct service callers are trusted fixtures; HTTP and proposals provide allowlisted fields only. */
+  async createEvidence(workspaceId: string, input: Partial<Evidence> & Pick<Evidence, "title">, actor = "user", refs?: { check?: CheckResult; policy?: Policy; agent?: { runId: string; proposalId: string } }): Promise<Evidence> {
+    if (input.artifact !== undefined) throw new ValidationError("File references are server-owned; upload file bytes to create file evidence");
     return this.mutate(workspaceId, async (ws) => {
       const ts = now();
       const requirementIds = this.linkedRequirements(input.requirementIds);
-      const evidence: Evidence = {
-        id: newId("ev"),
-        workspaceId: ws.id,
-        title: input.title.trim(),
-        description: input.description,
-        kind: input.kind ?? "document",
-        source: input.source ?? "manual",
-        connectorId: input.connectorId,
-        requirementIds,
-        status: input.status ?? "pending-review",
-        collectedAt: input.collectedAt ?? ts,
-        validUntil: input.validUntil,
-        content: input.content,
-        data: input.data,
-        fileName: input.fileName,
-        sha256: input.sha256,
-        reviewedBy: input.reviewedBy,
-        reviewedAt: input.reviewedAt,
-        createdAt: ts,
+      let evidence: Evidence = {
+        id: newId("ev"), workspaceId: ws.id, title: input.title.trim(),
+        description: input.description, kind: input.kind ?? "document", source: input.source ?? "manual",
+        connectorId: input.connectorId, requirementIds, status: "pending-review",
+        collectedAt: input.collectedAt ?? ts, validUntil: input.validUntil,
+        content: input.content, data: input.data, fileName: input.fileName, createdAt: ts, reviewHistory: [],
+        assurance: input.assurance ?? { kind: "unspecified", scope: "" }, supersedesId: input.supersedesId,
+        contentRequirementIds: [...requirementIds],
       };
+      evidence.provenance = this.collectionProvenance(evidence, actor, ts, refs);
+      evidence.contentSourceDocumentIds = [...evidence.provenance.sourceDocumentIds];
+      evidence.restrictedContent = evidence.provenance.restrictedContent;
+      const scope = this.evidenceScope(evidence);
+      evidence.assurance = scope.assurance;
+      await this.validateReplacement(evidence);
+      evidence = { ...evidence, collectedAt: scope.collectedAt, validUntil: scope.validUntil };
+      evidence.sha256 = artifactHash(evidence);
+      if (input.status === "accepted" || input.status === "rejected") {
+        evidence = this.evidenceDecision(evidence, input.status, input.reviewedBy ?? actor, input.reviewedAt ?? ts, input.status === "rejected" ? "Rejected at collection by trusted service caller" : undefined);
+      }
       await this.store.evidence.put(evidence);
-      this.emit(ws.id, "evidence.created", evidence);
-      await this.log(ws.id, actor, "collected", "evidence", evidence.id, `Evidence “${evidence.title}” added for ${requirementIds.map(codeOf).join(", ") || "no requirement"}`);
+      this.emit(ws.id, "evidence.created", evidenceMetadata(evidence));
+      await this.log(ws.id, actor, "collected", "evidence", evidence.id, `Evidence “${evidence.title}” added for ${requirementIds.map(codeOf).join(", ") || "no requirement"}`, { before: null, after: evidenceAuditSnapshot(evidence) });
       return evidence;
     });
   }
 
-  async reviewEvidence(workspaceId: string, evidenceId: string, decision: "accepted" | "rejected", actor = "user", note?: string): Promise<Evidence> {
+  private fileScope(ws: Workspace): BlobScope {
+    if (!ws.tenantId) throw new ValidationError("File evidence requires an owning organization");
+    return { tenantId: ws.tenantId, workspaceId: ws.id };
+  }
+
+  private fileArtifact(e: Evidence): NonNullable<Evidence["artifact"]> {
+    const artifact = e.artifact;
+    if (!artifact) throw new ValidationError("Evidence does not contain a file artifact");
+    if (typeof artifact.id !== "string" || !artifact.id || typeof artifact.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(artifact.sha256) || !Number.isInteger(artifact.size) || artifact.size < 1 || artifact.size > MAX_BLOB_BYTES || e.sha256 !== artifact.sha256 || e.content !== undefined || e.data !== undefined) {
+      throw new ValidationError("File artifact does not match its recorded metadata");
+    }
+    return artifact;
+  }
+
+  private async verifiedFile(scope: BlobScope, e: Evidence): Promise<Uint8Array> {
+    const artifact = this.fileArtifact(e);
+    const bytes = await this.blobs.get(scope, artifact);
+    if (!(bytes instanceof Uint8Array) || bytes.byteLength !== artifact.size || createHash("sha256").update(bytes).digest("hex") !== artifact.sha256) throw new ValidationError("File artifact does not match its recorded hash");
+    return bytes;
+  }
+
+  private fileInput(ws: Workspace, input: FileEvidenceInput, ts: string): Omit<Evidence, "id" | "artifact" | "sha256"> {
+    const allowed = new Set(["title", "description", "kind", "requirementIds", "collectedAt", "validUntil", "fileName", "mediaType", "assurance", "supersedesId"]);
+    if (Object.keys(input).some((key) => !allowed.has(key))) throw new ValidationError("File evidence metadata contains a server-owned or unsupported field");
+    if (typeof input.title !== "string" || !input.title.trim() || input.title.trim().length > 300) throw new ValidationError("Evidence title must contain between 1 and 300 characters");
+    if (input.description !== undefined && (typeof input.description !== "string" || input.description.length > 10_000)) throw new ValidationError("Evidence description must be at most 10000 characters");
+    const kinds = new Set(["document", "screenshot", "configuration", "log", "attestation", "policy", "report"]);
+    if (input.kind !== undefined && !kinds.has(input.kind)) throw new ValidationError("Invalid evidence kind");
+    if (typeof input.fileName !== "string" || !input.fileName.trim() || input.fileName.length > 300 || /[\x00-\x1f\x7f/\\]/.test(input.fileName) || [".", ".."].includes(input.fileName.trim())) throw new ValidationError("File name must be a display label without paths or control characters");
+    if (typeof input.mediaType !== "string" || input.mediaType.length > 127 || !/^[a-zA-Z0-9!#$&^_.+-]+\/[a-zA-Z0-9!#$&^_.+-]+$/.test(input.mediaType)) throw new ValidationError("A valid file media type is required");
+    const requirementIds = this.taskRequirements(ws, input.requirementIds);
+    if (!requirementIds.length) throw new ValidationError("Link file evidence to at least one requirement");
+    const evidence: Omit<Evidence, "id"> = {
+      workspaceId: ws.id, title: input.title.trim(), description: input.description,
+      kind: input.kind ?? "document", source: "upload", requirementIds,
+      status: "pending-review", collectedAt: input.collectedAt ?? ts, validUntil: input.validUntil,
+      fileName: Buffer.from(input.fileName.trim(), "utf8").toString("utf8"), reviewHistory: [], createdAt: ts,
+      assurance: input.assurance ?? { kind: "unspecified", scope: "" }, supersedesId: input.supersedesId,
+      contentRequirementIds: [...requirementIds],
+    };
+    const normalized = this.evidenceScope({ ...evidence, id: "preflight" });
+    return { ...evidence, collectedAt: normalized.collectedAt, validUntil: normalized.validUntil, assurance: normalized.assurance };
+  }
+
+  /** Persist and verify bytes before opening the metadata/audit transaction. */
+  async createFileEvidence(workspaceId: string, input: FileEvidenceInput, bytes: Uint8Array, actor = "user", authorize?: () => Promise<void>): Promise<Evidence> {
+    if (this.store.inTransaction) throw new ValidationError("File storage cannot run inside a database transaction");
+    const ws = await this.workspace(workspaceId);
+    const scope = this.fileScope(ws);
+    const metadata = this.fileInput(ws, input, now());
+    if (!(bytes instanceof Uint8Array) || bytes.byteLength < 1 || bytes.byteLength > MAX_BLOB_BYTES) throw new ValidationError("File bytes must contain between 1 byte and 10 MiB");
+    const snapshot = new Uint8Array(bytes);
+    const hash = createHash("sha256").update(snapshot).digest("hex");
+    const reference = await this.blobs.put(scope, snapshot);
+    let publicationAttempted = false;
+    try {
+      if (!reference || typeof reference.id !== "string" || !reference.id || reference.sha256 !== hash || reference.size !== snapshot.byteLength) throw new ValidationError("File artifact does not match its recorded metadata");
+      const evidence: Evidence = { ...metadata, id: newId("ev"), sha256: hash, artifact: { id: reference.id, sha256: reference.sha256, size: reference.size, mediaType: input.mediaType.toLowerCase() } };
+      await this.verifiedFile(scope, evidence);
+      return await this.mutate(ws.id, async () => {
+        const current = await this.workspace(ws.id);
+        if (current.tenantId !== scope.tenantId) throw new ValidationError("Workspace organization changed during file storage");
+        this.taskRequirements(current, evidence.requirementIds);
+        evidence.provenance = this.collectionProvenance(evidence, actor, now());
+        evidence.contentSourceDocumentIds = [...evidence.provenance.sourceDocumentIds];
+        evidence.restrictedContent = evidence.provenance.restrictedContent;
+        await this.validateReplacement(evidence);
+        await authorize?.();
+        // COMMIT can succeed even when its acknowledgement is lost. Once a
+        // metadata write begins, retain bytes for reconciliation rather than
+        // risk deleting an artifact referenced by a durable evidence row.
+        publicationAttempted = true;
+        await this.store.evidence.put(evidence);
+        this.emit(current.id, "evidence.created", evidenceMetadata(evidence));
+        await this.log(current.id, actor, "collected", "evidence", evidence.id, `Evidence “${evidence.title}” added for ${evidence.requirementIds.map(codeOf).join(", ") || "no requirement"}`, { before: null, after: evidenceAuditSnapshot(evidence) });
+        return evidence;
+      });
+    } catch (err) {
+      if (!publicationAttempted && reference && typeof reference.id === "string" && reference.id) await this.blobs.delete(scope, reference.id).catch(() => console.error("[visua] could not clean up an unpublished evidence file"));
+      throw err;
+    }
+  }
+
+  /** Byte reads happen outside SQL; a locked reread closes workspace/reference/auth races. */
+  async getEvidenceFile(workspaceId: string, evidenceId: string, authorize?: () => Promise<void>): Promise<{ evidence: Evidence; bytes: Uint8Array }> {
+    if (this.store.inTransaction) throw new ValidationError("File storage cannot run inside a database transaction");
+    const ws = await this.workspace(workspaceId);
+    const scope = this.fileScope(ws);
+    const evidence = await this.store.evidence.metadataGet(evidenceId);
+    if (!evidence || evidence.workspaceId !== ws.id) throw new NotFoundError(`Evidence '${evidenceId}' not found`);
+    this.fileArtifact(evidence);
+    const bytes = await this.verifiedFile(scope, evidence);
+    return this.mutate(ws.id, async () => {
+      const currentWorkspace = await this.workspace(ws.id);
+      const current = await this.store.evidence.metadataGet(evidenceId);
+      if (currentWorkspace.tenantId !== scope.tenantId || !current || current.workspaceId !== ws.id) throw new NotFoundError(`Evidence '${evidenceId}' not found`);
+      if (canonical(current.artifact) !== canonical(evidence.artifact) || current.sha256 !== evidence.sha256 || !sameEvidenceReviewScope(this.evidenceScope(current), this.evidenceScope(evidence))) throw new ValidationError("Evidence changed while its file was being read; reload it");
+      this.fileArtifact(current);
+      await authorize?.();
+      return { evidence: current, bytes };
+    });
+  }
+
+  async reviewEvidence(workspaceId: string, evidenceId: string, decision: "accepted" | "rejected" | "withdrawn", actor = "user", note?: string, expectedScope?: EvidenceReviewScope, authorize?: () => Promise<void>, expectedReviewId?: string | null): Promise<Evidence> {
+    const foundWorkspace = await this.workspace(workspaceId);
+    const inspected = await this.store.evidence.metadataGet(evidenceId);
+    if (!inspected || inspected.workspaceId !== foundWorkspace.id) throw new NotFoundError(`Evidence '${evidenceId}' not found`);
+    const fileScope = inspected.artifact ? this.fileScope(foundWorkspace) : undefined;
+    if (fileScope && decision !== "withdrawn") {
+      if (this.store.inTransaction) throw new ValidationError("File evidence must be reviewed directly; proposal approval cannot read files inside a database transaction");
+      if (!expectedScope || !sameEvidenceReviewScope(expectedScope, this.evidenceScope(inspected))) throw new ValidationError("Evidence changed since it was inspected; reload it before reviewing");
+      await this.verifiedFile(fileScope, inspected);
+    }
     return this.mutate(workspaceId, async (ws) => {
       const prev = await this.store.evidence.get(evidenceId);
       if (!prev || prev.workspaceId !== ws.id) throw new NotFoundError(`Evidence '${evidenceId}' not found`);
-      const next: Evidence = {
-        ...prev,
-        status: decision,
-        reviewedBy: actor,
-        reviewedAt: now(),
-        description: note ? `${prev.description ?? ""}\n\nReview note: ${note}`.trim() : prev.description,
-      };
+      if (expectedReviewId !== undefined && (prev.reviewHistory?.at(-1)?.id ?? null) !== expectedReviewId) throw new ValidationError("Evidence review changed since inspection; reload it before reviewing");
+      if (canonical(prev.artifact) !== canonical(inspected.artifact)) throw new ValidationError("Evidence changed since its artifact was inspected; reload it before reviewing");
+      if (!expectedScope || !sameEvidenceReviewScope(expectedScope, this.evidenceScope(prev))) throw new ValidationError("Evidence changed since it was inspected; reload it before reviewing");
+      if (fileScope && (ws.tenantId !== fileScope.tenantId || canonical(prev.artifact) !== canonical(inspected.artifact))) throw new ValidationError("Evidence changed since its file was inspected; reload it before reviewing");
+      await authorize?.();
+      // Detect stored artifact corruption as well as stale caller snapshots.
+      if (artifactHash(prev) !== prev.sha256) throw new ValidationError("Evidence artifact does not match its recorded hash");
+      const next = this.evidenceDecision(prev, decision, actor, now(), note);
       await this.store.evidence.put(next);
-      this.emit(ws.id, "evidence.updated", next);
-      await this.log(ws.id, actor, decision, "evidence", next.id, `Evidence “${next.title}” ${decision}`);
+      this.emit(ws.id, "evidence.updated", evidenceMetadata(next));
+      await this.log(ws.id, actor, decision, "evidence", next.id, `Evidence “${next.title}” ${decision}`, { before: evidenceAuditSnapshot(prev), after: evidenceAuditSnapshot(next), review: next.reviewHistory!.at(-1) });
       return next;
     });
   }
 
-  async updateEvidence(workspaceId: string, evidenceId: string, patch: Partial<Evidence>, actor = "user"): Promise<Evidence> {
+  async updateEvidence(workspaceId: string, evidenceId: string, patch: EvidencePatch, actor = "user"): Promise<Evidence> {
     return this.mutate(workspaceId, async (ws) => {
       const prev = await this.store.evidence.get(evidenceId);
       if (!prev || prev.workspaceId !== ws.id) throw new NotFoundError(`Evidence '${evidenceId}' not found`);
-      // Only the fields the caller sent: an absent title or link list is not a request to erase it.
-      const changes = Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined)) as Partial<Evidence>;
-      if (changes.requirementIds) changes.requirementIds = this.linkedRequirements(changes.requirementIds);
-      const next: Evidence = { ...prev, ...changes, id: prev.id, workspaceId: ws.id };
+      if (patch.expectedScope && !sameEvidenceReviewScope(patch.expectedScope, this.evidenceScope(prev))) throw new ValidationError("Evidence changed since inspection; reload before editing");
+      const allowed = new Set(["title", "description", "content", "data", "fileName", "requirementIds", "collectedAt", "validUntil", "assurance"]);
+      const { expectedScope: _expectedScope, ...fields } = patch;
+      const changes = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined));
+      if (Object.keys(changes).some((key) => !allowed.has(key))) throw new ValidationError("Evidence identity and review history cannot be edited");
+      if (prev.artifact && (Object.hasOwn(patch, "content") || Object.hasOwn(patch, "data"))) throw new ValidationError("File artifacts are immutable; upload a new evidence item to replace file bytes");
+      if (prev.source === "connector" && ["content", "data", "collectedAt"].some((key) => key in changes && canonical(changes[key]) !== canonical(prev[key as keyof Evidence]))) throw new ValidationError("Connector observations are immutable; run a new check to collect a new artifact");
+      if (prev.provenance?.origin === "approved-policy" && ["content", "data", "collectedAt"].some((key) => key in changes && canonical(changes[key]) !== canonical(prev[key as keyof Evidence]))) throw new ValidationError("Approved policy artifacts are immutable; approve a new policy version to collect a new artifact");
+      if (changes["requirementIds"] !== undefined) changes["requirementIds"] = prev.artifact ? this.taskRequirements(ws, changes["requirementIds"] as string[]) : this.linkedRequirements(changes["requirementIds"] as string[]);
+      let next: Evidence = { ...prev, ...changes, validUntil: changes["validUntil"] === null ? undefined : changes["validUntil"] as string | undefined ?? prev.validUntil };
+      next.contentRequirementIds = [...new Set([...(prev.contentRequirementIds ?? []), ...prev.requirementIds, ...next.requirementIds])];
+      const sources = this.contentSources(next.contentRequirementIds);
+      next.contentSourceDocumentIds = [...new Set([...(prev.contentSourceDocumentIds ?? prev.provenance?.sourceDocumentIds ?? []), ...sources.sourceDocumentIds])].sort();
+      next.restrictedContent = prev.restrictedContent === true || prev.provenance?.restrictedContent === true || sources.restrictedContent;
+      if (prev.artifact) {
+        const metadata = this.fileInput(ws, { title: next.title, description: next.description, kind: next.kind, requirementIds: next.requirementIds, collectedAt: next.collectedAt, validUntil: next.validUntil, assurance: next.assurance, supersedesId: next.supersedesId, fileName: next.fileName!, mediaType: prev.artifact.mediaType }, next.createdAt);
+        next = { ...next, title: metadata.title, fileName: metadata.fileName };
+      }
+      const scope = this.evidenceScope(next);
+      next = { ...next, collectedAt: scope.collectedAt, validUntil: scope.validUntil, assurance: scope.assurance, sha256: artifactHash(next) };
+      let previousScope: EvidenceReviewScope | undefined;
+      try { previousScope = evidenceReviewScope(prev); } catch { /* Legacy malformed dates require repair and renewed review. */ }
+      if (!previousScope || !sameEvidenceReviewScope(previousScope, this.evidenceScope(next))) {
+        next = { ...next, status: "pending-review", reviewedBy: undefined, reviewedAt: undefined };
+      }
       await this.store.evidence.put(next);
-      this.emit(ws.id, "evidence.updated", next);
-      await this.log(ws.id, actor, "updated", "evidence", next.id, `Evidence “${next.title}” updated`);
+      this.emit(ws.id, "evidence.updated", evidenceMetadata(next));
+      await this.log(ws.id, actor, "updated", "evidence", next.id, `Evidence “${next.title}” updated`, { before: evidenceAuditSnapshot(prev), after: evidenceAuditSnapshot(next), changedFields: Object.keys(changes).sort() });
       return next;
     });
   }
@@ -1119,7 +1455,8 @@ export class VisuaService {
         updatedAt: now(),
       };
       if (bodyChanged && (prev.status === "approved" || prev.status === "published") && !patch.status) next.status = "in-review";
-      if (patch.status === "approved" && prev.status !== "approved") {
+      if (patch.status === "published" && (bodyChanged || !["approved", "published"].includes(prev.status) || !prev.approvedAt)) throw new ValidationError("Publishing requires approval of the current policy version");
+      if (patch.status === "approved") {
         next.approvedBy = actor;
         next.approvedAt = now();
       }
@@ -1128,7 +1465,7 @@ export class VisuaService {
       await this.log(ws.id, actor, patch.status ?? "updated", "policy", next.id, `Policy “${next.title}” v${next.version} ${patch.status ?? "updated"}`);
       if (patch.status === "approved" || patch.status === "published") {
         // An approved policy is evidence for the requirements it governs.
-        const exists = (await this.store.evidence.list(ws.id)).some((e) => e.kind === "policy" && e.data?.["policyId"] === next.id && e.data?.["version"] === next.version);
+        const exists = (await this.store.evidence.metadataList(ws.id)).some((e) => e.provenance?.origin === "approved-policy" && e.provenance.policy?.id === next.id && e.provenance.policy.version === next.version);
         if (!exists && next.requirementIds.length) {
           await this.createEvidence(
             ws.id,
@@ -1143,8 +1480,10 @@ export class VisuaService {
               validUntil: new Date(Date.now() + next.reviewCadenceDays * 86_400_000).toISOString(),
               data: { policyId: next.id, version: next.version },
               content: next.body,
+              assurance: { kind: "design", scope: `Approved policy ${next.id}` },
             },
             actor,
+            { policy: next },
           );
         }
       }
@@ -1187,7 +1526,7 @@ export class VisuaService {
   // -------------------------------------------------------------------------
 
   async createConnector(workspaceId: string, input: { kind: string; name?: string; config: Record<string, unknown> }, actor = "user"): Promise<Connector> {
-    const kind = connectorKind(input.kind);
+    const kind = connectorKind(input.kind, this.connectorKinds);
     if (!kind) throw new ValidationError(`Unknown connector kind '${input.kind}'`);
     for (const field of kind.configFields) {
       if (field.required && !String(input.config[field.key] ?? "").trim()) throw new ValidationError(`${field.label} is required`);
@@ -1227,24 +1566,32 @@ export class VisuaService {
    * accepted, machine-verified evidence; an agent's run (`fileEvidence: false`) only
    * records the checks, and the agent proposes the evidence (see `evidenceFromCheck`).
    */
-  async runConnector(workspaceId: string, connectorId: string, actor = "user", opts: { fileEvidence?: boolean } = {}): Promise<CheckResult[]> {
+  async runConnector(workspaceId: string, connectorId: string, actor = "user", opts: { fileEvidence?: boolean; signal?: AbortSignal; runFence?: RunFence } = {}): Promise<CheckResult[]> {
+    if (opts.signal?.aborted || (opts.runFence && this.runsStopping)) throw new RunLeaseLostError();
     const ws = await this.workspace(workspaceId);
     const connector = await this.store.connectors.get(connectorId);
     if (!connector || connector.workspaceId !== ws.id) throw new NotFoundError(`Connector '${connectorId}' not found`);
-    const kind = connectorKind(connector.kind);
+    const kind = connectorKind(connector.kind, this.connectorKinds);
     if (!kind) throw new ValidationError(`Unknown connector kind '${connector.kind}'`);
+    if (opts.runFence) await this.mutate(ws.id, async () => { await this.assertRunFence(opts.runFence!); });
     // The external call happens outside any transaction.
     let outputs;
     try {
-      outputs = await kind.run(connector.config);
+      outputs = await kind.run(connector.config, opts.signal);
     } catch (err) {
+      if (opts.signal?.aborted || (opts.runFence && this.runsStopping)) throw new RunLeaseLostError();
       await this.mutate(ws.id, async () => {
+        if (opts.runFence) await this.assertRunFence(opts.runFence);
         await this.store.connectors.update(connector.id, (c) => ({ ...c, status: "error", lastRunAt: now() }));
         await this.log(ws.id, actor, "failed", "connector", connector.id, `Connector “${connector.name}” failed: ${(err as Error).message.slice(0, 200)}`);
       });
+      diagnostics.increment("connector.failed");
       throw err;
     }
+    if (opts.signal?.aborted || (opts.runFence && this.runsStopping)) throw new RunLeaseLostError();
     return this.mutate(ws.id, async (ws) => {
+      if (opts.runFence) await this.assertRunFence(opts.runFence);
+      if (opts.signal?.aborted) throw new RunLeaseLostError();
       await this.store.connectors.update(connector.id, (c) => ({ ...c, status: "active", lastRunAt: now() }));
       const observedAt = now();
       const results: CheckResult[] = outputs.map((o) => ({
@@ -1258,10 +1605,12 @@ export class VisuaService {
         requirementIds: this.resolveRefs(ws, o.requirements),
         observed: o.observed,
         observedAt,
+        source: { connectorKind: connector.kind, connectorName: connector.name, configHash: createHash("sha256").update(canonical({ kind: connector.kind, config: connector.config })).digest("hex") },
       }));
       for (const r of results) await this.store.checks.put(r, observedAt);
       // Passing checks are machine-verified evidence, valid for 30 days.
       if (opts.fileEvidence !== false) for (const r of results.filter((x) => x.outcome === "pass" && x.requirementIds.length)) await this.evidenceFromCheck(ws.id, connector, r, "system:connector");
+      this.store.afterCommit(() => diagnostics.increment("connector.completed"));
       this.emit(ws.id, "check.completed", { connectorId: connector.id, results });
       const passed = results.filter((r) => r.outcome === "pass").length;
       await this.log(ws.id, actor, "ran", "connector", connector.id, `${connector.name}: ${passed}/${results.length} checks passing`);
@@ -1274,11 +1623,11 @@ export class VisuaService {
    * its title, detail, requirements and observation, hashed. Nobody (and no agent) can
    * change what a check observed on its way into the evidence locker.
    */
-  private async evidenceFromCheck(workspaceId: string, connector: Connector, check: CheckResult, reviewer: string): Promise<Evidence> {
+  private async evidenceFromCheck(workspaceId: string, connector: Connector, check: CheckResult, reviewer: string, agent?: { runId: string; proposalId: string }): Promise<Evidence> {
     const ev = await this.createEvidence(
       workspaceId,
       {
-        title: `${connector.name}: ${check.title}`,
+        title: `${check.source?.connectorName ?? "Recorded check"}: ${check.title}`,
         kind: "automated-check",
         source: "connector",
         connectorId: connector.id,
@@ -1290,9 +1639,10 @@ export class VisuaService {
         validUntil: new Date(new Date(check.observedAt).getTime() + 30 * 86_400_000).toISOString(),
         content: check.detail,
         data: { checkId: check.checkId, observed: check.observed, automation: "api-automated" },
-        sha256: createHash("sha256").update(canonical({ checkId: check.checkId, observed: check.observed, observedAt: check.observedAt })).digest("hex"),
+        assurance: { kind: "operating", scope: `Recorded check ${check.checkId}`, observationStart: check.observedAt, observationEnd: check.observedAt },
       },
-      `connector:${connector.kind}`,
+      `connector:${check.source?.connectorKind ?? "recorded"}`,
+      { check, agent },
     );
     check.evidenceId = ev.id;
     await this.store.checks.put(check, check.observedAt);
@@ -1316,44 +1666,203 @@ export class VisuaService {
   // -------------------------------------------------------------------------
 
   async startRun(workspaceId: string, input: { agent: AgentKind; goal: string; input?: Record<string, unknown> }, actor = "user"): Promise<AgentRun> {
+    if (this.runsStopping) throw new ValidationError("Run worker is stopping");
     return this.mutate(workspaceId, async (ws) => {
+      if (this.runsStopping) throw new ValidationError("Run worker is stopping");
+      const queued = (await this.store.runs.active(ws.id, 1024)).filter((run) => run.status === "queued").length;
+      if (queued >= this.runOptions.maxQueuedPerWorkspace) throw new RunQueueFullError("This workspace's run queue is full; wait for active work to finish");
       const principal = principalContext.getStore();
       const run: AgentRun = {
-        id: newId("run"),
-        workspaceId: ws.id,
-        agent: input.agent,
-        goal: input.goal.trim() || `Run ${input.agent}`,
-        input: input.input ?? {},
-        status: "queued",
-        mode: "offline",
-        steps: [],
-        focusNodeIds: [],
-        taskId: typeof input.input?.["taskId"] === "string" ? (input.input["taskId"] as string) : undefined,
-        ...(principal ? { startedBy: principal.id } : {}),
-        createdAt: now(),
+        id: newId("run"), workspaceId: ws.id, agent: input.agent,
+        goal: input.goal.trim() || `Run ${input.agent}`, input: input.input ?? {},
+        status: "queued", mode: "offline", steps: [], stageHistory: [], focusNodeIds: [], executionEpoch: 0,
+        taskId: typeof input.input?.["taskId"] === "string" ? input.input["taskId"] : undefined,
+        ...(principal ? { startedBy: principal.id } : {}), createdAt: now(),
       };
       await this.store.runs.put(run, run.createdAt);
       this.emit(ws.id, "agent.run.created", run);
-      await this.log(ws.id, actor, "started", "agent-run", run.id, `${input.agent} started: ${run.goal.slice(0, 120)}`);
-      // Launch only once the run is committed, detached from the request.
-      this.store.afterCommit(() => this.launch(run.id));
+      await this.log(ws.id, actor, "queued", "agent-run", run.id, `${input.agent} queued: ${run.goal.slice(0, 120)}`);
+      this.store.afterCommit(() => this.wakeRuns());
       return run;
     });
   }
 
-  private launch(runId: string): void {
-    const controller = new AbortController();
-    this.running.set(runId, controller);
-    principalContext.exit(() =>
-      txContext.exit(() => {
-        void this.executeRun(runId, controller.signal)
-          .catch((err: unknown) => console.error(`[visua] agent run ${runId} crashed`, err))
-          .finally(() => this.running.delete(runId));
-      }),
-    );
+  /** Start durable recovery on server startup, and lazily for service/test callers. */
+  async startRunScheduler(): Promise<void> {
+    if (this.runsStopping) return;
+    if (!this.runTimer) {
+      this.runTimer = setInterval(() => this.wakeRuns(), this.runOptions.heartbeatMs);
+      this.runTimer.unref?.();
+    }
+    await this.reconcileRuns();
   }
 
-  /** Resolves when the run finishes (used by tests and synchronous API callers). */
+  private wakeRuns(): void {
+    if (this.runsStopping) return;
+    principalContext.exit(() => txContext.exit(() => {
+      void this.startRunScheduler().catch((error: unknown) => console.error("[visua] run scheduler failed", error));
+    }));
+  }
+
+  /** The persisted lease and epoch are checked while the workspace write lock is held. */
+  private async assertRunFence(fence: RunFence): Promise<AgentRun> {
+    if (this.runsStopping || fence.ownerId !== this.runOwnerId || this.running.get(fence.runId)?.signal.aborted) throw new RunLeaseLostError();
+    const run = await this.store.runs.get(fence.runId);
+    if (!ownsRun(run, fence)) throw new RunLeaseLostError();
+    return run;
+  }
+
+  async appendRunStep(fence: RunFence, step: AgentStep): Promise<void> {
+    if (this.runsStopping) throw new RunLeaseLostError();
+    await this.mutate(fence.workspaceId, async (ws) => {
+      const current = await this.assertRunFence(fence);
+      if (current.steps.length >= 4096) throw new ValidationError("Run step limit exceeded");
+      const next = { ...current, steps: [...current.steps, step], focusNodeIds: step.nodeIds?.length ? [...new Set([...current.focusNodeIds, ...step.nodeIds])].slice(-60) : current.focusNodeIds };
+      await this.store.runs.put(next);
+      this.emit(ws.id, "agent.step", { runId: current.id, agent: current.agent, step });
+      await this.log(ws.id, `agent:${current.agent}`, "recorded", "agent-run", current.id, `Agent step: ${step.title.slice(0, 160)}`, { stepId: step.id, type: step.type, epoch: fence.epoch });
+    });
+  }
+
+  private async saveRun(fence: RunFence, patch: Partial<AgentRun>, observations: NonNullable<AgentRun["stageHistory"]> = []): Promise<AgentRun> {
+    if (this.runsStopping) throw new RunLeaseLostError();
+    return this.mutate(fence.workspaceId, async (ws) => {
+      const current = await this.assertRunFence(fence);
+      const next: AgentRun = { ...current, ...patch, ...(observations.length ? { stageHistory: [...(current.stageHistory ?? []), ...observations] } : {}) };
+      await this.store.runs.put(next);
+      this.emit(ws.id, "agent.run.updated", { ...next, steps: undefined });
+      if (patch.status === "completed" || patch.status === "awaiting-approval" || patch.status === "failed") this.store.afterCommit(() => diagnostics.increment(patch.status === "failed" ? "run.failed" : "run.completed"));
+      const action = patch.status === "completed" || patch.status === "awaiting-approval" ? "finished" : patch.status === "failed" ? "failed" : "progressed";
+      await this.log(ws.id, `agent:${current.agent}`, action, "agent-run", current.id, `${current.agent} ${action}${patch.error ? `: ${patch.error.slice(0, 160)}` : ""}`, { epoch: fence.epoch, status: next.status });
+      return next;
+    });
+  }
+
+  /** Serialize queue claims across instances; never infer success from Collection.update. */
+  private async claimRun(candidate: AgentRun): Promise<{ run: AgentRun; fence: RunFence } | undefined> {
+    if (this.runsStopping) return;
+    return this.mutate(candidate.workspaceId, async (ws) => {
+      if (this.runsStopping) return;
+      const current = await this.store.runs.get(candidate.id);
+      if (!current || current.workspaceId !== ws.id || current.status !== "queued") return;
+      const active = (await this.store.runs.active(ws.id, 1024)).filter((r) => r.status === "running" && r.execution && Date.parse(r.execution.leaseExpiresAt) > Date.now());
+      if (active.length >= this.runOptions.workspaceConcurrency) return;
+      const epoch = (current.executionEpoch ?? 0) + 1;
+      const fence: RunFence = { runId: current.id, workspaceId: ws.id, ownerId: this.runOwnerId, attemptId: randomUUID(), epoch };
+      const at = now();
+      const next: AgentRun = { ...current, status: "running", startedAt: at, executionEpoch: epoch, execution: { ownerId: fence.ownerId, attemptId: fence.attemptId, epoch, heartbeatAt: at, leaseExpiresAt: new Date(Date.now() + this.runOptions.leaseMs).toISOString() } };
+      await this.store.runs.put(next);
+      this.emit(ws.id, "agent.run.updated", { ...next, steps: undefined });
+      await this.log(ws.id, "system:runs", "claimed", "agent-run", next.id, `${next.agent} execution claimed`, { ownerId: fence.ownerId, attemptId: fence.attemptId, epoch });
+      return { run: next, fence };
+    });
+  }
+
+  private async interruptRun(candidate: AgentRun, reason: "owner-expired" | "server-stopped"): Promise<void> {
+    await this.mutate(candidate.workspaceId, async (ws) => {
+      const current = await this.store.runs.get(candidate.id);
+      if (!current || current.workspaceId !== ws.id || current.status !== "running") return;
+      if (reason === "server-stopped" && current.execution?.ownerId !== this.runOwnerId) return;
+      if (reason === "owner-expired" && current.execution && Date.parse(current.execution.leaseExpiresAt) > Date.now()) return;
+      const next: AgentRun = { ...current, status: "failed", interruptionReason: reason, executionEpoch: (current.executionEpoch ?? 0) + 1, finishedAt: now(), error: reason === "owner-expired" ? "Execution interrupted: worker lease expired. Review existing proposals before starting another run." : "Execution interrupted: server stopped. Review existing proposals before starting another run." };
+      await this.store.runs.put(next);
+      this.store.afterCommit(() => { this.running.get(next.id)?.abort(); diagnostics.increment("run.interrupted"); if (reason === "owner-expired") diagnostics.increment("run.lease_expired"); });
+      this.emit(ws.id, "agent.run.updated", { ...next, steps: undefined });
+      await this.log(ws.id, "system:runs", "interrupted", "agent-run", next.id, next.error!, { reason, epoch: next.executionEpoch });
+    });
+  }
+
+  /** Bounded sweep: renew local leases, fence abandoned work, then fill local slots. */
+  reconcileRuns(): Promise<void> {
+    if (this.runsStopping) return Promise.resolve();
+    if (this.store.inTransaction) return Promise.reject(new ValidationError("Run scheduling cannot execute inside a transaction"));
+    if (this.runPump) return this.runPump;
+    const pump = (async () => {
+      diagnostics.setGauge("run.queued", await this.store.runs.queuedCount());
+      for (const fence of this.runFences.values()) {
+        if (this.runsStopping) return;
+        try {
+          await this.mutate(fence.workspaceId, async (ws) => {
+            const current = await this.assertRunFence(fence);
+            const at = now();
+            await this.store.runs.put({ ...current, execution: { ...current.execution!, heartbeatAt: at, leaseExpiresAt: new Date(Date.now() + this.runOptions.leaseMs).toISOString() } });
+            await this.log(ws.id, "system:runs", "heartbeat", "agent-run", current.id, "Execution lease renewed", { epoch: fence.epoch });
+          });
+        } catch (error) {
+          this.running.get(fence.runId)?.abort();
+          if (!(error instanceof RunLeaseLostError) && !(error instanceof NotFoundError)) throw error;
+        }
+      }
+      const page = await this.store.runs.scanActive(this.runScanCursor);
+      const candidates = page.runs;
+      for (const candidate of candidates) {
+        if (this.runsStopping) return;
+        if (candidate.status === "running" && (!candidate.execution || !Number.isFinite(Date.parse(candidate.execution.leaseExpiresAt)) || Date.parse(candidate.execution.leaseExpiresAt) <= Date.now())) await this.interruptRun(candidate, "owner-expired");
+      }
+      const deferredWorkspaces = new Set<string>();
+      for (const candidate of candidates) {
+        if (this.runsStopping || this.executions.size >= this.runOptions.concurrency) break;
+        if (candidate.status !== "queued" || deferredWorkspaces.has(candidate.workspaceId)) continue;
+        const claimed = await this.claimRun(candidate);
+        if (claimed) this.launch(claimed.run, claimed.fence);
+        // A busy workspace needs one admission check per page, not one per queued
+        // item. Races that invalidate a candidate defer its peers until the next
+        // sweep; the insertion cursor still advances and eventually wraps.
+        else deferredWorkspaces.add(candidate.workspaceId);
+      }
+      this.runScanCursor = page.cursor;
+    })().finally(() => { if (this.runPump === pump) this.runPump = undefined; });
+    this.runPump = pump;
+    return pump;
+  }
+
+  private launch(run: AgentRun, fence: RunFence): void {
+    if (this.runsStopping) return;
+    const controller = new AbortController();
+    this.running.set(run.id, controller);
+    this.runFences.set(run.id, fence);
+    diagnostics.increment("run.started");
+    diagnostics.adjustGauge("run.running", 1);
+    const started = performance.now();
+    principalContext.exit(() => txContext.exit(() => {
+      const execution = this.executeRun(run, fence, controller.signal)
+        .catch((err: unknown) => { if (!(err instanceof RunLeaseLostError)) console.error(`[visua] agent run ${run.id} crashed`, err); })
+        .finally(() => {
+          diagnostics.adjustGauge("run.running", -1);
+          diagnostics.observe("run_ms", performance.now() - started);
+          this.running.delete(run.id); this.runFences.delete(run.id); this.executions.delete(execution);
+          this.wakeRuns();
+        });
+      this.executions.add(execution);
+    }));
+  }
+
+  /** Wait for this instance's current work; shutdown uses the bounded stop method. */
+  async drainRuns(): Promise<void> {
+    while (this.runPump || this.executions.size) {
+      await this.runPump;
+      await Promise.all([...this.executions]);
+    }
+  }
+
+  /** Fence active writes before a bounded drain, even if external work ignores abort. */
+  stopRuns(timeoutMs = 5_000): Promise<void> {
+    if (this.runStop) return this.runStop;
+    this.runsStopping = true;
+    clearInterval(this.runTimer); this.runTimer = undefined;
+    for (const controller of this.running.values()) controller.abort();
+    this.runStop = (async () => {
+      await this.runPump?.catch(() => undefined);
+      const active = await this.store.runs.owned(this.runOwnerId);
+      for (const run of active) await this.interruptRun(run, "server-stopped");
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      try { await Promise.race([Promise.allSettled([...this.executions]), new Promise<void>((resolve) => { timer = setTimeout(resolve, Math.max(0, timeoutMs)); })]); }
+      finally { clearTimeout(timer); }
+    })();
+    return this.runStop;
+  }
+
+  /** Resolves when execution finishes; awaiting approval is no longer active work. */
   async waitForRun(runId: string, timeoutMs = 120_000): Promise<AgentRun> {
     const started = Date.now();
     for (;;) {
@@ -1369,49 +1878,50 @@ export class VisuaService {
     return this.mutate(workspaceId, async (ws) => {
       const run = await this.store.runs.get(runId);
       if (!run || run.workspaceId !== ws.id) throw new NotFoundError(`Run '${runId}' not found`);
-      const next = (await this.store.runs.update(runId, (r) => ({ ...r, status: "cancelled", finishedAt: now() })))!;
-      this.store.afterCommit(() => this.running.get(runId)?.abort());
+      if (run.status !== "queued" && run.status !== "running") return run;
+      const next: AgentRun = { ...run, status: "cancelled", executionEpoch: (run.executionEpoch ?? 0) + 1, finishedAt: now() };
+      await this.store.runs.put(next);
+      this.store.afterCommit(() => { this.running.get(runId)?.abort(); diagnostics.increment("run.cancelled"); });
       this.emit(ws.id, "agent.run.updated", { ...next, steps: undefined });
-      await this.log(ws.id, actor, "cancelled", "agent-run", runId, `${run.agent} run cancelled`);
+      await this.log(ws.id, actor, "cancelled", "agent-run", runId, `${run.agent} run cancelled`, { epoch: next.executionEpoch });
       return next;
     });
   }
 
-  private async executeRun(runId: string, signal: AbortSignal): Promise<void> {
-    const initial = await this.store.runs.get(runId);
-    if (!initial) return;
-    const workspaceId = initial.workspaceId;
-    const recorder = new RunRecorder(this, workspaceId, initial);
-    const save = async (patch: Partial<AgentRun>) => {
+  private async executeRun(initial: AgentRun, fence: RunFence, signal: AbortSignal): Promise<void> {
+    const workspaceId = initial.workspaceId, runId = initial.id;
+    const recorder = new RunRecorder(this, fence, signal);
+    const save = async (patch: Partial<AgentRun>, observations: NonNullable<AgentRun["stageHistory"]> = []) => {
       await recorder.flush();
-      // A cancellation wins over anything the run reports afterwards.
-      const run = await this.store.runs.update(runId, (r) => (r.status === "cancelled" ? undefined : { ...r, ...patch }));
-      if (run && run.status !== "cancelled") this.emit(workspaceId, "agent.run.updated", { ...run, steps: undefined });
-      return run;
+      return this.saveRun(fence, patch, observations);
     };
-    await save({ status: "running", startedAt: now() });
     try {
+      const startedAt = now();
+      await save({}, [{ stage: "collect", status: "started", at: startedAt }]);
+      if (signal.aborted) return;
       const host = await this.hostFor(workspaceId, runId, signal, recorder);
+      if (signal.aborted) return;
+      const collectedAt = now();
+      await save({}, [{ stage: "collect", status: "completed", at: collectedAt }, { stage: "analyze", status: "started", at: collectedAt }]);
       const result = await executeAgent(host, { agent: initial.agent, goal: initial.goal, input: initial.input });
       if (signal.aborted) return;
-      const pending = (await this.store.proposals.list(workspaceId)).filter((p) => p.runId === runId && p.status === "pending").length;
-      await save({
-        status: pending ? "awaiting-approval" : "completed",
-        summary: result.summary,
-        mode: result.mode,
-        model: result.model,
-        usage: result.usage,
-        finishedAt: now(),
-      });
-      await this.log(workspaceId, `agent:${initial.agent}`, "finished", "agent-run", runId, `${initial.agent} finished${pending ? ` — ${pending} proposal(s) await approval` : ""}`);
-    } catch (err) {
-      if (signal.aborted) return;
-      const message = err instanceof Error ? err.message : String(err);
-      recorder.step({ type: "error", title: "Run failed", detail: message });
-      await save({ status: "failed", error: message, finishedAt: now() });
-      await this.log(workspaceId, `agent:${initial.agent}`, "failed", "agent-run", runId, `${initial.agent} failed: ${message.slice(0, 160)}`);
-    } finally {
       await recorder.flush();
+      await this.mutate(workspaceId, async () => {
+        await this.assertRunFence(fence);
+        const pending = (await this.store.proposals.list(workspaceId)).some((p) => p.runId === runId && p.status === "pending");
+        const finishedAt = now();
+        await this.saveRun(fence, { status: pending ? "awaiting-approval" : "completed", summary: result.summary, mode: result.mode, model: result.model, usage: result.usage, finishedAt }, [{ stage: "analyze", status: "completed", at: finishedAt }]);
+      });
+    } catch (err) {
+      if (signal.aborted || err instanceof RunLeaseLostError) return;
+      const message = err instanceof Error ? err.message : String(err);
+      try {
+        recorder.step({ type: "error", title: "Run failed", detail: message });
+        await recorder.flush().catch(() => undefined);
+        await this.saveRun(fence, { status: "failed", error: message, finishedAt: now() });
+      } catch (failure) { if (!(failure instanceof RunLeaseLostError)) throw failure; }
+    } finally {
+      await recorder.flush().catch((error: unknown) => { if (!(error instanceof RunLeaseLostError)) console.error("[visua] run step persistence failed", error); });
     }
   }
 
@@ -1471,11 +1981,13 @@ export class VisuaService {
       connectors: () => snap.connectors,
       // Agents observe; evidence from the checks goes through proposals like everything else.
       runConnector: async (connectorId: string) => {
-        const results = await this.runConnector(workspaceId, connectorId, `agent:${runId}`, { fileEvidence: false });
+        if (signal.aborted || this.runsStopping) throw new RunLeaseLostError();
+        const results = await this.runConnector(workspaceId, connectorId, `agent:${runId}`, { fileEvidence: false, signal, runFence: recorder.fence });
         await refresh();
         return results;
       },
       propose: async (input: ProposalInput) => {
+        if (signal.aborted || this.runsStopping) throw new RunLeaseLostError();
         const proposal = await this.createProposal(workspaceId, runId, input, recorder);
         if (proposal.status !== "pending") await refresh();
         return proposal;
@@ -1489,8 +2001,22 @@ export class VisuaService {
    * approvals inbox: no threat nodes, no frameworks the workspace has not enabled, no
    * levels on requirements out of scope. Applying it checks again (state can change).
    */
-  private async checkProposal(ws: Workspace, input: ProposalInput): Promise<void> {
+  private async checkProposal(ws: Workspace, input: ProposalInput, runId?: string): Promise<void> {
+    try { parseProposalPayload(input.type, input.payload); }
+    catch (error) { throw new ValidationError((error as Error).message); }
+    for (const citation of input.citations) {
+      if (!this.registry.documents.has(citation.documentId)) throw new ValidationError("Citation document is not in the current corpus");
+      const resolved = this.registry.search.resolveCitation(citation);
+      if (!resolved.ok) throw new ValidationError(resolved.error);
+    }
     const payload = input.payload;
+    if (input.type === "set-level" && runId && (await this.store.runs.get(runId))?.agent === "crosswalk-analyst" && payload["projection"] === undefined) throw new ValidationError("Crosswalk Analyst assessments require a recorded mapping projection; create a new proposal");
+    if (input.type === "set-level" && payload["projection"] !== undefined) {
+      const enabled = new Set(ws.frameworks.filter(framework => framework.enabled).map(framework => framework.frameworkId));
+      const states = new Map((await this.store.states.list(ws.id)).filter(state => enabled.has(frameworkOf(state.nodeId))).map(state => [state.nodeId, state]));
+      const [projection] = projectLevels(this.registry.crosswalk, [String(payload["nodeId"])], states, id => this.registry.framework(id)?.graph.framework.family);
+      if (!projection || projection.confidence === "low" || canonical(projection) !== canonical(payload["projection"]) || payload["current"] !== projection.suggested || input.confidence !== projection.confidence) throw new ValidationError("Crosswalk projection no longer matches the recorded mappings and current source assessments; create a new proposal");
+    }
     switch (input.type) {
       case "set-level":
       case "set-target":
@@ -1512,12 +2038,42 @@ export class VisuaService {
           await this.passingCheck(ws.id, payload["checkResultId"]);
           return;
         }
+        if (!["document", "screenshot", "configuration", "log", "report"].includes(String(payload["kind"] ?? "document"))) throw new ValidationError("Agent narrative cannot claim automated-check, attestation or approved-policy evidence");
         this.linkedRequirements(payload["requirementIds"] as string[] | undefined);
+        if (payload["validDays"] !== undefined && (!Number.isInteger(payload["validDays"]) || Number(payload["validDays"]) < 1 || Number(payload["validDays"]) > 730)) throw new ValidationError("Evidence validity must be between 1 and 730 whole days");
         return;
-      case "create-task":
+      case "review-evidence": {
+        const evidence = await this.store.evidence.get(String(payload["evidenceId"]));
+        if (!evidence || evidence.workspaceId !== ws.id) throw new NotFoundError("Evidence not found");
+        this.evidenceScope(evidence);
+        return;
+      }
+      case "create-task": {
+        this.taskRequirements(ws, payload["requirementIds"] as string[] | undefined);
+        const startDate = this.workDate(payload["startDate"], "Start date");
+        const dueDate = this.workDate(payload["dueDate"], "Due date");
+        this.taskDateRange(startDate, dueDate);
+        if (payload["assignee"] !== undefined) await this.taskAssignee(ws, payload["assignee"] as Task["assignee"]);
+        return;
+      }
+      case "update-task": {
+        const task = await this.store.tasks.get(String(payload["taskId"]));
+        if (!task || task.workspaceId !== ws.id) throw new NotFoundError("Task no longer exists");
+        if (Object.hasOwn(payload, "requirementIds")) this.taskRequirements(ws, payload["requirementIds"] as string[]);
+        if (Object.hasOwn(payload, "assignee")) await this.taskAssignee(ws, payload["assignee"] as Task["assignee"] | null);
+        if (Object.hasOwn(payload, "startDate") || Object.hasOwn(payload, "dueDate")) {
+          const startDate = Object.hasOwn(payload, "startDate") ? this.workDate(payload["startDate"], "Start date") : task.startDate;
+          const dueDate = Object.hasOwn(payload, "dueDate") ? this.workDate(payload["dueDate"], "Due date") : task.dueDate;
+          this.taskDateRange(startDate, dueDate);
+        }
+        return;
+      }
       case "create-policy":
       case "create-risk":
         this.linkedRequirements(payload["requirementIds"] as string[] | undefined);
+        return;
+      case "set-rmf":
+        if (Object.hasOwn(payload, "authorization")) throw new ValidationError("Agents cannot propose authorization decisions; use the system authorization workflow");
         return;
       default:
         return;
@@ -1525,8 +2081,24 @@ export class VisuaService {
   }
 
   async createProposal(workspaceId: string, runId: string, input: ProposalInput, recorder?: RunRecorder): Promise<Proposal> {
+    if (recorder && this.runsStopping) throw new RunLeaseLostError();
+    try {
+      input = parseProposalEnvelope(input);
+      const payload = { ...input.payload };
+      if (input.type === "review-evidence") { delete payload["expectedScope"]; delete payload["expectedReviewId"]; }
+      input = { ...input, payload: parseProposalPayload(input.type, payload) };
+      input.citations = input.citations.map(citation => {
+        if (!this.registry.documents.has(citation.documentId)) throw new Error("Citation document is not in the current corpus");
+        const resolved = this.registry.search.resolveCitation(citation);
+        if (!resolved.ok) throw new Error(resolved.error);
+        return resolved.citation;
+      });
+    } catch (error) { throw new ValidationError((error as Error).message); }
     return this.mutate(workspaceId, async (ws) => {
-      await this.checkProposal(ws, input);
+      // Runtime agents always carry a recorder/fence. Direct service calls are trusted fixtures.
+      if (recorder) await this.assertRunFence(recorder.fence);
+      await this.checkProposal(ws, input, runId);
+      const reviewedEvidence = input.type === "review-evidence" ? await this.store.evidence.get(String(input.payload["evidenceId"])) : undefined;
       const proposal: Proposal = {
         id: newId("prop"),
         runId,
@@ -1534,7 +2106,9 @@ export class VisuaService {
         type: input.type,
         title: input.title,
         rationale: input.rationale,
-        payload: input.payload,
+        payload: input.type === "review-evidence"
+          ? { ...input.payload, expectedScope: this.evidenceScope(reviewedEvidence!), expectedReviewId: reviewedEvidence!.reviewHistory?.at(-1)?.id ?? null }
+          : { ...input.payload },
         citations: input.citations,
         confidence: input.confidence,
         status: "pending",
@@ -1547,21 +2121,96 @@ export class VisuaService {
         recorder?.step({ type: "proposal", title: proposal.title, detail: proposal.rationale, data: { proposalId: proposal.id, type: proposal.type }, nodeIds: proposal.nodeIds, citations: proposal.citations }),
       );
       this.emit(ws.id, "proposal.created", proposal);
-      if (ws.autonomy[proposal.type]) return this.decideProposal(ws.id, proposal.id, "approved", "autonomy");
+      if (mayApplyAutonomously(proposal.type, proposal.payload, ws.autonomy)) return this.decideProposal(ws.id, proposal.id, "approved", "autonomy");
       return proposal;
     });
   }
 
-  async decideProposal(workspaceId: string, proposalId: string, decision: "approved" | "rejected", actor = "user", edits?: Record<string, unknown>): Promise<Proposal> {
+  /** Preview and token construction share the same lock as approval. */
+  async previewProposal(workspaceId: string, proposalId: string): Promise<ProposalPreview> {
+    return this.mutate(workspaceId, async (ws) => this.proposalPreviewIn(ws, proposalId));
+  }
+
+  private async proposalPreviewIn(ws: Workspace, proposalId: string): Promise<ProposalPreview> {
+    const proposal = await this.store.proposals.get(proposalId);
+    if (!proposal || proposal.workspaceId !== ws.id) throw new NotFoundError(`Proposal '${proposalId}' not found`);
+    return buildProposalPreview(this, ws, proposal, async () => {
+      await this.checkProposal(ws, proposal, proposal.runId);
+      await this.applyProposal(proposal, "approving user");
+    });
+  }
+
+  private async proposalRunIn(ws: Workspace, runId: string): Promise<void> {
+    const run = await this.store.runs.get(runId);
+    if (!run || run.workspaceId !== ws.id) throw new NotFoundError("Run not found");
+  }
+
+  async previewRunProposals(workspaceId: string, runId: string): Promise<ProposalBatchPreview> {
+    return this.mutate(workspaceId, async (ws) => {
+      await this.proposalRunIn(ws, runId);
+      const pending = (await this.store.proposals.list(ws.id)).filter((p) => p.runId === runId && p.status === "pending").sort((a, b) => a.id.localeCompare(b.id));
+      if (pending.length > 200) throw new ValidationError("This run has more than 200 pending proposals; review proposals individually");
+      const previews: ProposalPreview[] = [];
+      for (const proposal of pending) previews.push(await this.proposalPreviewIn(ws, proposal.id));
+      return proposalBatchPreview(runId, previews, await this.store.workspaces.rev(ws.id));
+    });
+  }
+
+  async approveRunProposals(workspaceId: string, runId: string, proposalIds: string[], reviewToken: string, actor = "user"): Promise<ProposalBatchResult> {
+    return this.mutate(workspaceId, async (ws) => {
+      await this.proposalRunIn(ws, runId);
+      if (!reviewToken || !proposalIds.length || proposalIds.length > 200 || new Set(proposalIds).size !== proposalIds.length) throw new ValidationError("Approve the exact nonempty proposal set from a batch preview");
+      const previews: ProposalPreview[] = [];
+      for (const id of proposalIds) {
+        const proposal = await this.store.proposals.get(id);
+        if (!proposal || proposal.workspaceId !== ws.id || proposal.runId !== runId) throw new NotFoundError("Proposal not found in this run");
+        previews.push(await this.proposalPreviewIn(ws, id));
+      }
+      const preview = proposalBatchPreview(runId, previews, await this.store.workspaces.rev(ws.id));
+      if (preview.reviewToken !== reviewToken) throw new ProposalReviewConflict("The reviewed proposal set or workspace changed. Refresh the batch preview before approving.");
+      const conflicts = new Set(preview.conflicts.flatMap((conflict) => conflict.proposalIds));
+      const results: ProposalBatchResult["results"] = [];
+      for (const item of previews) {
+        const proposalId = item.proposal.id;
+        if (conflicts.has(proposalId) || !item.canApprove) {
+          results.push({ proposalId, status: "skipped", proposalStatus: item.proposal.status, message: conflicts.has(proposalId) ? "Overlapping target: review and approve individually." : item.unresolvedQuestions.join(" ") });
+          continue;
+        }
+        try {
+          // An audit/storage failure for one item rolls back that item's writes,
+          // while already applied independent items can still commit and be reported.
+          const decided = await this.store.transaction(() => this.decideProposal(ws.id, proposalId, "approved", actor));
+          results.push({ proposalId, status: decided.status === "applied" ? "applied" : "failed", proposalStatus: decided.status, ...(decided.status === "failed" ? { message: decided.rationale.split("Apply failed: ").at(-1) } : {}) });
+        } catch (error) {
+          results.push({ proposalId, status: "failed", proposalStatus: "pending", message: `${error instanceof Error ? error.message : "Approval failed"}. The proposal remains pending.` });
+        }
+      }
+      return { total: results.length, applied: results.filter((r) => r.status === "applied").length, failed: results.filter((r) => r.status === "failed").length, skipped: results.filter((r) => r.status === "skipped").length, results };
+    });
+  }
+
+  async decideProposal(workspaceId: string, proposalId: string, decision: "approved" | "rejected", actor = "user", edits?: Record<string, unknown>, reviewToken?: string): Promise<Proposal> {
     return this.mutate(workspaceId, async (ws) => {
       const prev = await this.store.proposals.get(proposalId);
       if (!prev || prev.workspaceId !== ws.id) throw new NotFoundError(`Proposal '${proposalId}' not found`);
       if (prev.status !== "pending") throw new ValidationError(`Proposal already ${prev.status}`);
+      if (decision === "approved" && reviewToken !== undefined) {
+        if (edits && Object.keys(edits).length) throw new ValidationError("Approval must apply the inspected payload; edits require a new proposal and preview");
+        const preview = await this.proposalPreviewIn(ws, proposalId);
+        if (preview.reviewToken !== reviewToken) throw new ProposalReviewConflict("The proposal or workspace changed since inspection. Refresh the preview before approving.");
+        if (!preview.canApprove) throw new ValidationError(preview.unresolvedQuestions.join(" "));
+      }
       let next: Proposal = { ...prev, payload: { ...prev.payload, ...(edits ?? {}) }, status: decision, decidedBy: actor, decidedAt: now() };
       if (decision === "approved") {
         try {
           // A savepoint: a change that fails half-way leaves nothing behind.
-          await this.store.transaction(() => this.applyProposal(next, actor));
+          await this.store.transaction(async () => {
+            if (prev.type === "create-evidence" && typeof prev.payload["checkResultId"] === "string" && next.payload["checkResultId"] !== prev.payload["checkResultId"]) throw new ValidationError("A connector evidence proposal must retain its original check reference");
+            if (prev.type === "set-level" && prev.payload["projection"] !== undefined && canonical(next.payload["projection"]) !== canonical(prev.payload["projection"])) throw new ValidationError("A crosswalk proposal must retain its original mapping projection; create a new proposal");
+            if (prev.type === "review-evidence" && (next.payload["evidenceId"] !== prev.payload["evidenceId"] || canonical(next.payload["expectedScope"]) !== canonical(prev.payload["expectedScope"]) || next.payload["expectedReviewId"] !== prev.payload["expectedReviewId"])) throw new ValidationError("A review proposal must retain its original evidence, inspected scope and review decision");
+            await this.checkProposal(ws, { ...next, payload: next.payload }, next.runId);
+            await this.applyProposal(next, actor);
+          });
           next = { ...next, status: "applied" };
         } catch (err) {
           next = { ...next, status: "failed", rationale: `${next.rationale}\n\nApply failed: ${(err as Error).message}` };
@@ -1606,6 +2255,8 @@ export class VisuaService {
             priority: payload["priority"] as Priority,
             requirementIds: payload["requirementIds"] as string[],
             dueDate: payload["dueDate"] as string | undefined,
+            startDate: payload["startDate"] as string | undefined,
+            assignee: payload["assignee"] as Task["assignee"],
             effortHours: payload["effortHours"] as number | undefined,
             checklist,
             origin: "agent",
@@ -1618,7 +2269,11 @@ export class VisuaService {
         const task = await this.store.tasks.get(String(payload["taskId"]));
         if (!task || task.workspaceId !== p.workspaceId) throw new NotFoundError("Task no longer exists");
         const done = new Set((payload["completeChecklistItems"] as string[] | undefined) ?? []);
-        const patch: Partial<Task> = { checklist: task.checklist.map((c) => (done.has(c.id) ? { ...c, done: true } : c)) };
+        const patch: TaskPatch = { checklist: task.checklist.map((c) => (done.has(c.id) ? { ...c, done: true } : c)) };
+        if (Object.hasOwn(payload, "requirementIds")) patch.requirementIds = payload["requirementIds"] as string[];
+        if (Object.hasOwn(payload, "assignee")) patch.assignee = payload["assignee"] as Task["assignee"] | null;
+        if (Object.hasOwn(payload, "startDate")) patch.startDate = payload["startDate"] as string | null;
+        if (Object.hasOwn(payload, "dueDate")) patch.dueDate = payload["dueDate"] as string | null;
         if (payload["status"]) patch.status = payload["status"] as Task["status"];
         if (payload["note"]) patch.description = `${task.description}\n\n— ${new Date().toISOString().slice(0, 10)}: ${String(payload["note"])}`.trim();
         await this.updateTask(p.workspaceId, task.id, patch, by);
@@ -1627,7 +2282,7 @@ export class VisuaService {
       case "create-evidence":
         if (typeof payload["checkResultId"] === "string") {
           const { check, connector } = await this.passingCheck(p.workspaceId, payload["checkResultId"]);
-          await this.evidenceFromCheck(p.workspaceId, connector, check, actor);
+          await this.evidenceFromCheck(p.workspaceId, connector, check, actor, { runId: p.runId, proposalId: p.id });
           return;
         }
         await this.createEvidence(
@@ -1644,10 +2299,11 @@ export class VisuaService {
             validUntil: payload["validDays"] ? new Date(Date.now() + Number(payload["validDays"]) * 86_400_000).toISOString() : undefined,
           },
           by,
+          { agent: { runId: p.runId, proposalId: p.id } },
         );
         return;
       case "review-evidence":
-        await this.reviewEvidence(p.workspaceId, String(payload["evidenceId"]), payload["decision"] === "rejected" ? "rejected" : "accepted", by);
+        await this.reviewEvidence(p.workspaceId, String(payload["evidenceId"]), payload["decision"] === "rejected" ? "rejected" : "accepted", by, typeof payload["note"] === "string" ? payload["note"] : undefined, payload["expectedScope"] as EvidenceReviewScope, undefined, payload["expectedReviewId"] as string | null ?? null);
         return;
       case "create-policy":
         await this.createPolicy(

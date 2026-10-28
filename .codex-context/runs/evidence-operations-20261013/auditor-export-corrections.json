@@ -1,0 +1,89 @@
+{
+  "status": "complete",
+  "updated_utc": "2026-10-13T10:10:27.038800+00:00",
+  "worktree": "/Users/artem/visua/.check/evidence-auditor-20261013",
+  "summary": "Resolved both supported snapshot/export review findings in the isolated auditor checkout. Future requirement verification is ignored in evaluation-time scoring while raw snapshot records remain unchanged. SSP baseline identity comes from the configured baseline independently of security categorization, and missing baseline is explicitly unavailable.",
+  "owned_files": [
+    "apps/server/src/services/exports.ts",
+    "apps/server/test/exports.test.ts"
+  ],
+  "review": {
+    "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/auditor-snapshot-review.json",
+    "sha256": "5ca6a0d9a3e51118a7703c71bfd260634089febf38d8890529a527e1039bbb93"
+  },
+  "resolved_findings": [
+    {
+      "reference": "auditor-snapshot-review.json#/findings/0",
+      "severity": "medium",
+      "location": "apps/server/src/services/exports.ts:40",
+      "resolution": "Exported exportScoreInput applies asOf to verification and checks without mutating captured state. A requirement only contributes its recorded verifiedAt when the timestamp is at or before asOf. All four report scorers use the helper; app preview reuse was coordinated with /root/stream_auth, which owns app.ts.",
+      "regressions": "Three parameterized report cases (CSF, AI RMF, SOC 2) each exercise asOf one millisecond before verification, exactly at verification, and afterwards with earlier accepted evidence. They assert report status, readiness verified-share/status counts, unchanged raw snapshot states/current/target/verifiedAt, and preserved no-historical-replay text."
+    },
+    {
+      "reference": "auditor-snapshot-review.json#/findings/1",
+      "severity": "medium",
+      "location": "apps/server/src/services/exports.ts:352",
+      "resolution": "SSP profile href, baseline SHA-256 and control-implementation description use settings.baseline. Security sensitivity and objective impacts retain recorded categorization. Absent baseline returns an explicit OSCAL SSP unavailable error instead of inferring a baseline.",
+      "regressions": "Normal service sequence categorizes HIGH then configures LOW; schema-valid SSP includes 149 LOW requirements, LOW source/hash/description, and HIGH/MODERATE/LOW impacts. Two additional cases assert explicit missing-baseline errors both with and without categorization."
+    }
+  ],
+  "tests": [
+    {
+      "phase": "reproduce before source correction",
+      "command": "env -u VISUA_TEST_DATABASE_URL -u VISUA_DATABASE_URL -u VISUA_DB pnpm exec vitest run apps/server/test/exports.test.ts --maxWorkers=1 -t 'verification time boundary|configured baseline|missing configured baseline'",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "database": "SQLite :memory:",
+      "exit_code": 1,
+      "result": {
+        "failed": 6,
+        "skipped_by_filter": 18
+      },
+      "source_sha256": "af4c7599e04fbc24a95bb98e90e51c28922d9ffa70aa9d58fabe15e09c0eda7d",
+      "test_sha256": "6a1299d9f80f12f330d353ec94425e26ccc77373d69f84c150e6ed01fc088233",
+      "observed_failures": [
+        "Each of three report families asserted future verification before asOf.",
+        "Configured LOW with HIGH impact exported HIGH profile identity.",
+        "Both missing-baseline cases produced SSPs rather than explicit errors."
+      ]
+    },
+    {
+      "phase": "final focused verification",
+      "command": "env -u VISUA_TEST_DATABASE_URL -u VISUA_DATABASE_URL -u VISUA_DB pnpm exec vitest run apps/server/test/export-snapshot.test.ts apps/server/test/exports.test.ts --maxWorkers=1",
+      "cwd": "/Users/artem/visua/.check/evidence-auditor-20261013",
+      "database": "SQLite :memory:",
+      "exit_code": 0,
+      "result": {
+        "passed_files": 2,
+        "passed_tests": 41,
+        "failed_tests": 0,
+        "skipped_tests": 0,
+        "duration_seconds": 2.49
+      },
+      "coverage": [
+        "All snapshot capture regressions",
+        "All export report regressions including six new cases",
+        "OSCAL SSP and POAM official 1.1.2 schema checks and pinned schema/source bytes"
+      ]
+    }
+  ],
+  "before_sha256": {
+    "apps/server/src/services/exports.ts": "af4c7599e04fbc24a95bb98e90e51c28922d9ffa70aa9d58fabe15e09c0eda7d",
+    "apps/server/test/exports.test.ts": "d213ff50f0c3cb3a77a15503243c1bcf934cbc1ae49acf3d638555a21b9ab692"
+  },
+  "final_sha256": {
+    "apps/server/src/services/exports.ts": "edbbc096e66c57bc188c834c56cb955e4579e65a8815c7dda6affc23b4cac3d8",
+    "apps/server/test/exports.test.ts": "6a1299d9f80f12f330d353ec94425e26ccc77373d69f84c150e6ed01fc088233",
+    "apps/server/src/services/export-snapshot.ts": "2d185bc312573a53c1da2a87c5e1785fef5a9c4491483e0d624519b1ca8606c6",
+    "apps/server/test/export-snapshot.test.ts": "6b1a5f87a95ec186c1c079e171d3b694145755151efc11c140c8d3d1dcd7f741",
+    "packages/core/src/status.ts": "e5d153adbb6c1f88aab45d3b4a1ae9b590db3c10e81fd37a5a3355b45ffd87df",
+    "packages/core/src/evidence.ts": "8882018c320f62b16ac773fc33297789f736a85eaf3afd44da6c6f939b2d649c",
+    "apps/server/src/services/visua.ts": "86695095898e4d7efd50fe4c8fb315a649c9978a3249a24fba95504e8bc6612a",
+    "apps/server/test/fixtures/oscal/oscal_ssp_schema.json": "08d3faeb12f0fab7705dec15fb648c72400c7ab6ac0056222d49d21507e02a69",
+    "apps/server/test/fixtures/oscal/oscal_poam_schema.json": "906725163d767036c6189aec51252109b203214e121fc1acaff494b4d2dfbc04"
+  },
+  "limits": [
+    "No broad suites, browser, PostgreSQL, Docker, dependency installation, Git commands, external provider dispatch, or delegation.",
+    "Only owned service/test files plus this requested report were edited.",
+    "Root owns final integrated typechecking/full-suite/browser verification and acceptance of app preview integration."
+  ]
+}

@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import { createService } from '../../../../apps/server/src/context.ts';
+import { nodeDetail, frameworkState } from '../../../../apps/server/src/services/views.ts';
+import { evidenceReviewScope, isEvidenceValid } from '../../../../packages/core/src/index.ts';
+const RealDate = Date;
+let time = RealDate.parse('2026-10-13T12:10:00.000Z');
+globalThis.Date = class extends RealDate { constructor(...args) { super(...(args.length ? args : [time])); } static now() { return time; } };
+const svc = await createService({ database: ':memory:' });
+try {
+  const fw = 'nist-csf-2.0', id = `${fw}:PR.AA-01`;
+  const ws = await svc.createWorkspace({ name: 'Isolated integrity fixture', tenantId: 'fixture-tenant', frameworks: [fw], planInitialTasks: false, profile: { industry: 'saas', size: '11-50', dataTypes: [], drivers: [], environments: ['cloud'], maturityTier: 1, guidance: 'guided', securityTeamSize: 1 } });
+  await svc.updateState(ws.id, id, { current: 3, target: 3, verifiedAt: new Date().toISOString() });
+  const e = await svc.createEvidence(ws.id, { title: 'Synthetic observation', content: 'synthetic bytes', requirementIds: [id], collectedAt: '2026-10-13T12:00:00Z', validUntil: '2026-10-13T12:30:00Z' });
+  const accepted = await svc.reviewEvidence(ws.id, e.id, 'accepted', 'fixture-reviewer', undefined, evidenceReviewScope(e));
+  const before = await nodeDetail(svc, ws, svc.registry.node(id));
+  time = RealDate.parse('2026-10-13T12:40:00.000Z');
+  const stale = await nodeDetail(svc, ws, svc.registry.node(id));
+  const fresh = await frameworkState(svc, ws, fw);
+  assert.equal(before.status.status, 'verified');
+  assert.equal(isEvidenceValid(accepted, new Date()), false);
+  assert.equal(stale.status.status, 'verified');
+  assert.equal(fresh.units[id].status, 'at-risk');
+  console.log(JSON.stringify({ check: 'intra-hour evidence expiry', at: new Date().toISOString(), artifactValidUntil: accepted.validUntil, evidenceCurrentlyValid: isEvidenceValid(accepted, new Date()), inspectorStatus: stale.status.status, inspectorEvidenceCoverage: stale.score.evidenceCoverage, frameworkStatus: fresh.units[id].status, frameworkValidEvidenceCount: fresh.units[id].evidence, result: 'CONFIRMED: inspector remains verified while fresh framework reports at-risk' }, null, 2));
+  const revBefore = await svc.store.workspaces.rev(ws.id), countBefore = await svc.store.evidence.count(ws.id), auditBefore = await svc.store.activity.chain(ws.id);
+  await assert.rejects(svc.store.transaction(async () => { await svc.createEvidence(ws.id, { title: 'Rolled back', content: 'Synthetic rollback', requirementIds: [id] }); throw new Error('fixture rollback'); }));
+  assert.equal(await svc.store.workspaces.rev(ws.id), revBefore);
+  assert.equal(await svc.store.evidence.count(ws.id), countBefore);
+  assert.deepEqual(await svc.store.activity.chain(ws.id), auditBefore);
+  console.log(JSON.stringify({ check: 'SQLite outer transaction rollback', evidenceRevisionAndAuditRolledBackTogether: true }));
+  const edited = await svc.updateEvidence(ws.id, accepted.id, { content: 'Different synthetic bytes', expectedScope: evidenceReviewScope(accepted) });
+  assert.equal(edited.status, 'pending-review');
+  await assert.rejects(svc.reviewEvidence(ws.id, edited.id, 'accepted', 'fixture-reviewer', undefined, evidenceReviewScope(accepted)), /changed/);
+  console.log(JSON.stringify({ check: 'artifact edit invalidates approval', status: edited.status, staleReviewRefused: true, auditChainValid: (await svc.verifyAuditTrail(ws.id)).valid }));
+} finally { await svc.store.close(); globalThis.Date = RealDate; }

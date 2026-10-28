@@ -1,0 +1,14 @@
+{
+  "run_id": "decision-workspace-20261004",
+  "node_id": "attention-server",
+  "input_sha256": "34fb67d8c0b72e153cf228d162806135a49e768d4cd991fcd884757b31969637",
+  "summary": "Added a read-only cross-framework attention queue with complete deterministic counts, scoped direct and group links, concrete reasons, resolved owners and actionable destinations. Eligible group reviews stay visible without inheriting artifact coverage or inflating assessed counts. Nine focused tests pass.",
+  "limitations": [
+    "Endpoint integration and core index exports are owned by the lead; no endpoint/auth or browser tests were run in this work unit.",
+    "Full test suites, PostgreSQL, builds, commits, pushes and deployment were not run."
+  ],
+  "status": "complete",
+  "evidence": [
+    "attention-server-worker-report.json: commands, source hashes, coverage and limitations; inspected by lead."
+  ]
+}

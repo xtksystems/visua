@@ -1,0 +1,28 @@
+{
+  "cwd": "/Users/artem/visua",
+  "revision": "cb438d1083e9ae3e2a38dd8e5d7dba4c778b2e89",
+  "tracked_status": "",
+  "fixture_command": "node .codex-context/runs/predeploy-review-20261014/automation/reproduce.mjs",
+  "fixture_exit_code": 0,
+  "fixture_output": "{\"case\":\"connector_capacity_recovery\",\"statusAfterTemporaryOverload\":\"error\",\"capacityReleased\":true,\"agentRetryResult\":{\"error\":\"No active connectors. Ask the user to add one in Evidence \u2192 Connectors.\"},\"physicalRuns\":0}\n{\"case\":\"manual_retry_counterevidence\",\"status\":\"active\",\"physicalRuns\":1}\n{\"case\":\"event_overflow_and_revocation\",\"overflowEmitsResync\":true,\"revokedQueuedPayloadWithheld\":true}\n{\"case\":\"run_fence\",\"matchingLeaseAllowed\":true,\"changedEpochAndCancellationRefused\":true}\n{\"case\":\"licensed_task_routing\",\"syntheticRestrictedTextWithheld\":true}\n",
+  "source_sha256": {
+    "apps/server/src/services/run-execution.ts": "13bdcf03ffd1f81f70126f86433f14ed7c286f8adc3741fd2a4ff432191168f6",
+    "apps/server/src/services/proposal-validation.ts": "bb90630e85a16522b17ac07edeb38486ba012e99e83e985d3a9292e0203a20b6",
+    "apps/server/src/services/proposal-review.ts": "0dd28f5483806c141c5d084ae45b4bc4c27312c3c062ab65317ae87f84179823",
+    "apps/server/src/services/visua.ts": "86695095898e4d7efd50fe4c8fb315a649c9978a3249a24fba95504e8bc6612a",
+    "apps/server/src/connectors/index.ts": "a8bb0456924e3d0fefd1146aa4f116109cc4d960b787e66cc8beec84f69a77dd",
+    "apps/server/src/connectors/limits.ts": "6e379084b19e0bcadbea21d4179d8813c0e88c9a2d8f81573546e05759edda88",
+    "apps/server/src/connectors/network.ts": "dc051eda6f440b75da1dc5fa5c089bbec062ef68b2077798e9373f3f2bef65d2",
+    "apps/server/src/connectors/web-posture.ts": "0dfea58badab0e20c25c6a14956fbd13b8e092e5b547025c05d250622df53101",
+    "apps/server/src/connectors/repo-scan.ts": "64c3eee44e89dc8a6a65c56066bc47a63d4dfccc771d4c11f5350bde7e07d991",
+    "apps/server/src/bus.ts": "6ea4c5b06b7429f0a52db557b6c09b9d3e98951b0bcd138f8df5c9890f2e4a50",
+    "apps/server/src/workspace-events.ts": "f79eb96c07b64319fbe38c4450ed24595125632fa8fb150db7c3dec845987d79",
+    "apps/server/src/storage/events.ts": "dd65e8f8d7618ebd28b787ea9b9ba851e46199f150bc108baa46d36e94b731b8",
+    "packages/agents/src/tools.ts": "e2ad806a35eb9749fa3e03dfbd57f85f399658c85a09137fd22d1feb308226cf",
+    "packages/agents/src/claude.ts": "ef0b1d282540052229e8487eaf58ea7a67caa41769c2d8d4bca1ed03f6b388c5",
+    "packages/agents/src/runtime.ts": "584be8aee4f40aac3edf34d7b3b2d65fcd2a7564a3a7e04a9d1ced0342145def",
+    "packages/agents/src/mode.ts": "bba8c149025adaabf2581597bc62a6c9911a717c60f1f8a195b69ecff7843ee6",
+    "packages/agents/src/offline.ts": "3b9ee46121b9a29d85b481a2466db89741f2fb7ea5aecc9243c764e727f33044",
+    "packages/agents/src/agents.ts": "2fd2feb74e7cc417cd038f6e1ed10bf00eda5bb649c14e24db7f9ef0919e1e2c"
+  }
+}

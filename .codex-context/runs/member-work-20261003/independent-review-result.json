@@ -1,0 +1,17 @@
+{
+  "run_id": "member-work-20261003",
+  "node_id": "review",
+  "input_sha256": "4e76109041055fa739753a293c46d16db9f4cdee06b9957a94d572635783f9ba",
+  "status": "complete",
+  "summary": "The member assignment/My work package has three supported defects: relinking can bypass licensed task filtering, due-today tasks are treated as overdue by derived status, and My work requirement status misses evidence/check invalidation. Identity, field-clearing, transaction, and keyed draft paths were inspected without another supported finding.",
+  "evidence": [
+    "independent-review.json",
+    "review-source-check.json",
+    "Read-only source inspection and two synthetic in-memory reproductions; no build/server/browser/source mutation."
+  ],
+  "limitations": [
+    "Read-only bounded first pass: server/browser suites were inspected but not executed by this reviewer; integration lead owns concurrent browser verification.",
+    "Pure in-memory licensing and date reproductions used synthetic text and did not call a model, network, server, or persistent storage.",
+    "Pinned source changed during review: packages/core/src/types.ts, packages/core/src/status.ts, apps/server/src/services/visua.ts, apps/server/src/services/work.ts, apps/web/src/pages/PlanPage.tsx, apps/web/src/lib/events.ts. The reported findings bind to the initial hashes; the PlanPage accessible search-label addendum was inspected. Any later behavior changes require affected-path adjudication."
+  ]
+}

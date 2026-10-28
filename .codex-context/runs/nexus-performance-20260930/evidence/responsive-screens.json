@@ -1,0 +1,98 @@
+[
+  {
+    "shot": "nexus-threat-ring",
+    "size": "1440x900",
+    "file": "1440x900/nexus-threat-ring.png",
+    "overflow": [],
+    "errors": [],
+    "ms": 4095
+  },
+  {
+    "shot": "nexus-no-threat-ring",
+    "size": "1440x900",
+    "file": "1440x900/nexus-no-threat-ring.png",
+    "overflow": [],
+    "errors": [],
+    "ms": 5572
+  },
+  {
+    "shot": "nexus-threat-selected",
+    "size": "1440x900",
+    "file": "1440x900/nexus-threat-selected.png",
+    "overflow": [],
+    "errors": [],
+    "ms": 4406
+  },
+  {
+    "shot": "nexus-group-selected",
+    "size": "1440x900",
+    "file": "1440x900/nexus-group-selected.png",
+    "overflow": [],
+    "errors": [],
+    "ms": 3529
+  },
+  {
+    "shot": "nexus-threat-ring",
+    "size": "1024x768",
+    "file": "1024x768/nexus-threat-ring.png",
+    "overflow": [],
+    "errors": [],
+    "ms": 4434
+  },
+  {
+    "shot": "nexus-no-threat-ring",
+    "size": "1024x768",
+    "file": "1024x768/nexus-no-threat-ring.png",
+    "overflow": [],
+    "errors": [],
+    "ms": 5163
+  },
+  {
+    "shot": "nexus-threat-selected",
+    "size": "1024x768",
+    "file": "1024x768/nexus-threat-selected.png",
+    "overflow": [],
+    "errors": [],
+    "ms": 3543
+  },
+  {
+    "shot": "nexus-group-selected",
+    "size": "1024x768",
+    "file": "1024x768/nexus-group-selected.png",
+    "overflow": [],
+    "errors": [],
+    "ms": 3739
+  },
+  {
+    "shot": "nexus-threat-ring",
+    "size": "390x844",
+    "file": "390x844/nexus-threat-ring.png",
+    "overflow": [],
+    "errors": [],
+    "ms": 3535
+  },
+  {
+    "shot": "nexus-no-threat-ring",
+    "size": "390x844",
+    "file": "390x844/nexus-no-threat-ring.png",
+    "overflow": [],
+    "errors": [],
+    "ms": 4827
+  },
+  {
+    "shot": "nexus-threat-selected",
+    "size": "390x844",
+    "file": "390x844/nexus-threat-selected.png",
+    "overflow": [],
+    "errors": [],
+    "ms": 3678
+  },
+  {
+    "shot": "nexus-group-selected",
+    "size": "390x844",
+    "file": "390x844/nexus-group-selected.png",
+    "overflow": [],
+    "errors": [],
+    "ms": 3511
+  }
+]

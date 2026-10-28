@@ -1,0 +1,20 @@
+{
+  "image": "sha256:5a354d9c0e67ab7a5f70fcf793b703d30ea3865dc81f0a43e7c64196a569d98f",
+  "runtime": "Node22.23.3",
+  "wrapper_exit": 0,
+  "isolation": "Fresh read-only container, no network, no data volume, mounted fixture only",
+  "cases": [
+    {
+      "mode": "idle",
+      "child_exit": 1,
+      "stdout": "{\"scenario\":\"idle-connection-loss\",\"poolIdle\":1,\"poolErrorListeners\":0}\n",
+      "uncaught_pool_error": true
+    },
+    {
+      "mode": "stall",
+      "child_exit": 0,
+      "stdout": "{\"scenario\":\"unresponsive-postgres-handshake\",\"elapsedAtLeastMs\":1200,\"queriesSettled\":0,\"sockets\":10,\"total\":10,\"waiting\":2,\"connectionTimeoutMillis\":null,\"queryTimeout\":null,\"statementTimeout\":null}\n",
+      "uncaught_pool_error": false
+    }
+  ]
+}

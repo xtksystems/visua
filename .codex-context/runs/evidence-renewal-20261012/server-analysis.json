@@ -1,0 +1,226 @@
+{
+  "run_id": "evidence-renewal-20261012",
+  "node_id": "analysis-server",
+  "recommendation": "Add a read-only metadata renewal projection with temporal validity independent of the stored review status; derive direct requirement coverage loss from the union of currently recorded, bound accepted evidence windows.",
+  "source_state": {
+    "cwd": "/Users/artem/visua",
+    "base_head": "833c0eb",
+    "branch": "feat/light-workspace-design",
+    "state": "Existing decision-workspace dirty source inspected without changes. No tests, builds, browsers, DB reads, Docker actions or network actions run.",
+    "implementation_target": "Lead reports isolated /Users/artem/visua/.check/evidence-renewal-worktree at delivered commit e867494; no implementation is authorized in this analysis task."
+  },
+  "current_contract": [
+    {
+      "finding": "Collection is inclusive at its normalized instant; expiry is inclusive through its normalized instant. A calendar collection date is 00:00:00.000Z and a calendar expiry is 23:59:59.999Z. Impossible dates, missing zones, reversed intervals and malformed values fail closed.",
+      "source": "packages/core/src/evidence.ts:16; packages/core/src/evidence.ts:46; packages/core/src/status.ts:22; packages/core/test/evidence.test.ts"
+    },
+    {
+      "finding": "Current evidence coverage requires status=accepted, a lowercase 64-character server digest, a latest nonlegacy accepted review, matching actor/time metadata, and a review scope matching the digest, normalized collection/expiry and sorted deduplicated direct links. Cosmetic edits do not invalidate approval; protected edits reset status to pending-review.",
+      "source": "packages/core/src/evidence.ts:80; packages/core/src/status.ts:22; apps/server/src/services/visua.ts:1275"
+    },
+    {
+      "finding": "evidenceFreshness is unsuitable as a pure renewal classifier: explicit status=expired short-circuits even without usable dates; a valid past window is expired before checking review state; pending/rejected/unbound/future-collected items do not become expiring. Existing expiring threshold is strictly less than 30 elapsed UTC days, with exactly 30 days still fresh.",
+      "source": "packages/core/src/status.ts:34; packages/core/test/evidence.test.ts"
+    },
+    {
+      "finding": "Scoring counts any directly linked valid artifact as evidence coverage. It does not inherit group evidence. Existing at-risk derivation can still flag an expired artifact even when another accepted artifact maintains coverage. Renewal must not redefine readiness/status or equate that risk flag with lost evidence coverage.",
+      "source": "packages/core/src/scoring.ts:104; packages/core/src/scoring.ts:187; packages/core/src/status.ts:88"
+    },
+    {
+      "finding": "Attention includes enabled non-threat frameworks, nonwithdrawn assessable nodes, effective state exclusions/manual not-applicable override, configured scope, and only in-force laws. Group links are context only when they have an in-scope descendant. Unlinked evidence is workspace work; evidence linked solely out of scope is omitted. Its alternative-evidence sentence checks alternatives only at now.",
+      "source": "apps/server/src/services/attention.ts:53; apps/server/src/services/attention.ts:80; apps/server/src/services/attention.ts:179; apps/server/test/attention.test.ts:111"
+    },
+    {
+      "finding": "scopeOf reads the real clock for law sunset while scoreOf/attention accept an injected timestamp. Add an optional at parameter and use it consistently for this new projection; this also fixes deterministic historical/boundary scope reads without changing default behavior.",
+      "source": "apps/server/src/services/visua.ts:475; apps/server/src/services/visua.ts:873"
+    },
+    {
+      "finding": "Evidence metadata already contains all required identity, review binding and dates without inline content/data. metadataList bypasses body hydration. Summary and attention avoid hourly cached scores for time-sensitive reads.",
+      "source": "apps/server/src/storage/store.ts:91; apps/server/src/services/evidence.ts:30; apps/server/src/services/views.ts:198; apps/server/test/evidence-content.test.ts:73"
+    }
+  ],
+  "api": {
+    "method": "GET",
+    "path": "/api/workspaces/:ws/evidence/renewal",
+    "routing": "Register before /api/workspaces/:ws/evidence/:id. Existing workspaceAccess middleware provides canonical workspace authorization and workspace.read floor. Set Cache-Control: private, no-store. No writes, revision changes, audits or byte verification.",
+    "reads": [
+      "states.list(ws.id)",
+      "evidence.metadataList(ws.id)",
+      "identity.memberships.forTenant(ws.tenantId) only if owner labels are included"
+    ],
+    "response_shape": {
+      "workspaceId": "canonical string",
+      "asOf": "one server ISO instant",
+      "enabledFrameworks": "same id/shortName/family/inScopeRequirements shape as attention",
+      "buckets": {
+        "expired": {
+          "evidenceIds": "ordered string[]",
+          "uncoveredRequirementIds": "deduplicated string[]"
+        },
+        "next7days": {
+          "evidenceIds": "ordered string[]",
+          "losingCoverageRequirementIds": "deduplicated string[]"
+        },
+        "next30days": {
+          "evidenceIds": "ordered string[]",
+          "losingCoverageRequirementIds": "deduplicated string[]"
+        }
+      },
+      "items": [
+        {
+          "id": "evidence id",
+          "title": "string",
+          "kind": "EvidenceKind",
+          "source": "Evidence.source",
+          "status": "unchanged EvidenceStatus",
+          "acceptanceBound": "hasCurrentEvidenceReview result",
+          "validity": "expired | current | not-yet-valid",
+          "collectedAt": "normalized ISO",
+          "expiresAt": "normalized ISO",
+          "currentlyValid": "isEvidenceValid result",
+          "requirements": "ordered direct assessable refs and eligible group context refs",
+          "scope": "requirements | workspace",
+          "owner": "optional shared attention owner shape",
+          "action": {
+            "type": "evidence",
+            "id": "evidence id",
+            "label": "Inspect evidence"
+          }
+        }
+      ],
+      "coverage": {
+        "uncovered": [
+          {
+            "requirement": "direct in-scope assessable ref",
+            "expiredEvidenceIds": "accepted bound expired records; not a claim about historical approval state"
+          }
+        ],
+        "losses": [
+          {
+            "requirement": "direct in-scope assessable ref",
+            "coveredThrough": "last inclusive ISO instant of uninterrupted recorded coverage from asOf",
+            "losesCoverageAt": "coveredThrough + 1 millisecond",
+            "endingEvidenceIds": "bound accepted evidence whose interval ends at coveredThrough"
+          }
+        ]
+      },
+      "unclassified": {
+        "invalidWindowItems": "minimal id/title/status/raw collectedAt/raw validUntil/action entries for an honest repair notice",
+        "withoutExpiryCount": "integer; valid unbounded records still participate as alternatives",
+        "markedExpiredWithoutDeadlineItems": "minimal entries for legacy status=expired with no finite deadline, separate from date buckets"
+      }
+    },
+    "payload_scope": "Return explicit metadata summaries rather than hydrated Evidence values. No content, data, blob reads, storage handles or full review history required by the UI."
+  },
+  "bucket_semantics": {
+    "recommendation": "Cumulative Next 7 days and Next 30 days, because those requested labels describe overlapping ranges. Counts must not be summed. If the lead chooses disjoint ranges, label the third range Days 8\u201330 and document that different contract explicitly.",
+    "day_ms": 86400000,
+    "expired": "expiresAt < asOf",
+    "next7days": "asOf <= expiresAt < asOf + 7*DAY",
+    "next30days": "asOf <= expiresAt < asOf + 30*DAY",
+    "review_independence": "Every valid finite date window is classifiable, including pending, rejected, accepted-unbound and future-collected artifacts. Dates do not mutate or replace their review status.",
+    "exact_boundaries": "At expiresAt evidence is still temporally valid and belongs to future windows; it becomes expired one millisecond later. Exactly +7 days belongs only to next30days, exactly +30 to neither, matching the existing strict 30-day freshness threshold.",
+    "impact_boundary": "Bucket coverage loss by coveredThrough (the evidence renewal deadline), not by losesCoverageAt, to avoid a one-millisecond mismatch at the horizon boundary. Wording is coverage ends after that inclusive instant.",
+    "sort": "Evidence by expiresAt ascending, then stable id; requirements by FRAMEWORK_ORDER then id. Keep full results for client framework filters; never truncate before filtering."
+  },
+  "algorithms": {
+    "temporal_window": "Introduce a small core helper using the existing strict normalizer to return a validated [start,end] interval (end absent = infinity) or invalid. Do not use Date.parse on raw values, infer midnight expiry, repair legacy rows, or let status=expired manufacture a timestamp. Reuse it from evidenceReviewScope if that avoids duplicate validation without changing existing exception behavior.",
+    "scope": "Use one current scope snapshot and mirror the existing attention inclusion rules in the renewal projection: state.applicable, userExclusion, state.statusOverride=not-applicable, index.assessable (already excludes withdrawn), enabled non-threat frameworks, scopeOf(ws,id), and obligationTiming(node,UTCday(asOf))=in-force for laws. Eligible group refs require an in-scope descendant but never enter the coverage set. Never expand crosswalks or group links. Prefer no attention refactor in this package. A narrow optional at parameter for scopeOf is only warranted if needed for same-instant/boundary determinism; its default behavior must stay unchanged.",
+    "current_coverage": "Use the same evidenceByNode direct-link map and isEvidenceValid(e,asOf) as scoring. Deduplicate repeated requirement links. Every requirement is counted once, independent of how many evidence rows reference it.",
+    "future_first_gap": "For each currently covered direct requirement, take only metadata records with status accepted and hasCurrentEvidenceReview true and valid intervals. Sort by start then end/id. Begin with all intervals containing asOf; extend their maximum end through every later interval whose start <= end+1ms. Stop at the first gap. An unbounded reachable interval has no known loss. The final finite end is coveredThrough; loss begins end+1ms. This handles alternate expiry sequences and adjacent future collection starts without assuming a renewal/review will occur. A future-collected accepted record can extend a continuous chain only when its recorded window bridges it; it cannot fill an earlier gap. If the requirement has no valid evidence now, do not describe it as losing current coverage later.",
+    "expired_gaps": "An expired artifact never proves lost coverage by itself. Return a current uncovered requirement only when isEvidenceValid finds no current alternative and at least one directly linked record is currently status accepted with bound review and a finite expired interval. Describe it as Currently uncovered / linked accepted evidence expired, not a historical causal assertion. Pending/rejected/unbound/legacy-expired rows remain visible but do not create a lost-coverage attribution. Existing expired rows with a current valid alternative produce zero uncovered impact.",
+    "row_impact": "Use each requirement loss once in top-level bucket counts. Associate it with endingEvidenceIds for row explanation. Earlier expiring alternatives have no loss attribution while a later accepted interval continues coverage. For expired rows, use expiredEvidenceIds with deduplicated requirement counts. Keep directly linked context separate from actual impact.",
+    "known_law_end": "Freeze the currently in-scope requirement set. Label future coverage results explicitly as conditional on unchanged scope and recorded evidence. Do not add upcoming obligations, forecast scope changes, or refactor law scope evaluation in this package. Known future law sunsets are part of this stated scope-condition limitation.",
+    "read_time": "Capture one asOf for temporal and law-timing comparisons. Avoid svc.score hourly cache. scopeOf currently consults wall time for sunsets; keep this limitation visible or narrowly add an optional at parameter. Existing parallel metadata reads do not promise an MVCC-consistent historical snapshot; response is current-record decision support."
+  },
+  "examples": [
+    {
+      "records": "A accepted valid now expires day 3; B accepted valid now expires day 10; both directly link requirement R.",
+      "result": "A appears in Next7 and Next30, B in Next30. R is not a Next7 loss; one Next30 loss is attributed to B."
+    },
+    {
+      "records": "A expires day 3; accepted bound B is collected day 2 and expires day 10.",
+      "result": "B extends uninterrupted recorded coverage. No day-3 loss, one day-10 loss."
+    },
+    {
+      "records": "A expires day 3; B collected day 5 and expires day 10.",
+      "result": "First coverage gap is after day 3; B cannot conceal days 3\u20135. Do not count a second loss of current uninterrupted coverage at day 10."
+    },
+    {
+      "records": "A expired yesterday; B accepted and valid now indefinitely.",
+      "result": "A remains in Expired with its accepted review label, while requirement impact is zero."
+    },
+    {
+      "records": "Pending artifact expired yesterday; requirement has no other evidence.",
+      "result": "Row shows pending review plus expired validity. It does not assert accepted coverage was lost."
+    },
+    {
+      "records": "Two accepted artifacts end at the same instant for the same requirement.",
+      "result": "Both rows may identify the ending set; aggregate losing requirement count remains one."
+    }
+  ],
+  "edge_cases": [
+    "Review status accepted with absent, stale, legacy, malformed or rejected latest review remains visible as accepted/unbound; never covers.",
+    "Rejected and pending artifacts belong to finite date buckets independently of status, but never serve as alternatives.",
+    "Future-collected records show not-yet-valid and never count as current coverage. Only already-bound acceptance and a continuous recorded future interval can extend the conditional coverage timeline.",
+    "No-expiry current accepted alternatives prevent finite coverage loss. Missing expiry is distinct from malformed expiry.",
+    "Malformed or reversed windows stay unclassified with a repair affordance; do not silently treat them as fresh, expired, or unbounded. Preserve raw strings only as text.",
+    "Stored status expired is a legacy workflow value, not a review decision or reliable deadline. Preserve it; temporal buckets use valid dates, and validity/current coverage retain isEvidenceValid semantics.",
+    "Group-only and unlinked artifacts may appear for renewal but produce zero assessable impact. Group and direct mixed links affect only the direct assessable requirements.",
+    "Disabled frameworks, threat catalogs, withdrawn nodes, user exclusions, manually not-applicable requirements, SOC category scope, RMF baseline/tailoring and law role/date scope must all be excluded from impact.",
+    "Framework-scoped filters must recompute unique impact counts from included requirement ids, not sum artifact link counts.",
+    "Current coverage and temporal renewal do not imply implemented or verified status, artifact quality, control effectiveness, future collection, or future review approval."
+  ],
+  "meaningful_tests": [
+    {
+      "area": "core",
+      "cases": "Fixed clock: exact collection/expiry, +/-1ms, calendar UTC day end, timezone offsets, exact +7/+30 days, impossible/malformed/reversed dates, no expiry, future collection; identical dates with each review status still share temporal buckets."
+    },
+    {
+      "area": "coverage",
+      "cases": "A3+B10 => day10 only; A3+B2..10 chain; A3+B5..10 retains earlier gap; equal expiry dedupe; unbounded alternate; pending/rejected/unbound future artifacts do not bridge; currently uncovered requirement never counted as future loss; group-only never covers."
+    },
+    {
+      "area": "server",
+      "cases": "Mirror existing attention fixture scope matrix plus SOC category and RMF tailoring; verify scope snapshot remains current and future impact is explicitly conditional; multi-framework links dedupe; stable ordering under reversed database row order. If adding an optional scopeOf timestamp, test explicit historical at without fake timers."
+    },
+    {
+      "area": "API",
+      "cases": "Renewal route does not fall through to evidence/:id, reader access succeeds, cross-tenant access is 404, Cache-Control is private/no-store, no revision or audit change, response includes no inline bodies/data."
+    },
+    {
+      "area": "storage boundary",
+      "cases": "Spy hydrated evidence get/list/recent and blob get to fail while renewal succeeds; assert only metadataList is called. Reuse existing evidence-content test style rather than creating byte-read test infrastructure."
+    },
+    {
+      "area": "integration",
+      "cases": "Existing attention/overview/evidence-binding tests remain unchanged and pass. Lead schedules focused tests then required integrated SQLite/Postgres/browser lanes only after source freeze is lifted; implementation work is confined to the isolated worktree."
+    }
+  ],
+  "touched_paths_recommended": [
+    "packages/core/src/evidence.ts: optional pure validated interval helper",
+    "packages/core/src/evidence-renewal.ts: renewal types, pure date buckets and interval union helper",
+    "packages/core/src/index.ts: export new types/helpers",
+    "packages/core/test/evidence.test.ts or packages/core/test/evidence-renewal.test.ts: boundary and timeline behavior",
+    "apps/server/src/services/visua.ts: only if narrow scopeOf optional at parameter is needed",
+    "apps/server/src/services/evidence-renewal.ts: metadata projection",
+    "apps/server/src/app.ts: read endpoint before evidence/:id",
+    "apps/server/test/evidence-renewal.test.ts: service/API/storage/scope cases",
+    "apps/server/test/auth.test.ts: route access coverage if existing API route matrix needs an entry"
+  ],
+  "implementation_split": [
+    "Lead contract: cumulative ranges (UI investigation agrees); current scope snapshot; known-record conditional future interval semantics; exact invalid/legacy display treatment.",
+    "Server/core worker owns types, pure window/timeline helpers, renewal scope snapshot, projection, route and focused server/core tests in isolated worktree after explicit next task. Keep existing attention implementation unchanged unless a small shared helper is clearly necessary.",
+    "UI worker consumes agreed metadata API, computes filter-specific deduped counts from requirement ids, and preserves existing inspection/review flow; never computes independent approval/coverage rules.",
+    "Lead integrates query invalidation/overview deep links and docs, reviews behavior, then runs required integrated checks."
+  ],
+  "limitations": [
+    "This is source-only investigation. No tests/builds/browser checks or live runtime/storage verification were performed.",
+    "Current accepted metadata windows support conditional known-record coverage, not promised future evidence, historical review reconstruction, regulatory advice, risk forecasting or supersession/provenance.",
+    "The interval-union recommendation is slightly more work than per-artifact alternatives-at-expiry, but prevents later-starting artifacts hiding an earlier gap and gives one truthful first-loss count.",
+    "Invalid legacy status/date combinations need explicit UI wording; the existing EvidenceStatus enum conflates a historical expired workflow value with review decisions. This package need not migrate it.",
+    "Read-only endpoint may observe concurrent updates across independent metadata queries, as existing views do; do not describe asOf as a transactional historical snapshot.",
+    "Cumulative next7/next30 ranges are recommended rather than implied by existing code; the lead owns that final product choice.",
+    "Lead prefers scope frozen at asOf. Coverage timelines therefore explicitly assume unchanged scope, including laws with a known future sunset; they are evidence-window projections, not future legal applicability calculations."
+  ]
+}

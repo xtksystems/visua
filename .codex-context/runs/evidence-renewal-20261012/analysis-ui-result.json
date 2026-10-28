@@ -1,0 +1,21 @@
+{
+  "run_id": "evidence-renewal-20261012",
+  "node_id": "analysis-ui",
+  "input_sha256": "f8a09dbc3eab8fc049b71f530c4934e8909f52e5dc554e6b050d777d21120aa2",
+  "status": "complete",
+  "summary": "Recommended a URL-backed Renewal view using shared tabs, separate review/validity labels, responsive cards with requirement navigation, typed server impact data, minute/SSE refresh, and preserved detached evidence review. Report includes bounded file split, impact wording, accessibility, error/empty states, overview links, risks and focused e2e cases.",
+  "evidence": [
+    ".codex-context/runs/evidence-renewal-20261012/ui-analysis.json",
+    "EvidencePage.tsx:33 hides expiry behind pending/rejected; :232 mixes expired and future items.",
+    "EvidencePage.tsx:99 retains the inspected snapshot and submits bound expectedScope.",
+    "Shared Tabs/TabPanel and Dialog already provide keyboard/focus behavior; CodeTag provides canonical requirement navigation.",
+    "AttentionQueue.tsx and services/attention.ts provide current scope/alternative-evidence and refresh patterns.",
+    "Existing evidence-files, overview-attention and keyboard-dialog-tabs e2e source supports the proposed regression plan."
+  ],
+  "limitations": [
+    "Read-only investigation only; no tests, builds, browser sessions, source edits, network calls, Git mutations or delegation.",
+    "Runtime behavior and accessibility remain unverified until implementation checks are authorized after the freeze.",
+    "Lead owns bucket boundary and inclusion decisions, server read-model design and final integration.",
+    "Shared checkout contains existing decision-workspace modifications; conclusions describe inspected working-tree source."
+  ]
+}

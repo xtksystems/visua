@@ -1,0 +1,24 @@
+{
+  "run_id": "evidence-renewal-20261012",
+  "node_id": "implementation-server",
+  "input_sha256": "60c6c32e1f5f8303bec06f3bbb62134287dd3e2d026c9ccc1925c5504b092d83",
+  "status": "complete",
+  "summary": "Implemented and focused-verified core/server renewal contract in isolated worktree: 70 tests and core/server typechecks pass; main delivery source untouched.",
+  "evidence": [
+    "implementation-server-report.json",
+    "packages/core/src/evidence-renewal.ts",
+    "packages/core/src/index.ts",
+    "packages/core/test/evidence-renewal.test.ts",
+    "apps/server/src/services/evidence-renewal.ts",
+    "apps/server/src/app.ts",
+    "apps/server/test/evidence-renewal.test.ts",
+    "Vitest: 4 files / 70 tests passed",
+    "Core and server typechecks passed",
+    "git diff --check passed"
+  ],
+  "limitations": [
+    "PostgreSQL/browser/full acceptance remains lead-owned.",
+    "Conditional known-record coverage under unchanged current scope; existing scopeOf law wall-clock behavior retained.",
+    "No commits, deployments or main application source changes performed."
+  ]
+}

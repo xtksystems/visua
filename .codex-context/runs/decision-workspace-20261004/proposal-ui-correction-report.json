@@ -1,0 +1,32 @@
+{
+  "run_id": "decision-workspace-20261004",
+  "node_id": "proposal-ui",
+  "status": "complete",
+  "summary": "Visual correction hides technical record metadata and generated field paths inside collapsed Technical fields while retaining exact accessible Current/Proposed values. Meaningful fields stay in the main comparison. Updated the obsolete Home role assertion to read-only Needs attention and Queue scope controls; PlanPage role controls are unchanged.",
+  "files": [
+    {
+      "path": "apps/web/src/components/agents/Proposals.tsx",
+      "sha256": "692fc5e8657c32f5447a62f819d6721f97b66815e2981af07ae3b2cedf5961d3"
+    },
+    {
+      "path": "apps/web/src/components/agents/proposals.css",
+      "sha256": "5ba87ed245f3d5e308d2811af33d986641f6e889ebd4a4f41a452c21f45bdb31"
+    },
+    {
+      "path": "e2e/page-roles.spec.ts",
+      "sha256": "a8896ab3c19df6430ac45a376cd6153f5d7d3c11312a6a1db473ef4195f96ce6"
+    }
+  ],
+  "evidence": [
+    {
+      "command": "pnpm --filter @visua/web typecheck",
+      "cwd": "/Users/artem/visua",
+      "result": "passed",
+      "exit_code": 0
+    }
+  ],
+  "limitations": [
+    "No cosmetic implementation-mirroring tests were added.",
+    "No build/browser processes launched; lead owns final integrated browser lane."
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "verified_utc": "2026-10-04T00:24:44.830622+00:00",
+  "branch": "feat/light-workspace-design",
+  "code_commit": "2ca9631d1a6c8ec26d8c3fae21aaad69a7389ec9",
+  "pushed_code_commit": "2ca9631d1a6c8ec26d8c3fae21aaad69a7389ec9",
+  "remote": "https://github.com/xtksystems/visua.git",
+  "documentation_delivery_commit": "Follows this source commit; contains only context, documentation and verification artifacts.",
+  "docker": {
+    "url": "http://localhost:8787",
+    "container": {
+      "containerId": "8ac65b88f6fe7526044d1253e9d0e2f72e3d044a83599a7a0096714abd203ae4",
+      "imageId": "sha256:cd247de52c862772a75a44b2a8d1f5706872affc1ae5a1f551b0b2323e0b7f0c",
+      "startedAt": "2026-10-04T00:20:12.002376301Z",
+      "status": "running",
+      "health": "healthy",
+      "revision": "2ca9631d1a6c8ec26d8c3fae21aaad69a7389ec9",
+      "mounts": [
+        {
+          "Destination": "/app/data",
+          "Driver": "local",
+          "Mode": "rw",
+          "Name": "visua_visua-data",
+          "Propagation": "",
+          "RW": true,
+          "Source": "/var/lib/docker/volumes/visua_visua-data/_data",
+          "Type": "volume"
+        }
+      ]
+    },
+    "image": {
+      "imageId": "sha256:cd247de52c862772a75a44b2a8d1f5706872affc1ae5a1f551b0b2323e0b7f0c",
+      "revision": "2ca9631d1a6c8ec26d8c3fae21aaad69a7389ec9"
+    },
+    "build_exit_code": 0,
+    "up_exit_code": 0,
+    "unchanged_volume": "visua_visua-data",
+    "backup": {
+      "path": "/app/data/member-work-20261003-backup.db",
+      "integrity": "ok",
+      "bytes": 1003520,
+      "sha256": "63a471f69c50345dac17e508a08d1ed05a4fd513da1d82159cea7b204f9559c3",
+      "host_path": "data/deployment-backups/member-work-20261003-backup.db",
+      "host_sha256_verified": true
+    },
+    "preservation": "docker-preservation-result.json",
+    "evidence_content_and_digests": "docker-evidence-preservation.json",
+    "audit_history": "docker-audit-preservation.json",
+    "source_check": "docker-source-check.json",
+    "live_browser": "docker-smoke-result.json",
+    "post_smoke_original_workspace_and_identity_tables_unchanged": true,
+    "post_smoke_audit_difference": "One retained organization audit record for deletion of the disposable smoke workspace; all 88 original events and 18 migration events remain."
+  },
+  "verification": "verification-summary.json",
+  "limitations": [
+    "18 previously accepted legacy evidence records now require fresh review; previous decision details and content are preserved.",
+    "Local development deployment only; developer sign-in and offline agents remain configured.",
+    "All 88 historical activity records are byte-for-byte preserved; API chain verification covers 97 sequenced workspace events including the 18 upgrade events."
+  ]
+}

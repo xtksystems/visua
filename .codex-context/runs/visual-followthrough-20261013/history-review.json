@@ -1,0 +1,21 @@
+{
+  "status": "complete",
+  "verdict": "pass",
+  "summary": "No supported findings in the independent bounded review of snapshot-backed score history. All nine dirty-source hashes matched history-review-source.json before and after review; manifest SHA-256 bdb2aca6120abb262689c48ed7601379f01de4a521387612632c9886d189de9c. Targeted SQLite/server and web comparison checks passed 19/19.",
+  "coverage": [
+    "Read effective AGENTS.md/CLAUDE.md, declared startup project context, workflow, invariants and review guidance, docs/visual-review-plan.md package 6, and adversarial-review contract/schema. Fresh task context; did not read author reports or conclusions.",
+    "Reviewed packages/core/src/score-history.ts and apps/server/src/services/score-history.ts against packages/core/src/scoring.ts, status.ts, graph.ts, evidence validity contracts and VisuaService.scoreOf/initializeStates/enableFramework. Checked weighted numerator and denominator, zero-target and no-scope semantics, direct accepted proof at the captured clock, priorities, canonical target/scope IDs, catalog/formula identity, excluded/withdrawn/threat requirements, and statutory timing.",
+    "Traced capture through Store.atomic/transaction/lock, PostgreSQL advisory transaction locks and SQLite serialization, VisuaService.mutate/log, revision increment and afterCommit events. Checked workspace reread after lock, fresh metadata inputs, concurrent manual capture, scheduled deduplication and rollback behavior.",
+    "Reviewed apps/server/src/storage/migrations.ts migration 7 and runner, ScoreHistoryTable append/recent/latestScheduledAt/deleteWorkspace, JSON/JSONB handling, ordered bounded reads, migration without backfill, and deletion through the service/workspace lock and foreign key.",
+    "Traced /api/workspaces/:ws/score-history GET/POST through authentication, workspaceAccess, capability floor and work.write, signed-in actor, CSRF, canonical workspace ID, bounded limit validation and private/no-store response.",
+    "Reviewed apps/server/src/services/score-history-ticker.ts and server.ts integration: overlapping ticks, per-workspace error continuation, no backfill, startup delay and opt-out, stop gating and active-capture drain before storage closure.",
+    "Reviewed apps/web/src/components/work/ScoreHistory.tsx, score-history.css, lib/score-history.ts, HomePage.tsx, workspace/auth/session/cache/event helpers and history browser-test source. Checked recorded-only data, workspace remount/query identity, loading/error/retry/empty states, no-scope distinction, timestamp labels, accessible table, point shapes and series breaks for scope/target/priority/catalog/formula changes, absent frameworks and gaps over 36 hours.",
+    "Executed from /Users/artem/visua: env -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/score-history.test.ts apps/web/test/score-history.test.ts --no-cache. Exit 0; 2 files and 19 tests passed. Tests cover exact capture/expiry and metadata-only reads, immutable earlier observations, scope/targets, statutory boundaries, transaction rollback, capture concurrency, bounded isolation/deletion, capabilities/CSRF/actor, migration 7, scheduler drain and comparison gaps."
+  ],
+  "findings": [],
+  "limitations": [
+    "No PostgreSQL checks executed in this bounded review. PostgreSQL transaction/migration paths and dual-dialect test branches were inspected; runtime PostgreSQL verification remains with the lead integration lane.",
+    "No browser, build, application server, full suite or production operations were run. Accessibility and UI behavior were reviewed from source and existing browser-test definitions; browser/desktop/touch evidence belongs to the lead.",
+    "No runtime provider/model identity or usage was reported to this worker; those identities remain unknown. This pass covers the recorded source hashes and inspected dependencies, not absence of all possible defects."
+  ]
+}

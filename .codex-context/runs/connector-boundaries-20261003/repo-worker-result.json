@@ -1,0 +1,21 @@
+{
+  "run_id": "connector-boundaries-20261003",
+  "node_id": "repo-worker",
+  "input_sha256": "b6a3a92cdf8dd6363a3c2eb90ea11efd67c86366299deec34f1992c971ed83af",
+  "status": "complete",
+  "summary": "Added operator root loading and injectable connector factory; async confined traversal derives all six signals without following symlinks, uses no-follow regular-file handles, enforces scan entry/read/deadline caps, and warns on incomplete secret coverage.",
+  "evidence": [
+    "repo-worker-summary.json: detailed implementation, coverage, commands, outcomes, source hashes and limitations.",
+    "repo-worker-repro.json: sanitized pre-change escaping-file-symlink reproduction; external fake AWS key detected and linked external SECURITY.md passed.",
+    "pnpm exec vitest run apps/server/test/repo-scan.test.ts: 38 tests passed in 1.03 seconds.",
+    "pnpm --filter @visua/server typecheck: passed.",
+    "git diff --check -- apps/server/src/connectors/repo-scan.ts apps/server/test/repo-scan.test.ts: passed.",
+    "Developer root smoke: lockfile pass; secrets warn with no findings and incomplete individual-file byte coverage (2084 entries, 7318814 bytes)."
+  ],
+  "limitations": [
+    "Node provides no portable dirfd-relative openat API. O_NOFOLLOW protects the final file component; malicious concurrent ancestor directory replacements can race repeated canonical-path/inode checks. Allowed directory structures must be controlled by trusted operators.",
+    "Filesystem calls cannot be cancelled. The 15-second deadline stops further work after the in-flight operation resolves and all handles are closed; a hung filesystem may exceed this deadline. The enclosing registry must bound caller wait and retain its concurrency slot until underlying work settles.",
+    "The real project has tracked framework JSON and review artifacts above 512000 bytes. Its default developer scan truthfully reports secrets warn with no findings and incomplete individual-file coverage; root coordinator authorized adapting the API assertion rather than broad exclusions.",
+    "Focused tests use temporary roots only. Full integration/suite verification is owned by the coordinator; actual device nodes and hostile concurrent ancestor swaps are not reproduced."
+  ]
+}

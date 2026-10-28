@@ -1,0 +1,18 @@
+{
+  "run_id": "member-work-20261003",
+  "node_id": "plan-ui",
+  "input_sha256": "8981699369b0b71d1e697b10b38d2205652c0028ad9258c7c1ead28f4ff24a8e",
+  "status": "complete",
+  "summary": "Implemented shared task detail drafts for member/external assignment, due date and requirement links, URL-selected Plan dialogs, and member My work with navigation and read-only states.",
+  "evidence": [
+    "Read CLAUDE.md, declared startup context, workflow, milestone 2 package 1 and existing keyboard/selection records.",
+    "Source inspection confirms only changed assignee/dueDate/requirementIds are saved; null clears assignment/date and source is omitted.",
+    "Task/workspace keys reset drafts, same-task cache refresh keeps edited fields, shared pending gate covers status/checklist/details, latest task selection has no snapshot fallback.",
+    "Requirement search excludes placeholders, unassessable nodes, disabled frameworks and threat catalogs; CodeTags retain framework-aware navigation.",
+    "My work supplies loading/Retry/empty/read-only states, open-task filtering, completed toggle, task dialog reuse, status labels and overdue text; App/Shell include route, rail and palette destination.",
+    "Inspected all owned source after edits; no builds, servers, browsers, tests, Git or index operations performed."
+  ],
+  "limitations": [
+    "Runtime, TypeScript, browser and combined behavior validation belong to the integration lead and were not run by this worker."
+  ]
+}

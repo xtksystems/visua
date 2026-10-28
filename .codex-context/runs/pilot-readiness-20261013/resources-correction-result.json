@@ -1,0 +1,42 @@
+{
+  "run_id": "pilot-readiness-20261013",
+  "node_id": "resources-correction",
+  "input_sha256": "ca7ec9703c3795828aa5a372c202407d9607bc28183d322f19ce9e9d7da122d8",
+  "status": "complete",
+  "summary": "Startup and recovery failures retain error.resourceState = { report, close }, including when initial cleanup fails. Attempted generated container names enter the safe report before Docker run, so the caller can retry cleanup and report its final outcome while retaining the original failed operation status.",
+  "evidence": [
+    {
+      "path": "scripts/pilot/resources.mjs",
+      "sha256": "f66eae3e71a15ee77dc13e9ce631dcce184a438a5d52206526063bda27e9f934",
+      "interface": "On startup/recovery error, error.resourceState exposes only report and close; the success interface is unchanged."
+    },
+    {
+      "command": "node --check scripts/pilot/resources.mjs",
+      "cwd": "/Users/artem/visua",
+      "status": "passed"
+    },
+    {
+      "command": "Inline node --input-type=module harness replaces child_process.spawn through syncBuiltinESMExports, imports resources.mjs, and exercises two partial-startup cleanup failures and retries",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "cases": [
+        "Container run returns an ID, then inspected port is non-loopback and initial cleanup inspection fails.",
+        "Container run fails before returning an ID and initial cleanup inspection fails."
+      ],
+      "assertions": [
+        "The original error remains an AggregateError containing the startup failure.",
+        "resourceState has exactly report and close keys; serializing it does not include the generated password.",
+        "report.containers includes the attempted generated name whether or not Docker returned its ID.",
+        "Initial report.cleanup.status is failed; awaiting resourceState.close changes the same report to complete.",
+        "Retry removes only the container ID returned by ownership-matching inspection.",
+        "Temporary credential files are removed."
+      ],
+      "side_effects": "All Docker calls were mocked in process. Private temporary test directories were removed."
+    }
+  ],
+  "limitations": [
+    "No real Docker or broad suites were run for this correction. Live lifecycle validation remains lead-owned.",
+    "The caller must retain error.resourceState and invoke close for a bounded retry after an initial cleanup failure.",
+    "The original resources-result.json remains unchanged as requested; this record pins the corrected helper."
+  ]
+}

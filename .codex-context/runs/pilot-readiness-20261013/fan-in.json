@@ -1,0 +1,35 @@
+{
+  "run_id": "pilot-readiness-20261013",
+  "expected_nodes": 3,
+  "accepted_nodes": 3,
+  "snapshot_checked_files": 19,
+  "stale_sources": [],
+  "nodes": [
+    {
+      "id": "preflight",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "resources",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "pilot-review",
+      "status": "complete",
+      "issues": []
+    }
+  ],
+  "ready_for_integration": true,
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "source-verification.json: final944SQLite/953PostgreSQL and61 focused utility cases passed; no web change, browser not rerun.",
+      "rehearsal-release-result.json: two-process OIDC/PG/S3 workflow,80reads,quiesced restore/entity digests/audit/encryptedSSO/offline bundle passed; local fixtures only.",
+      "pilot-review-result.json: both supported findings corrected and affected reproductions passed.",
+      "delivery.json: healthy local image,209matching runtime/tooling pins,identical database tables after fresh quiesced backup."
+    ]
+  },
+  "complete": true
+}

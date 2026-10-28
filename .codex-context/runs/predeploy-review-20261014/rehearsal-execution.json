@@ -1,0 +1,14 @@
+{
+  "exit_code": 0,
+  "seconds": 15.21,
+  "log": "rehearsal.log",
+  "command": [
+    "pnpm",
+    "pilot:rehearse",
+    "--requests",
+    "80",
+    "--concurrency",
+    "4"
+  ],
+  "isolation": "Allowlisted environment; tool creates owned disposable PostgreSQL/MinIO and mock IdP; no live targets accepted."
+}

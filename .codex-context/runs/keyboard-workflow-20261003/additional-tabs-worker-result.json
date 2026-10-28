@@ -1,0 +1,21 @@
+{
+  "run_id": "keyboard-workflow-20261003",
+  "node_id": "additional-tabs-worker",
+  "input_sha256": "e660036c5106c6193ecee9e6d9a724ad0c7d0009bfea18a4d2cb8b75062eff69",
+  "status": "complete",
+  "summary": "Replaced the remaining Agents, RMF lifecycle and Threat catalog manual tablists with shared accessible Tabs behavior while preserving their visual layouts, drafts and route-driven loading. Added three focused browser regressions to the existing dialog/tabs suite.",
+  "evidence": [
+    "Owned files only: apps/web/src/components/ui/index.tsx, apps/web/src/pages/AgentsPage.tsx, apps/web/src/pages/RmfPage.tsx, apps/web/src/pages/ThreatsPage.tsx, e2e/keyboard-dialog-tabs.spec.ts, and this result envelope.",
+    "Read applicable repository instructions and DESIGN.md; the shared Tabs API now accepts className, style, tabClassName and renderTab, keeping existing RMF step/card classes, catalog coverage markup and design tokens.",
+    "All three groups use unique useId prefixes, exactly one selected tabIndex=0, shared Left/Right wrapping and Home/End activation, stable matching hidden TabPanel ids, and a focusable active panel reached with Tab.",
+    "Inactive panels have no display classes/styles and unmount their children. Threat state still validates the response catalog against the route-driven current catalog, navigation removes select, and catalog-specific interactive content is unmounted on catalog changes.",
+    "The existing root test-helper correction awaiting tabs.first() visibility was preserved. Three new cases cover Agents launcher draft preservation without run writes; RMF lifecycle arrow/Home/End/Tab and task links; and a held catalog request proving inspector reset, stale ATLAS controls removed, active loading panel focus, and catalog wrapping.",
+    "pnpm --filter @visua/web typecheck from /Users/artem/visua passed after final source formatting (exit 0).",
+    "pnpm exec tsc --noEmit --target ES2023 --module ESNext --moduleResolution Bundler --strict --skipLibCheck --types node --allowImportingTsExtensions e2e/keyboard-dialog-tabs.spec.ts from /Users/artem/visua passed (exit 0).",
+    "git diff --check passed for all four tracked owned source files; git diff --no-index --check /dev/null e2e/keyboard-dialog-tabs.spec.ts passed."
+  ],
+  "limitations": [
+    "No browser, runtime, build or server execution was performed by this worker. Root owns integrated browser verification and affected-flow independent review.",
+    "Catalog tests retain the existing explicit skip when MITRE ATLAS is unavailable; the standard ingested catalog corpus is expected for full coverage."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "run_id": "nexus-performance-20260930",
+  "node_id": "performance",
+  "input_sha256": "efe7d073eff80bc4c71a3237c50fde38fccd0ccecce8b7b4b7f01873e4c7c9aa",
+  "status": "complete",
+  "summary": "Demand rendering accepted with explicit wakeups. Followup fixed slow-frame camera damping and narrowed HUD observations.",
+  "evidence": [
+    "../../../../apps/web/src/scene/demandRendering.ts",
+    "../../../../apps/web/test/demand-rendering.test.ts",
+    "review/result.json",
+    "/tmp/visua-final-typecheck.log",
+    "evidence/profile-final.json",
+    "evidence/full-e2e.log",
+    "evidence/demand-e2e.log"
+  ],
+  "limitations": [
+    "See review-adjudication.json and evidence for coverage and test reruns."
+  ]
+}

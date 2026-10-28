@@ -1,0 +1,34 @@
+{
+  "status": "passed",
+  "source_head": "1dc5ed126dced52c364b403dd29f9ce62829b4da",
+  "completed_utc": "2026-10-02T07:20:20.768757+00:00",
+  "command": "env -u VISUA_DATABASE_URL -u VISUA_DB -u VISUA_TEST_DATABASE_URL VISUA_AGENT_MODE=offline VISUA_AUTH_MODE=dev VISUA_PUBLIC_URL=http://localhost:8799 pnpm check",
+  "cwd": "/Users/artem/visua",
+  "exit_code": 0,
+  "checks": {
+    "licensing_guard": "passed",
+    "typecheck": "passed",
+    "sqlite": {
+      "passed": 214,
+      "skipped": 2
+    },
+    "postgres": {
+      "passed": 216,
+      "skipped": 0
+    },
+    "playwright": {
+      "passed": 23,
+      "failed": 0
+    },
+    "corpus_hashes": "passed",
+    "design_lint": "passed"
+  },
+  "wall_seconds": 427,
+  "environment": "offline agents; dedicated throwaway Postgres; Playwright memory SQLite on8799; deployed8787 not changed",
+  "source_hashes_match": true,
+  "limitations": [
+    "Application Claude API mode not executed",
+    "Local SwiftShader browser runs do not measure hardware GPU performance",
+    "Corpus hashes verify retrieved contents, not current laws"
+  ]
+}

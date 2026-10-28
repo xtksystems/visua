@@ -1,0 +1,18 @@
+{
+  "source": "dependency-audit-all.json (retained locally)",
+  "source_sha256": "02fbe10a43bdb075d17fd339c2f3ccb558bc3ca7227d0a7553eb22f7c8b14f14",
+  "production_audit": "dependency-audit.json",
+  "full_audit_advisories": {
+    "high": 8,
+    "moderate": 3,
+    "total": 11
+  },
+  "packages_present_in_runtime_image": [
+    "ajv@8.17.1",
+    "fast-uri@3.1.2",
+    "uuid@8.3.2",
+    "source-map-js@1.2.1"
+  ],
+  "image_inventory": "image-dependency-presence.json",
+  "interpretation": "Package presence confirmed. No remotely reachable vulnerable operation established. Actual release OS/package scan remains open."
+}

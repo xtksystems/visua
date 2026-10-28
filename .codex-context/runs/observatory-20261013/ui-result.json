@@ -1,0 +1,16 @@
+{
+  "run_id": "observatory-20261013",
+  "node_id": "ui",
+  "input_sha256": "6719c831bcd64f674e583dd9d722c6feb4074e7edfa96ea86c73c81356c7966b",
+  "status": "complete",
+  "summary": "Implemented URL-backed assessed presets, retained selection/ancestor context and sibling navigation, labeled compact legends, and mobile sheet space reservation within the authorized UI scope.",
+  "evidence": [
+    ".codex-context/runs/observatory-20261013/ui-report.json: contract, executed checks, changed files, and source hashes",
+    "apps/web/test/observatory.test.ts: eight preset, scope, identity, query, and retained-context cases"
+  ],
+  "limitations": [
+    "No browser, build, full suite, commit, push, or deployment performed by this worker. Integrated browser and visual acceptance belongs to the lead.",
+    "Helper tests passed before the final fixture-only NodeScore shape correction; final web typecheck validates that corrected fixture.",
+    "Mobile sheet geometry and legend layout are implemented but require lead browser/capture validation."
+  ]
+}

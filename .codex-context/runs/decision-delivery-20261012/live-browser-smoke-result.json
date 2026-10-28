@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "checks": [
+    "Deployed desktop metrics and attention queue",
+    "Deployed exact proposal deep link and review sources",
+    "Deployed phone layout without horizontal overflow"
+  ],
+  "errors": [],
+  "audit": {
+    "valid": true,
+    "events": 97
+  }
+}

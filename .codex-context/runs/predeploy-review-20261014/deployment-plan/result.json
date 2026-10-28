@@ -1,0 +1,21 @@
+{
+  "run_id": "predeploy-review-20261014",
+  "node_id": "deployment-plan",
+  "input_sha256": "8d4c3161e5e7974b545b5fdfc8d7458515675d509ab211e6d5eac90ea6e26afa",
+  "status": "complete",
+  "summary": "Fresh bounded deployment-plan review completed with no supported technical findings; hosted acceptance gates remain open.",
+  "evidence": [
+    "review.json conforms to the required review object fields; verdict=pass, status=complete, nonempty coverage, findings=[].",
+    "brief.txt SHA-256: 8d4c3161e5e7974b545b5fdfc8d7458515675d509ab211e6d5eac90ea6e26afa.",
+    "docs/live-deployment-plan.md SHA-256: 43314dff16873432163a1a371350c1d3c1d618857caefb8a04b0c7785d9ba949; matches assigned document.",
+    "Local source reads and provider documentation URLs are enumerated in review.json coverage. Conclusions are source-derived, not hosted measurements."
+  ],
+  "limitations": [
+    "Read-only plan/source/provider-documentation review only. No builds, application tests, security exploit reproduction, cloud account access, credential reads, provisioning, or live service operations were performed.",
+    "All feasibility conclusions are source/documentation-derived predictions. No Google login, Cloud SQL connection, Cloud Run timer/shutdown behavior, R2 operation, restore, capacity, or alert delivery was measured.",
+    "R2's current checksum compatibility table distinguishes full-object and composite SHA-256 support. Documentation alone does not establish whether Visua's exact single PutObject request and installed AWS SDK succeed; the plan's explicit R2 compatibility gate remains mandatory.",
+    "The exact Cloud SQL connection string and authentication method remain unselected. A socket/proxy configuration must satisfy both node-postgres and preflight URL parsing while preserving a dedicated LISTEN session; the plan explicitly defers this proof.",
+    "Domain names, organization/project identifiers, region/residency, users/workload, budget, recovery objectives, and accountable operators are pending. No cost or capacity figure is established.",
+    "The brief declared HEAD cb438d1; no git commands were run under the assignment's restrictions. The reviewed plan bytes were independently hash-checked. No application-security review or disposition of the referenced F01/F02/F03 findings is included."
+  ]
+}

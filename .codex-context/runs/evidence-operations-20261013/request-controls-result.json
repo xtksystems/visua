@@ -1,0 +1,61 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "request-controls",
+  "input_sha256": "6d7e2133cb0c808c2b00887af4ba760c23317e092059195cc957a24931a4fda5",
+  "status": "complete",
+  "summary": "Implemented shared streamed JSON bounds, per-instance rate admission, health exemptions and fixed-category safe diagnostics with periodic operator logging.17 final focused cases and server typecheck pass;33 prior auth and9 focused upload/startup regressions also pass. Lead owns final integration.",
+  "evidence": [
+    "request-controls-report.json",
+    "request-controls-final-tests.log",
+    "request-controls-tests.log",
+    "request-controls-regressions.log",
+    "request-controls-typecheck.log"
+  ],
+  "limitations": [
+    "Rate buckets and admission concurrency are per app/server instance, not distributed quotas. Direct peers behind an untrusted proxy share the proxy bucket; forwarded identities are deliberately ignored.",
+    "Defaults are configurable guardrails, not measured pilot capacity or production throughput claims. No production capacity/time-to-first-artifact baseline was measured.",
+    "The shared timeout bounds JSON reading. JSON/schema processing and application work are separately bounded by bytes and existing service policies; this does not claim a universal end-to-end request deadline.",
+    "Health/readiness are admission-exempt. Readiness retains its existing bounded shared storage probe.",
+    "run.queued is the most recent scheduler-observed queued row count for its connected database, with an observation timestamp; it can be stale and is not a process resource count.",
+    "No new HTTP diagnostic endpoint, proxy trust configuration, external telemetry export, full suite, browser run, build, live PostgreSQL, git action, deployment or delegation was used.",
+    "Exact hashes include whole shared app/server files at report time; only the assigned regions listed above were edited by this worker. Lead-owned diagnostic callsites and other concurrent M3 work need combined integration checks."
+  ],
+  "changed_files": {
+    "apps/server/src/request-controls.ts": {
+      "before_sha256": null,
+      "after_sha256": "1bc425d48f78f182215a899593849d96f820df4f9f5c10c7cdf1186a9f48b5cb",
+      "status": "added"
+    },
+    "apps/server/src/diagnostics.ts": {
+      "before_sha256": null,
+      "after_sha256": "116bc150c428e247098d173f9dc0a2d7750ea130a0c225b86b959d24806ff17a",
+      "status": "added"
+    },
+    "apps/server/src/auth/http.ts": {
+      "before_sha256": "f9f6cd220902c6ed6beb5a53f0d0ce7e5240a7e7b2cccc7e7468ff05106e1408",
+      "after_sha256": "39aaef9c85ac8c630f62cc96da2dc4a5b66247d0f9451327d912bd4ccbb063a8",
+      "status": "modified"
+    },
+    "apps/server/src/app.ts": {
+      "before_sha256": "0316530c7de4bb3337bfb74737168eec6d02c8a5324d8635534eb0b4e00b0e21",
+      "after_sha256": "cb24d7eaa22611d53092bf6295becc5fb307abdf059970b43267cacc13480c57",
+      "status": "modified"
+    },
+    "apps/server/src/server.ts": {
+      "before_sha256": "85b4a85749e49d4468c4bb22aa09d8bd326cc6b811f5f9b611cdc037d0088b48",
+      "after_sha256": "b9b5e304ab6ab8b78567e5a7ae8d8e5ca3182cd5e2c32d360068e9341dab06ec",
+      "status": "modified"
+    },
+    "apps/server/test/request-controls.test.ts": {
+      "before_sha256": null,
+      "after_sha256": "f0fd9e6133e70dd0f2c15844fc8dfb942a0a275bf80654e9c7d269030618a00a",
+      "status": "added"
+    },
+    "apps/server/test/diagnostics.test.ts": {
+      "before_sha256": null,
+      "after_sha256": "d02cedbcf3977eca163bb1fc0fcea05e63359b0b681a0e49ee9dfedee8169e2e",
+      "status": "added"
+    }
+  },
+  "report_sha256": "030de084c6d765c423d08dbf5e1398907df91d311c4844ae72178678ac108e4b"
+}

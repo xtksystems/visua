@@ -1,0 +1,39 @@
+{
+  "run_id": "app-review-20261002",
+  "expected_nodes": 3,
+  "accepted_nodes": 3,
+  "snapshot_checked_files": 168,
+  "stale_sources": [],
+  "nodes": [
+    {
+      "id": "security",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "product",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "governance",
+      "status": "complete",
+      "issues": []
+    }
+  ],
+  "ready_for_integration": true,
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "evidence/verification-summary.json: full pnpm check exit0, source1dc5ed1,214 SQLite passed/2 skipped,216 Postgres passed,23 e2e passed",
+      "evidence/browser-summary.json:48 route/viewport checks and16 screenshots;3 focused UI findings",
+      "evidence/reproductions.json: contributor evidence changes, invalid dates, connector loopback reproduced",
+      "evidence/production-bootstrap.json: bootstrap membership failure and unsafe dev-bind default reproduced",
+      "evidence/deployed-source.json:131 source/token files match deployed service",
+      "evidence/security-adjudication.json and evidence/governance-adjudication.json: raw claims qualified or rejected against full source",
+      "review-adjudication.json: all3 expected Opus reviews and both native workers accounted for",
+      "docs/reviews/full-app-review-2026-10-02.md and docs/development-phase-2.md: completed review and gated development plan; application code unchanged"
+    ]
+  },
+  "complete": true
+}

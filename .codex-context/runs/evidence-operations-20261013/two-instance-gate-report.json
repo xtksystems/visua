@@ -1,0 +1,65 @@
+{
+  "status": "complete",
+  "summary": "Authored four explicit PostgreSQL-only real-HTTP two-server M3 acceptance cases. Each test starts independent services/stores/LISTEN relays through startServer on OS-assigned ports, shares one temporary PostgreSQL schema, uses MemoryBlobStore and an offline mocked agent, and performs client actions with current cookies and CSRF over native fetch. PostgreSQL execution is pending lead validation.",
+  "input_hash": "c6aef5917b345e366700d4ed1ac591ed5cdfebc22a46f5993f93b6d41a83764f",
+  "file": "/Users/artem/visua/.check/evidence-automation-20261013/apps/server/test/two-instance-automation.test.ts",
+  "sha256": "ac168eeb6690b3e55ed79dcdbe004d998b0e6a26a76eb164a27f0478774eea00",
+  "acceptance_mapping": [
+    {
+      "case": "HTTP A start / B cancel",
+      "assertions": [
+        "A persists a step and one proposal before cancellation; appendRunStep ownership observation confirms A executes while B does not.",
+        "B cancellation increments the persisted epoch. A deliberately resumes despite cancellation and attempts a late step and proposal.",
+        "Proposal refusal is observed, attempted step is recorded by the test, HTTP final status/epoch/finishedAt remain cancelled, and persisted steps/proposals exactly match the cancellation/baseline snapshots. No success is inferred from an empty proposal list."
+      ]
+    },
+    {
+      "case": "HTTP member stream revocation",
+      "assertions": [
+        "A serves an authenticated member SSE stream; B mutation is positively observed with an activity barrier before removal.",
+        "B removes the member and performs a later private workspace mutation.",
+        "Member canonical HTTP access becomes 404; A stream reaches EOF without a later visua payload."
+      ]
+    },
+    {
+      "case": "Publisher NOTIFY failure with listeners connected",
+      "assertions": [
+        "Two distinct dedicated LISTEN backend PIDs are observed.",
+        "Only one matching publisher SELECT pg_notify is failed; the canonical workspace write succeeds.",
+        "A remote HTTP subscriber receives resync, both listener PIDs are unchanged, and canonical HTTP state matches the committed write.",
+        "A later mutation is delivered on the same HTTP stream after recovery."
+      ]
+    },
+    {
+      "case": "HTTP current SSO provider",
+      "assertions": [
+        "B warms its provider cache via HTTP login start and obtains an old-provider callback.",
+        "A replaces issuer/client/secret through HTTP SSO settings. B rejects the old callback and remains signed out.",
+        "A fresh B login targets the replacement issuer/client and the actual B listener callback URL; local mock authorization and HTTP callback grant a session for the expected tenant/user."
+      ]
+    }
+  ],
+  "cleanup": "afterEach releases all held agents, aborts/cancels stream readers, restores spies, stops both servers, closes local IdPs, and drops temporary schemas. Cleanup errors are collected and reported while later cleanup still runs. Requests/stream waits are bounded; each test and cleanup hook has a 45-second limit. No global environment mutation.",
+  "checks": [
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL VISUA_AGENT_MODE=offline pnpm exec vitest run apps/server/test/two-instance-automation.test.ts",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "exit_code": 0,
+      "result": "Final skip smoke: 1 test file skipped, 4 tests skipped. No fixture, HTTP server, PostgreSQL connection or assertions executed."
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm --filter @visua/server typecheck",
+      "cwd": "/Users/artem/visua/.check/evidence-automation-20261013",
+      "exit_code": 1,
+      "result": "Blocked by lead-owned concurrent source: src/app.ts(287,27) TS2322: Type 'void' is not assignable to type 'Promise<void>'. No diagnostics in the newly authored gate file. This check preceded final test-only timeout/assertion refinements; it is not reported as a final typecheck pass."
+    }
+  ],
+  "limits": [
+    "The four PostgreSQL cases are authored but were not executed against PostgreSQL; lead owns combined PostgreSQL and final integrated checks.",
+    "The agent entry point is mocked to a controlled offline latch. The gate validates real HTTP listener routing, persisted run outcomes and cross-instance controls, but does not invoke a real model or connector. Existing connector cancellation tests cover delayed connector results separately.",
+    "SSO uses the existing local mock IdP fixture only. The test covers current-provider replacement and stale-flow rejection through HTTP; helper-level token-exchange policy races remain in oidc-current.test.ts.",
+    "Canonical HTTP state after resync is asserted, with post-recovery SSE delivery. No browser UI or browser query-cache runtime was executed.",
+    "No application files, other tests, prior reviews, PostgreSQL/container, build, git, deployment or external provider were touched. Dependency hashes reflect source available at report time and may include concurrent lead changes."
+  ],
+  "result_artifact": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/two-instance-gate-result.json"
+}

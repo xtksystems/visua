@@ -1,0 +1,18 @@
+{
+  "run_id": "observatory-20261013",
+  "node_id": "server",
+  "input_sha256": "b919ea346047dbc611bed6d56a34bc150983e7078490d1907dd0fdae195178cc",
+  "status": "complete",
+  "summary": "Normal Observatory bundles expose current scope and stable ownership, and derive score and valid evidence counts from one fresh metadata snapshot and clock. Eight regression tests added; final focused lane passes 16 tests.",
+  "evidence": [
+    ".codex-context/runs/observatory-20261013/server-report.json: contract, coverage and check results",
+    "apps/server/src/services/views.ts:139 frameworkState",
+    "apps/web/src/lib/types.ts:100 normal bundle scope, identity and clock fields",
+    "apps/server/test/observatory.test.ts:80 regression cases"
+  ],
+  "limitations": [
+    "PostgreSQL, browser tests and full checks were not run by this worker, per bounded brief.",
+    "Web typecheck sampled concurrent UI edits and failed on the UI-owned Outline call; integration must rerun it.",
+    "Shared frontend types keep inScope and asOf optional because threat bundles omit assessment-only fields; normal responses always supply them."
+  ]
+}

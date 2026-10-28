@@ -1,0 +1,124 @@
+{
+  "run_id": "decision-workspace-20261004",
+  "node_id": "proposal-server",
+  "input_sha256": "19069ec6e9edf0cc6603bc99f03b40d610cf4aab808bf91a63710ce72d0c91b2",
+  "status": "completed",
+  "summary": "Implemented authoritative proposal previews and snapshot-bound approval for all ten ProposalTypes. Independent review corrections expose narrative validity duration/no-expiry semantics and preserve requirement identities when assessment rows are absent, preventing conflicting batch overwrites.",
+  "evidence": [
+    {
+      "command": "pnpm exec vitest run apps/server/test/proposal-review.test.ts",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed",
+      "tests": 21,
+      "dialect": "sqlite",
+      "duration_seconds": 7.0,
+      "verified_at": "2026-10-04T04:52:24Z"
+    },
+    {
+      "command": "pnpm --filter @visua/server typecheck",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed"
+    },
+    {
+      "command": "git diff --check -- apps/server/src/services/visua.ts apps/server/src/services/proposal-review.ts apps/server/src/app.ts packages/core/src/proposal-review.ts apps/server/test/proposal-review.test.ts",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed"
+    },
+    {
+      "coverage": [
+        "all supported proposal types",
+        "stable review tokens",
+        "exact normalized fields and actual requirement links",
+        "GET rollback leaves rows, revision, audit and events unchanged",
+        "no blob reads for previews",
+        "missing token and edited approval rejection",
+        "stale target and proposal payload rejection",
+        "cross-tenant isolation",
+        "contributor approval denial",
+        "token-free rejection",
+        "batch added-item freeze",
+        "conflicting targets skipped pending",
+        "stale batch rejected before writes",
+        "partial application failure",
+        "decision-audit failure rollback and actual pending proposalStatus",
+        "connector source observations",
+        "direct file review required",
+        "RMF authorization prohibition",
+        "explicit 1-day, 730-day and no-expiry narrative validity fields",
+        "validity edits invalidate reviewed token",
+        "absent requirement-state identity preserved and overlapping batch skipped",
+        "unchanged unordered record sets retain tokens for single and batch approvals",
+        "order changes inside observed check data still invalidate tokens"
+      ]
+    },
+    {
+      "files": [
+        {
+          "path": "packages/core/src/proposal-review.ts",
+          "sha256": "caf52b1cd0b8d2983fe3b6e6a30c40c79e82e05bd313c90996e82e17fcd48510"
+        },
+        {
+          "path": "apps/server/src/services/proposal-review.ts",
+          "sha256": "0557777626d49dd1ab99ea0550c0aaef8215f79100bb8874f2e8fe20072a43e9"
+        },
+        {
+          "path": "apps/server/src/services/visua.ts",
+          "sha256": "962e8baa9b1026ceafb707db57201ba00e8d9590998ff19b3d27dc53da691588"
+        },
+        {
+          "path": "apps/server/src/app.ts",
+          "sha256": "77a8a0a902ab74cf44ef8800e755ca7106707809212912bbd62ccd5246437d71"
+        },
+        {
+          "path": "apps/server/test/proposal-review.test.ts",
+          "sha256": "2f46c0e115ffc53bdcb0ff56e5ea4f4ba83f79c3df16345a6ec386e6df0c811c"
+        }
+      ]
+    },
+    {
+      "command": "VISUA_TEST_DATABASE_URL=<isolated disposable PostgreSQL 17 container> pnpm exec vitest run apps/server/test/proposal-review.test.ts",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed",
+      "tests": 21,
+      "dialect": "postgres",
+      "duration_seconds": 25.17,
+      "verified_at": "2026-10-04T04:52:24Z",
+      "cleanup": "Isolated test schemas dropped and worker-owned visua-proposal-review-debug container removed."
+    },
+    {
+      "experiment": "Real PostgreSQL index scan versus sequential scan, unchanged proposal and persisted state",
+      "before": ".check/proposal-order-debug/before-fix.json",
+      "after": ".check/proposal-order-debug/after-fix.json",
+      "diagnosis": ".check/proposal-order-debug/diagnosis.json",
+      "outcome": "Before fix, tokens differed despite identical sorted record hashes; after fix, tokens match across the same plan change."
+    }
+  ],
+  "limitations": [
+    "Tokens conservatively invalidate on any audited workspace change or UTC day rollover; no expiry persistence or migration was added.",
+    "Preview computation runs existing database-only mutations in a savepoint that is always rolled back. Returned fields exclude listed runtime-generated identifiers, reviewer fields, and timestamps.",
+    "File evidence review remains in the dedicated byte-verifying evidence workflow; proposal previews report it as blocked.",
+    "Batch previews are limited to 200 pending proposals and conservatively skip overlapping targets. Individual approval plus refreshed previews resolves overlaps.",
+    "Focused proposal suites ran on SQLite and isolated PostgreSQL, plus server typecheck. Full suite, browser checks, and builds remain lead-owned.",
+    "Changes are uncommitted. Core index exports and integration changes are lead-owned."
+  ],
+  "review_corrections": {
+    "files": [
+      "apps/server/src/services/proposal-review.ts",
+      "apps/server/test/proposal-review.test.ts"
+    ],
+    "changes": [
+      "Narrative evidence proposed fields now state collectionTime and validityPeriod. Exact approval-generated timestamps remain qualified via generatedFields. Raw validDays stays included in the token-bound payload.",
+      "Every requirement change now includes its known nodeId as entityId even without a current assessment row; existing overlap detection consequently skips conflicting same-node proposals."
+    ],
+    "validation": "19 focused SQLite tests, server typecheck, and scoped diff check passed. Independent reviewer notified for follow-up verification."
+  },
+  "postgres_order_correction": {
+    "root_cause": "snapshot() hashed StateTable.list() result order despite that query having no ORDER BY. PostgreSQL plan changes returned identical records in a different array order.",
+    "fix": "Sort only top-level snapshot record collections and workspace membership inputs by stable ID. Preserve nested payload/content/check array order.",
+    "files": [
+      "apps/server/src/services/proposal-review.ts",
+      "apps/server/test/proposal-review.test.ts"
+    ],
+    "validation": "Final focused suite passed 21/21 on SQLite and 21/21 on PostgreSQL; server typecheck and scoped diff check passed. Existing stale-state/payload/source tests remain strict; ordered observed steps explicitly remain bound."
+  }
+}

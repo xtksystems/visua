@@ -1,0 +1,16 @@
+{
+  "status": "complete",
+  "verdict": "pass",
+  "summary": "Narrow recheck of the integration-discovered PostgreSQL snapshot-order correction completed. Sorting the top-level entity collections and member list removes incidental row-order dependence while retaining binding to record contents, nested array order, membership, and tenant identity. No supported token-binding regression identified.",
+  "coverage": [
+    "Inspected records()/identity()/compareId(), snapshot collection normalization, member normalization, canonical() and final proposal/batch token inputs. Sorting maps the collection to a new array, preserves every record, and does not recurse into payload/content/check arrays. Existing persisted state and entity storage keys establish stable unique nodeId/id identities; membership rows are unique per tenant/user. The workspace object and all nested fields remain in the digest.",
+    "Inspected the backend-independent single/batch reversed-state-list regressions and existing stale-target/proposal checks. Read the worker-produced .check/proposal-order-debug/{before-fix,diagnosis,after-fix}.json artifacts: the index/sequential scan pair has matching sorted before-state digests; tokensEqual changes from false before correction to true after correction. These PostgreSQL artifacts were inspected, not independently executed by this reviewer.",
+    "Executed node .check/independent-review/order-binding-recheck.ts, which imports the actual buildProposalPreview and uses isolated in-memory dependency stubs without a database. All 14 assertions passed: each of six entity collection permutations and member permutation preserves the token; check steps, evidence observation arrays, task checklist order, member names, record values, record membership, and tenant identity remain token-sensitive. Output is .check/independent-review/order-binding-recheck-output.json.",
+    "Source SHA-256 at recheck: {\"apps/server/src/audit.ts\": \"ad3dfb78365569914af8a1d46ab8b4cf1fa0b573057cd26f8328b6a4e111d52b\", \"apps/server/src/services/proposal-review.ts\": \"0557777626d49dd1ab99ea0550c0aaef8215f79100bb8874f2e8fe20072a43e9\", \"apps/server/src/storage/identity.ts\": \"d287e809b71e878825b3193ce9b2fb550c454ab0d51c7e332c5d437681d93d1d\", \"apps/server/src/storage/store.ts\": \"f514139bd12d9bd06e312ebadb71daf68f00851aa46657bfa5de68cae5cdb55e\", \"apps/server/test/proposal-review.test.ts\": \"2f46c0e115ffc53bdcb0ff56e5ea4f4ba83f79c3df16345a6ec386e6df0c811c\"}"
+  ],
+  "findings": [],
+  "limitations": [
+    "This is a focused follow-up informed by the integration regression and proposed fix, not a new independent first pass. The two original review findings and their earlier corrections remain recorded separately.",
+    "The 14-case reviewer check exercises actual token construction with isolated dependency stubs; it does not execute database transactions. PostgreSQL plan switching and both-backend proposal suites were performed by the implementation worker, with final integration checks owned by the lead. No browser, build, full-suite, or product source edits were performed during this follow-up."
+  ]
+}

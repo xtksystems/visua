@@ -1,0 +1,32 @@
+{
+  "status": "complete",
+  "verdict": "pass",
+  "summary": "Reviewed integration and resolved both independent findings plus a pre-existing delayed slash-focus race exposed by the expanded keyboard flow.",
+  "source": "delivery-source.json",
+  "resolved": [
+    {
+      "finding": "Inspector peer/parent focus lost across keyed detail loads.",
+      "evidence": "browser-focus-reproduction.log failed; browser-final-focus.log repeated navigation passes.",
+      "correction": "Workspace/node-bound focus request restores the equivalent enabled control or selected path while leaving draft/query keys unchanged."
+    },
+    {
+      "finding": "Null-relatedTarget blur allowed later assessment refresh to restore stale navigation focus.",
+      "evidence": "browser-blur-reproduction.log failed after plain-text click and live assessment refresh; final regression passes.",
+      "correction": "Cancel request on null/non-Node blur target and focus outside navigation."
+    },
+    {
+      "finding": "Search could restore stale route selection.",
+      "evidence": "Earlier focused lane failed; final search, deep-link, canvas and phone keyboard cases pass.",
+      "correction": "Compose route writes from the current address bar and skip stale route effects, retaining immediate scene selection."
+    },
+    {
+      "finding": "Slash queued focus even for mounted inputs, which could displace later Tab focus.",
+      "evidence": "browser-final-affected.log retained correct URL/selection but focus returned to the filter; final fast-input and closed-outline cases pass.",
+      "correction": "Focus mounted inputs immediately; defer only while opening and only while original surface still owns focus."
+    }
+  ],
+  "limitations": [
+    "Lead adjudication is not an additional independent review.",
+    "Independent reports remain preserved with their original findings."
+  ]
+}

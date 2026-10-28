@@ -381,7 +381,12 @@ export interface RequirementState {
   applicabilityRationale?: string;
   /** A person's documented "not applicable" decision. Kept separately so scope changes never overwrite it. */
   userExclusion?: { rationale: string; at: string; by: string };
+  /** Display name or an explicitly external owner label. */
   owner?: string;
+  /** Stable user id for a member of the workspace's organization. */
+  ownerUserId?: string;
+  /** Calendar date, YYYY-MM-DD. */
+  dueDate?: string;
   notes?: string;
   /** Set when an assessor (human or approved agent) verified the implementation. */
   verifiedAt?: string;
@@ -438,7 +443,9 @@ export interface Task {
   status: TaskStatus;
   priority: Priority;
   requirementIds: string[];
-  assignee?: { type: "person" | "agent"; id: string; name: string };
+  /** Server-owned, cumulative requirement provenance for task text; retained when links change. */
+  contentRequirementIds?: string[];
+  assignee?: { type: "person" | "agent" | "external"; id: string; name: string };
   startDate?: string;
   dueDate?: string;
   effortHours?: number;
@@ -465,7 +472,50 @@ export type EvidenceKind =
   | "policy"
   | "report";
 
-export type EvidenceStatus = "pending-review" | "accepted" | "rejected" | "expired";
+export type EvidenceStatus = "pending-review" | "accepted" | "rejected" | "expired" | "withdrawn";
+
+export interface EvidenceAssurance {
+  kind: "design" | "operating" | "attestation" | "unspecified";
+  scope: string;
+  observationStart?: string;
+  observationEnd?: string;
+}
+
+/** Recorded by the collection service, never reconstructed from mutable links. */
+export interface EvidenceProvenance {
+  origin: "upload" | "manual" | "connector-check" | "agent-proposal" | "approved-policy";
+  recordedBy: string;
+  recordedAt: string;
+  originalRequirementIds: string[];
+  sourceDocumentIds: string[];
+  restrictedContent: boolean;
+  seriesKey?: string;
+  check?: { resultId: string; connectorId: string; connectorKind: string; connectorName: string; checkId: string; observedAt: string; sourceConfigHash?: string };
+  agent?: { runId: string; proposalId: string };
+  policy?: { id: string; version: number; sha256: string; approvedBy?: string; approvedAt?: string };
+}
+
+/** The artifact and applicability window a person inspected when deciding. */
+export interface EvidenceReviewScope {
+  sha256?: string;
+  requirementIds: string[];
+  collectedAt: string;
+  validUntil?: string;
+  assurance?: EvidenceAssurance;
+  provenance?: EvidenceProvenance;
+  supersedesId?: string;
+}
+
+export interface EvidenceReview {
+  id: string;
+  decision: "accepted" | "rejected" | "withdrawn";
+  reviewedBy: string;
+  reviewedAt: string;
+  /** Missing scope archives a legacy decision; it never grants current approval. */
+  scope?: EvidenceReviewScope;
+  note?: string;
+  legacy?: boolean;
+}
 
 export interface Evidence {
   id: string;
@@ -481,10 +531,21 @@ export interface Evidence {
   validUntil?: string;
   content?: string;
   data?: Record<string, unknown>;
+  /** Server-owned reference to immutable file bytes; fileName is only a display label. */
+  artifact?: { id: string; sha256: string; size: number; mediaType: string };
   fileName?: string;
   sha256?: string;
   reviewedBy?: string;
   reviewedAt?: string;
+  assurance?: EvidenceAssurance;
+  provenance?: EvidenceProvenance;
+  /** Monotone content provenance survives relinking and local corpus removal. */
+  contentRequirementIds?: string[];
+  contentSourceDocumentIds?: string[];
+  restrictedContent?: boolean;
+  supersedesId?: string;
+  /** Server-owned, append-only decisions with immutable scope snapshots. */
+  reviewHistory?: EvidenceReview[];
   createdAt: string;
 }
 
@@ -542,6 +603,8 @@ export interface CheckResult {
   observed: Record<string, unknown>;
   observedAt: string;
   evidenceId?: string;
+  /** Source identity captured at observation time, independent of later connector edits. */
+  source?: { connectorKind: string; connectorName: string; configHash: string };
 }
 
 export interface Connector {
@@ -561,6 +624,15 @@ export interface Connector {
 
 export type AgentRunStatus = "queued" | "running" | "awaiting-approval" | "completed" | "failed" | "cancelled";
 
+export type AgentStage = "collect" | "analyze" | "propose" | "review" | "apply";
+
+/** Observed runtime boundaries; proposal stages use the persisted proposals themselves. */
+export interface AgentStageObservation {
+  stage: "collect" | "analyze";
+  status: "started" | "completed";
+  at: string;
+}
+
 export type AgentStepType =
   | "plan"
   | "thought"
@@ -573,6 +645,10 @@ export type AgentStepType =
   | "error";
 
 export interface Citation {
+  /** Stable corpus chunk identity; absent on citations recorded before resolution was introduced. */
+  chunkId?: string;
+  /** SHA-256 of the canonical chunk identity, location and text at resolution time. */
+  chunkSha256?: string;
   documentId: string;
   documentTitle: string;
   locator?: string;
@@ -633,6 +709,8 @@ export interface AgentRun {
   mode: "claude" | "offline";
   model?: string;
   steps: AgentStep[];
+  /** Absent on legacy runs. An empty array means tracking exists but work has not started. */
+  stageHistory?: AgentStageObservation[];
   summary?: string;
   focusNodeIds: string[];
   taskId?: string;
@@ -640,6 +718,10 @@ export interface AgentRun {
   error?: string;
   /** User id of the person (or token) that started the run. */
   startedBy?: string;
+  /** Absent on historical runs. Incremented on claim, cancellation or interruption. */
+  executionEpoch?: number;
+  execution?: { ownerId: string; attemptId: string; epoch: number; heartbeatAt: string; leaseExpiresAt: string };
+  interruptionReason?: "owner-expired" | "server-stopped";
   createdAt: string;
   startedAt?: string;
   finishedAt?: string;

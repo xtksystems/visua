@@ -1,0 +1,17 @@
+{
+  "attempts": [
+    {
+      "attempt": 1,
+      "exit_code": 1,
+      "result": "recovery-initial-failed.json",
+      "failure": "Auditor content digest differed because original/restored exports defaulted to different asOf values.",
+      "limits": "Execution raised after binary/review/audit checks; raw result did not itself label failure. This record preserves actual exit outcome."
+    },
+    {
+      "attempt": 2,
+      "exit_code": 0,
+      "result": "recovery-result.json",
+      "fixture_correction": "Both bundle captures use fixed asOf 2026-10-28T00:00:00.000Z. Application unchanged."
+    }
+  ]
+}

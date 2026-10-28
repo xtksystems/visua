@@ -1,0 +1,477 @@
+{
+  "run_id": "selection-roles-20261003",
+  "node_id": "page-worker",
+  "recorded_utc": "2026-10-03T20:39:22.572650+00:00",
+  "scope": "Owned page capability controls, canonical workspace identity and authored page-role browser tests; no server/shared-component changes",
+  "input_sha256": "e67ea1ec482647cc1976259bb1439ad830b3ce10f609f80294d118835ff5c304",
+  "affordance_inventory": [
+    {
+      "file": "HomePage.tsx",
+      "affordances": [
+        {
+          "controls": [
+            "Plan with agent"
+          ],
+          "capability": "work.write",
+          "server": "POST /api/workspaces/:ws/runs"
+        }
+      ]
+    },
+    {
+      "file": "PlanPage.tsx",
+      "affordances": [
+        {
+          "controls": [
+            "Generate plan",
+            "Plan with agent",
+            "Quick add task",
+            "Drag/drop status",
+            "Checklist",
+            "Task status",
+            "Execute with agent",
+            "Suggested implementation level"
+          ],
+          "capability": "work.write",
+          "server": "Workspace write floor: POST /plan, /runs, /tasks; PATCH /tasks/:id, /requirements/:nodeId"
+        }
+      ],
+      "read_controls": [
+        "Framework filter",
+        "Board/timeline",
+        "Task detail",
+        "Requirement links"
+      ]
+    },
+    {
+      "file": "EvidencePage.tsx",
+      "affordances": [
+        {
+          "controls": [
+            "Collect with agent",
+            "Run connector"
+          ],
+          "capability": "work.write",
+          "server": "POST /runs; POST /connectors/:id/run"
+        },
+        {
+          "controls": [
+            "Add connector (header, empty state, dialog)"
+          ],
+          "capability": "workspace.configure",
+          "server": "POST /connectors need(workspace.configure)"
+        },
+        {
+          "controls": [
+            "Review",
+            "Accept",
+            "Reject"
+          ],
+          "capability": "work.approve",
+          "server": "PATCH /evidence/:id decision requires work.approve"
+        }
+      ],
+      "preserved": [
+        "Fixed inspection snapshot",
+        "expectedScope review binding",
+        "Review history",
+        "Explicit review failure toast"
+      ]
+    },
+    {
+      "file": "PoliciesPage.tsx",
+      "affordances": [
+        {
+          "controls": [
+            "Draft",
+            "Edit",
+            "Save body",
+            "Submit for review"
+          ],
+          "capability": "work.write",
+          "server": "POST /runs; PATCH /policies/:id workspace write floor"
+        },
+        {
+          "controls": [
+            "Approve",
+            "Publish"
+          ],
+          "capability": "work.approve",
+          "server": "PATCH /policies/:id approved/published/retired requires work.approve"
+        }
+      ],
+      "read_controls": [
+        "Policy list",
+        "Policy Markdown",
+        "Requirements links"
+      ]
+    },
+    {
+      "file": "AgentsPage.tsx",
+      "affordances": [
+        {
+          "controls": [
+            "Launch agent",
+            "Stop queued/running run"
+          ],
+          "capability": "work.write",
+          "server": "POST /runs; POST /runs/:id/cancel"
+        },
+        {
+          "controls": [
+            "Approve all"
+          ],
+          "capability": "work.approve",
+          "server": "POST /runs/:id/approve-all"
+        }
+      ],
+      "read_controls": [
+        "Run navigation",
+        "Step expansion",
+        "Inbox tab",
+        "Proposal view"
+      ],
+      "delegated_controls": "ProposalCard already owns work.approve gates; shared component owned by root/inspector worker"
+    },
+    {
+      "file": "ProfilePage.tsx",
+      "affordances": [
+        {
+          "controls": [
+            "Tier answer radios",
+            "Save assessment"
+          ],
+          "capability": "work.write",
+          "server": "POST /tiers workspace write floor"
+        },
+        {
+          "controls": [
+            "Profile CSV",
+            "Readiness report"
+          ],
+          "capability": "workspace.export",
+          "server": "GET /exports/:kind need(workspace.export)"
+        }
+      ]
+    },
+    {
+      "file": "Soc2Page.tsx",
+      "affordances": [
+        {
+          "controls": [
+            "Enable SOC 2",
+            "Report type",
+            "Categories",
+            "Observation dates",
+            "Auditor",
+            "Save scope"
+          ],
+          "capability": "workspace.configure",
+          "server": "PUT /frameworks/:fw need(workspace.configure)"
+        },
+        {
+          "controls": [
+            "PBC request list"
+          ],
+          "capability": "workspace.export",
+          "server": "GET /exports/:kind need(workspace.export)"
+        }
+      ],
+      "read_controls": [
+        "Readiness",
+        "System description",
+        "Criteria navigation"
+      ]
+    },
+    {
+      "file": "RmfPage.tsx",
+      "affordances": [
+        {
+          "controls": [
+            "Information types",
+            "Impact levels",
+            "Privacy baseline",
+            "Apply baseline",
+            "Tailoring inputs/reset/record",
+            "Authorization fields/record"
+          ],
+          "capability": "work.approve",
+          "server": "POST /rmf/categorize, /rmf/tailor, /rmf/authorize need(work.approve)"
+        },
+        {
+          "controls": [
+            "Enable NIST RMF / SP 800-53"
+          ],
+          "capability": "workspace.configure",
+          "server": "PUT /frameworks/:fw need(workspace.configure)"
+        },
+        {
+          "controls": [
+            "OSCAL SSP",
+            "OSCAL POAM"
+          ],
+          "capability": "workspace.export",
+          "server": "GET /exports/:kind need(workspace.export)"
+        }
+      ],
+      "read_controls": [
+        "Lifecycle tabs",
+        "Control navigation",
+        "Tailoring rationale view"
+      ],
+      "delegated_controls": "OverlayPanels already gate adoption/removal workspace.configure and priority application work.approve; shared component root-owned"
+    },
+    {
+      "file": "AiPage.tsx",
+      "affordances": [
+        {
+          "controls": [
+            "Plan with agent",
+            "Add/edit/remove AI system"
+          ],
+          "capability": "work.write",
+          "server": "POST /runs; POST/PATCH/DELETE /ai/systems/:id workspace write floor"
+        },
+        {
+          "controls": [
+            "Enable NIST AI RMF"
+          ],
+          "capability": "workspace.configure",
+          "server": "PUT /frameworks/:fw need(workspace.configure)"
+        },
+        {
+          "controls": [
+            "AI RMF profile CSV"
+          ],
+          "capability": "workspace.export",
+          "server": "GET /exports/:kind need(workspace.export)"
+        }
+      ],
+      "read_controls": [
+        "Outcome navigation",
+        "Inventory",
+        "Generative risk readiness"
+      ]
+    },
+    {
+      "file": "LawsPage.tsx",
+      "affordances": [
+        {
+          "controls": [
+            "Applicability roles/note/record"
+          ],
+          "capability": "work.approve",
+          "server": "PUT /laws/:lawId/applicability need(work.approve)"
+        },
+        {
+          "controls": [
+            "Track state AI laws"
+          ],
+          "capability": "workspace.configure",
+          "server": "PUT /frameworks/:fw need(workspace.configure)"
+        }
+      ],
+      "read_controls": [
+        "Law filter",
+        "Expand/collapse",
+        "Obligations viewing"
+      ],
+      "change": "Canonical workspace identity; existing correct capability and catch paths retained"
+    },
+    {
+      "file": "CrosswalkPage.tsx",
+      "affordances": [
+        {
+          "controls": [
+            "Project mapped progress agent"
+          ],
+          "capability": "work.write",
+          "server": "POST /runs workspace write floor"
+        }
+      ],
+      "read_controls": [
+        "Nexus",
+        "Framework visibility",
+        "Threat ring",
+        "Group selection",
+        "Requirement group filter"
+      ]
+    },
+    {
+      "file": "ThreatsPage.tsx",
+      "affordances": [],
+      "read_controls": [
+        "Catalog navigation",
+        "Link filter",
+        "Show filter",
+        "Search",
+        "Threat selection"
+      ],
+      "change": "Canonical workspace identity; no mutation affordances"
+    },
+    {
+      "file": "ReportsPage.tsx",
+      "affordances": [
+        {
+          "controls": [
+            "Exports"
+          ],
+          "capability": "workspace.export",
+          "server": "GET /exports/:kind need(workspace.export)"
+        },
+        {
+          "controls": [
+            "Trust public toggle",
+            "Headline",
+            "Security contact",
+            "Save trust center"
+          ],
+          "capability": "workspace.configure",
+          "server": "PATCH /workspaces/:ws need(workspace.configure)"
+        }
+      ],
+      "read_controls": [
+        "Audit trail",
+        "Corpus library filter/document links",
+        "Public trust link",
+        "Settings link"
+      ]
+    },
+    {
+      "file": "SettingsPage.tsx",
+      "affordances": [
+        {
+          "controls": [
+            "Profile",
+            "Framework switches",
+            "Trust framework publication",
+            "Agent autonomy",
+            "Delete workspace"
+          ],
+          "capability": "workspace.configure",
+          "server": "PATCH/DELETE /workspaces/:ws; PUT /frameworks/:fw need(workspace.configure)"
+        }
+      ],
+      "error_handling": "Delete workspace converted from uncaught promise to useWsMutation; failed deletion stays on page"
+    },
+    {
+      "file": "OrganizationPage.tsx",
+      "affordances": [
+        {
+          "controls": [
+            "Add member",
+            "Change member role",
+            "Remove member",
+            "Token create/revoke",
+            "SSO operational settings/verify"
+          ],
+          "capability": "tenant.manage",
+          "server": "Organization routes need(tenant.manage), existing UI gates preserved"
+        },
+        {
+          "controls": [
+            "SSO provider/client/domains",
+            "Require SSO"
+          ],
+          "capability": "tenant.own",
+          "server": "Owner identity/security enforcement in AuthService and tenant settings PATCH; existing UI owner gates preserved"
+        },
+        {
+          "controls": [
+            "Organization audit trail"
+          ],
+          "capability": "workspace.export",
+          "server": "Tenant activity and verification need(workspace.export)"
+        },
+        {
+          "controls": [
+            "Create another organization"
+          ],
+          "capability": "Authenticated unscoped user (no tenant capability)",
+          "server": "POST /tenants refuses API tokens and tenant-scoped SSO; server permits any unscoped user"
+        }
+      ],
+      "change": "Canonical workspace identity; existing authorization gates retained"
+    },
+    {
+      "file": "OnboardingPage.tsx",
+      "affordances": [
+        {
+          "controls": [
+            "Workspace onboarding/create"
+          ],
+          "capability": "workspace.configure in active tenant",
+          "server": "POST /workspaces requires activeTenant workspace.configure"
+        }
+      ],
+      "error_handling": "Metadata/recommendation promises catch failures with toast; create keeps existing mutation error handling"
+    }
+  ],
+  "identity": "Every owned workspace page and local useParams ws helper uses useWorkspaceId. runId/catalog params retained. Public trust URLs continue using workspace.slug. Onboarding uses active-tenant capability without workspace provider.",
+  "checks": [
+    {
+      "command": "pnpm --filter @visua/web typecheck",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "command": "pnpm exec tsc --noEmit --strict --skipLibCheck --jsx react-jsx --lib es2023,dom,dom.iterable --target es2023 --module esnext --moduleResolution bundler --allowImportingTsExtensions e2e/page-roles.spec.ts",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check -- apps/web/src/pages e2e/page-roles.spec.ts",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "command": "Playwright e2e/page-roles.spec.ts",
+      "status": "not run",
+      "reason": "Root exclusively owns browser servers/runs while reproducing and integrating baseline"
+    }
+  ],
+  "browser_tests_authored": {
+    "file": "e2e/page-roles.spec.ts",
+    "count": 6,
+    "coverage": [
+      "viewer/auditor/contributor/approver: all workspace destinations, forbidden/allowed write controls, export capability, filters/navigation, no viewing writes, synthetic forbidden drops",
+      "Isolated organization memberships preserve seeded role grants",
+      "Queued run observation mocked only to exercise cancellation gates without changing server run state",
+      "Non-enabled program actions and active-tenant onboarding denied for all four non-admin roles",
+      "Contributor actual task write and policy retry after one default error, preserving failed draft",
+      "Approver evidence acceptance and policy approval through server-confirmed page mutations"
+    ]
+  },
+  "source_sha256": {
+    "apps/web/src/pages/HomePage.tsx": "1798537c974fd4b8f63d78a2bd7e39dcec26a78a7929d587adbb5122e7408b6b",
+    "apps/web/src/pages/PlanPage.tsx": "7aa1002cf5dbc56d8a29943f14517007eadf7312ab48f646ec151c99a05db809",
+    "apps/web/src/pages/EvidencePage.tsx": "d47b5644dc6f29640812090f8404aa017c280d2ac4e2ec7a1147184bacbbd7bb",
+    "apps/web/src/pages/PoliciesPage.tsx": "5b9942e1b27885274e832455fb20becaea726a67ee74ce14e2b082bc16f7afc7",
+    "apps/web/src/pages/AgentsPage.tsx": "52280fa6fb9d00ae24384f42323a5e5100d68febbd8eda9e4b17311d2f5da5eb",
+    "apps/web/src/pages/ProfilePage.tsx": "5d6d3755336aa932aa2b6f71978598cb097b6e7534932546d841ba6f5fb44bc6",
+    "apps/web/src/pages/Soc2Page.tsx": "302061c47c66f2aeb7bb28239c9ec4f8e681a27275960fe3929fb57cb5f24bf9",
+    "apps/web/src/pages/RmfPage.tsx": "61963d6e2fd259c78fa4150d43b3b622b4437e7eb20747d584c664e20bf24ff7",
+    "apps/web/src/pages/AiPage.tsx": "ff95a23f1b7ceb223dbdf851178feb7f21475e145c0108d8302abf3281ba27a9",
+    "apps/web/src/pages/LawsPage.tsx": "6051f6c8f629599ac7aebe60744a8ee0463ae8630e54c3b0cf2061fa83154ebf",
+    "apps/web/src/pages/CrosswalkPage.tsx": "00660cbd4064f4840c52c0baa8fe808c7057f2c4405cf12c027251b3a9064b40",
+    "apps/web/src/pages/ThreatsPage.tsx": "f3468384fdedd955e4dc0c483ca556ce34917fcfb90df0e799fb29fc00e9c4f9",
+    "apps/web/src/pages/ReportsPage.tsx": "4cb4aac41172f04d184e7a6079ffc88776a6e6655b84c84b76312720dc039445",
+    "apps/web/src/pages/SettingsPage.tsx": "ac8276beabd0b2539aaecc8613aaf8a5ab9f90ee5b4995d9907a91179dc774d6",
+    "apps/web/src/pages/OrganizationPage.tsx": "de7a8ccd07ac0e8fb5b722a811bfbc6e087fd4904d0ccaec68e29813c62ce0fb",
+    "apps/web/src/pages/OnboardingPage.tsx": "59143fcd6ec61e5a3beb03d270f673fb5c6a451372481f147fbce9c027c17717",
+    "e2e/page-roles.spec.ts": "89b427dce8c84d878c69146159f63ddd3866ac60c2df37a6637a559bd65ef5e7"
+  },
+  "authority_sha256": {
+    "packages/core/src/access.ts": "a1c10babf8b00c16929ddf7d238b199c217088f34c0287aef115e6b2a57bd64e",
+    "apps/server/src/app.ts": "9549e7879afff2082c9693376e7493d4fbd33d7814169bb8144165c7124a590d",
+    "apps/server/src/auth/http.ts": "f9f6cd220902c6ed6beb5a53f0d0ce7e5240a7e7b2cccc7e7468ff05106e1408"
+  },
+  "limitations": [
+    "Browser tests are authored and typechecked, not executed by this worker. Root must run them after integration and resolve any fixture/selector issues.",
+    "Shared proposal/overlay controls and ObservatoryPage remain outside worker ownership; existing capability checks were inspected, root owns final integration.",
+    "The matrix simulates a queued run response for cancellation controls; it does not cancel an actual queued server run.",
+    "Earlier dirty EvidencePage review snapshot/history work was preserved; git diff against HEAD contains both earlier package edits and this worker changes."
+  ]
+}

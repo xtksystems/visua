@@ -1,15 +1,23 @@
 /** Evidence & monitoring: provenance-first evidence ledger, connectors and checks. */
-import { Check, Plug, Play, Plus, ShieldCheck, X } from "lucide-react";
-import { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { effectiveEvidenceState, evidenceRenewalDates, isEvidenceValid } from "@visua/core";
+import { Plug, Play, Plus, ShieldCheck, Upload } from "lucide-react";
+import { useEffect, useId, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { useRunAgent } from "../components/inspector/Inspector.tsx";
-import { CodeTag, Dialog, Empty, Metric, Segmented, toast } from "../components/ui/index.tsx";
+import { CodeTag, Dialog, Empty, Metric, Segmented, TabPanel, Tabs, toast } from "../components/ui/index.tsx";
+import { useWorkspaceId } from "../lib/workspace.ts";
 import { api } from "../lib/api.ts";
 import { useCan } from "../lib/auth.ts";
-import { relativeTime, shortDate, truncate } from "../lib/format.ts";
+import { relativeTime, truncate } from "../lib/format.ts";
 import { useChecks, useConnectors, useEvidence, useMeta, useWsMutation } from "../lib/queries.ts";
 import type { CheckResult, Evidence } from "../lib/types.ts";
 import { split } from "../lib/media.ts";
+import { EvidenceDialog } from "../components/work/EvidenceDialog.tsx";
+import { ASSURANCE_LABELS, provenance } from "../components/work/evidence-labels.ts";
+import { UploadEvidence } from "../components/work/UploadEvidence.tsx";
+import { QueryError } from "../components/ui/QueryError.tsx";
+import { EvidenceRenewal, EvidenceReviewValidity, type RenewalWindow } from "../components/work/EvidenceRenewal.tsx";
 
 const OUTCOME_COLOR: Record<CheckResult["outcome"], string> = {
   pass: "var(--color-status-implemented)",
@@ -18,25 +26,9 @@ const OUTCOME_COLOR: Record<CheckResult["outcome"], string> = {
   error: "var(--color-status-at-risk)",
 };
 
-function provenance(e: Evidence): { label: string; title: string } {
-  if (e.source === "connector") return { label: "API-automated", title: "Collected by a monitoring connector; the raw observation and its SHA-256 hash are stored." };
-  if (e.source === "agent") return { label: "Agent-assisted", title: "Proposed by an agent and approved by a person." };
-  if (e.source === "upload") return { label: "Uploaded", title: "Uploaded by a person; content hash recorded." };
-  return { label: "Manual", title: "Recorded manually." };
-}
-
-function freshness(e: Evidence): { label: string; color: string } {
-  if (e.status === "rejected") return { label: "rejected", color: "var(--color-on-surface-muted)" };
-  if (e.status === "pending-review") return { label: "pending review", color: "var(--color-tertiary)" };
-  if (!e.validUntil) return { label: "no expiry", color: "var(--color-status-verified)" };
-  const days = (new Date(e.validUntil).getTime() - Date.now()) / 86_400_000;
-  if (days < 0) return { label: `expired ${shortDate(e.validUntil)}`, color: "var(--color-status-at-risk)" };
-  if (days < 30) return { label: `expires ${relativeTime(e.validUntil)}`, color: "var(--color-status-in-progress)" };
-  return { label: `valid to ${shortDate(e.validUntil)}`, color: "var(--color-status-verified)" };
-}
-
 function AddConnector({ onClose }: { onClose: () => void }) {
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
+  const canConfigure = useCan("workspace.configure");
   const meta = useMeta();
   const kinds = meta.data?.connectorKinds ?? [];
   const [kind, setKind] = useState(kinds[0]?.kind ?? "web-posture");
@@ -53,7 +45,7 @@ function AddConnector({ onClose }: { onClose: () => void }) {
           <button className="btn" onClick={onClose}>
             Cancel
           </button>
-          <button className="btn btn--primary" onClick={() => create.mutate(undefined, { onSuccess: () => (toast("Connector added"), onClose()), onError: (e) => toast((e as Error).message, "error") })}>
+          <button className="btn btn--primary" disabled={!canConfigure || create.isPending} onClick={() => create.mutate(undefined, { onSuccess: () => (toast("Connector added"), onClose()), onError: (e) => toast((e as Error).message, "error") })}>
             Add connector
           </button>
         </>
@@ -87,61 +79,123 @@ function AddConnector({ onClose }: { onClose: () => void }) {
   );
 }
 
+function CheckDialog({ id, onClose }: { id: string; onClose: () => void }) {
+  const ws = useWorkspaceId();
+  const observation = useQuery({ queryKey: ["ws", ws, "check", id], queryFn: ({ signal }) => api.get<CheckResult>(`/workspaces/${encodeURIComponent(ws)}/checks/${encodeURIComponent(id)}`, signal) });
+  const check = observation.data;
+  return <Dialog wide title={check?.title ?? "Monitoring observation"} onClose={onClose}>
+    {observation.isPending && <p role="status">Loading observation…</p>}
+    {observation.error && <div role="alert"><p>Could not load this observation. {observation.error.message}</p><button className="btn" onClick={() => void observation.refetch()}>Retry observation</button></div>}
+    {check && <div className="stack">
+      <p><strong>{check.outcome.toUpperCase()}</strong> · observed {new Date(check.observedAt).toLocaleString()}</p>
+      <p>{check.detail}</p>
+      <div className="row row--wrap">{check.requirementIds.map(id => <CodeTag key={id} id={id} />)}</div>
+      <p className="muted">This is the recorded observation. A later check may have a different outcome. Return to the overview for current attention items.</p>
+      <details><summary>Observation details</summary><pre className="panel mono wrap-anywhere" style={{ whiteSpace: "pre-wrap", maxHeight: 320, overflow: "auto" }}>{JSON.stringify(check, null, 2)}</pre></details>
+    </div>}
+  </Dialog>;
+}
+
 export function EvidencePage() {
-  const { ws = "" } = useParams();
-  const { data: evidence = [] } = useEvidence(ws);
+  const ws = useWorkspaceId();
+  return <EvidenceWorkspace key={ws} />;
+}
+
+function EvidenceWorkspace() {
+  const ws = useWorkspaceId();
+  const canConfigure = useCan("workspace.configure");
+  const evidenceQuery = useEvidence(ws);
+  const { data: evidence = [] } = evidenceQuery;
   const { data: connectors = [] } = useConnectors(ws);
   const { data: checks = [] } = useChecks(ws);
   const run = useRunAgent();
   const [filter, setFilter] = useState<"all" | "pending" | "expiring" | "connector">("all");
   const [adding, setAdding] = useState(false);
   const [viewing, setViewing] = useState<Evidence | null>(null);
-  const review = useWsMutation(ws, (v: { id: string; decision: "accepted" | "rejected" }) => api.patch(`/workspaces/${encodeURIComponent(ws)}/evidence/${v.id}`, { decision: v.decision }));
+  const [searchParams, setSearchParams] = useSearchParams();
+  const viewId = useId();
+  const view = searchParams.get("view") === "renewal" ? "renewal" : "ledger";
+  const windowParam = searchParams.get("window");
+  const renewalWindow: RenewalWindow = windowParam === "7d" || windowParam === "30d" ? windowParam : "expired";
+  const changeView = (next: "ledger" | "renewal") => setSearchParams(params => {
+    if (next === "renewal") { params.set("view", "renewal"); params.set("window", renewalWindow); }
+    else { params.delete("view"); params.delete("window"); }
+    return params;
+  });
+  const changeWindow = (next: RenewalWindow) => setSearchParams(params => { params.set("view", "renewal"); params.set("window", next); return params; });
+  const inspectRenewal = (id: string) => {
+    setViewing(null);
+    setSearchParams(params => { params.set("evidence", id); params.delete("check"); return params; });
+  };
+  const evidenceId = searchParams.get("evidence");
+  const checkId = searchParams.get("check");
+  const selectedEvidence = evidenceId ? (viewing?.id === evidenceId ? viewing : evidence.find(e => e.id === evidenceId)) : undefined;
+  const inspectEvidence = (item: Evidence) => {
+    setViewing(item);
+    setSearchParams(params => { params.set("evidence", item.id); params.delete("check"); return params; });
+  };
+  const closeLinked = () => {
+    setViewing(null);
+    setSearchParams(params => { params.delete("evidence"); params.delete("check"); return params; }, { replace: true });
+  };
+  const [uploading, setUploading] = useState(false);
+  useEffect(() => { setViewing(null); setUploading(false); }, [ws]);
+  const canWrite = useCan("work.write");
   const canReview = useCan("work.approve");
   const runConnector = useWsMutation(ws, (id: string) => api.post<CheckResult[]>(`/workspaces/${encodeURIComponent(ws)}/connectors/${id}/run`));
   const list = useMemo(() => {
-    const now = Date.now();
+    const now = new Date();
     return evidence
       .filter((e) => {
         if (filter === "pending") return e.status === "pending-review";
-        if (filter === "connector") return e.source === "connector";
-        if (filter === "expiring") return !!e.validUntil && new Date(e.validUntil).getTime() - now < 30 * 86_400_000;
+        if (filter === "connector") return e.provenance?.origin === "connector-check";
+        if (filter === "expiring") return evidenceRenewalDates(e, now).buckets.length > 0;
         return true;
       })
       .sort((a, b) => b.collectedAt.localeCompare(a.collectedAt));
   }, [evidence, filter]);
   const latestChecks = useMemo(() => {
     const seen = new Set<string>();
-    return checks.filter((c) => {
-      const key = `${c.connectorId}|${c.checkId}`;
+    return [...checks].sort((a, b) => Date.parse(b.observedAt) - Date.parse(a.observedAt) || b.id.localeCompare(a.id)).filter((c) => {
+      const key = JSON.stringify([c.connectorId, c.checkId, c.source?.configHash ?? null]);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     });
   }, [checks]);
-  const accepted = evidence.filter((e) => e.status === "accepted").length;
-  const expired = evidence.filter((e) => e.validUntil && new Date(e.validUntil).getTime() < Date.now()).length;
+  const accepted = evidence.filter((e) => isEvidenceValid(e)).length;
+  const asOf = new Date();
+  const expired = evidence.filter((e) => evidenceRenewalDates(e, asOf).validity === "expired").length;
+  if (evidenceQuery.error) return <QueryError title="Could not load evidence" error={evidenceQuery.error} retry={() => evidenceQuery.refetch()} />;
   return (
     <div className="page">
       <header className="page__header">
         <div>
           <div className="eyebrow">Evidence & monitoring</div>
           <h1>Evidence ledger</h1>
-          <p>Evidence must show what is actually in place. Every item records where it came from, when, who reviewed it, and a content hash. Agents cannot file plans or drafts as evidence.</p>
+          <p>Inspect artifact origins, assurance scope, reviews and replacement history. Legacy collection details are explicitly unrecorded. Generated narratives and requirement mappings do not prove observed operation.</p>
         </div>
         <div className="page__actions">
-          <button className="btn btn--agent" onClick={() => run("evidence-collector", "Run monitoring checks and find implemented requirements without evidence", {})}>
+          <button className="btn btn--primary" disabled={!canWrite} onClick={() => setUploading(true)}><Upload size={14} /> Upload evidence</button>
+          <button className="btn btn--agent" disabled={!canWrite} onClick={() => run("evidence-collector", "Run monitoring checks and find implemented requirements without evidence", {})}>
             Collect with agent
           </button>
-          <button className="btn" onClick={() => setAdding(true)}>
+          <button className="btn" disabled={!canConfigure} title={canConfigure ? undefined : "Only admins and owners configure connectors"} onClick={() => setAdding(true)}>
             <Plug size={14} /> Add connector
           </button>
         </div>
       </header>
+      {!canWrite && <p className="muted" role="note">Read-only access. You can inspect evidence and monitoring results; contributors run collections and approvers review evidence.</p>}
+      <Tabs id={viewId} label="Evidence view" tabs={[{ id: "ledger", label: "Ledger" }, { id: "renewal", label: "Renewal" }]} value={view} onChange={changeView} />
+      <TabPanel groupId={viewId} id="renewal" active={view === "renewal"}>
+        <EvidenceRenewal ws={ws} window={renewalWindow} onWindowChange={changeWindow} onInspect={inspectRenewal} />
+      </TabPanel>
+      <TabPanel groupId={viewId} id="ledger" active={view === "ledger"}>
+      {evidenceQuery.isPending ? <p role="status">Loading evidence…</p> : <>
       <div className="grid grid--4" style={{ marginBottom: 20 }}>
-        <Metric label="Evidence items" value={evidence.length} sub={`${accepted} accepted`} />
+        <Metric label="Evidence items" value={evidence.length} sub={`${accepted} currently valid`} />
         <Metric label="Awaiting review" value={evidence.filter((e) => e.status === "pending-review").length} />
-        <Metric label="Expired" value={expired} sub="Expired evidence puts requirements at risk" />
+        <Metric label="Expired" value={expired} sub="See Renewal for coverage impact" />
         <Metric label="Connectors" value={connectors.length} sub={`${latestChecks.filter((c) => c.outcome === "pass").length}/${latestChecks.length} checks passing`} />
       </div>
       <div className="grid split" style={split(1.7, 1)}>
@@ -159,29 +213,30 @@ export function EvidencePage() {
               ]}
             />
           </div>
-          <div style={{ overflow: "auto", maxHeight: "calc(100vh - 360px)" }}>
+          <div className="evidence-ledger__scroll" role="region" aria-label="Evidence ledger details" tabIndex={0} style={{ overflow: "auto", maxHeight: "calc(100vh - 360px)" }}>
             <table className="table table--evidence">
               <thead>
                 <tr>
                   <th>Evidence</th>
                   <th>Provenance</th>
                   <th>Requirements</th>
-                  <th>Freshness</th>
+                  <th>Review & validity</th>
                   <th />
                 </tr>
               </thead>
               <tbody>
                 {list.map((e) => {
                   const p = provenance(e);
-                  const f = freshness(e);
+                  const effective = effectiveEvidenceState(e, evidence, asOf);
                   return (
                     <tr key={e.id}>
                       <td style={{ maxWidth: 320 }}>
-                        <button className="btn btn--quiet btn--sm" style={{ padding: 0, height: "auto", color: "var(--color-on-surface)", textAlign: "left", whiteSpace: "normal" }} onClick={() => setViewing(e)}>
+                        <button className="btn btn--quiet btn--sm" style={{ padding: 0, height: "auto", color: "var(--color-on-surface)", textAlign: "left", whiteSpace: "normal" }} onClick={() => inspectEvidence(e)}>
                           {truncate(e.title, 90)}
                         </button>
                         <div className="muted" style={{ fontSize: 11.5 }}>
                           {e.kind} · collected {relativeTime(e.collectedAt)}
+                          <div>{e.assurance ? `${ASSURANCE_LABELS[e.assurance.kind]} assurance` : "Assurance not recorded"}{e.supersedesId ? " · replacement" : ""}</div>
                         </div>
                       </td>
                       <td>
@@ -202,17 +257,10 @@ export function EvidencePage() {
                           {e.requirementIds.length > 4 ? <span className="muted">+{e.requirementIds.length - 4}</span> : null}
                         </div>
                       </td>
-                      <td style={{ color: f.color, fontSize: 12.5, whiteSpace: "nowrap" }}>{f.label}</td>
+                      <td><EvidenceReviewValidity evidence={e} />{!!effective.supersededByIds.length && <div className="field__hint">Superseded by valid accepted replacement</div>}</td>
                       <td style={{ whiteSpace: "nowrap" }}>
                         {e.status === "pending-review" && canReview && (
-                          <>
-                            <button className="btn btn--sm btn--icon" title="Accept" onClick={() => review.mutate({ id: e.id, decision: "accepted" })}>
-                              <Check size={13} />
-                            </button>{" "}
-                            <button className="btn btn--sm btn--icon" title="Reject" onClick={() => review.mutate({ id: e.id, decision: "rejected" })}>
-                              <X size={13} />
-                            </button>
-                          </>
+                          <button className="btn btn--sm" onClick={() => inspectEvidence(e)}>Review</button>
                         )}
                       </td>
                     </tr>
@@ -238,7 +286,7 @@ export function EvidencePage() {
                   <span className="spacer" />
                   <button
                     className="btn btn--sm"
-                    disabled={runConnector.isPending}
+                    disabled={!canWrite || runConnector.isPending}
                     onClick={() =>
                       runConnector.mutate(c.id, {
                         onSuccess: (r) => toast(`${c.name}: ${r.filter((x) => x.outcome === "pass").length}/${r.length} checks passing`),
@@ -250,7 +298,7 @@ export function EvidencePage() {
                   </button>
                 </div>
                 <div className="muted wrap-anywhere" style={{ fontSize: 12, marginBottom: 10 }}>
-                  {c.kind} · {Object.values(c.config).map(String).join(" ")} · {c.lastRunAt ? `last run ${relativeTime(c.lastRunAt)}` : "never run"}
+                  Current settings: {c.kind} · {Object.values(c.config).map(String).join(" ")} · {c.lastRunAt ? `last run ${relativeTime(c.lastRunAt)}` : "never run"}
                 </div>
                 <div className="stack" style={{ gap: 8 }}>
                   {results.map((r) => (
@@ -260,6 +308,9 @@ export function EvidencePage() {
                       </span>
                       <div style={{ minWidth: 0 }}>
                         <div>{r.title}</div>
+                        <div className="muted" style={{ fontSize: 12 }}>
+                          Observed <time dateTime={r.observedAt} title={r.observedAt}>{relativeTime(r.observedAt)}</time> · <span title={r.source?.configHash}>recorded configuration {r.source?.configHash?.slice(0, 8) ?? "not recorded"}</span>
+                        </div>
                         <div className="muted" style={{ fontSize: 12 }}>
                           {truncate(r.detail, 140)}
                         </div>
@@ -273,40 +324,20 @@ export function EvidencePage() {
           })}
           {!connectors.length && (
             <Empty title="No connectors yet">
-              <button className="btn btn--sm" onClick={() => setAdding(true)} style={{ marginTop: 8 }}>
+              <button className="btn btn--sm" disabled={!canConfigure} onClick={() => setAdding(true)} style={{ marginTop: 8 }}>
                 <Plus size={13} /> Add a connector
               </button>
             </Empty>
           )}
         </div>
       </div>
-      {adding && <AddConnector onClose={() => setAdding(false)} />}
-      {viewing && (
-        <Dialog wide title={viewing.title} onClose={() => setViewing(null)}>
-          <dl className="kv" style={{ marginBottom: 12 }}>
-            <dt>Provenance</dt>
-            <dd>
-              {provenance(viewing).label} · {viewing.source}
-              {viewing.connectorId ? ` · connector ${viewing.connectorId}` : ""}
-            </dd>
-            <dt>Status</dt>
-            <dd>
-              {viewing.status}
-              {viewing.reviewedBy ? ` by ${viewing.reviewedBy} ${relativeTime(viewing.reviewedAt)}` : ""}
-            </dd>
-            <dt>Collected</dt>
-            <dd>{new Date(viewing.collectedAt).toLocaleString()}</dd>
-            <dt>Valid until</dt>
-            <dd>{viewing.validUntil ? new Date(viewing.validUntil).toLocaleString() : "—"}</dd>
-            <dt>SHA-256</dt>
-            <dd className="mono" style={{ wordBreak: "break-all", fontSize: 12 }}>
-              {viewing.sha256 ?? "—"}
-            </dd>
-          </dl>
-          {viewing.content && <pre className="panel mono" style={{ whiteSpace: "pre-wrap", fontSize: 12, maxHeight: 320, overflow: "auto" }}>{viewing.content}</pre>}
-          {viewing.data && <pre className="panel mono" style={{ whiteSpace: "pre-wrap", fontSize: 11.5, maxHeight: 260, overflow: "auto", marginTop: 8 }}>{JSON.stringify(viewing.data, null, 2)}</pre>}
-        </Dialog>
-      )}
+      </>}
+      </TabPanel>
+      {adding && canConfigure && <AddConnector onClose={() => setAdding(false)} />}
+      {selectedEvidence && <EvidenceDialog key={`${ws}:${selectedEvidence.id}`} initial={selectedEvidence} onClose={closeLinked} onSelect={inspectEvidence} />}
+      {evidenceId && !selectedEvidence && !evidenceQuery.isPending && <Dialog title="Evidence unavailable" onClose={closeLinked}><p role="alert">This evidence is no longer available in this workspace.</p><button className="btn" onClick={() => void evidenceQuery.refetch()}>Retry evidence</button></Dialog>}
+      {checkId && !evidenceId && <CheckDialog key={`${ws}:${checkId}`} id={checkId} onClose={closeLinked} />}
+      {uploading && canWrite && <UploadEvidence key={ws} onClose={() => setUploading(false)} onUploaded={item => { setUploading(false); inspectEvidence(item); }} />}
     </div>
   );
 }

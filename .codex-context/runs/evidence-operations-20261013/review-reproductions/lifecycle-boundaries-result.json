@@ -1,0 +1,47 @@
+{
+  "staleAcceptanceAfterWithdrawal": {
+    "resultStatus": "accepted",
+    "error": null,
+    "history": [
+      "accepted",
+      "withdrawn",
+      "accepted"
+    ]
+  },
+  "clockBeforeAcceptance": {
+    "at": "2026-06-01T00:00:00.000Z",
+    "reviewedAt": "2026-10-13T07:46:24.762Z",
+    "isValid": true,
+    "effective": {
+      "status": "valid",
+      "validity": "current",
+      "currentlyValid": true,
+      "acceptanceBound": true,
+      "reasons": [
+        "Accepted review matches the artifact and its current validity window"
+      ],
+      "supersededByIds": []
+    },
+    "lineageEffective": {
+      "status": "valid",
+      "validity": "current",
+      "currentlyValid": true,
+      "acceptanceBound": true,
+      "reasons": [
+        "Accepted review matches the artifact and its current validity window"
+      ],
+      "supersededByIds": []
+    }
+  },
+  "independentCheckTargets": {
+    "checkIds": [
+      "failure-original-target",
+      "pass-new-target"
+    ],
+    "status": "at-risk"
+  },
+  "approvedPolicyBodyEdit": {
+    "rejected": true,
+    "error": "Error: Approved policy artifacts are immutable; approve a new policy version to collect a new artifact"
+  }
+}

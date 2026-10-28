@@ -1,0 +1,28 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "Completed targeted agent, connector and event reliability review at cb438d1083e9ae3e2a38dd8e5d7dba4c778b2e89. One medium recovery defect was reproduced: temporary connector overload removes that connector from subsequent agent attempts until a person retries it. No supported high or critical finding was identified within this scope.",
+  "coverage": [
+    "Agent model boundary: packages/agents/src/{host,runtime,claude,mode,tools,agents}.ts; examined tool allowlists and schema validation, bounded model turns, signal forwarding, licensed task/corpus/evidence-title filtering, proposal-only mutation, recorded-check provenance, and selected offline evidence-renewal paths. Inspected policy template generation and related licensing, evidence-provenance and corpus-claims test source.",
+    "Run lifecycle: apps/server/src/services/run-execution.ts and visua.ts run queue admission, claims, epoch/lease ownership, heartbeats, cancellation, expired-owner interruption, recorder queues, snapshot refresh, connector persistence and graceful stop; inspected run-reliability and two-instance-automation test source.",
+    "Approval boundary: apps/server/src/services/{proposal-validation,proposal-review}.ts and visua.ts proposal creation, validation, savepoint preview/rollback, review tokens, batch conflict handling, immutable source-check filing, evidence review preconditions and autonomy allowlist; inspected proposal-validation and proposal-review test source and HTTP approval token enforcement in app.ts.",
+    "Connectors: apps/server/src/connectors/{index,limits,network,web-posture,repo-scan}.ts plus auth/egress.ts and work-scope.ts; traced public-only socket DNS, mixed-address rejection, redirect and downgrade checks, response/body limits, cancellation versus physical DNS lifetime, global concurrency and approved repository roots/no-follow reads. Inspected connector-boundaries and connector-dns-lifetime test source.",
+    "Events: apps/server/src/{bus,workspace-events}.ts, storage/events.ts, and apps/web/src/lib/events.ts; traced post-commit publication, compacted payloads, bounded queues, relay retry/resync, browser reconnect invalidation and authorization rechecks before delivery; inspected workspace-events and relay test source.",
+    "Executed node .codex-context/runs/predeploy-review-20261014/automation/reproduce.mjs from /Users/artem/visua using SQLite :memory: and synthetic data only. Recorded five passing fixture cases in reproduce.log: overload recovery defect reproduction; successful manual retry counterevidence; SSE overflow/resync plus withholding after revocation; run epoch/cancel fencing; synthetic restricted task redaction. No external requests, services or model calls were made."
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "apps/server/src/services/visua.ts:1585; packages/agents/src/tools.ts:757",
+      "mechanism": "Trigger: a connector is requested while all four process-wide connector slots are occupied. withConnectorBudget refuses admission with ConnectorCapacityError before running the connector, but runConnector treats every such rejection as a connector execution failure and persists status=error. Once capacity returns, run_checks filters exclusively for status=active, including explicit connectorId requests, so subsequent Evidence Collector/Task Executor attempts never retry this healthy connector. The error then tells the user to add a connector even though it already exists.",
+      "evidence": "Executed reproduction in reproduce.mjs/reproduce.log: four held connector budgets caused service.runConnector to reject with ConnectorCapacityError and persist error; after releasing every held slot, runChecks.run({connectorId}) returned No active connectors and physicalRuns remained 0. Source: connectors/limits.ts:12 performs pre-execution admission refusal; visua.ts:1581-1589 persists error for it; tools.ts:757-758 excludes that state. Counterevidence: a direct/manual retry succeeds, restores active at visua.ts:1595, and physicalRuns becomes 1; EvidencePage.tsx:287-297 leaves the Run button available irrespective of connector status. This limits severity and provides a current workaround.",
+      "recommendation": "Keep ConnectorCapacityError as transient admission rejection without changing connector health or lastRunAt; distinguish enabled/disabled configuration from last execution health so retryable failures remain eligible for later agent runs. Add an isolated regression covering full capacity, capacity release, and a successful subsequent agent request. Until fixed, use the existing connector Run button after overload to restore agent eligibility."
+    }
+  ],
+  "limitations": [
+    "This was one bounded source review with targeted synthetic fixtures, not exhaustive path or load testing. Source-only analyses of production PostgreSQL failover, process crashes, DNS rebinding, repository path races and real provider streaming were not newly reproduced.",
+    "The repository test names and bodies cited as inspected were not executed by this worker; the lead owns full pnpm check, dependency audit and shared build/test lanes.",
+    "No live tenant, external credentials, local service at port 8787, external models, production provider endpoints or container/service mutations were used. Hosted capacity and operator configuration remain outside this evidence.",
+    "The fixture uses a synthetic connector behind the actual budget and service boundary; it establishes overload classification and retry eligibility, not real remote endpoint behavior."
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "status": "passed",
+  "startedAt": "2026-10-14T03:26:20.940Z",
+  "completedAt": "2026-10-14T03:26:34.843Z",
+  "fixture": "local-production-mode-rehearsal",
+  "workload": {
+    "requests": 80,
+    "concurrency": 4,
+    "appProcesses": 2,
+    "tenants": 1,
+    "workspaces": 1,
+    "frameworks": [
+      "nist-csf-2.0",
+      "aicpa-tsc-2017"
+    ],
+    "users": 4,
+    "evidenceFiles": 1,
+    "evidenceBytes": 65536,
+    "recordedRequirements": 167
+  },
+  "checks": [
+    "Empty production bootstrap, developer login refusal, four OIDC roles, and a second application process on shared PostgreSQL",
+    "Member assignment, signed S3 upload, contributor approval refusal, approver acceptance, auditor write refusal, exact download and offline bundle verification",
+    "Bounded four-role concurrent reads with unchanged assessment audit",
+    "Fresh PostgreSQL restore and S3 prefix, exact reviewed bytes/history, unchanged checkpoint, retained access records, encrypted organization SSO login and new verified auditor bundle"
+  ],
+  "limitations": [
+    "Loopback HTTP, a local mock IdP, and cached MinIO/PostgreSQL fixture images; no hosted TLS, DNS, provider IAM, or real identity-provider recovery validated.",
+    "Closed-loop synthetic reads on one small workspace measure this local run only. No sustained saturation, hosted capacity, recovery objective, or pilot-user acceptance claim.",
+    "Recovery restores application SQL and S3 object bytes into a new database/prefix. Cluster roles, remote provider configuration, key custody, retention, and offsite recovery remain operator work."
+  ],
+  "cleanupComplete": true,
+  "originalBundle": {
+    "manifestSha256": "a2a210ae7b130b1c5dec7cba16c59648b5c30aedd5f0fab14d1def7a832fcbc8",
+    "checkpoint": {
+      "workspaceId": "ws_0mv7jszdjnh47aons",
+      "seq": 4,
+      "hash": "893e212262c0480de9b596fec2cb654b9008b5fc5903e8781c9fd03a8d6f1f91"
+    },
+    "contentSha256": "88e18fceed5f167fc4e4383da17b31fd1367a8995b6a630463307ddbc2741c42",
+    "entityDigestsSha256": "b60186d6b804685b4a3c9ec9bd5bc37e8b50a06ede3e31aaab0e1a24ac379dae",
+    "recordedRequirements": 167,
+    "archiveBytes": 376671,
+    "externalPinsChecked": true
+  },
+  "restoredBundle": {
+    "manifestSha256": "f9545ab03eb08b3efeaa2f999cac41f0d9675793635d24069e2aa1e56e52ae9a",
+    "checkpoint": {
+      "workspaceId": "ws_0mv7jszdjnh47aons",
+      "seq": 4,
+      "hash": "893e212262c0480de9b596fec2cb654b9008b5fc5903e8781c9fd03a8d6f1f91"
+    },
+    "contentSha256": "527d2d1dabaa21ace1fe36d62fd7bcec065e4f5ee4904213512cdd0ddc97a2c6",
+    "entityDigestsSha256": "b60186d6b804685b4a3c9ec9bd5bc37e8b50a06ede3e31aaab0e1a24ac379dae",
+    "recordedRequirements": 167,
+    "archiveBytes": 376671,
+    "externalPinsChecked": true
+  },
+  "source_report": {
+    "local_path": ".check/pilot-rXcRO4/report.json",
+    "sha256": "ee0daf05cd8148aeba9341592322b82fd09f5b9bc61e052d900d7a98a5267730",
+    "retention": "Local diagnostic only; database dump and artifact copies are not committed."
+  },
+  "fixture_images": [
+    {
+      "image": "postgres:17",
+      "id": "sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f",
+      "repoDigests": [
+        "postgres@sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f"
+      ]
+    },
+    {
+      "image": "quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z",
+      "id": "sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e",
+      "repoDigests": [
+        "quay.io/minio/minio@sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e"
+      ]
+    }
+  ],
+  "recovery": {
+    "objectCount": 1,
+    "objectBytes": 65536,
+    "sourceObjectsSha256": "b07240593994416282ce82510471d49dee7b9b52e1d442474530386484a78b11",
+    "restoredObjectsSha256": "b07240593994416282ce82510471d49dee7b9b52e1d442474530386484a78b11",
+    "objects": [
+      {
+        "sourceKeySha256": "181dcdb874a0e6a1febb421f96910017476b6ed54f9d3f26809aa7f87d8b7316",
+        "restoredKeySha256": "e19d6df23619fb803f049785d3b9d07518c29cadaf94ab7ae0c7d9d1d11f069e",
+        "bytes": 65536,
+        "sourceSha256": "4b640d85ab3ba30fd02c9fc9db4a8928f416322ad27022ea58a65aaee68a4df2",
+        "restoredSha256": "4b640d85ab3ba30fd02c9fc9db4a8928f416322ad27022ea58a65aaee68a4df2"
+      }
+    ],
+    "evidenceSha256": "4b640d85ab3ba30fd02c9fc9db4a8928f416322ad27022ea58a65aaee68a4df2"
+  },
+  "read_results": {
+    "mode": "closed-loop HTTP reads",
+    "requests": 80,
+    "concurrency": 4,
+    "statusCounts": {
+      "200": 80
+    }
+  },
+  "cleanup": {
+    "status": "complete",
+    "completedAt": "2026-10-14T03:26:34.843Z"
+  }
+}

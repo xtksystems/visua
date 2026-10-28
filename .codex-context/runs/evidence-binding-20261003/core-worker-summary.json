@@ -1,0 +1,44 @@
+{
+  "run_id": "evidence-binding-20261003",
+  "node_id": "core-worker",
+  "status": "complete",
+  "summary": "Added strict evidence dates, canonical review scopes and approval-bound validity/freshness without changing status precedence or scoring thresholds.",
+  "checks": [
+    {
+      "command": "pnpm exec vitest run packages/core/test/core.test.ts packages/core/test/evidence.test.ts",
+      "cwd": "/Users/artem/visua",
+      "status": "passed",
+      "test_files": 2,
+      "tests": 52
+    },
+    {
+      "command": "pnpm --filter @visua/core typecheck",
+      "cwd": "/Users/artem/visua",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check -- <owned core paths>",
+      "cwd": "/Users/artem/visua",
+      "status": "passed"
+    }
+  ],
+  "evidence": [
+    "Old-source sanitized fixture: malformed expiry counted valid and a changed requirement link retained verified status; core-worker-reproduction.json records source digests.",
+    "Focused Vitest suites passed: 2 files, 52 tests covering strict dates, link/window/hash scope binding, review metadata, expiry/freshness, status precedence and scoring.",
+    "pnpm --filter @visua/core typecheck passed.",
+    "git diff --check for owned core paths passed."
+  ],
+  "limitations": [
+    "Artifact SHA computation, append-only history enforcement, migration, server routes, agent proposals and UI integration are owned by root and were not tested by this worker.",
+    "Core verifies the supplied SHA and bound review snapshot; it does not hash artifact content."
+  ],
+  "sourceDigests": {
+    "packages/core/src/types.ts": "ccd9b7dfe9ac54136155d21508af836f1c45ece25579f2d6a59acca5ec363f93",
+    "packages/core/src/status.ts": "d118c764df121c01f90ec5abcb4d4944c2ef6e39eea5c15c12bf073ab4a03980",
+    "packages/core/src/index.ts": "43684ba61b49ebb474ca85fad36eb26125770b206376f223534c1f34575d9a5f",
+    "packages/core/src/evidence.ts": "4070e3e368e4820df5164aaf801e9468037b25ce68bc262e73fe679dbea65979",
+    "packages/core/test/core.test.ts": "974edb754381e1353d8c2c20d9139cb1659f960d8776e11b9b34a4ea980f8dc2",
+    "packages/core/test/evidence.test.ts": "d2fb69570f8c9c97e6e76aca34d9078e5b7cc7f2cf5b3c74edc7f00615ad2982"
+  },
+  "completed_at": "2026-10-03T19:03:44.511Z"
+}

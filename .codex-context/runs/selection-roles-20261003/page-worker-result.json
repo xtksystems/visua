@@ -1,0 +1,20 @@
+{
+  "run_id": "selection-roles-20261003",
+  "node_id": "page-worker",
+  "input_sha256": "e67ea1ec482647cc1976259bb1439ad830b3ce10f609f80294d118835ff5c304",
+  "status": "complete",
+  "summary": "Implemented bounded page capability/identity changes and authored six browser role regressions; final web and test-source typechecks pass. Browser execution is delegated to root.",
+  "evidence": [
+    ".codex-context/runs/selection-roles-20261003/page-worker-summary.json",
+    "e2e/page-roles.spec.ts",
+    "pnpm --filter @visua/web typecheck passed",
+    "Standalone e2e TypeScript typecheck passed",
+    "Scoped git diff --check passed"
+  ],
+  "limitations": [
+    "Browser tests are authored and typechecked, not executed by this worker. Root must run them after integration and resolve any fixture/selector issues.",
+    "Shared proposal/overlay controls and ObservatoryPage remain outside worker ownership; existing capability checks were inspected, root owns final integration.",
+    "The matrix simulates a queued run response for cancellation controls; it does not cancel an actual queued server run.",
+    "Earlier dirty EvidencePage review snapshot/history work was preserved; git diff against HEAD contains both earlier package edits and this worker changes."
+  ]
+}

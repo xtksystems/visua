@@ -1,0 +1,151 @@
+{
+  "run_id": "visual-followthrough-20261013",
+  "node_id": "crosswalk",
+  "input_sha256": "e2131bd209ba124326d69ed63e01fd1cb79209bf88c4432a832f8ef1c8929ae5",
+  "status": "complete",
+  "updated_utc": "2026-10-13T03:51:58.165450+00:00",
+  "summary": "Added an alternate URL-backed Crosswalk matrix with exact full record totals, complete paginated details, original mapping direction/provenance, and metadata-only direct evidence inspection. Existing default Nexus and selectors preserved.",
+  "owned_changed_files": [
+    "apps/server/src/app.ts",
+    "apps/server/src/services/crosswalk-comparison.ts",
+    "apps/server/test/crosswalk-comparison.test.ts",
+    "apps/web/src/pages/CrosswalkPage.tsx",
+    "apps/web/src/components/crosswalk/ComparisonMatrix.tsx",
+    "apps/web/src/components/crosswalk/comparison.css",
+    "apps/web/src/lib/crosswalk-comparison.ts",
+    "apps/web/test/crosswalk-comparison.test.ts"
+  ],
+  "source_hashes": {
+    "apps/server/src/app.ts": "393634b55cd8a627642a8ebd86f8a88e2c9c2540fb4a1d683d1fdbc38d3c31ce",
+    "apps/server/src/services/crosswalk-comparison.ts": "277488dd0aebc1b9dc72ca8064c1c242c0ee894cc4dd12bbde4b48eccd97008f",
+    "apps/server/test/crosswalk-comparison.test.ts": "436f5438708cb1fa2bc50d55ccc017f821fc0984b8023c4ca6d90ce37c5cad89",
+    "apps/web/src/pages/CrosswalkPage.tsx": "a11a6f14c0789966091239a6a25ed2151ad61f45135e35dfbd7ef51e0cd01e2f",
+    "apps/web/src/components/crosswalk/ComparisonMatrix.tsx": "6826a3a1e8678ee9f031897064a2ea2189859f0d18892562a9f4afd1f0947fb7",
+    "apps/web/src/components/crosswalk/comparison.css": "87926982c10a154667f8702e3961f74334e5ab73eeddfd6916bb9131fcbecc56",
+    "apps/web/src/lib/crosswalk-comparison.ts": "f32c3e093230eecf45039e59a9baf2de2cd89a6b5a2346915b245fa73baef535",
+    "apps/web/test/crosswalk-comparison.test.ts": "478bac8d793922ac15488742f48fd0e828a908e5612201e2f71b7ed3e3299e77"
+  },
+  "tests": [
+    {
+      "command": "pnpm exec vitest run apps/server/test/crosswalk-comparison.test.ts apps/web/test/crosswalk-comparison.test.ts",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed",
+      "exit_code": 0,
+      "tests": 20,
+      "files": 2,
+      "duration_seconds": 2.24
+    },
+    {
+      "command": "pnpm --filter @visua/web typecheck",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed",
+      "exit_code": 0
+    },
+    {
+      "command": "pnpm --filter @visua/server typecheck",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed after fixing test-helper input type",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check -- apps/server/src/app.ts apps/web/src/pages/CrosswalkPage.tsx",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed",
+      "exit_code": 0
+    },
+    {
+      "command": "CSS var-reference comparison against packages/design/generated/tokens.css",
+      "cwd": "/Users/artem/visua",
+      "outcome": "passed: no undefined design tokens"
+    }
+  ],
+  "api_contract": {
+    "method": "GET",
+    "path": "/api/workspaces/:ws/crosswalk/comparison",
+    "query": [
+      "source",
+      "target",
+      "sourceGroup",
+      "targetGroup",
+      "page",
+      "pageSize",
+      "evidence"
+    ],
+    "defaults": {
+      "source": "nist-csf-2.0 when available, else first non-threat framework",
+      "target": "nist-sp-800-53-r5 when distinct and available, else another non-threat framework",
+      "page": 1,
+      "pageSize": 50
+    },
+    "query_key": [
+      "ws",
+      "canonicalWorkspaceId",
+      "evidence",
+      "crosswalk-comparison",
+      "queryString"
+    ],
+    "max_page_size": 100,
+    "evidence_reads": "metadataList only",
+    "pagination": "pairTotal, filteredTotal, page, pageSize, pages, rows; exact identity is [setId, recordIndex]"
+  },
+  "ui_contract": {
+    "default_view": "Nexus",
+    "alternate_view": "view=matrix",
+    "url_state": [
+      "view",
+      "source",
+      "target",
+      "sourceGroup",
+      "targetGroup",
+      "page",
+      "evidence"
+    ],
+    "test_ids": [
+      "crosswalk-matrix",
+      "crosswalk-evidence-detail"
+    ],
+    "labels": [
+      "Source framework",
+      "Target framework",
+      "Requirement mapping comparison",
+      "Selected mappings",
+      "Evidence artifact",
+      "Scrollable mapping matrix"
+    ],
+    "buttons": [
+      "Matrix",
+      "Nexus",
+      "Reverse frameworks",
+      "Previous page",
+      "Next page",
+      "Retry",
+      "Reset comparison",
+      "Show all mappings"
+    ],
+    "cell_button": "[source group code] to [target group code]: N mappings"
+  },
+  "test_coverage": [
+    "Exact duplicate records across sets remain separate",
+    "Original subset-of/supports labels and endpoints survive axis reversal",
+    "Complete totals and pagination for 3104 records",
+    "Missing endpoints remain counted and bucketed",
+    "Empty non-threat pair",
+    "Invalid source/target/group/page/pageSize/evidence/unknown inputs",
+    "Evidence body/list getters are not called",
+    "Direct requirement and group links remain distinct; no derived child links",
+    "Pending accepted and expired artifact review/validity semantics use core helpers",
+    "Viewer reads permitted; unknown and foreign evidence indistinguishable 404",
+    "Cross-tenant workspace 404; unauthenticated 401; GETs leave audit rows unchanged",
+    "URL pair/cell transitions reset page and retain independent evidence selection"
+  ],
+  "doc_implications": [
+    "Document Matrix as the URL-backed comparison alternative while Nexus stays default.",
+    "Document the new metadata-only comparison endpoint and exact record counts/pagination.",
+    "Explain original direction and recorded authority/publication status; evidence links are direct and group links do not prove child requirements."
+  ],
+  "limitations": [
+    "Browser, build, full suite and PostgreSQL verification are delegated to the lead and were not run by this worker.",
+    "Evidence time-window validity refreshes every 30 seconds while active and through existing evidence SSE invalidation.",
+    "The existing Nexus legacy rows endpoint remains unchanged; complete comparison counts/pagination use the new comparison endpoint."
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "capturedAt": "2026-10-13T07:48:23.079941+00:00",
+  "baseCommit": "b34cf1fe846920c98aa71df3121712284880dc1a",
+  "files": [
+    {
+      "path": "apps/server/src/app.ts",
+      "sha256": "30ec38fb0bc248af6da88e4127a065e6dda4c36a007bef1e70d34dee676a45f5"
+    },
+    {
+      "path": "apps/server/src/services/attention.ts",
+      "sha256": "1f2606063b8bb0c5b2a0ab80f96cadd2e401d8a2e26f3f75b6fb3c8d2c02bea7"
+    },
+    {
+      "path": "apps/server/src/services/evidence-renewal.ts",
+      "sha256": "d0c92f8d11394794801b8b5899e292504a5361e538a07a18f452cf663a6a4891"
+    },
+    {
+      "path": "apps/server/src/services/evidence.ts",
+      "sha256": "33551a5f2785d4ef48b6e957f2d0e4c8fca6e9aeceab0336f9484ecd624dd1ca"
+    },
+    {
+      "path": "apps/server/src/services/evidence-lineage.ts",
+      "sha256": "dc18afab36bd5a33738c16a546abcbc8f228e648d1862ee86951c37500c01a4c"
+    },
+    {
+      "path": "apps/server/src/services/score-history.ts",
+      "sha256": "1a2b78e656879f698f233fbe02399cecd53e01187cb62a87de5c309c4753d316"
+    },
+    {
+      "path": "apps/server/src/services/visua.ts",
+      "sha256": "76ee57c4256ea832c8e2895800da5751b963adb76ff67ac95572e8be28106646"
+    },
+    {
+      "path": "apps/server/src/storage/store.ts",
+      "sha256": "60e4eb9c280a9868e062772353b08befad7a92da875d3cb3053cb34c5221c9a3"
+    },
+    {
+      "path": "apps/server/src/context.ts",
+      "sha256": "0a400ee6179dce5e394d63392b2f6a478bd6d6fadbfb7557077f8f504ced8b2d"
+    },
+    {
+      "path": "apps/server/test/evidence-lifecycle.test.ts",
+      "sha256": "c2bf36a3e1fc0c32145b2c7fe918bfb1ae12fc0b6d6c7aaa2c63be68aadf6039"
+    },
+    {
+      "path": "apps/server/test/evidence-binding.test.ts",
+      "sha256": "a637201b0305208b1c81b1d70e1140916c0ecd6bd55add7d4e8cfe6c0664f0ab"
+    },
+    {
+      "path": "apps/server/test/db.ts",
+      "sha256": "287b4313e448fed3f89758820fd1c6e7c4e15e1b17228688a9993ff2b78bdb6e"
+    },
+    {
+      "path": "packages/core/src/evidence.ts",
+      "sha256": "8882018c320f62b16ac773fc33297789f736a85eaf3afd44da6c6f939b2d649c"
+    },
+    {
+      "path": "packages/core/src/evidence-renewal.ts",
+      "sha256": "2b463fd45d612f1cd07be28fb7e80741d55e201be77dd25ca95e76fbf8549ecb"
+    },
+    {
+      "path": "packages/core/src/status.ts",
+      "sha256": "3f265bb00cd95027e1404d086b5560ba2a6ceb83529501062fa56080a7322e22"
+    },
+    {
+      "path": "packages/core/src/scoring.ts",
+      "sha256": "c45868146a82dfb639eaad1f60d629d7c542df736e9c3e7fc53a2c18694f74f0"
+    },
+    {
+      "path": "packages/core/src/types.ts",
+      "sha256": "dc00306b7062726d4ea92c0ea5c3a77a97f5f9847d09db376bcc431e13cc01d9"
+    },
+    {
+      "path": "packages/core/test/evidence.test.ts",
+      "sha256": "d2fb69570f8c9c97e6e76aca34d9078e5b7cc7f2cf5b3c74edc7f00615ad2982"
+    },
+    {
+      "path": "packages/agents/src/tools.ts",
+      "sha256": "8f51116f6fa9bcd092b9bc6fe918f96fed85deb0d0699d8e65f375b637436cca"
+    },
+    {
+      "path": "packages/agents/test/evidence-provenance.test.ts",
+      "sha256": "1ef4a709bff1634af9da70cb848b610eae333739907b06b7c78d77e5c810dc7e"
+    }
+  ]
+}

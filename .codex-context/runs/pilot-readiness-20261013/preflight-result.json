@@ -1,0 +1,87 @@
+{
+  "run_id": "pilot-readiness-20261013",
+  "node_id": "preflight",
+  "input_sha256": "6d28468bfbfffc42b8376cca07208871c40d2a1730c41e862e55d5ef066448ef",
+  "status": "complete",
+  "summary": "Added an environment-only empty-install hosted configuration inspector and JSON CLI with safe static messages, stable checks, operator-review flags and explicit external verification requirements. Runtime behavior is unchanged.",
+  "evidence": {
+    "base_revision": "a0fee8b5b4101a489163d499265c64d33ab51e11",
+    "recorded_utc": "2026-10-14T01:36:25.075102+00:00",
+    "cwd": "/Users/artem/visua",
+    "runtime": {
+      "node": "v26.0.0",
+      "pnpm": "10.33.0",
+      "vitest": "5.0.2"
+    },
+    "commands": [
+      {
+        "command": "pnpm exec vitest run apps/server/test/pilot-preflight.test.ts",
+        "exit_code": 0,
+        "status": "passed",
+        "result": "1 test file; 48 tests passed; duration 1.33s"
+      },
+      {
+        "command": "pnpm --filter @visua/server typecheck",
+        "exit_code": 0,
+        "status": "passed",
+        "result": "tsc -p tsconfig.json completed without diagnostics"
+      },
+      {
+        "command": "git diff --no-index --check /dev/null apps/server/src/operations/pilot-preflight.ts",
+        "exit_code": 1,
+        "status": "no_whitespace_diagnostics",
+        "result": "No output; --no-index returns 1 because the added file differs from /dev/null."
+      },
+      {
+        "command": "git diff --no-index --check /dev/null apps/server/test/pilot-preflight.test.ts",
+        "exit_code": 1,
+        "status": "no_whitespace_diagnostics",
+        "result": "No output; --no-index returns 1 because the added file differs from /dev/null."
+      },
+      {
+        "command": "git diff --no-index --check /dev/null scripts/pilot-preflight.ts",
+        "exit_code": 1,
+        "status": "no_whitespace_diagnostics",
+        "result": "No output; --no-index returns 1 because the added file differs from /dev/null."
+      }
+    ],
+    "source_sha256": {
+      "apps/server/src/operations/pilot-preflight.ts": "b2dc67a95a8c3401931198ca5c553a82f30fc096daf07179ae0fecc9e50666ac",
+      "apps/server/test/pilot-preflight.test.ts": "8b23f2e68708af9e1913be4e94e9ea16773e71dba0e73068caeae912478a95fd",
+      "scripts/pilot-preflight.ts": "1836cbeb76e17408bda14b2411474e5b9790261f9fa984b8d94723647a6a8d0c"
+    },
+    "dependency_source_sha256": {
+      "apps/server/src/auth/config.ts": "209c74005e490d18393ecd71f51ac84914f8b345ebcfb7a5615f9eacf70da2f7",
+      "apps/server/src/startup.ts": "d919759dc14a4c983819c05ca492b40ce3caf4ba4489fb5336a3495c1aeecaf9",
+      "apps/server/src/request-controls.ts": "1bc425d48f78f182215a899593849d96f820df4f9f5c10c7cdf1186a9f48b5cb",
+      "apps/server/src/blobs/index.ts": "f21034309a3d42c75976c9bd5ca1baa526cfa42eff40b71c7cc5aa0ba924f1d5",
+      "apps/server/src/blobs/s3.ts": "72a3e9b3ee3c6d7d3698ae157bd1e6fc932357314eebb2ab6b7ce4e5cb0c914a",
+      "apps/server/src/context.ts": "175b33033c0b5e8d043daf3e88d829c5e9aa8f1b190d1f4dc59a3e318a0bf757",
+      "apps/server/src/storage/index.ts": "2a804e9a6490508a8518d03be900937c71135dc235c7becb1295b2641d74ca82",
+      "vitest.config.ts": "a71f2905d4c75d45d87c4b7eab5fba778ccdaeec82e4b693c39da63ccbf758e7",
+      "tsconfig.base.json": "b892d7ccc9bf4733f8f3695e0539180086bca5b9365d06baafcb1063417c1241",
+      "apps/server/tsconfig.json": "fea9cfcb057785994121b5c0768b9912cbcae898ce8c2c6c3ff57dd78ae99ee5",
+      "pnpm-lock.yaml": "cd6f0a2c4595b1b6f211c86a6912842aa368425caa2ee5b3ef09d1125d92626b"
+    },
+    "behavior_verified": [
+      "Missing and invalid config fails with stable ids; valid HTTPS OIDC public-client/PostgreSQL/S3 role-chain profile passes without static AWS credentials or an OIDC client secret.",
+      "Runtime auth, startup and request-control loaders are reused with caught exceptions replaced by static generic messages.",
+      "Clean public origin, non-default secret, seed-off, bootstrap owner, issuer overrides, PostgreSQL and S3 syntax/prefix/path-style checks are enforced only by this offline profile.",
+      "Custom hosted S3 endpoint requires HTTPS; the default SDK service endpoint is accepted.",
+      "Permissive trust-email, domain-verification/recheck and named private-issuer flags are surfaced as warning review statuses.",
+      "Malicious/credential-bearing environment values and unknown CLI arguments are not echoed; serialized output uses only static messages and ids.",
+      "Tests guard storage/context/AWS imports and filesystem access; valid inspector path invokes no fetch.",
+      "Real CLI subprocesses produce one JSON object with empty stderr; readiness exit codes 0/1, --help 0, invalid usage 2.",
+      "External TLS/DNS, database transport/access, IAM/private bucket, versioned recovery, retention, capacity, IdP login and operational ownership checks remain required even on configuration success."
+    ],
+    "product_defects_found": []
+  },
+  "limitations": [
+    "Configuration syntax and selected runtime-loader checks only; no provider credentials, live service access, DNS, database/blob operations or credential resolution were performed.",
+    "The profile is for an empty installation. Existing organization SSO, memberships and database contents cannot be inferred.",
+    "S3 syntax checks mirror existing constructor validation because there is no separate runtime S3 config loader; future constructor changes must keep this inspector aligned.",
+    "Passing configReady does not establish production readiness. Warning review statuses and all external checks still require operator evidence.",
+    "Focused tests and server typecheck only; broad suites, Docker, browser tests and hosted recovery/capacity drills were not run by this worker.",
+    "Lead owns package command wiring, documentation and rehearsal integration. Changes remain uncommitted."
+  ]
+}

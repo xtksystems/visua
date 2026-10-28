@@ -1,0 +1,9 @@
+{
+  "pid": 86454,
+  "process_group_id": 86454,
+  "started_utc": "2026-10-02T07:10:05.119949+00:00",
+  "binary": "/Users/artem/.local/share/claude/versions/2.1.287",
+  "request_sha256": "ea7cd78695e39d02db756ea3e5cc53d2e85da179af16adada9e5390d00e7e548",
+  "brief_sha256": "f48e31528fcca7cb72e89ef94a3614030d8a79f5b97fb54f513b1a730a35014b",
+  "identity_note": "Verify a still-running process before signaling; stored PIDs may be reused."
+}

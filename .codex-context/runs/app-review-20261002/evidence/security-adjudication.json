@@ -1,0 +1,210 @@
+{
+  "status": "complete",
+  "commit": "1dc5ed126dced52c364b403dd29f9ce62829b4da",
+  "scope": "Independent source adjudication of security reviewer findings 5 through 12 against full repository, including agent tools and capability gates.",
+  "method": "Read-only source inspection. No application process, database, network provider, source file or Git state was changed. No runtime reproduction was run.",
+  "findings": [
+    {
+      "finding": 5,
+      "disposition": "accepted",
+      "severity": "medium",
+      "category": "correctness and lifecycle",
+      "conclusion": "Durable run rows exist; their executing controller and recovery ownership exist only in process memory. Restart or cross-instance cancellation can strand or continue runs. New proposals can be created after cancellation, including in a single instance during an in-flight connector tool.",
+      "trigger": "Start a queued/running run and crash/restart; or start on A and cancel on B sharing Postgres; or cancel while run_checks is awaiting a connector, then let the connector return passing checks.",
+      "constraints": "Crash recovery requires persisted nonterminal run. Cross-instance cancellation requires at least two server instances. Single-instance post-cancel proposals require an already-started tool continuing after abort. Automatic state application additionally requires explicit autonomy for that proposal type. Existing proposals remaining after cancel are not themselves evidence of this defect.",
+      "evidence": [
+        "apps/server/src/services/visua.ts:172",
+        "apps/server/src/services/visua.ts:1344-1353",
+        "apps/server/src/services/visua.ts:1368-1415",
+        "apps/server/src/services/visua.ts:1473-1481",
+        "apps/server/src/services/visua.ts:1527-1551",
+        "packages/agents/src/tools.ts:693-705",
+        "packages/agents/src/claude.ts:78-92",
+        "apps/server/src/index.ts:23-66"
+      ],
+      "qualifications": [
+        "Reviewer phrase runs exist only in memory is inaccurate: rows and recorded steps persist; execution/recovery controls are volatile.",
+        "Unlimited concurrent run starts is a resource-governance opportunity; per-run maxTurns limits do exist (agents.ts:16,21-105).",
+        "The final run row will retain cancelled status (visua.ts:1388), but this does not prevent further checks, steps, proposals or finish logs."
+      ]
+    },
+    {
+      "finding": 6,
+      "disposition": "accepted",
+      "severity": "medium",
+      "category": "access revocation",
+      "conclusion": "An authenticated SSE stream never rechecks session/token validity, membership, workspace existence or Require SSO. It can disclose new events after access is revoked. Its queue is unbounded. Missed relay/browser-reconnect events have no explicit resynchronization path.",
+      "trigger": "Open an SSE stream while authorized, remove the membership or expire/revoke its credential, then mutate the workspace while keeping that connection open.",
+      "constraints": "An already-open stream is required; new connections are correctly gated. Same-instance evidence/policy changes send full bodies. Postgres cross-instance events larger than 7500 bytes are compacted, so those large bodies do not travel intact across instances. Actual slow-client heap growth or service degradation was not measured.",
+      "evidence": [
+        "apps/server/src/auth/http.ts:80-103",
+        "apps/server/src/auth/http.ts:130-141",
+        "apps/server/src/app.ts:612-644",
+        "apps/server/src/services/visua.ts:1034-1036",
+        "apps/server/src/bus.ts:52-66",
+        "apps/server/src/storage/events.ts:19-28",
+        "apps/server/src/storage/events.ts:57-61",
+        "apps/server/src/storage/events.ts:79-118",
+        "apps/web/src/lib/events.ts:13-31"
+      ],
+      "qualifications": [
+        "Authorizing at connection is not sufficient for active credential/member revocation because events include confidential entity data.",
+        "Cache staleness on reconnect is a separate reliability issue; normal TanStack focus/refetch behavior can eventually recover some views, but there is no ready-event invalidation or replay.",
+        "Identifiers rather than entity bodies and queue caps are mitigations; large relay payload compaction already exists."
+      ]
+    },
+    {
+      "finding": 7,
+      "disposition": "qualified",
+      "severity": "low",
+      "category": "intentional autonomy policy and dormant service surface",
+      "conclusion": "Reject the claimed currently reachable agent authorization/ATO or review-evidence bypass. No shipped Claude or offline tool emits set-rmf or review-evidence; there is no public proposal-creation route. Accepted non-check agent evidence under create-evidence autonomy is reachable, but is explicitly offered and documented as an opt-in setting, so changing this boundary is a policy/hardening opportunity.",
+      "trigger": "An admin explicitly enables create-evidence autonomy, then an evidence-collector/task-executor Claude run invokes propose_evidence for an artifact. The service stores it as accepted with autonomy as reviewer. Arbitrary set-rmf payloads require internal direct service invocation or a future emitter.",
+      "constraints": "No evidence auto-acceptance without configured autonomy or human approval. Claude tools are zod-validated and checked against the selected agent definition. Approval-time edits cannot replace the proposal type; they do not manufacture a set-rmf proposal from another type. Human approvers already have direct authorize, tailor and review capabilities.",
+      "evidence": [
+        "packages/agents/src/agents.ts:66-74",
+        "packages/agents/src/agents.ts:96-104",
+        "packages/agents/src/agents.ts:113",
+        "packages/agents/src/tools.ts:572-598",
+        "packages/agents/src/claude.ts:144-161",
+        "apps/web/src/pages/SettingsPage.tsx:47-54",
+        "apps/server/src/app.ts:101",
+        "apps/server/src/app.ts:588-590",
+        "apps/server/src/services/visua.ts:1527-1551",
+        "apps/server/src/services/visua.ts:1555-1564",
+        "apps/server/src/services/visua.ts:1627-1671",
+        "packages/core/src/access.ts:17-24"
+      ],
+      "qualifications": [
+        "The generic service set-rmf branch really does spread unvalidated settings, but demonstrating it through internal createProposal calls would not establish a deployed reachable exploit.",
+        "The broader repository rule against agent audit/authorization decisions should be reconciled with the explicitly exposed evidence-autonomy setting; the product currently makes that grant intentionally.",
+        "A schema allowlist and separation of observation from review are reasonable future hardening, but should not be described as closing a proven ATO exploit."
+      ]
+    },
+    {
+      "finding": 8,
+      "disposition": "accepted",
+      "severity": "medium",
+      "category": "stale identity-provider trust",
+      "conclusion": "The hourly OIDC configuration cache is keyed solely by connection id. A remote-instance issuer/client/secret replacement leaves other instances using the old provider configuration with the newly read connection metadata.",
+      "trigger": "Warm instance B cache, replace issuer/client credentials on instance A, then start and finish sign-in via B before its one-hour TTL expires.",
+      "constraints": "At least two instances or an out-of-band persisted connection change are required. The replaced connection must remain enabled and present. Successful impersonation additionally requires control of the old IdP and ability to complete its old-client OIDC flow for an admitted identity. Deleting or disabling the connection is checked on each call and prevents login: the reviewer deletion extension is false.",
+      "evidence": [
+        "apps/server/src/auth/service.ts:477-525",
+        "apps/server/src/auth/service.ts:633-643",
+        "apps/server/src/auth/service.ts:664-680",
+        "apps/server/src/auth/service.ts:688-703",
+        "apps/server/src/auth/service.ts:716-738",
+        "apps/server/src/auth/service.ts:742-771"
+      ],
+      "qualifications": [
+        "Medium is appropriate for multi-instance configuration propagation. If the issuer change responds to compromise, retained trust can permit high-impact tenant account impersonation, including owners.",
+        "A fresh row is already loaded before the cache hit; comparing issuer/client/secret or a version would resolve this without a distributed cache purge."
+      ]
+    },
+    {
+      "finding": 9,
+      "disposition": "rejected",
+      "severity": "informational",
+      "category": "documented service-token semantics",
+      "conclusion": "The described token behavior is real, but is largely the intentional organization-scoped service credential model, not a privilege escalation or Require SSO bypass. Optional expiry and chosen-role capabilities are documented. Require SSO explicitly applies to sessions. Creator-independent token lifecycle and token minting are policy decisions/opportunities.",
+      "trigger": "An admin token can mint another admin token, manage non-owner members, configure workspaces and survive its original creator removal until expiry/revocation.",
+      "constraints": "Tokens never hold owner, cannot grant above their own role, cannot modify owners, cannot create an SSO connection/change its issuer, client, secret or domains, cannot remove an SSO connection, cannot toggle Require SSO, and cannot disable the last connection while Require SSO remains on. They can enable/disable existing connections within these guards.",
+      "evidence": [
+        "README.md:102-123",
+        "packages/core/src/access.ts:19-24",
+        "packages/core/src/access.ts:57-59",
+        "apps/server/src/auth/service.ts:220-222",
+        "apps/server/src/auth/service.ts:252-279",
+        "apps/server/src/auth/service.ts:288-298",
+        "apps/server/src/auth/service.ts:402-441",
+        "apps/server/src/auth/service.ts:477-487",
+        "apps/server/src/auth/service.ts:633-640",
+        "apps/server/src/auth/http.ts:269-272",
+        "apps/server/src/auth/http.ts:288-290",
+        "apps/server/test/auth.test.ts:429-437"
+      ],
+      "qualifications": [
+        "Restricting service-token administrative reach, requiring expiry, cascading revocation or token lineage could improve hosted governance; those change the currently documented permission contract.",
+        "No user-account capability growth beyond the token role was established."
+      ]
+    },
+    {
+      "finding": 10,
+      "disposition": "qualified",
+      "severity": "low",
+      "category": "audit-retention and assurance gap",
+      "conclusion": "Authorized hard-delete removes the workspace audit chain and leaves a tenant deletion record without a checkpoint. This matches the explicit delete API and capability contract. The verifier cannot detect truncating a valid chain tail; its comment claiming any deletion breaks the chain is overstated. Retention/anchoring is an assurance opportunity unless required retention is established.",
+      "trigger": "An authorized admin deletes a workspace; separately, a privileged direct database writer removes terminal activity rows, leaving a valid prefix that verifies successfully.",
+      "constraints": "Workspace delete requires workspace.configure (admin/owner or admin token). Tail truncation requires storage/operator compromise; no API deletes arbitrary activity rows. No documented mandatory retention period or owner-only delete policy was found.",
+      "evidence": [
+        "packages/core/src/access.ts:19-24",
+        "apps/server/src/app.ts:398-401",
+        "apps/server/src/services/visua.ts:233-242",
+        "apps/server/src/services/visua.ts:343-358",
+        "apps/server/src/storage/store.ts:334-342",
+        "README.md:128-130"
+      ],
+      "qualifications": [
+        "The organization audit still records who deleted the workspace, so the delete action is not invisible.",
+        "Hash chaining detects changed internal links, not suffix deletion without an independently retained head/count.",
+        "Archiving and external checkpoints need an explicit retention/assurance requirement before calling current deletion a security bug."
+      ]
+    },
+    {
+      "finding": 11,
+      "disposition": "qualified",
+      "severity": "medium",
+      "category": "conditional hosting capacity and public overread",
+      "conclusion": "Source supports unbounded body parsing and records, no application rate limiter, whole-document evidence reads and unnecessary public workspaceSummary work. This is a hosted capacity/DoS exposure and a concrete overread inefficiency, not observed production degradation. Limits alone are missing hardening features.",
+      "trigger": "Send large JSON to public discovery/login routes, or repeatedly fetch an enabled trust center belonging to a data-heavy workspace. Even cached scores still load full task, proposal, recent-run and policy documents for summary counters.",
+      "constraints": "Attack traffic must reach the API without effective upstream limits. Public trust endpoint requires an enabled workspace slug. Score cache prevents full evidence re-read for each same-revision/same-hour request; score misses still load all evidence/check documents. Real memory, latency, concurrency and upstream ingress limits were not measured.",
+      "evidence": [
+        "apps/server/src/app.ts:193-195",
+        "apps/server/src/app.ts:213-222",
+        "apps/server/src/app.ts:254-265",
+        "apps/server/src/app.ts:675-690",
+        "apps/server/src/auth/http.ts:209-221",
+        "apps/server/src/services/views.ts:198-243",
+        "apps/server/src/services/visua.ts:824-841",
+        "apps/server/src/services/visua.ts:144-154",
+        "apps/server/src/storage/store.ts:28-44"
+      ],
+      "qualifications": [
+        "Global request limits, shared rate limits, cached trust projections and metadata/content separation are prioritizable operational opportunities for an exposed service.",
+        "Reviewer statement score recomputation on every trust request would be false: revision/hour score caching is present.",
+        "Do not claim a few hundred evidence uploads necessarily degrades every tenant without a bounded load measurement."
+      ]
+    },
+    {
+      "finding": 12,
+      "disposition": "qualified",
+      "severity": "low",
+      "category": "implicit tenant choice and session lost update",
+      "conclusion": "New non-tenant-scoped sessions default to earliest-created accessible organization and direct member addition can influence this. No tenant isolation bypass occurs; accidental creation under the wrong organization is conditional UX risk. A concurrent idle refresh really can overwrite a just-selected tenant because both operations write a whole session snapshot.",
+      "trigger": "An older tenant admin adds a multi-tenant user, who starts a new platform/dev session and creates a workspace without selecting their desired tenant. Or interleave resolveSession idle update with switchTenant so the stale full-row update commits last.",
+      "constraints": "For creating workspaces in the unexpected tenant the user must have workspace.configure there, usually assigned admin. Tenant-scoped organization SSO sessions set activeTenantId explicitly and cannot be steered this way. User must overlook tenant context/switcher. Lost-update refresh occurs only after the one-minute write interval and concurrent requests.",
+      "evidence": [
+        "apps/server/src/auth/service.ts:225-238",
+        "apps/server/src/auth/service.ts:321-324",
+        "apps/server/src/auth/service.ts:346-360",
+        "apps/server/src/auth/service.ts:368-395",
+        "apps/server/src/storage/identity.ts:149-155",
+        "apps/server/src/storage/identity.ts:210-221",
+        "apps/server/src/app.ts:367-381",
+        "apps/web/src/components/shell/Shell.tsx:147-171"
+      ],
+      "qualifications": [
+        "The account menu exposes organization choice and the current workspace organization. This is not hidden cross-tenant access.",
+        "Explicit invitations, remembered tenant choice and tenant-bound create requests are product improvements; the stale session write is a concrete consistency defect."
+      ]
+    }
+  ],
+  "limitations": [
+    "Source-derived triggers, not executed reproductions. No Postgres multi-instance or live SSE run was performed.",
+    "No production ingress/rate limit configuration or load test inspected beyond repository entrypoints.",
+    "Existing policy permits explicit autonomy and organization-scoped tokens; recommendations that narrow those capabilities require a product policy decision.",
+    "Read command referenced three guessed web create-workspace filenames that did not exist; conclusions about implicit tenant creation rely on confirmed server route and confirmed account-switcher source."
+  ],
+  "summary": "Accept 5,6,8. Qualify 7,10,11,12. Reject 9 as a defect while retaining its governance tradeoffs. Reject unreachable agent ATO/review-evidence subclaims and stale-cache-after-delete subclaim."
+}

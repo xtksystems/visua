@@ -1,0 +1,39 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "Focused infrastructure review completed for source HEAD 5450fc7271332ba09892350c3af28646c0d12dc0 and the four dirty reactor deployment artifacts. Two conditional operational defects were reproduced with isolated local fixtures: overlapping backups violate writer quiescence, and a preexisting permissive shared directory leaves database credentials readable while preflight accepts it.",
+  "coverage": [
+    "Read the immutable review brief, run plan, effective AGENTS.md/CLAUDE.md, project startup context, workflow and focused-review guidance. Input SHA-256: 6d6e0a64addfa429dbb8929cc89cb801cdf10f45861fc005052112616fe4f519.",
+    "Verified all eight plan scope hashes against inspected bytes: {\"Dockerfile\": \"ac72e727e331af0cff014d4681c78aba382d84a0e8b6d47947df495ace6d9c9f\", \"apps/server/src/auth/config.ts\": \"209c74005e490d18393ecd71f51ac84914f8b345ebcfb7a5615f9eacf70da2f7\", \"apps/server/src/blobs/index.ts\": \"f21034309a3d42c75976c9bd5ca1baa526cfa42eff40b71c7cc5aa0ba924f1d5\", \"apps/server/src/context.ts\": \"175b33033c0b5e8d043daf3e88d829c5e9aa8f1b190d1f4dc59a3e318a0bf757\", \"deploy/reactor/backup.py\": \"4f797099198c08c76b4a7641a7a5afe96e7d667f760581eefc00d0b5d1f7be57\", \"deploy/reactor/compose.yaml\": \"af7bcf79c05edef725f529268fab7350a4ba5687ecd9d7f96170867310448a6c\", \"deploy/reactor/initialize.py\": \"2763c6a6ebb315cdd1cb9078674e81d0e74bb147ad821240accf81ec260bbb62\", \"deploy/reactor/preflight.py\": \"c3e2439696aa4c1c0b00f0fa5fa8b8bdbc1eb8d1d365ebd74d5d07057346637b\"}",
+    "Inspected compose service isolation, loopback port mapping, private database network, PostgreSQL initialization/secret bind paths, app non-root/read-only runtime, named volumes, restart policy, healthchecks, graceful-stop budgets and bounded logs/resources.",
+    "Traced initialized configuration against auth/config.ts, startup.ts, auth/service.ts bootstrap, context.ts database selection, blobs/index.ts and blobs/local.ts, server.ts graceful shutdown and index.ts signal handlers. The staged settings use production OIDC, disable seed/repository scans, select PostgreSQL/local evidence and do not provision an owner or identity provider.",
+    "Traced backup.py stop/dump/globals/artifact/config/hash/finally-restart flow against Dockerfile CMD, runtime blob permissions and shutdown behavior. The tar entrypoint overrides the application CMD, so the artifact helper does not intentionally start an application writer.",
+    "Executed one isolated Python fixture harness in /Users/artem/visua with subprocess.run mocked for all Docker commands. Forced two backup invocations to pass their running checks together, delayed B during its database dump, and allowed A to finish/restart. Both scripts completed; artifact observations were A: app stopped, B: app running.",
+    "Executed initialize.py and preflight.py against an isolated tempfile install with a preexisting shared directory set to 0755 and dummy generated secrets; inspected only permissions and readiness booleans. Observed shared=0755, app.env=0600, init.sql=0444, postgres-admin-password=0444, preflight exit=0 and private_install_ready=true.",
+    "Parsed initialize.py, preflight.py and backup.py with ast.parse successfully. No real Docker, SSH, container, account, credential, service, shared build/test or Git mutation was performed."
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "deploy/reactor/backup.py:30-64",
+      "mechanism": "Two scheduled/manual backups can both observe a running app before either stops it. There is no per-install lock. One invocation can complete first and execute its finally restart while the other is still dumping SQL or capturing evidence. The latter then reports a complete backup whose database and artifacts need not describe one quiescent state; its manifest assertion that the app stayed stopped throughout is false.",
+      "evidence": "Source checks writer state independently at line 30, stops at line 34, captures at lines 37-45 and always restarts at line 64. A deterministic two-thread fixture executing the unmodified source with mocked subprocess.run returned complete for A and B, while B observed app_running_during_artifact_capture=true after A restarted. This reproduces script coordination only, not a real database corruption or restore failure.",
+      "recommendation": "Acquire an exclusive per-install lock before the initial state check and retain it through backup finalization and restart. Reject or wait on overlapping invocations; preserve the existing restart-on-command-failure behavior and recheck the overlapping schedule."
+    },
+    {
+      "severity": "medium",
+      "location": "deploy/reactor/initialize.py:11,41-44; deploy/reactor/preflight.py:23-38",
+      "mechanism": "If the operator has already created shared with normal 0755 permissions under traversable installation ancestors, mkdir(exist_ok=True) keeps that mode. The initializer then changes init.sql and postgres-admin-password to 0444, exposing both database-role passwords to other host accounts. Its comment assumes the parent is 0700, but does not enforce it, and preflight checks only app.env permissions and accepts this state.",
+      "evidence": "In an isolated fixture with a preexisting 0755 shared directory, the unmodified initializer left shared=0755 and produced init.sql=0444 and postgres-admin-password=0444. The unmodified preflight exited 0 with private_install_ready=true. The fixture establishes modes and acceptance; actual cross-account reachability additionally depends on installation ancestor permissions and was not tested.",
+      "recommendation": "Before creating secrets, reject symlink/untrusted shared directories and enforce private ownership and 0700 permissions, or fail clearly if unable. Have preflight validate the enclosing credential directory and relevant credential paths; retain the container-readable file modes only behind the verified private host directory."
+    }
+  ],
+  "limitations": [
+    "Fresh bounded native-subagent context was supplied by the lead. This is one focused infrastructure/script pass, not an application-security assessment or approval for live-user admission.",
+    "No remote or live runtime inspection was authorized. Actual reactor directory ownership/modes, Docker/Compose version, deployed image identities, PostgreSQL entrypoint execution, volume ownership, network behavior, restart success and host workload isolation were not measured.",
+    "Docker subprocesses in the concurrency check returned fixture data. No real SQL or tar archive was produced, no actual corruption was demonstrated and no restore or application-integrity acceptance was performed.",
+    "The confidentiality issue is conditional on traversable installation ancestors and a preexisting permissive shared directory. A newly created shared directory is 0700; an independently protected ancestor also limits exposure.",
+    "Backup archive hashes establish captured-byte checksums only. Consistency relies on a sole writer plus uninterrupted quiescence; independent off-host/encrypted retention, fresh-volume restoration, roles/ownership, database/entity/audit checks and reviewed artifact-byte recovery remain separate acceptance work.",
+    "Package/base-image advisories and previously reported application findings were outside the bounded assignment and remain unresolved. No provider login, owner bootstrap, public HTTPS routing, capacity or release-readiness conclusion is established."
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "status": "passed: all seven applicable lanes with explicit browser result reuse",
+  "checked_utc": "2026-10-04T03:23:39.081555+00:00",
+  "checked_sources": 261,
+  "current_changed": [],
+  "review_delta": [
+    "apps/server/test/startup.test.ts",
+    "apps/web/src/pages/EvidencePage.tsx",
+    "e2e/keyboard-dialog-tabs.spec.ts"
+  ],
+  "final_bounded_review": "ui-review.json / ui-review-result.json",
+  "full_browser_delta": [
+    "apps/server/test/startup.test.ts",
+    "apps/web/src/pages/EvidencePage.tsx"
+  ],
+  "reuse_scope": "79 unaffected cases from 98-case full browser lane; all 19 evidence, reader keyboard, permissions, stale-review and renderer-crash cases rerun on final source",
+  "reuse_rationale": "Only runtime delta after full browser build is EvidenceDialog hook-level error handling and active success guards; all EvidencePage/reader/capability/stale-review flows rerun. Other delta is readiness unit-test fixture, with no runtime/browser dependencies. Lockfile, backend runtime, runner, environment and corpus pins unchanged.",
+  "browser_result": "browser-final-result.json",
+  "backend_result": "pnpm check --no-e2e exit 0; 474 SQLite/476 PostgreSQL passes; remaining five non-browser lanes pass",
+  "full_check_claim": "No single full pnpm check command passed; recoveries and source validity explicitly recorded."
+}

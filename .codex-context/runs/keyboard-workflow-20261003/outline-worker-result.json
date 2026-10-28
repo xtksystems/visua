@@ -1,0 +1,19 @@
+{
+  "run_id": "keyboard-workflow-20261003",
+  "node_id": "outline-worker",
+  "input_sha256": "775e10b72581f560ef3654d5492842747dafb2329be9be1ffa9fd5b4e3b7b695",
+  "status": "complete",
+  "summary": "Implemented locally scoped Observatory shortcuts, managed named and leveled tree row focus with filter-aware navigation and selection ancestor reveal, focusable canvas, and five browser regression cases while preserving canonical workspace and cached inspector selection behavior.",
+  "evidence": [
+    "Owned files: apps/web/src/pages/ObservatoryPage.tsx and e2e/keyboard-outline.spec.ts; shared CSS selectors reported to root and added by root.",
+    "pnpm --filter @visua/web typecheck from /Users/artem/visua passed after shared modal.ts was available (initial concurrent run reported only the then-missing shared module import).",
+    "pnpm exec tsc --noEmit --target es2023 --module esnext --moduleResolution bundler --strict --skipLibCheck --types node --lib ES2023,DOM e2e/keyboard-outline.spec.ts passed.",
+    "git diff --check -- apps/web/src/pages/ObservatoryPage.tsx e2e/keyboard-outline.spec.ts passed.",
+    "Authored browser cases for named/leveled tree tab stop and siblings/children/parents/mouse focus, filtered navigation, scope dialog Escape and inspector/HUD/modifier/defaultPrevented isolation, canvas tab/pointer focus, cached owner draft reset and external deep-link focus preservation.",
+    "Window Observatory keydown listener removed; events now handled only on the outline tree and directly focused canvas section. L uses available lenses and slash reveals a closed outline before focusing its filter."
+  ],
+  "limitations": [
+    "Browser tests, builds and server execution were not run by this worker per ownership constraints; root owns final browser verification.",
+    "F continues dispatching the existing ui.focus action. Preexisting CameraRig in apps/web/src/scene/Observatory.tsx ignores one-node focusSeq requests after selection; manual-orbit reframing is outside this worker owned files and was reported to root."
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "root": "/Users/artem/visua",
+  "files": {
+    "apps/web/src/pages/HomePage.tsx": "1798537c974fd4b8f63d78a2bd7e39dcec26a78a7929d587adbb5122e7408b6b",
+    "apps/web/src/pages/AgentsPage.tsx": "ba2ab0f4dd178370722a115cc30b490270bc10687bfc7d9c81fa495873c4a34d",
+    "apps/web/src/components/agents/Proposals.tsx": "32e2d907d69017a9d26da3090bfa6189f38c8f7a0bdd861ad05c9881e3d34d3d",
+    "apps/server/src/services/views.ts": "813bb78e650f92d9d96ab1cb9a86938861818ed13db8d6e89841a83e98ff6bd7",
+    "apps/server/src/services/visua.ts": "40b0361f57be47c566ac9a7750a11639a3f524a2333ce86d672d0d564c18e830",
+    "apps/server/src/app.ts": "85931dc8b46fd1f794a98a9bf857f2fb43d93305314da5b47346b202d4b7e433",
+    "packages/core/src/status.ts": "1b9c1f2ebf40e36fc0c1578d4cf28702ba349e20ae18279a26c8c7eccac8cabe",
+    "packages/core/src/scoring.ts": "871a01e83417c1139e348652de2e62df5b272098888e76c80ba097f1338ff7d9",
+    "packages/core/src/types.ts": "af41b18c8382d5e438ec7c6a1d2bcc8349c15616d170e591bf48bbf86c5a756a"
+  }
+}

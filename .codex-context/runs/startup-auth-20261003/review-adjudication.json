@@ -1,0 +1,16 @@
+{
+  "original_review": "review.json",
+  "finding": "startup failure closes storage before active seed execution drains",
+  "verdict": "accepted and fixed",
+  "resolution": "Bounded drainRuns before store.close in startup-error cleanup; preserve original error or both errors in AggregateError.",
+  "verification": [
+    "focused-final.log: 29 passed",
+    "postgres-focused-final-2.log: 25 passed",
+    "fix-review.json: targeted follow-up pass"
+  ],
+  "changes_after_followup": "Startup failure regression uses isolated memory SQLite rather than full demo generation in Postgres; normal test runtime now uses actual 10000 ms product grace period. Runtime code is unchanged after follow-up; backend tests passed.",
+  "limitations": [
+    "Forced stop cannot establish durable recovery; milestone 3 retains that work.",
+    "No real IdP, model provider, external deployment or Postgres outage drill was exercised."
+  ]
+}

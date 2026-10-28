@@ -1,0 +1,37 @@
+{
+  "status": "complete",
+  "verdict": "pass",
+  "summary": "The original medium provider Crosswalk Analyst bypass is closed in the inspected correction. Native tool dispatch now exposes only the strict node-only trusted projection tool, and the service requires a projection for stored Crosswalk Analyst runs during creation, preview and application, including legacy proposals. No remaining finding was identified in this narrow follow-up.",
+  "coverage": [
+    "Read packages/agents/src/agents.ts:76-84, tools.ts:474-535 and tool registration:835-856, claude.ts dispatch allowlist/schema validation, and all three visua.ts checkProposal callers. Traced the deterministic mapping recomputation, confidence/source equality and family caps through packages/core/src/crosswalk.ts and proposal-validation.ts.",
+    "Inspected the added source tests in packages/agents/test/corpus-claims.test.ts and apps/server/test/proposal-review.test.ts. The 107 focused test passes reported by the lead were not independently rerun.",
+    "Executed env -u VISUA_DATABASE_URL -u VISUA_DB -u VISUA_TEST_DATABASE_URL VISUA_AGENT_MODE=offline node .codex-context/runs/evidence-operations-20261013/claims-review-reproductions/provider-crosswalk-correction.mjs from the isolated checkout, using the script absolute path. Exit 0; explicit SQLite :memory: fixtures, no provider calls. Full command/script and results are preserved in claims-review-reproductions/provider-crosswalk-correction{.mjs,-result.json}.",
+    "Provider Crosswalk Analyst exposes registered node-only tool; generic assessment absent; injected level/confidence rejected.",
+    "related-to: direct generic-tool bypass refused at creation with no stored proposal.",
+    "related-to: legacy unprojected preview blocked; token approval rejected; internal approval failed; target unchanged.",
+    "Weak mapping refused by new provider tool; no additional proposal.",
+    "related-to: general assessor still stages a human-reviewed direct assessment.",
+    "equivalent: direct generic-tool bypass refused at creation with no stored proposal.",
+    "equivalent: legacy unprojected preview blocked; token approval rejected; internal approval failed; target unchanged.",
+    "Strong mapping retains structured sources, caps at CSF 3/medium, blocks stale source assessment, then applies exact current preview.",
+    "equivalent: general assessor still stages a human-reviewed direct assessment.",
+    "All seven runtime source file SHA256 values were equal before and after the correction reproduction; the original provider-crosswalk.mjs and provider-crosswalk-result.json hashes were unchanged.",
+    "Source SHA256 packages/agents/src/agents.ts: 2fd2feb74e7cc417cd038f6e1ed10bf00eda5bb649c14e24db7f9ef0919e1e2c",
+    "Source SHA256 packages/agents/src/tools.ts: e2ad806a35eb9749fa3e03dfbd57f85f399658c85a09137fd22d1feb308226cf",
+    "Source SHA256 packages/agents/src/claude.ts: ef0b1d282540052229e8487eaf58ea7a67caa41769c2d8d4bca1ed03f6b388c5",
+    "Source SHA256 packages/core/src/crosswalk.ts: 36bdba35f0e93cb5a4982d11ce1f835a5e5617914927bb46c1cb2919e0359f05",
+    "Source SHA256 apps/server/src/services/proposal-validation.ts: bb90630e85a16522b17ac07edeb38486ba012e99e83e985d3a9292e0203a20b6",
+    "Source SHA256 apps/server/src/services/proposal-review.ts: 0dd28f5483806c141c5d084ae45b4bc4c27312c3c062ab65317ae87f84179823",
+    "Source SHA256 apps/server/src/services/visua.ts: 62cc2d38b884cce656dd78c96727c700188785781b60c40b111624beadbe3d69",
+    "Original failure artifact SHA256 provider-crosswalk.mjs: 6b91e143d0605f98387743789d50533666e18693adddbe43ae8c932f4f24f5e2",
+    "Original failure artifact SHA256 provider-crosswalk-result.json: f0701d918f11569b9aafa44ef6fe0625bb6070d3eef247fd39de82e0ce11ad7c",
+    "Correction artifact SHA256 provider-crosswalk-correction.mjs: c2d5846182f99ae0313b4f74b6e34aa9213dbfa428592b4881d6fbd4249025f2",
+    "Correction artifact SHA256 provider-crosswalk-correction-result.json: 72c08ed9ef82251627a4fc5487e8b5f51c8f8342acba93c73fa0a367f0520fe0"
+  ],
+  "findings": [],
+  "limitations": [
+    "This is a narrow correction review of the previously reproduced Crosswalk Analyst bypass, not a repetition of the full M3 review or acceptance gate.",
+    "Tests exercise the registered provider tool and real service in memory with synthetic mapping records; no real provider/model, PostgreSQL, browser, build or broad suite was run.",
+    "The original failure report and reproduction remain historical evidence. This report supersedes their correction-pending state only for the source hashes recorded here; subsequent relevant changes require targeted revalidation."
+  ]
+}

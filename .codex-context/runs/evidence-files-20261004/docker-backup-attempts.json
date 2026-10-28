@@ -1,0 +1,17 @@
+{
+  "first_attempt": {
+    "exit_code": 125,
+    "service_stopped": true,
+    "details": "subprocess error before backup result; retry collects daemon failure"
+  },
+  "retry": {
+    "exit_code": 125,
+    "stdout": "",
+    "stderr": "docker: Error response from daemon: No such image: sha256:cd247de52c862772a75a44b2a8d1f5706872affc1ae5a1f551b0b2323e0b7f0c\n\nRun 'docker run --help' for more information"
+  },
+  "recovery": {
+    "status": "passed",
+    "backup_runtime_image": "sha256:b7e94435f020efbfa7e2e134480f9c31c09b355a53f4515bd4f88c49f4da2eea",
+    "explanation": "Old image unavailable after rebuild. New image used only for Node SQLite builtin backup command with app stopped. No application entrypoint or migration executes."
+  }
+}

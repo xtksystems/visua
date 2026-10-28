@@ -1,0 +1,19 @@
+{
+  "scope": "Synthetic logical databases in installed PostgreSQL cluster; separate artifact volumes. No real IdP/host failover tested.",
+  "created": {
+    "stage": "created",
+    "fileBytes": 65536,
+    "receiptSha256": "d433dc42985e618ebb61f70ef670e33d00fa39a8fc6bd2e2108b8b3f00a9349c"
+  },
+  "restored": {
+    "stage": "restored",
+    "exactBinary": true,
+    "boundReview": true,
+    "auditAndRevision": true,
+    "bundleContent": true,
+    "receiptPin": true
+  },
+  "status": "passed",
+  "cleanup_complete": true,
+  "completed_at": "2026-10-28T21:52:04.088922+00:00"
+}

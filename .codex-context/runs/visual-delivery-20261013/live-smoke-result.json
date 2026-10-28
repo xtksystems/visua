@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "checks": [
+    "Scheduled snapshot captured after deployment; original audit chain valid",
+    "Manual observation persists through API read with every enabled framework, including the automatically added RMF",
+    "Live crosswalk matrix API returns mapping counts and published relationships",
+    "Desktop: overview history, Observatory presets, matrix, Plan urgency, Profile/Tiers, renewal, exact batch approval and recorded Apply outcome",
+    "390px phone: history, Plan, renewal, matrix and Profile render without page overflow"
+  ],
+  "errors": [],
+  "originalAudit": {
+    "valid": true,
+    "events": 98
+  },
+  "syntheticWorkspaceRemoved": true
+}

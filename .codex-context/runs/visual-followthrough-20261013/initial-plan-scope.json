@@ -1,0 +1,20 @@
+{
+  "root": "/Users/artem/visua",
+  "files": {
+    "apps/web/src/pages/CrosswalkPage.tsx": "00660cbd4064f4840c52c0baa8fe808c7057f2c4405cf12c027251b3a9064b40",
+    "apps/server/src/services/crosswalk.ts": "f0100c7b88088aa1486a2b99483bf29472198fc300b53be702f17721b2806acf",
+    "apps/server/src/app.ts": "f145ce46f3aed1e9c8461b5be8211a6a4e9c11eb1be94a96161bd8cb6f17e31b",
+    "apps/web/src/pages/PlanPage.tsx": "f8d2c0bb73b9a95e47c5dfc56036bd57456b8810debdbd94b27c3718e51eaffe",
+    "apps/web/src/lib/queries.ts": "fe4fc0bf92a2a5b2e0e7ca682763891c017857cef651409f0271227406fc3aee",
+    "apps/web/src/lib/types.ts": "50ac233170c0a0debb785acf1862bfd4607d1e346f310203a98f1d0cf1360835",
+    "packages/core/src/types.ts": "af41b18c8382d5e438ec7c6a1d2bcc8349c15616d170e591bf48bbf86c5a756a",
+    "apps/web/src/pages/ProfilePage.tsx": "5d6d3755336aa932aa2b6f71978598cb097b6e7534932546d841ba6f5fb44bc6",
+    "apps/web/src/pages/AgentsPage.tsx": "29580885e0a69d7bebfa2d9f83e449786886a2f352c528ff3f1b5135ddf13d28",
+    "apps/server/src/services/visua.ts": "962e8baa9b1026ceafb707db57201ba00e8d9590998ff19b3d27dc53da691588",
+    "apps/server/src/storage/migrations.ts": "41f336f8b35c580e95e69377279bab9a8580257e3c6425f7f55724884005e252",
+    "apps/server/src/storage/store.ts": "f514139bd12d9bd06e312ebadb71daf68f00851aa46657bfa5de68cae5cdb55e",
+    "apps/server/src/server.ts": "a890a5e1dd10a52186e6082984f6c911af7558a324dada3e31998f2339e863f5",
+    "apps/web/src/pages/HomePage.tsx": "3dcf6f8804b5e71f8cda7e53505c81fb9a417c86128339ca75c9f6b6faeff196",
+    "packages/core/src/scoring.ts": "871a01e83417c1139e348652de2e62df5b272098888e76c80ba097f1338ff7d9"
+  }
+}

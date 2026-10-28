@@ -1,0 +1,31 @@
+{
+  "expected": {
+    "apps/server/src/services/evidence.ts": "4f4e326aeccf9cebbb1af2d296ebb49f72bb5c207b664d852ae3ad73901ec1a0",
+    "apps/server/src/services/visua.ts": "1074914a3d42620e66f8a46ab4527d5130e16a054859d5fbada0d42c2e384b84",
+    "apps/server/src/storage/migrations.ts": "9da4acf03f0d914aa7f4a8f194ac26d55a607db4dd3d648af6fc0536826d0e2a",
+    "apps/server/src/app.ts": "9549e7879afff2082c9693376e7493d4fbd33d7814169bb8144165c7124a590d",
+    "apps/server/test/evidence-binding.test.ts": "77365c25bf31c121e1fe669d077985ecf264a3fd14653c0983a3578dc5c2fd49",
+    "apps/web/src/pages/EvidencePage.tsx": "b2758d220dee41e1dbd3c90941dfe052871233346dfd9021a81893570ebe1b85",
+    "e2e/visua.spec.ts": "a07e6b47f1147b18910d2ba1588d4d8262457521bd605ff94268d92254dcf733"
+  },
+  "actual_at_review_start": {
+    "apps/server/src/services/evidence.ts": "4f4e326aeccf9cebbb1af2d296ebb49f72bb5c207b664d852ae3ad73901ec1a0",
+    "apps/server/src/services/visua.ts": "1074914a3d42620e66f8a46ab4527d5130e16a054859d5fbada0d42c2e384b84",
+    "apps/server/src/storage/migrations.ts": "9da4acf03f0d914aa7f4a8f194ac26d55a607db4dd3d648af6fc0536826d0e2a",
+    "apps/server/src/app.ts": "9549e7879afff2082c9693376e7493d4fbd33d7814169bb8144165c7124a590d",
+    "apps/server/test/evidence-binding.test.ts": "77365c25bf31c121e1fe669d077985ecf264a3fd14653c0983a3578dc5c2fd49",
+    "apps/web/src/pages/EvidencePage.tsx": "b2758d220dee41e1dbd3c90941dfe052871233346dfd9021a81893570ebe1b85",
+    "e2e/visua.spec.ts": "a07e6b47f1147b18910d2ba1588d4d8262457521bd605ff94268d92254dcf733"
+  },
+  "mismatches": [],
+  "actual_at_review_end": {
+    "apps/server/src/services/evidence.ts": "4f4e326aeccf9cebbb1af2d296ebb49f72bb5c207b664d852ae3ad73901ec1a0",
+    "apps/server/src/services/visua.ts": "1074914a3d42620e66f8a46ab4527d5130e16a054859d5fbada0d42c2e384b84",
+    "apps/server/src/storage/migrations.ts": "9da4acf03f0d914aa7f4a8f194ac26d55a607db4dd3d648af6fc0536826d0e2a",
+    "apps/server/src/app.ts": "9549e7879afff2082c9693376e7493d4fbd33d7814169bb8144165c7124a590d",
+    "apps/server/test/evidence-binding.test.ts": "77365c25bf31c121e1fe669d077985ecf264a3fd14653c0983a3578dc5c2fd49",
+    "apps/web/src/pages/EvidencePage.tsx": "b2758d220dee41e1dbd3c90941dfe052871233346dfd9021a81893570ebe1b85",
+    "e2e/visua.spec.ts": "a07e6b47f1147b18910d2ba1588d4d8262457521bd605ff94268d92254dcf733"
+  },
+  "changed_during_review": []
+}

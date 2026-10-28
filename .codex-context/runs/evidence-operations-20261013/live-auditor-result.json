@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "checks": [
+    "Auditor write refusal, explicit read-only preview, actual binary ZIP and download, external receipt pins, offline verification, separate access records, unchanged assessment chain, desktop/phone overflow"
+  ],
+  "browserErrors": [],
+  "syntheticBlob": {
+    "scope": {
+      "tenantId": "tnt_0mum4nwakvcs65a9u",
+      "workspaceId": "ws_0mv6juvl6bvo90hqj"
+    },
+    "id": "f06adf93-1391-425b-b813-a5517550e084"
+  },
+  "offlineVerification": {
+    "integrity": "verified",
+    "manifestSha256": "417016af21f4b81e8c1523d10f503623531fda54949ebbb11d481efed6167894",
+    "contentSha256": "9125951da5347cefca4b291916fb53d5e7777366bc91d51adc60b3b9b5c94f07",
+    "workspaceId": "ws_0mv6juvl6bvo90hqj",
+    "checkpoint": {
+      "hash": "b25767975a85668f7d1b5232a25753b9c166b4ad00d9d07de1f1698558d8c3ef",
+      "seq": 3
+    },
+    "externalManifestPinChecked": true,
+    "externalCheckpointPinChecked": true,
+    "authenticity": "Unsigned bundle checks establish internal consistency only. An independently trusted pin binds only what it covers; an audit checkpoint does not authenticate snapshot or artifact contents."
+  },
+  "syntheticWorkspaceRemoved": true
+}

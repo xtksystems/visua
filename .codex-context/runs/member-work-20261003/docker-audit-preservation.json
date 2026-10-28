@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "historicalRecordsPreserved": 88,
+  "totalRecords": 107,
+  "appendedActions": {
+    "approval-binding-upgraded": 18,
+    "deleted": 1
+  },
+  "fixtureDeletionRetainedInOrganizationAudit": true
+}

@@ -7,9 +7,10 @@
  * - `fitRing` finds the home view: seen from a fixed direction, as close as it can be
  *   while the ring and its titles stay inside the canvas and clear of every panel.
  */
-import { useFrame, useThree } from "@react-three/fiber";
+import { useThree } from "@react-three/fiber";
 import { useLayoutEffect, useRef, useState } from "react";
 import { Vector3, type PerspectiveCamera } from "three";
+import { observeSceneLayout } from "./demandRendering.ts";
 import { outwardRect, rectsOverlap, safeRect, type Rect } from "./ScreenLabels.tsx";
 
 export interface RingTitle {
@@ -31,25 +32,22 @@ export function useSafeArea(): Rect | null {
   const size = useThree((s) => s.size);
   const [safe, setSafe] = useState<Rect | null>(null);
   const last = useRef<Rect | null>(null);
-  const since = useRef(0);
-  // Checked a few times a second: panels open, close and wrap without the camera moving.
-  useFrame((_, dt) => {
-    since.current += dt;
-    if (last.current && since.current < 0.2) return;
-    since.current = 0;
+  const invalidate = useThree((s) => s.invalidate);
+  useLayoutEffect(() => observeSceneLayout(gl.domElement, () => {
     const r = safeRect(gl.domElement, size.width, size.height);
     const p = last.current;
     if (!p || Math.abs(p.x - r.x) > 2 || Math.abs(p.y - r.y) > 2 || Math.abs(p.w - r.w) > 2 || Math.abs(p.h - r.h) > 2) {
       last.current = r;
       setSafe(r);
     }
-  });
+  }), [gl, size.width, size.height]);
   useLayoutEffect(() => {
     if (!safe) return;
     const { width: W, height: H } = size;
     camera.setViewOffset(W, H, W / 2 - (safe.x + safe.w / 2), H / 2 - (safe.y + safe.h / 2), W, H);
     camera.updateProjectionMatrix();
-  }, [safe, size, camera]);
+    invalidate();
+  }, [safe, size, camera, invalidate]);
   return safe;
 }
 

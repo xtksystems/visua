@@ -1,0 +1,112 @@
+{
+  "run_id": "evidence-renewal-20261012",
+  "node_id": "analysis-ui",
+  "input_sha256": "f8a09dbc3eab8fc049b71f530c4934e8909f52e5dc554e6b050d777d21120aa2",
+  "status": "complete",
+  "scope": "Read-only source investigation. No product source edits, tests, builds, browser work, network calls, Git writes, or delegation. Only this report and its result envelope were written.",
+  "summary": "Add a URL-backed Renewal view within EvidencePage, with Expired / Next 7 days / Next 30 days selections, independent review and validity labels, and requirement-level coverage impact supplied by a server read model. Preserve the existing ledger, upload, connectors, checks, and detached EvidenceDialog approval flow.",
+  "observed": [
+    { "finding": "The current freshness label returns pending review or rejected before calculating date validity; pending and expired cannot be shown together.", "source": "apps/web/src/pages/EvidencePage.tsx:33" },
+    { "finding": "The Expiring / expired filter uses remaining < 30 days without a lower bound, mixes overdue and future artifacts, and sorts by collection time instead of expiry urgency. Date.now inside useMemo does not advance membership without another dependency changing.", "source": "apps/web/src/pages/EvidencePage.tsx:232" },
+    { "finding": "Initial evidence loading still renders zero-valued metrics and an empty table; renewal should avoid claiming an empty result while its query is pending.", "source": "apps/web/src/pages/EvidencePage.tsx:211" },
+    { "finding": "The current evidence table hides requirement and provenance columns on phones. A renewal surface cannot rely on that table layout for its impact navigation.", "source": "apps/web/src/styles/global.css:1173" },
+    { "finding": "EvidenceDialog explicitly keeps a detached fetched artifact snapshot and submits evidenceReviewScope(viewing); live metadata invalidation must not replace that snapshot.", "source": "apps/web/src/pages/EvidencePage.tsx:99" },
+    { "finding": "The current overview can link to exact evidence or check dialogs through URL parameters; dialog close deletes only evidence/check, which is compatible with preserving new renewal state.", "source": "apps/web/src/components/work/AttentionQueue.tsx:23; apps/web/src/pages/EvidencePage.tsx:219" },
+    { "finding": "Attention already computes enabled/in-scope assessable requirement references separately from group links and counts valid alternative evidence. Its prose is insufficient as a UI data contract and should not be parsed by a renewal component.", "source": "apps/server/src/services/attention.ts:55; apps/server/src/services/attention.ts:83; apps/server/src/services/attention.ts:177" },
+    { "finding": "Coverage and derived status are distinct. An alternative accepted artifact preserves valid coverage, but existing deriveStatus may still mark implemented work at risk because another artifact is expired. Renewal copy must not promise a status change.", "source": "packages/core/src/status.ts:74; packages/core/src/scoring.ts:127" }
+  ],
+  "flow": {
+    "entry": "Keep the default /evidence experience as the ledger. Add an Evidence view control with Ledger and Renewal using shared Tabs/TabPanel. Keep page actions and connector/check access intact. Renewal occupies the evidence content area; avoid wrapping a large refactor of connector code into this change.",
+    "url": "Use a bounded schema such as ?view=renewal&window=expired|7d|30d. Validate unknown values with a deterministic fallback. Reading URL parameters drives selection on initial load and browser back/forward. Changing view/window preserves unrelated parameters. Closing an evidence/check dialog removes only those entity parameters. Workspace remounting keeps canonical id-scoped data separate.",
+    "buckets": [
+      "Expired: show artifacts whose validity has ended at the response asOf, including pending review items; never suppress an expiry merely because review is pending.",
+      "Next 7 days: future expiries in the next seven days, excluding Expired.",
+      "Next 30 days: future expiries in the next thirty days, including Next 7 days. Make this cumulative meaning explicit in helper text; do not label a disjoint 8–30 day range 'Next 30 days'. Exact inclusivity must follow the shared server contract and core date normalization.",
+      "No-expiry and malformed-date artifacts do not silently enter a date bucket. The ledger continues to expose them. Preserve explicit legacy expired state according to the core/server decision. Rejected-item inclusion must be deliberate and consistent with the domain read model, never accidentally hidden by a label branch."
+    ],
+    "item": "Use a semantic list with a title button, distinct Review and Validity label/value pairs, the absolute expiry date, linked assessable requirements and their coverage impact, and an Inspect evidence action. Reuse EvidenceDialog for inspection and review. Do not add an inline Accept action, automatic extension, replacement upload association, supersession field, or auto-created task.",
+    "sort": "Server supplies deterministic ordering by earliest expiry first with stable id tie-break; describe it as earliest expiry first. If domain design prioritizes impact first, describe that ordering visibly and test it.",
+    "overview": "Add a generic Review evidence renewals link in the overview attention header or evidence-filter context. For existing expired/expiring attention actions, preserve the exact evidence id and append renewal view/window context, e.g. ?view=renewal&window=expired&evidence=ID. Pending-review attention still opens the exact artifact; an expired pending item may retain the renewal context without changing the review action. Preserve check links.",
+    "bounded_list": "Follow AttentionQueue's Show more pattern when necessary: fetch a complete bounded read model, filter before presentation slicing, show displayed/total counts, and keep all impacted requirement links reachable via details/summary. Count artifacts separately from unique affected requirements."
+  },
+  "labels_and_impact": {
+    "review": "Explicitly render Review: Pending review / Accepted / Rejected / Renewed review required according to current bound review. Treat legacy Evidence.status='expired' separately from an accepted current review; do not invent an approval label from expiry alone.",
+    "validity": "Independently render Validity: Expired [date] / Expires [date] / Valid through [date] / Collection has not started / No expiry / Invalid validity window as appropriate. 'No expiry' is not a synonym for accepted or valid coverage. Pending review + Expired must both be visible.",
+    "expired": "Use current facts: '2 linked requirements have no valid accepted evidence now; 1 still has other valid accepted evidence.' Avoid 'will lose coverage' for already-expired artifacts and avoid claiming expiry caused a historic loss if prior coverage is unknown.",
+    "future": "For a currently valid artifact, future-impact text must say when it is evaluated: '2 linked requirements would have no valid accepted evidence after this expires, based on the evidence on file.' Alternatives must be checked at the prospective instant, not only now. If the server provides only current alternatives, explicitly say 'currently has other valid accepted evidence' and do not claim future coverage is preserved.",
+    "pending_future": "A pending artifact contributes no current valid coverage. Show that it already needs review; its expiry cannot be described as a future loss of its coverage. Review state and linked requirement coverage remain separate.",
+    "groups_and_scope": "Show direct assessable links for impact counts. Label group links as context and do not credit descendants. Explain excluded/disabled requirements or workspace-only artifacts using the server scope result. Do not turn excluded linked work into 'no requirements linked'.",
+    "navigation": "Use CodeTag for every requirement navigation, preserving its canonical workspace/framework route and selection behavior. Keep links visible in the mobile renewal card; additional links may use native details/summary. Offer alternative artifact inspection only if IDs are already provided by the bounded read model."
+  },
+  "interaction_accessibility": [
+    "Shared Tabs provides one keyboard tab stop, wrapping Left/Right, Home/End, aria-controls and aria-selected. Render every TabPanel association with unique group ids. Avoid inventing an unrelated tab keyboard handler.",
+    "If only one level of tabs is desired, Ledger/Renewal can be a pressed button group and the three windows can be shared tabs. Distinguish view switching from renewal window labels for screen-reader names.",
+    "Use a named renewal section, h2 heading, semantic list items, and a concise role=status count. Use role=alert for fetch failure with a Retry renewals button. Initial loading is named and aria-busy; empty text is shown only after successful fetch.",
+    "Successful empty states name the bucket: No expired evidence; No evidence expires in the next 7 days; No evidence expires in the next 30 days. Errors and loading must not reuse empty-state text or display misleading zero counts.",
+    "On background refresh failure, retain a clearly dated last successful snapshot only with a visible refresh-failed message and retry. Never silently display stale coverage as current. Show asOf and the refresh cadence.",
+    "Use buttons/links as action targets rather than clickable list items. Inspection must retain the existing focus trap, Escape close and trigger restoration. Do not move focus or reopen dialogs after background refresh.",
+    "At 390px, render one-column cards, wrap long titles and requirement links, keep both status labels and impact copy visible, and avoid viewport-height constrained scrolling. Retain existing focus-visible styling and comfortable button heights.",
+    "Use existing font/space/radius/color CSS tokens. Pair semantic colors with text and a glyph where meaningful. Use neutral/amber for human review state; tertiary is reserved for agent activity, although current freshness uses it for all pending evidence. Do not copy that mismatch into the renewal UI."
+  ],
+  "data_and_refresh": [
+    "Add a canonical id-scoped useEvidenceRenewal hook and key under ['ws', ws, 'evidence-renewal']; consume a typed server read model containing asOf, bucket membership/counts, artifact metadata, distinct review/validity state, direct requirement refs, and current/future coverage impact. No artifact bodies or N+1 requirement detail requests.",
+    "Refresh every minute as AttentionQueue does, use normal focus/reconnect refetch, and route evidence/state/check/workspace invalidations to the renewal query. Existing useWsMutation invalidates all workspace keys on success. SSE's state/evidence/check paths currently invalidate attention explicitly; a standalone renewal group requires adding corresponding invalidation.",
+    "If the response returns all windows at one asOf, change the active window locally and keep counts from that same snapshot. Do not mix browser Date.now bucket filtering with server snapshot impact.",
+    "Keep evidence detail fetch/retry and bound review independent of the renewal query. Initial selected evidence can be matched by id to existing metadata; if renewal query fails, the exact artifact deep link should still be inspectable from metadata/detail rather than becoming a false unavailable state."
+  ],
+  "files": [
+    { "path": "apps/web/src/pages/EvidencePage.tsx", "change": "Wire URL view/window state, render the bounded Renewal component, preserve dialog orchestration and capability-gated page actions, and replace the single freshness label with shared independent review/validity rendering in the ledger/dialog where in scope. Do not move or rewrite frozen review mechanics." },
+    { "path": "apps/web/src/components/work/EvidenceRenewal.tsx", "change": "New bounded component for query lifecycle, renewal window tabs/counts, cards, requirement impact links, and onInspect(evidenceId). Keep RenewalItem and status presentation as small local helpers unless reused by the ledger/dialog." },
+    { "path": "apps/web/src/components/work/evidence.css", "change": "New scoped token-based renewal styles, wrapping layout and narrow-screen rules. Avoid changing .table--evidence's global column hiding because the renewal list can retain essential information independently." },
+    { "path": "apps/web/src/lib/queries.ts", "change": "Canonical workspace query key and typed cancellable read hook with minute refresh." },
+    { "path": "apps/web/src/lib/events.ts", "change": "Invalidate renewal query when its evidence, scope/state or check inputs change; preserve reconnect-all behavior." },
+    { "path": "apps/web/src/components/work/AttentionQueue.tsx", "change": "Add generic renewal entry and expiry-specific view/window URL context while preserving exact evidence/check actions." },
+    { "path": "e2e/evidence-renewal.spec.ts", "change": "Focused functional, failure, keyboard, mobile and deep-link coverage after source freeze lifts." },
+    { "path": "e2e/overview-attention.spec.ts", "change": "Extend existing exact-artifact navigation assertion for the new renewal context." },
+    { "path": "packages/core/src and apps/server/src/services", "change": "Dependency owned by lead/domain work: typed renewal read model and shared impact semantics; UI should not duplicate it or parse existing reason strings." }
+  ],
+  "recommended_e2e": [
+    "Seed expired, 3-day, 15-day, 45-day, no-expiry, pending+expired and rejected artifacts; assert each bucket and explicit cumulative 7/30 behavior, accurate artifact counts, and urgency order. Put exact date boundary tests in domain/server tests, not fragile wall-clock browser assertions.",
+    "Pending+expired card exposes both labels and its requirement links; opening it uses the existing detail fetch and bound review. Pending-future artifact never claims that expiry will remove currently valid coverage.",
+    "Two requirements share an expiring artifact, but only one has a qualifying alternative; impact copy and links show partial coverage. Include an alternative that expires before the primary to catch false future-preservation wording.",
+    "Expired artifact with alternative coverage says it is expired while coverage remains; it does not claim every linked requirement is at risk or promise a derived status change.",
+    "Initial loading does not show empty-state claims; failed renewal fetch shows retry; successful retry restores list/counts. Background refresh failure exposes stale-data status. Empty windows get distinct messages.",
+    "Direct URL/reload and browser back/forward restore view/window; overview expiry action opens the exact artifact with renewal behind it; closing preserves view/window; unknown parameters fall back safely; check deep links still work.",
+    "Shared tab arrows/Home/End select the associated panel and preserve a single tab stop; Tab reaches content; Inspect evidence opens a trapped dialog and Escape restores its trigger.",
+    "At 390x844, long titles, multi-framework links and impact labels remain visible without document horizontal overflow. Requirement links remain keyboard reachable and navigate to the correct framework node.",
+    "Viewer/auditor can inspect and navigate without writes; contributor retains upload/collection permissions but no Accept/Reject; approver retains the existing review path. Reuse existing role fixtures and do not duplicate every role case if existing suites already exercise unchanged controls.",
+    "External evidence acceptance or requirement scope changes update the renewal read model through SSE; unchanged expiry crossing is refreshed by the cadence. Workspace switching never retains the prior workspace's cards or late dialog callbacks.",
+    "Keep existing evidence-files snapshot-conflict/download/upload tests and overview bound-review coverage in affected regression runs; no new replacement/provenance workflow tests belong in this package."
+  ],
+  "source_evidence": [
+    "apps/web/src/pages/EvidencePage.tsx:33 — combined freshness presentation",
+    "apps/web/src/pages/EvidencePage.tsx:99 — detached detail snapshot, expectedScope and retry",
+    "apps/web/src/pages/EvidencePage.tsx:205 — workspace remount and capability gates",
+    "apps/web/src/pages/EvidencePage.tsx:219 — evidence/check URL selection",
+    "apps/web/src/pages/EvidencePage.tsx:232 — current date filter and sort",
+    "apps/web/src/components/ui/index.tsx:129 — canonical CodeTag navigation",
+    "apps/web/src/components/ui/index.tsx:220 — shared Tabs keyboard behavior",
+    "apps/web/src/components/ui/index.tsx:264 — associated TabPanel elements",
+    "apps/web/src/components/ui/index.tsx:307; apps/web/src/lib/modal.ts:26 — Dialog and focus lifecycle",
+    "apps/web/src/styles/global.css:1173 — mobile evidence-table column hiding",
+    "apps/web/src/components/work/AttentionQueue.tsx:23; :61 — exact links, query cadence and states",
+    "apps/web/src/lib/events.ts:17; :68 — workspace invalidation paths",
+    "apps/server/src/services/attention.ts:55; :83; :177 — scope, group references, review and alternatives",
+    "packages/core/src/status.ts:20; :31; :74 — current validity, expiry and status distinction",
+    "packages/core/src/evidence.ts:49 — canonical review/date window normalization",
+    "e2e/evidence-files.spec.ts:100 — metadata-only inspection and stale snapshot rejection",
+    "e2e/evidence-files.spec.ts:120; :135 — roles, download/detail retry and narrow upload",
+    "e2e/overview-attention.spec.ts:68; :84; :96 — deep link, retry and mobile patterns",
+    "e2e/keyboard-dialog-tabs.spec.ts:291 — read-only requirement link and focus restoration coverage",
+    "DESIGN.md:454; :492; :639 — tokens, agent-only tertiary and visible interaction states"
+  ],
+  "risks_and_open_decisions": [
+    "Lead/domain owner must settle exact 7/30 boundary inclusivity, explicit expired status treatment, rejected-item inclusion, and visibility of out-of-scope/workspace-only artifacts. UI labels must match that contract; the cumulative-window recommendation is not yet implemented.",
+    "Alternative evidence currently valid may expire earlier than the artifact being renewed. Future-impact claims require future-time validity evaluation and clear asOf assumptions.",
+    "A requirement can have valid alternative coverage and still have a derived at-risk status under existing core semantics. Do not conflate these dimensions in counts, badges or overview links.",
+    "The current evidence ledger uses raw Date parsing while core normalizes date-only expiry to UTC end-of-day. Renewal must consume canonical server dates and the shared instant, especially around boundary dates.",
+    "Server metadata queries and UI refresh must remain bounded for large ledgers; this investigation did not benchmark volume or verify runtime performance.",
+    "No browser rendering or accessibility audit was performed because source was frozen for delivery verification. All behavior conclusions here are source-derived; proposed e2e cases have not been run.",
+    "The checkout already contains dirty decision-workspace changes. Report paths and source references describe the inspected shared working tree, not HEAD alone."
+  ]
+}

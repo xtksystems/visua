@@ -1,56 +1,56 @@
-// Generated from DESIGN.md (Visua Observatory) by @visua/design. Do not edit.
+// Generated from DESIGN.md (Visua) by @visua/design. Do not edit.
 export const designSystem = {
-  "name": "Visua Observatory",
+  "name": "Visua",
   "version": "alpha",
   "colors": {
-    "primary": "#7AA2FF",
-    "primary-hover": "#9DBBFF",
-    "on-primary": "#07101F",
-    "primary-container": "#1A2A4F",
-    "on-primary-container": "#D4E1FF",
-    "secondary": "#A9B6CC",
-    "on-secondary": "#0B1220",
-    "tertiary": "#B69CFF",
-    "tertiary-hover": "#CBB8FF",
-    "on-tertiary": "#140A33",
-    "tertiary-container": "#251C4A",
-    "on-tertiary-container": "#E4DAFF",
-    "neutral": "#070A12",
-    "surface": "#0C111C",
-    "surface-raised": "#121927",
-    "surface-overlay": "#192234",
-    "surface-bright": "#222D42",
-    "surface-glass": "#0C111CD9",
-    "on-surface": "#E6ECF7",
-    "on-surface-muted": "#9AA8BF",
-    "outline": "#2A364C",
-    "outline-strong": "#3D4C68",
-    "scene-grid": "#141C2B",
-    "status-not-started": "#8D9BB3",
-    "status-not-started-container": "#1A2130",
-    "status-in-progress": "#F2B544",
-    "status-in-progress-container": "#33270D",
-    "status-implemented": "#3CCB8C",
-    "status-implemented-container": "#0F2E22",
-    "status-verified": "#45D0FF",
-    "status-verified-container": "#0B2838",
-    "status-at-risk": "#FF6B6B",
-    "status-at-risk-container": "#3A1418",
-    "status-not-applicable": "#475269",
-    "status-not-applicable-container": "#151A24",
-    "on-status": "#06090F",
-    "error": "#FF6B6B",
-    "on-error": "#2B0707",
-    "framework-csf": "#7AA2FF",
-    "framework-csf-container": "#16244A",
-    "framework-soc2": "#F28FD0",
-    "framework-soc2-container": "#3A1531",
-    "framework-rmf": "#C5E86C",
-    "framework-rmf-container": "#27310F",
-    "framework-ai": "#B47825",
-    "framework-ai-container": "#211608",
-    "framework-law": "#BB55C5",
-    "framework-law-container": "#1C091E"
+    "primary": "#366B53",
+    "primary-hover": "#285740",
+    "on-primary": "#FFFFFF",
+    "primary-container": "#E3F0E7",
+    "on-primary-container": "#285740",
+    "secondary": "#52665A",
+    "on-secondary": "#FFFFFF",
+    "tertiary": "#A3553F",
+    "tertiary-hover": "#8A432F",
+    "on-tertiary": "#FFFFFF",
+    "tertiary-container": "#F8EBE5",
+    "on-tertiary-container": "#81422F",
+    "neutral": "#F7F8F4",
+    "surface": "#FFFFFF",
+    "surface-raised": "#F2F5F0",
+    "surface-overlay": "#FFFFFF",
+    "surface-bright": "#E8EEE7",
+    "surface-glass": "#FFFFFFE8",
+    "on-surface": "#1D3028",
+    "on-surface-muted": "#5B6C61",
+    "outline": "#D9E1D8",
+    "outline-strong": "#BFCFC2",
+    "scene-grid": "#DFE7DE",
+    "status-not-started": "#607168",
+    "status-not-started-container": "#EEF2EE",
+    "status-in-progress": "#8A6222",
+    "status-in-progress-container": "#FBF1DE",
+    "status-implemented": "#2F7350",
+    "status-implemented-container": "#E7F3E9",
+    "status-verified": "#286C80",
+    "status-verified-container": "#E4F2F5",
+    "status-at-risk": "#B3473E",
+    "status-at-risk-container": "#FBEAE7",
+    "status-not-applicable": "#626B65",
+    "status-not-applicable-container": "#F0F1EF",
+    "on-status": "#FFFFFF",
+    "error": "#B3473E",
+    "on-error": "#FFFFFF",
+    "framework-csf": "#3E6386",
+    "framework-csf-container": "#E9F1F8",
+    "framework-soc2": "#805576",
+    "framework-soc2-container": "#F5EBF2",
+    "framework-rmf": "#57703B",
+    "framework-rmf-container": "#EFF3E6",
+    "framework-ai": "#97552A",
+    "framework-ai-container": "#F8EEE6",
+    "framework-law": "#705994",
+    "framework-law-container": "#F0ECF7"
   },
   "typography": {
     "display-lg": {
@@ -161,8 +161,8 @@ export const designSystem = {
   },
   "components": {
     "app-shell": {
-      "backgroundColor": "#070A12",
-      "textColor": "#E6ECF7",
+      "backgroundColor": "#F7F8F4",
+      "textColor": "#1D3028",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "14px",
@@ -171,61 +171,61 @@ export const designSystem = {
       }
     },
     "scene-space": {
-      "backgroundColor": "#070A12",
-      "textColor": "#9AA8BF"
+      "backgroundColor": "#F7F8F4",
+      "textColor": "#5B6C61"
     },
     "scene-grid": {
-      "backgroundColor": "#141C2B"
+      "backgroundColor": "#DFE7DE"
     },
     "nav-rail": {
-      "backgroundColor": "#0C111C",
-      "textColor": "#9AA8BF",
-      "width": "64px"
+      "backgroundColor": "#FFFFFF",
+      "textColor": "#5B6C61",
+      "width": "220px"
     },
     "nav-rail-item-active": {
-      "backgroundColor": "#1A2A4F",
-      "textColor": "#D4E1FF",
+      "backgroundColor": "#E3F0E7",
+      "textColor": "#285740",
       "rounded": "8px",
       "size": "40px"
     },
     "top-bar": {
-      "backgroundColor": "#0C111C",
-      "textColor": "#E6ECF7",
+      "backgroundColor": "#FFFFFF",
+      "textColor": "#1D3028",
       "height": "52px"
     },
     "panel": {
-      "backgroundColor": "#0C111C",
-      "textColor": "#E6ECF7",
+      "backgroundColor": "#FFFFFF",
+      "textColor": "#1D3028",
       "rounded": "12px",
       "padding": "16px"
     },
     "panel-raised": {
-      "backgroundColor": "#121927",
-      "textColor": "#E6ECF7",
+      "backgroundColor": "#F2F5F0",
+      "textColor": "#1D3028",
       "rounded": "12px",
       "padding": "16px"
     },
     "hud-glass": {
-      "backgroundColor": "#0C111CD9",
-      "textColor": "#E6ECF7",
+      "backgroundColor": "#FFFFFFE8",
+      "textColor": "#1D3028",
       "rounded": "12px",
       "padding": "12px"
     },
     "inspector": {
-      "backgroundColor": "#0C111C",
-      "textColor": "#E6ECF7",
+      "backgroundColor": "#FFFFFF",
+      "textColor": "#1D3028",
       "width": "440px",
       "padding": "20px"
     },
     "divider": {
-      "backgroundColor": "#2A364C"
+      "backgroundColor": "#D9E1D8"
     },
     "divider-strong": {
-      "backgroundColor": "#3D4C68"
+      "backgroundColor": "#BFCFC2"
     },
     "button-primary": {
-      "backgroundColor": "#7AA2FF",
-      "textColor": "#07101F",
+      "backgroundColor": "#366B53",
+      "textColor": "#FFFFFF",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "13px",
@@ -238,12 +238,12 @@ export const designSystem = {
       "padding": "14px"
     },
     "button-primary-hover": {
-      "backgroundColor": "#9DBBFF",
-      "textColor": "#07101F"
+      "backgroundColor": "#285740",
+      "textColor": "#FFFFFF"
     },
     "button-secondary": {
-      "backgroundColor": "#192234",
-      "textColor": "#E6ECF7",
+      "backgroundColor": "#FFFFFF",
+      "textColor": "#1D3028",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "13px",
@@ -256,12 +256,12 @@ export const designSystem = {
       "padding": "14px"
     },
     "button-secondary-hover": {
-      "backgroundColor": "#222D42",
-      "textColor": "#E6ECF7"
+      "backgroundColor": "#E8EEE7",
+      "textColor": "#1D3028"
     },
     "button-quiet": {
-      "backgroundColor": "#0C111C",
-      "textColor": "#A9B6CC",
+      "backgroundColor": "#FFFFFF",
+      "textColor": "#52665A",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "13px",
@@ -273,8 +273,8 @@ export const designSystem = {
       "height": "32px"
     },
     "button-agent": {
-      "backgroundColor": "#B69CFF",
-      "textColor": "#140A33",
+      "backgroundColor": "#A3553F",
+      "textColor": "#FFFFFF",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "13px",
@@ -287,12 +287,12 @@ export const designSystem = {
       "padding": "14px"
     },
     "button-agent-hover": {
-      "backgroundColor": "#CBB8FF",
-      "textColor": "#140A33"
+      "backgroundColor": "#8A432F",
+      "textColor": "#FFFFFF"
     },
     "button-danger": {
-      "backgroundColor": "#FF6B6B",
-      "textColor": "#2B0707",
+      "backgroundColor": "#B3473E",
+      "textColor": "#FFFFFF",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "13px",
@@ -304,8 +304,8 @@ export const designSystem = {
       "height": "36px"
     },
     "input": {
-      "backgroundColor": "#121927",
-      "textColor": "#E6ECF7",
+      "backgroundColor": "#F2F5F0",
+      "textColor": "#1D3028",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "14px",
@@ -317,8 +317,8 @@ export const designSystem = {
       "padding": "10px"
     },
     "chip-filter": {
-      "backgroundColor": "#121927",
-      "textColor": "#9AA8BF",
+      "backgroundColor": "#F2F5F0",
+      "textColor": "#5B6C61",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "12px",
@@ -330,8 +330,8 @@ export const designSystem = {
       "height": "26px"
     },
     "chip-filter-selected": {
-      "backgroundColor": "#1A2A4F",
-      "textColor": "#D4E1FF",
+      "backgroundColor": "#E3F0E7",
+      "textColor": "#285740",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "12px",
@@ -343,8 +343,8 @@ export const designSystem = {
       "height": "26px"
     },
     "chip-status-not-started": {
-      "backgroundColor": "#1A2130",
-      "textColor": "#8D9BB3",
+      "backgroundColor": "#EEF2EE",
+      "textColor": "#607168",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "12px",
@@ -356,8 +356,8 @@ export const designSystem = {
       "height": "22px"
     },
     "chip-status-in-progress": {
-      "backgroundColor": "#33270D",
-      "textColor": "#F2B544",
+      "backgroundColor": "#FBF1DE",
+      "textColor": "#8A6222",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "12px",
@@ -369,8 +369,8 @@ export const designSystem = {
       "height": "22px"
     },
     "chip-status-implemented": {
-      "backgroundColor": "#0F2E22",
-      "textColor": "#3CCB8C",
+      "backgroundColor": "#E7F3E9",
+      "textColor": "#2F7350",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "12px",
@@ -382,8 +382,8 @@ export const designSystem = {
       "height": "22px"
     },
     "chip-status-verified": {
-      "backgroundColor": "#0B2838",
-      "textColor": "#45D0FF",
+      "backgroundColor": "#E4F2F5",
+      "textColor": "#286C80",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "12px",
@@ -395,8 +395,8 @@ export const designSystem = {
       "height": "22px"
     },
     "chip-status-at-risk": {
-      "backgroundColor": "#3A1418",
-      "textColor": "#FF6B6B",
+      "backgroundColor": "#FBEAE7",
+      "textColor": "#B3473E",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "12px",
@@ -408,8 +408,8 @@ export const designSystem = {
       "height": "22px"
     },
     "chip-status-not-applicable": {
-      "backgroundColor": "#151A24",
-      "textColor": "#9AA8BF",
+      "backgroundColor": "#F0F1EF",
+      "textColor": "#5B6C61",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "12px",
@@ -421,8 +421,8 @@ export const designSystem = {
       "height": "22px"
     },
     "badge-agent": {
-      "backgroundColor": "#251C4A",
-      "textColor": "#E4DAFF",
+      "backgroundColor": "#F8EBE5",
+      "textColor": "#81422F",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "12px",
@@ -433,8 +433,8 @@ export const designSystem = {
       "rounded": "4px"
     },
     "badge-framework-csf": {
-      "backgroundColor": "#16244A",
-      "textColor": "#7AA2FF",
+      "backgroundColor": "#E9F1F8",
+      "textColor": "#3E6386",
       "typography": {
         "fontFamily": "IBM Plex Mono",
         "fontSize": "11px",
@@ -444,8 +444,8 @@ export const designSystem = {
       "rounded": "4px"
     },
     "badge-framework-soc2": {
-      "backgroundColor": "#3A1531",
-      "textColor": "#F28FD0",
+      "backgroundColor": "#F5EBF2",
+      "textColor": "#805576",
       "typography": {
         "fontFamily": "IBM Plex Mono",
         "fontSize": "11px",
@@ -455,8 +455,8 @@ export const designSystem = {
       "rounded": "4px"
     },
     "badge-framework-rmf": {
-      "backgroundColor": "#27310F",
-      "textColor": "#C5E86C",
+      "backgroundColor": "#EFF3E6",
+      "textColor": "#57703B",
       "typography": {
         "fontFamily": "IBM Plex Mono",
         "fontSize": "11px",
@@ -466,8 +466,8 @@ export const designSystem = {
       "rounded": "4px"
     },
     "badge-framework-ai": {
-      "backgroundColor": "#211608",
-      "textColor": "#B47825",
+      "backgroundColor": "#F8EEE6",
+      "textColor": "#97552A",
       "typography": {
         "fontFamily": "IBM Plex Mono",
         "fontSize": "11px",
@@ -477,8 +477,8 @@ export const designSystem = {
       "rounded": "4px"
     },
     "badge-framework-law": {
-      "backgroundColor": "#1C091E",
-      "textColor": "#BB55C5",
+      "backgroundColor": "#F0ECF7",
+      "textColor": "#705994",
       "typography": {
         "fontFamily": "IBM Plex Mono",
         "fontSize": "11px",
@@ -488,8 +488,8 @@ export const designSystem = {
       "rounded": "4px"
     },
     "requirement-code": {
-      "backgroundColor": "#121927",
-      "textColor": "#7AA2FF",
+      "backgroundColor": "#F2F5F0",
+      "textColor": "#366B53",
       "typography": {
         "fontFamily": "IBM Plex Mono",
         "fontSize": "13px",
@@ -499,8 +499,8 @@ export const designSystem = {
       "rounded": "2px"
     },
     "tooltip": {
-      "backgroundColor": "#192234",
-      "textColor": "#E6ECF7",
+      "backgroundColor": "#FFFFFF",
+      "textColor": "#1D3028",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "13px",
@@ -511,8 +511,8 @@ export const designSystem = {
       "padding": "8px"
     },
     "command-palette": {
-      "backgroundColor": "#192234",
-      "textColor": "#E6ECF7",
+      "backgroundColor": "#FFFFFF",
+      "textColor": "#1D3028",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "16px",
@@ -523,15 +523,15 @@ export const designSystem = {
       "width": "680px"
     },
     "dialog": {
-      "backgroundColor": "#121927",
-      "textColor": "#E6ECF7",
+      "backgroundColor": "#F2F5F0",
+      "textColor": "#1D3028",
       "rounded": "16px",
       "padding": "24px",
       "width": "560px"
     },
     "table-header": {
-      "backgroundColor": "#121927",
-      "textColor": "#9AA8BF",
+      "backgroundColor": "#F2F5F0",
+      "textColor": "#5B6C61",
       "typography": {
         "fontFamily": "Space Grotesk",
         "fontSize": "11px",
@@ -542,8 +542,8 @@ export const designSystem = {
       "height": "36px"
     },
     "table-row": {
-      "backgroundColor": "#0C111C",
-      "textColor": "#E6ECF7",
+      "backgroundColor": "#FFFFFF",
+      "textColor": "#1D3028",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "14px",
@@ -553,12 +553,12 @@ export const designSystem = {
       "height": "40px"
     },
     "table-row-hover": {
-      "backgroundColor": "#121927",
-      "textColor": "#E6ECF7"
+      "backgroundColor": "#F2F5F0",
+      "textColor": "#1D3028"
     },
     "metric-tile": {
-      "backgroundColor": "#0C111C",
-      "textColor": "#E6ECF7",
+      "backgroundColor": "#FFFFFF",
+      "textColor": "#1D3028",
       "typography": {
         "fontFamily": "Space Grotesk",
         "fontSize": "44px",
@@ -570,18 +570,18 @@ export const designSystem = {
       "padding": "16px"
     },
     "progress-track": {
-      "backgroundColor": "#2A364C",
+      "backgroundColor": "#D9E1D8",
       "height": "6px",
       "rounded": "9999px"
     },
     "progress-fill": {
-      "backgroundColor": "#7AA2FF",
+      "backgroundColor": "#366B53",
       "height": "6px",
       "rounded": "9999px"
     },
     "agent-step": {
-      "backgroundColor": "#251C4A",
-      "textColor": "#E4DAFF",
+      "backgroundColor": "#F8EBE5",
+      "textColor": "#81422F",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "13px",
@@ -592,8 +592,8 @@ export const designSystem = {
       "padding": "10px"
     },
     "agent-step-tool": {
-      "backgroundColor": "#121927",
-      "textColor": "#9AA8BF",
+      "backgroundColor": "#F2F5F0",
+      "textColor": "#5B6C61",
       "typography": {
         "fontFamily": "IBM Plex Mono",
         "fontSize": "11px",
@@ -604,8 +604,8 @@ export const designSystem = {
       "padding": "10px"
     },
     "citation": {
-      "backgroundColor": "#121927",
-      "textColor": "#A9B6CC",
+      "backgroundColor": "#F2F5F0",
+      "textColor": "#52665A",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "13px",
@@ -616,8 +616,8 @@ export const designSystem = {
       "padding": "8px"
     },
     "toast": {
-      "backgroundColor": "#192234",
-      "textColor": "#E6ECF7",
+      "backgroundColor": "#FFFFFF",
+      "textColor": "#1D3028",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "13px",
@@ -628,8 +628,8 @@ export const designSystem = {
       "padding": "12px"
     },
     "toast-error": {
-      "backgroundColor": "#3A1418",
-      "textColor": "#FF6B6B",
+      "backgroundColor": "#FBEAE7",
+      "textColor": "#B3473E",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "13px",
@@ -640,8 +640,8 @@ export const designSystem = {
       "padding": "12px"
     },
     "scene-label": {
-      "backgroundColor": "#0C111CD9",
-      "textColor": "#E6ECF7",
+      "backgroundColor": "#FFFFFFE8",
+      "textColor": "#1D3028",
       "typography": {
         "fontFamily": "IBM Plex Mono",
         "fontSize": "11px",
@@ -652,8 +652,8 @@ export const designSystem = {
       "padding": "4px"
     },
     "scene-sector-label": {
-      "backgroundColor": "#070A12",
-      "textColor": "#9AA8BF",
+      "backgroundColor": "#F7F8F4",
+      "textColor": "#5B6C61",
       "typography": {
         "fontFamily": "Space Grotesk",
         "fontSize": "11px",
@@ -663,40 +663,40 @@ export const designSystem = {
       }
     },
     "scene-node-not-started": {
-      "backgroundColor": "#8D9BB3",
-      "textColor": "#06090F"
+      "backgroundColor": "#607168",
+      "textColor": "#FFFFFF"
     },
     "scene-node-in-progress": {
-      "backgroundColor": "#F2B544",
-      "textColor": "#06090F"
+      "backgroundColor": "#8A6222",
+      "textColor": "#FFFFFF"
     },
     "scene-node-implemented": {
-      "backgroundColor": "#3CCB8C",
-      "textColor": "#06090F"
+      "backgroundColor": "#2F7350",
+      "textColor": "#FFFFFF"
     },
     "scene-node-verified": {
-      "backgroundColor": "#45D0FF",
-      "textColor": "#06090F"
+      "backgroundColor": "#286C80",
+      "textColor": "#FFFFFF"
     },
     "scene-node-at-risk": {
-      "backgroundColor": "#FF6B6B",
-      "textColor": "#06090F"
+      "backgroundColor": "#B3473E",
+      "textColor": "#FFFFFF"
     },
     "scene-node-not-applicable": {
-      "backgroundColor": "#475269",
-      "textColor": "#E6ECF7"
+      "backgroundColor": "#626B65",
+      "textColor": "#FFFFFF"
     },
     "scene-node-selected": {
-      "backgroundColor": "#7AA2FF",
-      "textColor": "#07101F"
+      "backgroundColor": "#366B53",
+      "textColor": "#FFFFFF"
     },
     "scene-agent-signal": {
-      "backgroundColor": "#B69CFF",
-      "textColor": "#140A33"
+      "backgroundColor": "#A3553F",
+      "textColor": "#FFFFFF"
     },
     "secondary-action": {
-      "backgroundColor": "#A9B6CC",
-      "textColor": "#0B1220",
+      "backgroundColor": "#52665A",
+      "textColor": "#FFFFFF",
       "typography": {
         "fontFamily": "IBM Plex Sans",
         "fontSize": "13px",

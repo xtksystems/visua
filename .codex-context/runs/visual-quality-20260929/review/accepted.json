@@ -1,0 +1,19 @@
+{
+  "run_id": "visual-quality-20260929",
+  "node_id": "review",
+  "input_sha256": "9bfaab6aa4edb16bae6a309d2d1bebfc1895b82ca997d2beb8a93875108ae031",
+  "status": "complete",
+  "summary": "Fresh source review returned four findings; all addressed or verified locally.",
+  "evidence": [
+    "review/result.json",
+    "review/run.json",
+    "review/adjudication.json",
+    "../typecheck.log",
+    "../unit-tests.log",
+    "../e2e.log"
+  ],
+  "limitations": [
+    "Packet-only review, no Claude browser access. Requested claude-opus-5-5, runtime model identity unreported.",
+    "Review corrections verified locally with final typecheck, unit tests and full 22-test browser suite; no second model review."
+  ]
+}

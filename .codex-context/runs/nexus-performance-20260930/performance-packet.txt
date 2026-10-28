@@ -1,0 +1,1 @@
+Native worker render_performance: implement Observatory demand rendering in Observatory.tsx, FrameworkScene.tsx, ScreenLabels.tsx, framing.ts, shared helper and focused tests. Preserve existing visual edits. Verify camera transitions, HUD wakeups, agent lifecycle; no shared build/e2e/git mutations. Follow-up stops stale comets when runs end.

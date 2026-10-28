@@ -1,0 +1,9 @@
+{
+  "pid": 22370,
+  "process_group_id": 22370,
+  "started_utc": "2026-10-01T03:08:40.020256+00:00",
+  "binary": "/Users/artem/.local/share/claude/versions/2.1.286",
+  "request_sha256": "da47b39b4c2bb72901546d790f61b81cadd8bcf801a227d73a143b5e64a4570f",
+  "brief_sha256": "c000ed26ba767e50db3bb07b3dea69bdff8f14bc884254637084387a72246bb3",
+  "identity_note": "Verify a still-running process before signaling; stored PIDs may be reused."
+}

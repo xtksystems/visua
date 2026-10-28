@@ -1,0 +1,68 @@
+{
+  "reviewed_head": "cb438d1083e9ae3e2a38dd8e5d7dba4c778b2e89",
+  "recorded_at": "2026-10-14T03:32:57.170611+00:00",
+  "scope": "Review and planning only; application source unchanged.",
+  "independent_application_reviews": {
+    "expected": 6,
+    "accepted": 5,
+    "missing": "security: platform cybersecurity restriction; not retried or redirected"
+  },
+  "independent_plan_review": {
+    "status": "passed",
+    "sha256": "43314dff16873432163a1a371350c1d3c1d618857caefb8a04b0c7785d9ba949",
+    "limitation": "Source and official provider documentation only; no hosted acceptance."
+  },
+  "findings": {
+    "high_conditional": 1,
+    "medium": 9,
+    "low": 1,
+    "total": 11,
+    "report": "../../../docs/reviews/predeployment-review-2026-10-14.md",
+    "status": "open"
+  },
+  "full_check": {
+    "exit_code": 1,
+    "record": "check-result.json",
+    "passed": [
+      "typecheck",
+      "licensing guard",
+      "corpus hash guard",
+      "design lint"
+    ],
+    "sqlite": {
+      "passed": 944,
+      "skipped": 9
+    },
+    "postgresql": {
+      "passed": 953
+    },
+    "browser": {
+      "passed": 151,
+      "failed": 1
+    }
+  },
+  "T01": {
+    "status": "unresolved",
+    "test": "e2e/score-history.spec.ts:78",
+    "observation": "Focused chart scrollLeft remains zero after ArrowRight.",
+    "targeted_rerun": "history-rerun.json",
+    "targeted_rerun_exit_code": 1,
+    "root_cause": "Not established; no source change or further retry."
+  },
+  "portable_rehearsal": {
+    "status": "passed",
+    "record": "rehearsal-result.json",
+    "real_provider_acceptance": false
+  },
+  "runtime_failure_reproductions": "pg-node22.json",
+  "delivery_gate": "hold",
+  "omissions": [
+    "Complete independent security review",
+    "Google login and hosted TLS/IAM",
+    "R2 exact-SDK compatibility and recovery",
+    "OS/base-image vulnerability scan",
+    "Tenant-scale capacity and Web Vitals",
+    "Screen-reader/native-device acceptance",
+    "Costs, recovery objectives, retention and accountable operators"
+  ]
+}

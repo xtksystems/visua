@@ -1,0 +1,164 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "lifecycle-backend",
+  "recorded_at": "2026-10-13T07:53:04.704311+00:00",
+  "status": "complete",
+  "summary": [
+    "Server-owned immutable evidence provenance, original source document/licensing classification and monotone content requirement union.",
+    "Assurance kind/scope/observation validation bound to fixed review snapshots; metadata optimistic scope guard; rejected/withdrawn decisions require reasons and append history.",
+    "Explicit immutable same-workspace replacements plus recorded connector-target and policy-version series; shared effective state suppresses expiry risk only with compatible accepted current successor covering the requirement.",
+    "Metadata-only requirement lineage API, renewal effective labels, attention integration and score formula v2. Independent failing check targets remain distinct.",
+    "Recorded policy artifacts are immutable and policy evidence deduplicates by authoritative provenance. Agent narrative and HTTP upload cannot claim automated-check origins."
+  ],
+  "changed_files": [
+    {
+      "path": "packages/core/src/types.ts",
+      "sha256": "dc00306b7062726d4ea92c0ea5c3a77a97f5f9847d09db376bcc431e13cc01d9"
+    },
+    {
+      "path": "packages/core/src/evidence.ts",
+      "sha256": "8882018c320f62b16ac773fc33297789f736a85eaf3afd44da6c6f939b2d649c"
+    },
+    {
+      "path": "packages/core/src/status.ts",
+      "sha256": "e5d153adbb6c1f88aab45d3b4a1ae9b590db3c10e81fd37a5a3355b45ffd87df"
+    },
+    {
+      "path": "packages/core/src/scoring.ts",
+      "sha256": "c45868146a82dfb639eaad1f60d629d7c542df736e9c3e7fc53a2c18694f74f0"
+    },
+    {
+      "path": "packages/core/src/evidence-renewal.ts",
+      "sha256": "5d113eb16f7399ef525dd3eae37a06a13296b149571c83ea15791d384d32e04f"
+    },
+    {
+      "path": "apps/server/src/app.ts",
+      "sha256": "ff2ab11f2f81fe7c97e0b42b58d0a88ba1b1677693391fdc9f5c1b27dfb14502"
+    },
+    {
+      "path": "apps/server/src/services/visua.ts",
+      "sha256": "297b5fda2215ae80be7e1a93853b26519c0b76ae54c968d03fde3fdfc0508084"
+    },
+    {
+      "path": "apps/server/src/services/evidence.ts",
+      "sha256": "33551a5f2785d4ef48b6e957f2d0e4c8fca6e9aeceab0336f9484ecd624dd1ca"
+    },
+    {
+      "path": "apps/server/src/services/evidence-lineage.ts",
+      "sha256": "dc18afab36bd5a33738c16a546abcbc8f228e648d1862ee86951c37500c01a4c"
+    },
+    {
+      "path": "apps/server/src/services/evidence-renewal.ts",
+      "sha256": "d0c92f8d11394794801b8b5899e292504a5361e538a07a18f452cf663a6a4891"
+    },
+    {
+      "path": "apps/server/src/services/attention.ts",
+      "sha256": "1f2606063b8bb0c5b2a0ab80f96cadd2e401d8a2e26f3f75b6fb3c8d2c02bea7"
+    },
+    {
+      "path": "apps/server/src/services/score-history.ts",
+      "sha256": "1a2b78e656879f698f233fbe02399cecd53e01187cb62a87de5c309c4753d316"
+    },
+    {
+      "path": "apps/server/test/evidence-lifecycle.test.ts",
+      "sha256": "8b668d086533a66a7cd56e08abceec1b906c24fa705187883823730418908ab4"
+    },
+    {
+      "path": "apps/server/test/evidence-renewal.test.ts",
+      "sha256": "f7dd1525a44d3c8add91e8fb36f21988866c0e2a0cd4eda743f1f943efe0938a"
+    },
+    {
+      "path": "apps/server/test/observatory.test.ts",
+      "sha256": "c37fdc3567d2465cb3a98a57f82e83e4be0471a81a0d9a5093d809cd7b193737"
+    },
+    {
+      "path": "packages/core/test/evidence.test.ts",
+      "sha256": "650efce00b546da3dc6a3637e4f02492f32e5617f02c8789e09a3a47bc2e6005"
+    },
+    {
+      "path": "packages/core/test/evidence-renewal.test.ts",
+      "sha256": "d374df7ffce06bd3c4f41ef38da3865ca408810ecb5f4eaf1dc5ea4e0ef49648"
+    },
+    {
+      "path": "apps/server/test/evidence-binding.test.ts",
+      "sha256": "8366f36e45e378e1e0a2dbee6fa45d8124bdc00fa5b8d398701929ffe28c99ce"
+    },
+    {
+      "path": "apps/server/test/crosswalk-comparison.test.ts",
+      "sha256": "1f4a8611c8e13f6e54e834c1c20f1b42064ecbc889534a1e98f560361eb42142"
+    }
+  ],
+  "tests": [
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/evidence-lifecycle.test.ts apps/server/test/evidence-renewal.test.ts apps/server/test/observatory.test.ts apps/server/test/proposal-review.test.ts apps/server/test/score-history.test.ts apps/server/test/attention.test.ts",
+      "outcome": "passed",
+      "files": 6,
+      "tests": 64,
+      "log": "lifecycle-backend-tests.log",
+      "state": "Before final policy immutability/dedup and target-check grouping corrections; later focused checks below validate those changes."
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/evidence-lifecycle.test.ts apps/server/test/evidence-binding.test.ts apps/server/test/evidence-content.test.ts apps/server/test/evidence-files.test.ts packages/core/test/evidence.test.ts packages/core/test/evidence-renewal.test.ts packages/core/test/core.test.ts",
+      "outcome": "passed",
+      "files": 7,
+      "tests": 125,
+      "log": "lifecycle-backend-final-tests.log",
+      "state": "After final policy corrections; before check grouping correction."
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/evidence-lifecycle.test.ts apps/server/test/attention.test.ts apps/server/test/observatory.test.ts apps/server/test/score-history.test.ts packages/core/test/core.test.ts packages/core/test/evidence.test.ts",
+      "outcome": "passed",
+      "files": 6,
+      "tests": 89,
+      "log": "lifecycle-backend-target-tests.log",
+      "state": "Final implementation including recorded target check grouping."
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/evidence-lifecycle.test.ts apps/server/test/evidence-binding.test.ts apps/server/test/evidence-renewal.test.ts apps/server/test/evidence-files.test.ts apps/server/test/observatory.test.ts packages/core/test/evidence.test.ts packages/core/test/evidence-renewal.test.ts packages/core/test/core.test.ts",
+      "outcome": "passed",
+      "files": 8,
+      "tests": 128,
+      "log": "lifecycle-backend-boundary-tests.log",
+      "state": "After independent-review boundary corrections; subsequent change only aligns crosswalk test fixture clock."
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL pnpm exec vitest run apps/server/test/crosswalk-comparison.test.ts apps/server/test/evidence-binding.test.ts",
+      "outcome": "passed",
+      "files": 2,
+      "tests": 36,
+      "log": "lifecycle-backend-clock-fixtures-tests.log",
+      "state": "Final worker source; coherent fixture acceptance/evaluation clocks."
+    }
+  ],
+  "initial_failure": "Initial 8-file run: 143 passed, one existing rejection fixture failed because note was absent. Updated renewal and observatory helpers with explicit rejection reasons; renewal suite passed in follow-on run.",
+  "limitations": [
+    "Worker ran only bounded SQLite in-memory Vitest suites with database environment variables cleared. PostgreSQL, full typecheck, full suites, browser integration and delivery remain lead-owned.",
+    "Lineage at= evaluates currently recorded metadata at the specified instant, not reconstructed historical revisions. Successor suppression also requires its latest matching accepted review timestamp not later than the instant.",
+    "Legacy evidence keeps missing provenance/assurance visibly unknown; legacy stored checks without recorded target identity cannot automatically supersede recorded-target evidence. No migration or backfill.",
+    "Direct createEvidence service callers remain a deliberately trusted fixture/internal path that may request immediate accepted/rejected state; HTTP/proposals cannot supply identity, collection refs, status, reviewer or automated-check source claims.",
+    "No git actions, build, browser server, external connector calls, live database operations or deployment performed.",
+    "HTTP review callers must send their viewed latest reviewHistory ID (or null). Omission defaults to null and therefore fails after any existing review. Trusted direct service callers may omit this separate precondition; artifact expectedScope remains required."
+  ],
+  "contract": {
+    "path": ".codex-context/runs/evidence-operations-20261013/lifecycle-api-contract.json",
+    "sha256": "c696c9630ae0cfdd9ad3ff46206e475a3a342bb867ba7924693071014284bdb8"
+  },
+  "review_corrections": [
+    {
+      "finding": "Stale inspected review can override withdrawal when artifact scope is unchanged",
+      "resolution": "Separate expectedReviewId string|null HTTP precondition, safely default null for never-reviewed evidence; enforced against latest history inside locked mutation. Artifact scope remains independent.",
+      "tests": [
+        "rejects all stale HTTP review decisions after withdrawal and allows a newly inspected decision"
+      ]
+    },
+    {
+      "finding": "Earlier evaluation time incorrectly receives later acceptance",
+      "resolution": "Latest bound accepted reviewedAt must be <= evaluation time; freshness shares validity; coverage intervals start no earlier than acceptance. Effective state explains pending review at earlier evaluation and explicitly does not reconstruct older decisions.",
+      "tests": [
+        "evaluates acceptance time consistently without reconstructing earlier decisions",
+        "does not make an artifact valid or fresh before its recorded acceptance",
+        "does not bridge a gap using collection dates before the recorded acceptance"
+      ]
+    }
+  ]
+}

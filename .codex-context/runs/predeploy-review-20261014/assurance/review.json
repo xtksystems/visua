@@ -1,0 +1,38 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "Completed the bounded corpus/licensing/claims/export assurance review of cb438d1083e9ae3e2a38dd8e5d7dba4c778b2e89. Two medium defects were reproduced: zero-target overlay readiness is overstated, and SOC 2 DC9 omits the final observation day. No unconditional deployment blocker was established within this lens.",
+  "coverage": [
+    "Read effective AGENTS.md, CLAUDE.md, declared startup project context, workflow, and adversarial-review contract/schema; confirmed reviewed HEAD and no tracked diff.",
+    "Reviewed packages/frameworks/src/index.ts, search.ts, threat-paths.ts, and relevant tsc.ts, ai-overlays.ts, state-laws.ts ingest paths for provenance, licensed skeleton behavior, draft metadata, and published mapping authority/status propagation; inspected the framework test inventory without claiming test execution.",
+    "Reviewed corpus/README.md, packages/frameworks/data/NOTICE.md, all six manifest metadata summaries, .gitignore and .dockerignore. Executed metadata checks: all 277 document records contain URL/license/hash fields; no restricted AICPA or .local paths matched the tracked-file inventory.",
+    "Reviewed packages/agents/src/mode.ts, runtime.ts, relevant tools.ts licensing projections and model dispatch boundary, plus licensing.test.ts source for local-model permission gating, task provenance and evidence-title withholding. No external model call was made.",
+    "Reviewed core scoring.ts and status.ts, server trust.ts and relevant trust.test.ts assertions for scope, time, accepted evidence, public measure formulas and uncertainty wording. Inspected law timing and threat coverage paths for mapping-versus-proof semantics.",
+    "Reviewed exports.ts and export-snapshot.ts, their relevant tests, and local OSCAL fixture source pins for snapshot scope/time, CSV formula protection, unavailable empty reports, self-assessment wording, UUID/source identity and schema validation. Executed SHA-256 checks: both schema files and their license match the committed pins.",
+    "Reviewed soc2.ts and overlays.ts with their UI consumers and state-update path. Executed repro.mjs against actual functions using only synthetic objects: reproduced both findings, including a positive date-boundary control.",
+    "Inspected global framework/search/corpus read routes in app.ts and the Docker restrictions for the installation-versus-tenant corpus boundary; no tenant data or restricted full text was emitted."
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "apps/server/src/services/overlays.ts:74",
+      "mechanism": "An applicable requirement may have current=0 and target=0 (the state update path accepts zero). readinessOf treats every nonpositive target as fully ready, so the Cyber AI Profile priority groups and COSAiS overlay can display 100% for requirements with no implementation recorded. The main framework formula correctly assigns zero in that case, giving contradictory assurance figures for the same state.",
+      "evidence": "Runtime reproduction in assurance/repro.mjs and assurance/repro.log: actual scoreFramework returned coreReadiness=0, while actual overlaySummary returned overlayHighReadiness=1 and overlayPriorityReadiness=1 for the same applicable zero/zero synthetic requirement. Counterevidence: nonzero targets follow the normal ratio and excluded states are filtered; the issue is bounded to zero targets. See source-evidence.log for overlays.ts:71-75, scoring.ts:115-118 and visua.ts:1000-1001. UI OverlayPanels.tsx:136-148 renders the returned readiness as a percentage.",
+      "recommendation": "Use the same per-requirement completion rule as core scoring, returning zero when both current and target are zero. Keep any deliberately unweighted overlay aggregation distinct from the core weighting. Add a focused case for applicable zero/zero and current-positive/target-zero states."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/server/src/services/soc2.ts:37",
+      "mechanism": "The UI records SOC 2 observationEnd as YYYY-MM-DD, but the DC9 change filter parses it as midnight at the beginning of that date. Policy/framework/connector changes later on the selected final calendar day are omitted; if these are the only period changes, the service positively states that none were recorded. This makes the draft system-description facts incomplete for an ordinary configured report period.",
+      "evidence": "Runtime reproduction in assurance/repro.mjs and assurance/repro.log: a synthetic policy event at 2026-09-30T12:00:00Z with observationEnd=2026-09-30 produces the no-changes statement. Keeping the event unchanged and setting end=2026-10-01 includes it. Counterevidence: events before the cutoff are included, the output is labeled drafted, and the activity repository reads the full collection; this is a date-boundary defect rather than history truncation. source-evidence.log records soc2.ts:36-41,84-86 and the type=date end input at Soc2Page.tsx:117.",
+      "recommendation": "Treat a date-only observation end as inclusive through its UTC calendar day, preferably with an exclusive next-day cutoff, while preserving explicit timestamp precision if supported. Validate malformed/reversed periods and add a regression for a final-day event plus the following-day exclusion."
+    }
+  ],
+  "limitations": [
+    "This is one bounded independent source-review pass with two synthetic runtime reproductions, not an exhaustive audit of every corpus statement or application flow. No full shared suite or build was run; the lead owns the baseline pnpm check and dependency audit.",
+    "No current-law or current-publication legal audit was performed. All inspected manifests report retrieval on 2026-09-26; later enactments, injunctions, revisions and licensing changes were not externally verified.",
+    "Local OSCAL fixture hashes match the committed source pins, but upstream URLs were not fetched during this pass. Source tests show official-schema validation; this worker did not execute that test suite or independently resolve imported upstream profiles across OSCAL versions.",
+    "Inspected corpus read routes expose installed data at the authenticated installation level, without a per-tenant licensing entitlement check. The current Docker ignore excludes restricted AICPA and .local material, which limits the immediate exposure; rights covering any separately mounted licensed corpus and its recipient organizations were not established.",
+    "Synthetic fixtures exercise the real calculation/service code with fake repositories; no HTTP/browser reproduction, live tenant inspection, live mutation, external credential access, external model call, or restricted-content disclosure was performed."
+  ]
+}

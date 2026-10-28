@@ -1,0 +1,11 @@
+{
+  "status": "test-only adjustment",
+  "failure": "Both reader-role keyboard cases pressed Shift+Tab while async detail had only Close focusable. Links appeared afterward; production correctly retained focus.",
+  "evidence": "ignored Playwright trace for test-results/keyboard-dialog-tabs-jorda-48e1b-dence-dialog-without-writes/; control was visible but inactive at expect toBeFocused after premature ShiftTab",
+  "change": "wait for AC-2 control visible before ShiftTab, preserving focus trap, navigation, no-write and return-focus assertions",
+  "source_delta_since_independent_review": [
+    "e2e/keyboard-dialog-tabs.spec.ts"
+  ],
+  "runtime_delta": [],
+  "next": "full delivery check on delivery-source.json"
+}

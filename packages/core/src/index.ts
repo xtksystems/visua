@@ -1,4 +1,6 @@
 export * from "./types.ts";
+export * from "./evidence.ts";
+export * from "./evidence-renewal.ts";
 export * from "./levels.ts";
 export * from "./graph.ts";
 export * from "./status.ts";
@@ -13,3 +15,6 @@ export * from "./access.ts";
 export * from "./overlays.ts";
 export * from "./trust.ts";
 export * from "./laws.ts";
+export * from "./attention.ts";
+export * from "./proposal-review.ts";
+export * from "./score-history.ts";

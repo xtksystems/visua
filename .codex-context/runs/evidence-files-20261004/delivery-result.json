@@ -1,0 +1,88 @@
+{
+  "status": "passed",
+  "completed_utc": "2026-10-04T03:35:16.284572+00:00",
+  "source_commit": "780630983071379a890d3d51ec18a88cdffac95a",
+  "source_pushed": true,
+  "branch": "feat/light-workspace-design",
+  "deployment_url": "http://localhost:8787",
+  "container": "visua-visua-1",
+  "image": "sha256:b7e94435f020efbfa7e2e134480f9c31c09b355a53f4515bd4f88c49f4da2eea",
+  "image_revision": "780630983071379a890d3d51ec18a88cdffac95a",
+  "health": "healthy",
+  "ready_http_status": 200,
+  "runtime_source_hashes": 152,
+  "source_files_verified": 261,
+  "volume": "visua_visua-data:/app/data",
+  "blob_directory": "/app/data/blobs",
+  "migration": 6,
+  "backup": {
+    "path": "/app/data/evidence-files-20261004-backup.db",
+    "integrity": "ok",
+    "bytes": 1036288,
+    "sha256": "565de95ccf666353ba2141b91eafd0e8fbab2834eadb01e908ed656472c49e2c",
+    "host_path": "data/deployment-backups/evidence-files-20261004-backup.db",
+    "host_copy_verified": true,
+    "created_utc": "2026-10-04T03:29:20.508395+00:00",
+    "backup_runtime_image": "sha256:b7e94435f020efbfa7e2e134480f9c31c09b355a53f4515bd4f88c49f4da2eea",
+    "consistent": "SQLite VACUUM INTO after service stopped; new image Node entrypoint only; no app or migrations started"
+  },
+  "data_preservation": {
+    "status": "passed",
+    "original_counts": {
+      "workspaces": 1,
+      "requirement_states": 1487,
+      "tasks": 18,
+      "activity": 107,
+      "tenants": 2,
+      "memberships": 9
+    },
+    "original_evidence_items": 18,
+    "hydrated_evidence_unchanged": true,
+    "legacy_reviews_preserved": 18,
+    "inline_metadata_bodies_after": 0,
+    "inline_body_rows_after": 18,
+    "historical_audit_events_preserved": 107,
+    "current_audit_events": 108,
+    "extra_audit_event": "synthetic workspace deletion; original rows compared by identity and full row hash"
+  },
+  "live_verification": {
+    "upload_accept_exact_download": "passed",
+    "after_restart_exact_download_and_same_reference_review": "passed",
+    "original_workspace_audit_chain": {
+      "valid": true,
+      "events": 97
+    },
+    "synthetic_workspace_audit_chain": {
+      "valid": true,
+      "events": 3
+    },
+    "browser_page_errors": 0,
+    "synthetic_workspace_and_blob_removed": true
+  },
+  "verification": "source-verification.json",
+  "reviews": [
+    "review-final.json",
+    "ui-review.json"
+  ],
+  "supporting_records": [
+    "docker-image.json",
+    "docker-backup-attempts.json",
+    "docker-post-migration-data.json",
+    "docker-migration-preservation.json",
+    "docker-smoke-create-result.json",
+    "docker-restart-result.json",
+    "docker-smoke-restart-result.json",
+    "docker-fixture-cleanup-result.json",
+    "docker-source-final-result.json",
+    "docker-final-data.json",
+    "docker-final-preservation.json",
+    "docker-final-container.json"
+  ],
+  "limitations": [
+    "Browser verification combines 19 final affected reruns and 79 unchanged full-lane passes; prior full-check failures retained.",
+    "S3-compatible adapter is tested through SDK-signed mock service requests; no actual cloud bucket deployment or policy configuration.",
+    "Orphan cleanup and retention remain operator-managed. Kernel filesystem stalls cannot be cancelled by the Node deadline.",
+    "The old Docker image became unavailable after rebuild. Backup used the new image Node entrypoint only, with application stopped and no migrations executed.",
+    "The final delivery record is committed separately from source; Docker remains at the verified source commit."
+  ]
+}

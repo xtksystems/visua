@@ -1,0 +1,21 @@
+{
+  "run_id": "startup-auth-20261003",
+  "node_id": "review-fix",
+  "input_sha256": "868433f30aeea8f16eb6b769f6dc008fc267576717b86b070874e3b8bff5c0f8",
+  "status": "complete",
+  "summary": "The original startup cleanup finding is addressed within the configured grace period. The failed-start path now drains active executions before closing storage and preserves the startup error; both shutdown paths share the deadline helper. The reduced SSO fixture retains its stated DNS-trouble and retry contract. No new supported issue was identified in this targeted correction follow-up.",
+  "evidence": [
+    "fix-review.json",
+    "plan.json#scope.files",
+    "apps/server/src/server.ts:15-30",
+    "apps/server/src/server.ts:110-120",
+    "apps/server/test/startup.test.ts:101-125",
+    "apps/server/test/sso-recheck.test.ts:125-139"
+  ],
+  "limitations": [
+    "This follow-up covers only the original startup cleanup finding, the shared deadline refactor and the revised SSO fixture contract; the broader original review was not repeated.",
+    "The added Vitest regression and revised SSO test were reviewed as source, not executed by this reviewer. Full suites and backend integration checks remain owned by the root agent.",
+    "The executed follow-up uses injected agent work and in-memory SQLite; it does not establish real PostgreSQL/model timeout behavior or execute the failed-start cleanup deadline expiry branch.",
+    "A forced deadline can leave unfinished work for process termination; source inspection confirms bounded rejection and preservation of both errors but does not claim durable agent recovery."
+  ]
+}

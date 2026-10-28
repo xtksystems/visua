@@ -1,0 +1,54 @@
+{
+  "status": "passed",
+  "completed_utc": "2026-10-03T06:18:08.868422+00:00",
+  "source_head": "c8a1ed06a8043fe725381ccccd89779b6a3498e0",
+  "branch": "feat/light-workspace-design",
+  "working_changes": "Uncommitted startup/authentication implementation, regressions, documentation and context records. Baseline was clean. No deployment or external writes.",
+  "source_identity": "plan.json#scope.files: SHA-256 of 20 selected application/test/documentation files. Only prose changed after the final application checks started.",
+  "command": "env -u VISUA_DATABASE_URL -u VISUA_DB -u VISUA_TEST_DATABASE_URL -u NODE_ENV VISUA_AGENT_MODE=offline VISUA_AUTH_MODE=dev VISUA_PUBLIC_URL=http://localhost:8799 pnpm check",
+  "cwd": "/Users/artem/visua",
+  "exit_code": 0,
+  "wall_seconds": 624,
+  "checks": {
+    "licensing": "passed",
+    "typecheck": "passed",
+    "sqlite": {
+      "passed": 229,
+      "skipped": 2
+    },
+    "postgres": {
+      "passed": 231,
+      "skipped": 0
+    },
+    "playwright": {
+      "passed": 23,
+      "failed": 0
+    },
+    "corpus_hashes": "passed",
+    "design_lint": "passed",
+    "review": "one independent finding fixed; targeted correction follow-up passed",
+    "whitespace": "passed",
+    "local_links": "passed"
+  },
+  "runtimes": {
+    "full_check": "Node v26.0.0, pnpm 10.33.0",
+    "container_smoke": "Node v22.23.3, existing image with new server source mounted read-only, isolated network, memory SQLite"
+  },
+  "environment": "Offline agents; temporary PostgreSQL with per-suite schemas; browser API on8799 with memory SQLite; Docker on8787 preserved. No live identity/model providers invoked.",
+  "supplemental_checks": {
+    "compose_config": "passed: container host explicit 0.0.0.0; host publication remains 127.0.0.1:8787; health uses /api/ready; stop grace 15s",
+    "local_demo": "isolated memory store: 0.0.0.0 listener, ready=true, 8 personas, northwind-health workspace, clean stop",
+    "node22_container": "passed in isolated no-network container with current server source mounted read-only: Node v22.23.3, listener 0.0.0.0, ready=true, 0 tenants, clean stop; existing deployment untouched"
+  },
+  "prior_failures": [
+    "Baseline regressions reproduced unsafe defaults/production seeding order.",
+    "First full check failed on 217 hourly SSO fixture polls at 30 seconds; unchanged SSO suite passed a longer diagnostic deadline. Reduced redundant polls while preserving retry boundary and ten-day assertions.",
+    "First focused Postgres correction run had artificial fixture deadlines too short for full demo generation/agent drain; fault case now isolated SQLite, and normal lifecycle tests use the real 10000 ms grace. Final backend and full suites passed."
+  ],
+  "limitations": [
+    "Mock IdP and local backends establish regression behavior; no live production IdP or actual database outage drill.",
+    "Forced-stop durable agent recovery remains a later milestone.",
+    "No redeployment: existing Docker service is healthy and still runs its October 2 source.",
+    "Software-rendered browser checks do not establish hardware GPU performance."
+  ]
+}

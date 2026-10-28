@@ -1,0 +1,165 @@
+{
+  "run_id": "pilot-readiness-20261013",
+  "node_id": "pilot-review",
+  "input_sha256": "944b79cc5b6aa18a23c3c88aa61f2fe1ea63c911ce9dcf825bd355ab9099f46f",
+  "status": "complete",
+  "summary": "Fresh bounded review found one medium startup-cleanup reporting defect and one low malformed-wildcard configuration mismatch. Preflight focused suite passed all 48 tests; both findings have isolated reproductions. Subsequent affected rechecks confirm persistent cleanup failure is reported false, successful retry is reported true, and bracketed wildcards are rejected; original review and source identities are retained.",
+  "evidence": [
+    {
+      "kind": "focused-tests",
+      "command": "pnpm exec vitest run apps/server/test/pilot-preflight.test.ts",
+      "cwd": "/Users/artem/visua",
+      "result": "48/48 passed; one file; Node v26.0.0"
+    },
+    {
+      "kind": "startup-cleanup-reproduction",
+      "invoke": "node --input-type=module (script through stdin)",
+      "cwd": "/Users/artem/visua",
+      "script": "import assert from 'node:assert/strict';\nimport cp from 'node:child_process';\nimport { syncBuiltinESMExports } from 'node:module';\nimport { EventEmitter } from 'node:events';\nimport { PassThrough } from 'node:stream';\nimport { rm } from 'node:fs/promises';\nimport { dirname } from 'node:path';\nlet nonce; const calls = []; const originalSpawn = cp.spawn; const originalLog = console.log; let captured;\ncp.spawn = (command, args) => {\n  assert.equal(command, 'docker');\n  const child = new EventEmitter(); child.stdout = new PassThrough(); child.stderr = new PassThrough(); child.stdin = new PassThrough(); child.kill = () => true;\n  calls.push(args[0]);\n  let out = '', diagnostic = '', code = 0;\n  if (args[0] === 'info') out = '{}';\n  else if (args[0] === 'image') out = '{}';\n  else if (args[0] === 'run') { nonce = args[args.indexOf('--label') + 1].split('=')[1]; out = 'owned-fixture-id'; }\n  else if (args[0] === 'inspect' && args[args.indexOf('--format') + 1].includes('imageId')) { code = 1; diagnostic = 'forced metadata inspection failure'; }\n  else if (args[0] === 'inspect') out = JSON.stringify({ id: 'owned-fixture-id', owner: nonce });\n  else if (args[0] === 'rm') { code = 1; diagnostic = 'forced cleanup removal failure'; }\n  else assert.fail('Unexpected Docker operation');\n  queueMicrotask(() => { child.stdout.end(out); child.stderr.end(diagnostic); child.emit('close', code); });\n  return child;\n};\nsyncBuiltinESMExports(); console.log = text => { captured = JSON.parse(text); };\ntry {\n  await import('./scripts/pilot-rehearsal.mjs?review-cleanup-failure');\n  assert.equal(captured.status, 'failed'); assert.equal(captured.failure.kind, 'AggregateError');\n  assert.equal(captured.cleanupComplete, true); assert.equal(captured.resources, undefined);\n  originalLog(JSON.stringify({ reproduction: 'startup cleanup failure', commands: calls, output: { status: captured.status, failure: captured.failure, cleanupComplete: captured.cleanupComplete, resourcesPresent: !!captured.resources, cleanupFailuresPresent: !!captured.cleanupFailures }, actualFixtureContainerRemoved: false, realDockerCalls: 0 }));\n} finally { cp.spawn = originalSpawn; syncBuiltinESMExports(); console.log = originalLog; if (captured?.reportPath) await rm(dirname(captured.reportPath), { recursive: true }); process.exitCode = 0; }\n",
+      "observed": {
+        "status": "failed",
+        "failureKind": "AggregateError",
+        "cleanupComplete": true,
+        "resourcesPresent": false,
+        "cleanupFailuresPresent": false,
+        "realDockerCalls": 0
+      }
+    },
+    {
+      "kind": "wildcard-runtime-reproduction",
+      "invoke": "node --input-type=module (script through stdin)",
+      "cwd": "/Users/artem/visua",
+      "script": "import assert from 'node:assert/strict';\nimport { inspectPilotConfig } from './apps/server/src/operations/pilot-preflight.ts';\nimport { loadAuthConfig } from './apps/server/src/auth/config.ts';\nimport { privateHostAllowed } from './apps/server/src/auth/egress.ts';\nconst env = { NODE_ENV: 'production', VISUA_PUBLIC_URL: 'https://pilot.example.test', VISUA_SECRET: 'synthetic-secret-for-the-hosted-profile-1234', VISUA_SEED: '0', VISUA_OIDC_ISSUER: 'https://identity.example.test/realms/pilot', VISUA_OIDC_CLIENT_ID: 'public-pkce-client', VISUA_BOOTSTRAP_OWNER_EMAIL: 'operator@example.test', VISUA_DATABASE_URL: 'postgresql://database.example.test/visua', VISUA_BLOB_STORE: 's3', VISUA_BLOB_S3_BUCKET: 'pilot-evidence', VISUA_BLOB_S3_REGION: 'us-east-1', VISUA_OIDC_PRIVATE_ISSUERS: '[*]' };\nconst report = inspectPilotConfig(env), auth = loadAuthConfig(env), allows = privateHostAllowed(auth.privateIssuerHosts);\nassert(report.configReady); assert(allows('unlisted.internal'));\nconsole.log(JSON.stringify({ configReady: report.configReady, wildcardCheck: report.checks.find(x => x.id === 'private-issuer-wildcard-disabled'), runtimeAllowsUnlistedInternalHost: allows('unlisted.internal'), runtimeAllowsMetadataIP: allows('169.254.169.254'), networkCalls: 0 }));\n",
+      "observed": {
+        "configReady": true,
+        "wildcardCheck": "pass",
+        "runtimeAllowsUnlistedInternalHost": true,
+        "runtimeAllowsMetadataIP": true,
+        "networkCalls": 0
+      }
+    },
+    {
+      "kind": "source-identities",
+      "base": "a0fee8b5b4101a489163d499265c64d33ab51e11",
+      "sha256": {
+        "apps/server/src/operations/pilot-preflight.ts": "b2dc67a95a8c3401931198ca5c553a82f30fc096daf07179ae0fecc9e50666ac",
+        "apps/server/test/pilot-preflight.test.ts": "8b23f2e68708af9e1913be4e94e9ea16773e71dba0e73068caeae912478a95fd",
+        "scripts/pilot-preflight.ts": "1836cbeb76e17408bda14b2411474e5b9790261f9fa984b8d94723647a6a8d0c",
+        "scripts/pilot-rehearsal.mjs": "de5e608a38b2bc334724e81a65b587e1e0fc77225eb79abc170f9b03937d304f",
+        "scripts/pilot/resources.mjs": "277f1a61d20bb290fbc94c7e7bbcc22ce7513b699fdec2ca893f696660b2e43e",
+        "apps/server/src/auth/config.ts": "209c74005e490d18393ecd71f51ac84914f8b345ebcfb7a5615f9eacf70da2f7",
+        "apps/server/src/startup.ts": "d919759dc14a4c983819c05ca492b40ce3caf4ba4489fb5336a3495c1aeecaf9",
+        "apps/server/src/request-controls.ts": "1bc425d48f78f182215a899593849d96f820df4f9f5c10c7cdf1186a9f48b5cb",
+        "apps/server/src/auth/egress.ts": "cc9ab29b352cc7ad743f7062b056c5d52574dc1d219de334d3ff75967989b775",
+        "apps/server/src/blobs/index.ts": "f21034309a3d42c75976c9bd5ca1baa526cfa42eff40b71c7cc5aa0ba924f1d5",
+        "apps/server/src/blobs/s3.ts": "72a3e9b3ee3c6d7d3698ae157bd1e6fc932357314eebb2ab6b7ce4e5cb0c914a",
+        "apps/server/src/context.ts": "175b33033c0b5e8d043daf3e88d829c5e9aa8f1b190d1f4dc59a3e318a0bf757",
+        "apps/server/src/storage/index.ts": "2a804e9a6490508a8518d03be900937c71135dc235c7becb1295b2641d74ca82",
+        "apps/server/test/mock-idp.ts": "ed13db8850b8dfe643849d879fea870a0b9b00b7594ce69c9c5fcc5f322809ea",
+        "apps/server/src/services/bundle-verifier.mjs": "747260d69efe77f057213edab338ff976a65caf6f35dbab7288d16f3452c29d3"
+      }
+    },
+    {
+      "kind": "report",
+      "path": ".codex-context/runs/pilot-readiness-20261013/pilot-review.json",
+      "sha256": "63ae13a0e93af5431676469ffff822a79038fa34bb8b48fd8a1f6459a18d432f"
+    },
+    {
+      "kind": "corrected-recheck",
+      "name": "cleanup-persistent-failure",
+      "invoke": "node --input-type=module (script through stdin)",
+      "script": "import assert from 'node:assert/strict';\nimport cp from 'node:child_process';\nimport { syncBuiltinESMExports } from 'node:module';\nimport { EventEmitter } from 'node:events';\nimport { PassThrough } from 'node:stream';\nimport { rm } from 'node:fs/promises';\nimport { dirname } from 'node:path';\nlet nonce; const calls = []; const originalSpawn = cp.spawn; const originalLog = console.log; let captured;\ncp.spawn = (command, args) => {\n  assert.equal(command, 'docker');\n  const child = new EventEmitter(); child.stdout = new PassThrough(); child.stderr = new PassThrough(); child.stdin = new PassThrough(); child.kill = () => true;\n  calls.push(args[0]);\n  let out = '', diagnostic = '', code = 0;\n  if (args[0] === 'info') out = '{}';\n  else if (args[0] === 'image') out = '{}';\n  else if (args[0] === 'run') { nonce = args[args.indexOf('--label') + 1].split('=')[1]; out = 'owned-fixture-id'; }\n  else if (args[0] === 'inspect' && args[args.indexOf('--format') + 1].includes('imageId')) { code = 1; diagnostic = 'forced metadata inspection failure'; }\n  else if (args[0] === 'inspect') out = JSON.stringify({ id: 'owned-fixture-id', owner: nonce });\n  else if (args[0] === 'rm') { code = 1; diagnostic = 'forced cleanup removal failure'; }\n  else assert.fail('Unexpected Docker operation');\n  queueMicrotask(() => { child.stdout.end(out); child.stderr.end(diagnostic); child.emit('close', code); });\n  return child;\n};\nsyncBuiltinESMExports(); console.log = text => { captured = JSON.parse(text); };\ntry {\n  await import('./scripts/pilot-rehearsal.mjs?review-cleanup-failure');\n  assert.equal(captured.status, 'failed'); assert.equal(captured.failure.kind, 'AggregateError');\n  assert.equal(captured.cleanupComplete, false); assert(captured.resources); assert.equal(captured.resources.containers.length, 1); assert.equal(captured.resources.cleanup.status, 'failed'); assert.deepEqual(captured.cleanupFailures, ['Owned Docker resources']);\n  originalLog(JSON.stringify({ reproduction: 'startup cleanup failure', commands: calls, output: { status: captured.status, failure: captured.failure, cleanupComplete: captured.cleanupComplete, resourcesPresent: !!captured.resources, cleanupFailuresPresent: !!captured.cleanupFailures }, actualFixtureContainerRemoved: false, realDockerCalls: 0 }));\n} finally { cp.spawn = originalSpawn; syncBuiltinESMExports(); console.log = originalLog; if (captured?.reportPath) await rm(dirname(captured.reportPath), { recursive: true }); process.exitCode = 0; }\n",
+      "observed": {
+        "reproduction": "startup cleanup failure",
+        "commands": [
+          "info",
+          "image",
+          "image",
+          "run",
+          "inspect",
+          "inspect",
+          "rm",
+          "inspect",
+          "rm"
+        ],
+        "output": {
+          "status": "failed",
+          "failure": {
+            "stage": "resource-startup",
+            "kind": "AggregateError"
+          },
+          "cleanupComplete": false,
+          "resourcesPresent": true,
+          "cleanupFailuresPresent": true
+        },
+        "actualFixtureContainerRemoved": false,
+        "realDockerCalls": 0
+      }
+    },
+    {
+      "kind": "corrected-recheck",
+      "name": "cleanup-retry-success",
+      "invoke": "node --input-type=module (script through stdin)",
+      "script": "import assert from 'node:assert/strict';\nimport cp from 'node:child_process';\nimport { syncBuiltinESMExports } from 'node:module';\nimport { EventEmitter } from 'node:events';\nimport { PassThrough } from 'node:stream';\nimport { rm } from 'node:fs/promises';\nimport { dirname } from 'node:path';\nlet nonce; const calls = []; const originalSpawn = cp.spawn; const originalLog = console.log; let captured;\ncp.spawn = (command, args) => {\n  assert.equal(command, 'docker');\n  const child = new EventEmitter(); child.stdout = new PassThrough(); child.stderr = new PassThrough(); child.stdin = new PassThrough(); child.kill = () => true;\n  calls.push(args[0]);\n  let out = '', diagnostic = '', code = 0;\n  if (args[0] === 'info') out = '{}';\n  else if (args[0] === 'image') out = '{}';\n  else if (args[0] === 'run') { nonce = args[args.indexOf('--label') + 1].split('=')[1]; out = 'owned-fixture-id'; }\n  else if (args[0] === 'inspect' && args[args.indexOf('--format') + 1].includes('imageId')) { code = 1; diagnostic = 'forced metadata inspection failure'; }\n  else if (args[0] === 'inspect') out = JSON.stringify({ id: 'owned-fixture-id', owner: nonce });\n  else if (args[0] === 'rm') { code = calls.filter(x => x === 'rm').length === 1 ? 1 : 0; diagnostic = 'forced first cleanup removal failure'; }\n  else assert.fail('Unexpected Docker operation');\n  queueMicrotask(() => { child.stdout.end(out); child.stderr.end(diagnostic); child.emit('close', code); });\n  return child;\n};\nsyncBuiltinESMExports(); console.log = text => { captured = JSON.parse(text); };\ntry {\n  await import('./scripts/pilot-rehearsal.mjs?review-cleanup-failure');\n  assert.equal(captured.status, 'failed'); assert.equal(captured.failure.kind, 'AggregateError');\n  assert.equal(captured.cleanupComplete, true); assert(captured.resources); assert.equal(captured.resources.containers.length, 1); assert.equal(captured.resources.cleanup.status, 'complete'); assert.equal(captured.cleanupFailures, undefined);\n  originalLog(JSON.stringify({ reproduction: 'startup cleanup failure', commands: calls, output: { status: captured.status, failure: captured.failure, cleanupComplete: captured.cleanupComplete, resourcesPresent: !!captured.resources, cleanupFailuresPresent: !!captured.cleanupFailures }, actualFixtureContainerRemoved: true, realDockerCalls: 0 }));\n} finally { cp.spawn = originalSpawn; syncBuiltinESMExports(); console.log = originalLog; if (captured?.reportPath) await rm(dirname(captured.reportPath), { recursive: true }); process.exitCode = 0; }\n",
+      "observed": {
+        "reproduction": "startup cleanup failure",
+        "commands": [
+          "info",
+          "image",
+          "image",
+          "run",
+          "inspect",
+          "inspect",
+          "rm",
+          "inspect",
+          "rm"
+        ],
+        "output": {
+          "status": "failed",
+          "failure": {
+            "stage": "resource-startup",
+            "kind": "AggregateError"
+          },
+          "cleanupComplete": true,
+          "resourcesPresent": true,
+          "cleanupFailuresPresent": false
+        },
+        "actualFixtureContainerRemoved": true,
+        "realDockerCalls": 0
+      }
+    },
+    {
+      "kind": "corrected-recheck",
+      "name": "bracketed-wildcard-rejected",
+      "invoke": "node --input-type=module (script through stdin)",
+      "script": "import assert from 'node:assert/strict';\nimport { inspectPilotConfig } from './apps/server/src/operations/pilot-preflight.ts';\nimport { loadAuthConfig } from './apps/server/src/auth/config.ts';\nimport { privateHostAllowed } from './apps/server/src/auth/egress.ts';\nconst env = { NODE_ENV: 'production', VISUA_PUBLIC_URL: 'https://pilot.example.test', VISUA_SECRET: 'synthetic-secret-for-the-hosted-profile-1234', VISUA_SEED: '0', VISUA_OIDC_ISSUER: 'https://identity.example.test/realms/pilot', VISUA_OIDC_CLIENT_ID: 'public-pkce-client', VISUA_BOOTSTRAP_OWNER_EMAIL: 'operator@example.test', VISUA_DATABASE_URL: 'postgresql://database.example.test/visua', VISUA_BLOB_STORE: 's3', VISUA_BLOB_S3_BUCKET: 'pilot-evidence', VISUA_BLOB_S3_REGION: 'us-east-1', VISUA_OIDC_PRIVATE_ISSUERS: '[*]' };\nconst report = inspectPilotConfig(env), auth = loadAuthConfig(env), allows = privateHostAllowed(auth.privateIssuerHosts);\nassert.equal(report.configReady, false); assert.equal(report.checks.find(x => x.id === 'private-issuer-wildcard-disabled').status, 'fail'); assert(allows('unlisted.internal'));\nconsole.log(JSON.stringify({ configReady: report.configReady, wildcardCheck: report.checks.find(x => x.id === 'private-issuer-wildcard-disabled'), runtimeAllowsUnlistedInternalHost: allows('unlisted.internal'), runtimeAllowsMetadataIP: allows('169.254.169.254'), networkCalls: 0 }));\n",
+      "observed": {
+        "configReady": false,
+        "wildcardCheck": {
+          "id": "private-issuer-wildcard-disabled",
+          "severity": "error",
+          "status": "fail",
+          "message": "Remove the wildcard from VISUA_OIDC_PRIVATE_ISSUERS for this profile."
+        },
+        "runtimeAllowsUnlistedInternalHost": true,
+        "runtimeAllowsMetadataIP": true,
+        "networkCalls": 0
+      }
+    },
+    {
+      "kind": "corrected-source-identities",
+      "sha256": {
+        "scripts/pilot/resources.mjs": "f66eae3e71a15ee77dc13e9ce631dcce184a438a5d52206526063bda27e9f934",
+        "scripts/pilot-rehearsal.mjs": "83a65efde6191414107f264b91a42a4ea1f6dc28adae26b2276737b4b72cbb81",
+        "apps/server/src/operations/pilot-preflight.ts": "c61ffe0be962d1d0c897b5793ebe887ebb850eeb028afe60fc6cd6513d8ed3a8",
+        "apps/server/test/pilot-preflight.test.ts": "f757d5e42a58843d15cca9b12e54407301d110fcc9b08ba2e77f31214d31168c"
+      }
+    }
+  ],
+  "limitations": [
+    "Bounded fresh first pass on the supplied working-tree snapshot at base a0fee8b5b4101a489163d499265c64d33ab51e11. Any subsequent edits require affected rechecks; this report preserves original findings and hashes.",
+    "No Docker daemon, external provider, localhost:8787, existing application data, full rehearsal, broad suite, hosted TLS, IAM, real IdP, remote recovery or capacity checks were executed. Cleanup fault injection used a built-in spawn stub; it demonstrates reporting/control flow, not Docker daemon behavior.",
+    "Lead-owned documentation was excluded because it was not stable. Existing dependencies were examined only where directly relevant to configuration interpretation, identity, startup/shutdown, resource lifetime and recovery verification.",
+    "No supported secret disclosure or backup-consistency defect was identified within the assigned bounded source review; absence of a finding is not a production-readiness claim."
+  ]
+}

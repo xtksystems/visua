@@ -1,0 +1,32 @@
+{
+  "run_id": "reactor-deploy-20261028",
+  "expected_nodes": 2,
+  "accepted_nodes": 2,
+  "snapshot_checked_files": 8,
+  "stale_sources": [],
+  "nodes": [
+    {
+      "id": "review",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "correction-review",
+      "status": "complete",
+      "issues": []
+    }
+  ],
+  "ready_for_integration": true,
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "Private deployment packaging integrated and installed; 265 runtime source hashes match source5450fc7.",
+      "check-no-e2e.json:944SQLite+953Postgres pass; browser suite skipped with prior failure retained.",
+      "private-smoke.json:desktop/mobile login, health/readiness, anonymous401/dev403 through SSH.",
+      "backup-verification.json:current stopped-writer backup restored to fresh database and volume;24 table row counts match.",
+      "recovery-result.json:64KiB synthetic binary, bound review, audit/revision and fixed-asOf bundle restored; scratch resources cleaned. Initial fixture failure preserved separately.",
+      "review/correction-review.json:both new deployment-script findings resolved. Google login/public HTTPS/off-host recovery and prior application release findings remain open."
+    ]
+  },
+  "complete": true
+}

@@ -1,0 +1,16 @@
+{
+  "run_id": "visual-quality-20260929",
+  "node_id": "design-retry",
+  "input_sha256": "ea1363c0e17cbc746ada00badbc36b3f68f7f85a3533ebc060e5397d1a174b05",
+  "status": "complete",
+  "summary": "Accepted wider target rims, explicit transparent render order, opaque crowns and graduated readiness gauges. No evidence of district overlap in inspected screenshots; retain hulls.",
+  "evidence": [
+    "design-retry/result.json",
+    "design-retry/run.json",
+    "../../../../.screens/visual-after/1440x900/terrain-nist-sp-800-53-r5.png"
+  ],
+  "limitations": [
+    "Source-only design reasoning; model requested claude-opus-5-5, model_reported null.",
+    "Initial attempt timed out; preserved under attempts and design/run.json."
+  ]
+}

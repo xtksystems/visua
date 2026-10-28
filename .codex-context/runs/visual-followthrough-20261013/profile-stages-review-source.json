@@ -1,0 +1,8 @@
+{
+  "apps/web/src/pages/ProfilePage.tsx": "770dbc7a19d330ff17d0b989711fd4f3782d6be47ea62672e2f7bbb0e62d413d",
+  "apps/web/src/lib/profile.ts": "2df78ef509a245c674febe0691a8dca918f78cc4f63b5efb877e7fd883930b8b",
+  "apps/web/src/pages/AgentsPage.tsx": "d5968af32afe6c5ed8824f38dacfb7deb94acb4bc89ed530b39ff852573ccd39",
+  "apps/web/src/lib/agent-stages.ts": "281b2990f7858a76b926cd9b7cb53fecc2bed9ada3f6907b293475f373dc57c9",
+  "apps/server/src/services/visua.ts": "5c0141c5aa4ebd4b3d6e5f06506f23adfea4974555348647135b792aee9eeb57",
+  "packages/core/src/types.ts": "af6ea46636e5a6c9c8890e8f20a87e0866bcc08a09ae0a7435eae940fa08015a"
+}

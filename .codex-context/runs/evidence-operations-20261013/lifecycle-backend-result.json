@@ -1,0 +1,50 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "lifecycle-backend",
+  "input_sha256": "8658d8a1dc6664a955d33233a454d470df20668cc7fb732d538ed0a239be0285",
+  "status": "complete",
+  "summary": "Implemented and focused-verified lifecycle backend contract, including independent-review fixes for stale review identity and pre-acceptance evaluation; ready for lead full integration verification.",
+  "evidence": [
+    {
+      "path": ".codex-context/runs/evidence-operations-20261013/lifecycle-backend-report.json",
+      "sha256": "356316530fa49457105de0b171036285d8a8478ae4619ff2ed86c9c905e15bec"
+    },
+    {
+      "path": ".codex-context/runs/evidence-operations-20261013/lifecycle-api-contract.json",
+      "sha256": "c696c9630ae0cfdd9ad3ff46206e475a3a342bb867ba7924693071014284bdb8"
+    },
+    {
+      "path": ".codex-context/runs/evidence-operations-20261013/lifecycle-backend-tests.log",
+      "sha256": "d40238bffa051588b8801a0f6087222c2779d681aae375d1b2777768983c68b1",
+      "outcome": "6 files, 64 tests passed"
+    },
+    {
+      "path": ".codex-context/runs/evidence-operations-20261013/lifecycle-backend-final-tests.log",
+      "sha256": "637e8684ce0126c1ae1f450d8e63c232e371cc3f61260f30b1ff7e737d7a690a",
+      "outcome": "7 files, 125 tests passed"
+    },
+    {
+      "path": ".codex-context/runs/evidence-operations-20261013/lifecycle-backend-target-tests.log",
+      "sha256": "51359cd84ca089857b78ca36d92b5094593722bb20f01b020cc05ade1a488714",
+      "outcome": "6 files, 89 tests passed"
+    },
+    {
+      "path": ".codex-context/runs/evidence-operations-20261013/lifecycle-backend-boundary-tests.log",
+      "sha256": "235b48c82d824048113652921b5c503db775f4ea326bd5cbfa4b3cc0384a69d9",
+      "outcome": "8 files, 128 tests passed"
+    },
+    {
+      "path": ".codex-context/runs/evidence-operations-20261013/lifecycle-backend-clock-fixtures-tests.log",
+      "sha256": "0b3e7300b6c06ed53dee4fb450a61b1727557cb0d952483b95221bd0466089fa",
+      "outcome": "2 files, 36 tests passed"
+    }
+  ],
+  "limitations": [
+    "Worker ran only bounded SQLite in-memory Vitest suites with database environment variables cleared. PostgreSQL, full typecheck, full suites, browser integration and delivery remain lead-owned.",
+    "Lineage at= evaluates currently recorded metadata at the specified instant, not reconstructed historical revisions. Successor suppression also requires its latest matching accepted review timestamp not later than the instant.",
+    "Legacy evidence keeps missing provenance/assurance visibly unknown; legacy stored checks without recorded target identity cannot automatically supersede recorded-target evidence. No migration or backfill.",
+    "Direct createEvidence service callers remain a deliberately trusted fixture/internal path that may request immediate accepted/rejected state; HTTP/proposals cannot supply identity, collection refs, status, reviewer or automated-check source claims.",
+    "No git actions, build, browser server, external connector calls, live database operations or deployment performed.",
+    "HTTP review callers must send their viewed latest reviewHistory ID (or null). Omission defaults to null and therefore fails after any existing review. Trusted direct service callers may omit this separate precondition; artifact expectedScope remains required."
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "status": "resolved; independent correction review pass",
+  "original_review": "independent-review.json",
+  "findings": [
+    {
+      "id": "uncertain-commit-deletion",
+      "resolution": "retain bytes once metadata publication begins; cleanup only when no write attempted",
+      "regression": "evidence-content.test.ts commit-succeeded acknowledgement-lost test"
+    },
+    {
+      "id": "token-lock-inversion",
+      "resolution": "fresh under-lock token/session checks perform no writes (touch:false)",
+      "regression": "evidence-files.test.ts aging token read-only test plus revocation-during-I/O test on both SQLite and PostgreSQL full lanes"
+    },
+    {
+      "id": "framework-body-loading",
+      "resolution": "frameworkState uses metadataList",
+      "regression": "framework-state included in no-evidence_content-query test"
+    },
+    {
+      "id": "unicode-filename",
+      "resolution": "UTF8 replacement before encoding disposition",
+      "regression": "malformed Unicode filename edited/downloaded through API with original bytes"
+    }
+  ],
+  "limitations": [
+    "No actual PostgreSQL COMMIT transport loss was injected; deterministic transaction fixture simulates lost acknowledgement.",
+    "Token lock-cycle correction verified through side-effect-free contract and full backend lanes; no PostgreSQL deadlock-victim experiment."
+  ],
+  "verification": "Final backend check exit 0; browser-final-result.json 98 unique cases with 19 final affected reruns; source correction and UI independent reviews pass",
+  "additional_recovery": [
+    {
+      "issue": "PostgreSQL rejects unpaired surrogate filename in JSONB",
+      "resolution": "Normalize filename with UTF8 replacement before metadata persistence and response disposition",
+      "regression": "malformed Unicode upload/download API case on final backend lanes"
+    },
+    {
+      "issue": "duplicate stale-review error dialog/global toast",
+      "resolution": "hook-level onError suppresses shared default toast; keyed dialog active guards cover success/error callbacks",
+      "regression": "e2e/visua.spec.ts stale inspected review passed on final source"
+    }
+  ]
+}

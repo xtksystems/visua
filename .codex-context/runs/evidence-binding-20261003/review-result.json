@@ -1,0 +1,20 @@
+{
+  "run_id": "evidence-binding-20261003",
+  "node_id": "integrity-review",
+  "input_sha256": "cf137337ddbdf0219350bd31c91a04fc1f8781749e356c1927577cd52eaeb1e6",
+  "status": "complete",
+  "summary": "Completed independent bounded integrity review of the original evidence-binding working tree matching review-source.json. Found one executed approval bypass and two source-traced defects. Author began fixes during the pass; this report is not final-state acceptance.",
+  "evidence": [
+    "independent-review.json",
+    "review-source-observed.json",
+    "review-execution.json",
+    "review-reproduction.ts",
+    "All 17 original fingerprints matched; original isolated API approval bypass reproduced; 70 focused SQLite/core tests passed."
+  ],
+  "limitations": [
+    "Findings concern the immutable initial review-source fingerprint. apps/server/src/services/evidence.ts, migration and tests changed during review; see actual_at_review_end and changed_during_review in review-source-observed.json. No final-state pass is claimed.",
+    "PostgreSQL migration, rollback and multi-instance race behavior were source-traced but not executed; only isolated SQLite was used. No Docker/services, deployments, commits or external providers were used.",
+    "UI concurrent-edit behavior was source-traced, not browser-executed. No full web e2e or full repository check was run in this bounded review.",
+    "Review was read-only except run-local report/reproduction artifacts; the reproduction script retains original regression assertions and intentionally fails after the author fixes."
+  ]
+}

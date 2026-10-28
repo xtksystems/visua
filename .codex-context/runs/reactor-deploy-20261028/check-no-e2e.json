@@ -1,0 +1,8 @@
+{
+  "command": "pnpm check --no-e2e",
+  "exit_code": 0,
+  "seconds": 68.06,
+  "head": "5450fc7271332ba09892350c3af28646c0d12dc0",
+  "environment": "Allowlisted local runtime, no inherited database or provider settings",
+  "browser": "Not rerun; prior mobile-history failure remains open"
+}

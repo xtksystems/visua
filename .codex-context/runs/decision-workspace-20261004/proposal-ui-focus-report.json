@@ -1,0 +1,47 @@
+{
+  "run_id": "decision-workspace-20261004",
+  "node_id": "proposal-ui",
+  "status": "complete",
+  "summary": "Diagnosed mobile deep-link focus failure as inactive browser document, not incorrect dialog element focus. Test now activates the loaded page with bringToFront after dialog visibility, preserving initial Close focus, Tab/Shift+Tab trap, Escape, heading restoration, reopened trigger restoration, and mobile overflow assertions.",
+  "root_cause": {
+    "observed_before": {
+      "activeElement": "Close",
+      "documentHasFocus": false
+    },
+    "observed_after_bringToFront": {
+      "activeElement": "Close",
+      "documentHasFocus": true
+    },
+    "observed_after_escape": {
+      "activeElement": "H2",
+      "documentHasFocus": true
+    },
+    "explanation": "Playwright toBeFocused requires both activeElement identity and document.hasFocus. Activating before initial navigation did not retain focus through the loaded document; activation after dialog visibility did."
+  },
+  "files": [
+    {
+      "path": "e2e/proposal-review.spec.ts",
+      "sha256": "088c6adc3838eb36d72f15220357f5921d4205de03bcfa1e53b38e522de59a3a"
+    }
+  ],
+  "evidence": [
+    {
+      "command": "pnpm exec playwright test --config .codex-context/runs/decision-workspace-20261004/proposal-focus.playwright.config.ts --grep 'mobile deep links'",
+      "cwd": "/Users/artem/visua",
+      "result": "1 passed (37.2s)",
+      "exit_code": 0
+    },
+    {
+      "check": "Isolated instrumentation",
+      "result": "Read activeElement and document.hasFocus before/after page activation; no element.focus was called before initial assertion."
+    },
+    {
+      "check": "Resource cleanup",
+      "result": "Focused test/browser exited0. Own in-memory API server8798 terminated gracefully and exited0."
+    }
+  ],
+  "limitations": [
+    "Focused rerun used existing production bundle on own API port8798; no production rebuild or server8799 changes. Lead owns final full browser lane on latest rebuilt product source.",
+    "No product source changes, so the existing frontend typecheck remains applicable."
+  ]
+}

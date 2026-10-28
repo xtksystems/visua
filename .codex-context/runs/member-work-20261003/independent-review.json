@@ -1,0 +1,44 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "The member assignment/My work package has three supported defects: relinking can bypass licensed task filtering, due-today tasks are treated as overdue by derived status, and My work requirement status misses evidence/check invalidation. Identity, field-clearing, transaction, and keyed draft paths were inspected without another supported finding.",
+  "coverage": [
+    "CLAUDE.md, actual AGENTS.md, startup project/workflow context, invariants, milestone 2 package 1, and adversarial-review result contract.",
+    "Pinned server API schemas/routes and workspace access: stable current tenant member IDs, canonical stored names, signed-in principal My work filtering, API-token exclusion, and write capability floors.",
+    "VisuaService work-date/range, task-link validation, owner/assignee normalization, explicit clears, unrelated legacy edits, My work derived statuses, before/after work snapshots, and mutation/audit/revision/event transaction paths.",
+    "Membership removal/add/update organization locks and PostgreSQL transaction/advisory-lock behavior; assignment race ordering inspected read-only.",
+    "MemberPicker, Assessment, TaskDialog/PlanPage, MyWorkPage, query keys, SSE invalidations, workspace/session scoping, selection keys, explicit draft save/cancel, failed save retry, and late callback lifetime paths.",
+    "Shared Dialog/modal focus, CodeTag framework/selection navigation, My work route/rail, read-only controls, loading/empty/completed states, and raw member-work server/browser test coverage.",
+    "Planner source/text construction and agents modelTask/workspaceContext licensing dependency; executed pure in-memory fixture proves cleared links expose retained licensed text.",
+    "Executed pure date fixture at 2026-10-03T12:00Z proves due-today UI overdue=false, core overdue=true, and derived requirement status=at-risk.",
+    "Start/end SHA-256 comparison of all 25 pinned source files; inspected PlanPage one-label integration addendum."
+  ],
+  "findings": [
+    {
+      "severity": "high",
+      "location": "apps/server/src/services/visua.ts:1024; packages/agents/src/tools.ts:239",
+      "mechanism": "A contributor can clear or replace the requirement links of a task planned from a licensed criterion. updateTask retains description/checklist/source but modelTask derives withheld text exclusively from the current requirementIds. With no current licensed link, it returns the task unchanged, so workspaceContext and list_tasks can send the original restricted text to Claude without permission.",
+      "evidence": "Planner copies node.text and points-of-focus text into the task (packages/core/src/planner.ts:80,158,169). updateTask changes requirementIds while preserving source/origin (visua.ts:1024\u20131028). modelTask iterates only current requirementIds and returns unchanged when none are licensed (tools.ts:239\u2013247); runtime.ts:36\u201342 serializes the result. A pure synthetic fixture with VISUA_AGENT_MODE=claude and no VISUA_AICPA_AI_USE yielded original_withheld=true, relinked_source_preserved=true, relinked_text_exposed=true, runtime_context_exposes_text=true. Existing licensing tests retain the original criterion link and miss this path.",
+      "recommendation": "Persist server-owned immutable or monotonic content/licensing provenance independent of editable requirement links, and have modelTask consume it (with source-classification fallback for legacy tasks). Add regressions for clearing/replacing licensed links and for both runtime context and list_tasks."
+    },
+    {
+      "severity": "medium",
+      "location": "packages/core/src/status.ts:46; apps/web/src/pages/MyWorkPage.tsx:14",
+      "mechanism": "Strict calendar due dates become midnight timestamps in isTaskOverdue. A task due today is therefore overdue immediately after midnight in scoring, although Plan/My work date labels mark it Due throughout the same calendar day. The user can set a future-or-current day and immediately get an at-risk linked requirement with no Overdue task label.",
+      "evidence": "isTaskOverdue compares new Date(t.dueDate).getTime() < now.getTime(); deriveStatus makes any overdue task at-risk. MyWorkPage:14 and PlanPage:31 compare dueDate with the current YYYY-MM-DD string. Pure fixture dueDate=2026-10-03 at 2026-10-03T12:00:00Z returned ui_overdue=false, core_overdue=true, derived_status=at-risk.",
+      "recommendation": "Define one calendar-day due boundary and use it consistently in core scoring and UI labels, preserving legacy timestamp compatibility. Test due today, yesterday, tomorrow, and completed tasks at day boundaries."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/web/src/lib/events.ts:65",
+      "mechanism": "My work embeds server-derived requirement statuses, but evidence and monitoring-check SSE events invalidate state/node/evidence without invalidating my-work. If another member rejects/changes evidence or a connector produces a failing check while My work is open, the requirement badge and completion-dependent due treatment remain based on old signals until some unrelated refetch.",
+      "evidence": "VisuaService.myWork computes statuses through score (visua.ts:335\u2013338), and deriveStatus depends on evidence and checks (status.ts:69\u201388). useMyWork caches this under [ws,id,my-work,principal]. events.ts:65\u201367 omits my-work for evidence.created/updated and :76\u201377 omits it for check.completed. The common event flush invalidates only the exact workspace-summary key, so it does not refresh this descendant query. MyWorkPage renders cached requirement.status and uses it to decide completed due display.",
+      "recommendation": "Invalidate my-work for evidence and check events that can change derived requirement status, and verify with a second-client evidence decision or failing connector check while My work remains mounted."
+    }
+  ],
+  "limitations": [
+    "Read-only bounded first pass: server/browser suites were inspected but not executed by this reviewer; integration lead owns concurrent browser verification.",
+    "Pure in-memory licensing and date reproductions used synthetic text and did not call a model, network, server, or persistent storage.",
+    "Pinned source changed during review: packages/core/src/types.ts, packages/core/src/status.ts, apps/server/src/services/visua.ts, apps/server/src/services/work.ts, apps/web/src/pages/PlanPage.tsx, apps/web/src/lib/events.ts. The reported findings bind to the initial hashes; the PlanPage accessible search-label addendum was inspected. Any later behavior changes require affected-path adjudication."
+  ]
+}

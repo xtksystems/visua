@@ -1,0 +1,22 @@
+{
+  "run_id": "predeploy-review-20261014",
+  "node_id": "integrity",
+  "input_sha256": "3ece117a056a6a19d9cfae782ff126b165ac9a1c89ca4de37132a3efb7ba39ab",
+  "status": "complete",
+  "summary": "Integrity review complete at cb438d1083e9ae3e2a38dd8e5d7dba4c778b2e89. One runtime-confirmed medium finding: inspector hourly score cache hides intra-hour evidence expiry. Isolated integrity and local recovery checks otherwise passed.",
+  "evidence": [
+    "review.json",
+    "integrity-fixture.mjs",
+    "integrity-fixture.log",
+    "recovery-fixture.mjs",
+    "recovery-fixture.log",
+    "artifact-validation.log"
+  ],
+  "limitations": [
+    "This bounded review is not exhaustive proof of correctness. Full pnpm check and dependency audit are owned by the lead and were not run here.",
+    "PostgreSQL locking, transactions and migrations were reviewed in source only; no PostgreSQL instance or multi-process migration race was exercised by this node. S3 adapter was reviewed in source only; no external object service or credentials were accessed.",
+    "No live tenant, container, deployed service, production backup or actual recovery target was read or mutated. Recovery evidence uses only a small synthetic SQLite/local-blob fixture; it does not establish hosted recovery, capacity, key recovery, retention or power-loss durability.",
+    "Backup consistency depends on the documented operator assertion that all writers and parent-directory mutations are stopped. Included backup hashes are not authenticity; separately protected manifest/checkpoint retention and restore-time authentication configuration remain operator responsibilities.",
+    "Identity repository entry points were surveyed for storage context; authentication policy and authorization coverage belong to the separate security lens. No browser rendering was exercised here."
+  ]
+}

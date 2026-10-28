@@ -1,9 +1,9 @@
 /** Policies: versioned lifecycle (draft → in review → approved → published), agent drafting. */
 import { ArrowLeft, CheckCircle2, Edit3, FileText, Send, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import { useRunAgent } from "../components/inspector/Inspector.tsx";
 import { AgentBadge, CodeTag, Dialog, Empty, toast } from "../components/ui/index.tsx";
+import { useWorkspaceId } from "../lib/workspace.ts";
 import { api } from "../lib/api.ts";
 import { useCan } from "../lib/auth.ts";
 import { relativeTime } from "../lib/format.ts";
@@ -20,7 +20,7 @@ const STATUS_COLOR: Record<Policy["status"], string> = {
 };
 
 function DraftDialog({ onClose }: { onClose: () => void }) {
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
   const workspace = useWorkspace(ws);
   const fw = workspace.data?.frameworks[0]?.id ?? "nist-csf-2.0";
   const graph = useGraph(fw);
@@ -61,7 +61,7 @@ function DraftDialog({ onClose }: { onClose: () => void }) {
 }
 
 export function PoliciesPage() {
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
   const { data: policies = [] } = usePolicies(ws);
   const [selected, setSelected] = useState<string | null>(null);
   // Narrow screens show the list until a policy is opened (desktop shows both panes).
@@ -74,6 +74,7 @@ export function PoliciesPage() {
   useEffect(() => {
     setEditing(false);
   }, [policy?.id]);
+  const canWrite = useCan("work.write");
   const canApprove = useCan("work.approve");
   const act = (patch: Partial<Policy>, msg: string) => update.mutate(patch, { onSuccess: () => toast(msg), onError: (e) => toast((e as Error).message, "error") });
   return (
@@ -81,13 +82,14 @@ export function PoliciesPage() {
       <aside className="stack master-detail__master">
         <div className="row">
           <h1 style={{ fontFamily: "var(--font-headline-lg-family)", fontSize: 24, fontWeight: 600, flex: 1 }}>Policies</h1>
-          <button className="btn btn--agent btn--sm" onClick={() => setDrafting(true)}>
+          <button className="btn btn--agent btn--sm" disabled={!canWrite} onClick={() => setDrafting(true)}>
             <Sparkles size={13} /> Draft
           </button>
         </div>
         <p className="muted" style={{ fontSize: 13 }}>
           Approved policies automatically become evidence for the requirements they govern, valid until their next review date.
         </p>
+        {!canWrite && <p className="muted" role="note">Read-only access. You can read every policy and its review status.</p>}
         {policies.map((p) => (
           <button key={p.id} className={`runrow ${policy?.id === p.id ? "is-selected" : ""}`} onClick={() => (setSelected(p.id), setOpened(true))}>
             <div className="row" style={{ gap: 8 }}>
@@ -119,7 +121,7 @@ export function PoliciesPage() {
                 </div>
                 <h2 style={{ fontFamily: "var(--font-headline-lg-family)", fontSize: 26, fontWeight: 600, marginTop: 6 }}>{policy.title}</h2>
               </div>
-              {!editing && (
+              {canWrite && !editing && (
                 <button
                   className="btn"
                   onClick={() => {
@@ -130,7 +132,7 @@ export function PoliciesPage() {
                   <Edit3 size={14} /> Edit
                 </button>
               )}
-              {policy.status === "draft" && (
+              {canWrite && policy.status === "draft" && (
                 <button className="btn" onClick={() => act({ status: "in-review" }, "Submitted for review")}>
                   <Send size={14} /> Submit for review
                 </button>
@@ -151,7 +153,7 @@ export function PoliciesPage() {
                 <CodeTag key={id} id={id} />
               ))}
             </div>
-            {editing ? (
+            {editing && canWrite ? (
               <div className="stack" style={{ gap: 8 }}>
                 <textarea className="textarea mono" style={{ minHeight: "55vh", fontSize: 13 }} value={draft} onChange={(e) => setDraft(e.target.value)} aria-label="Policy body (Markdown)" />
                 <div className="row" style={{ justifyContent: "flex-end" }}>
@@ -186,7 +188,7 @@ export function PoliciesPage() {
           <Empty title="Select a policy" />
         )}
       </section>
-      {drafting && <DraftDialog onClose={() => setDrafting(false)} />}
+      {drafting && canWrite && <DraftDialog onClose={() => setDrafting(false)} />}
     </div>
   );
 }

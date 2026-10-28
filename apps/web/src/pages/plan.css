@@ -1,0 +1,48 @@
+.plan-page { min-width: 0; }
+.plan-caption { margin: 0 0 var(--space-sm); font-size: var(--font-body-sm-size); }
+.plan-status-summary { margin-bottom: var(--space-lg); }
+.plan-status-summary .segmented { max-width: 100%; }
+.plan-scroll { min-width: 0; max-width: 100%; overflow-x: auto; }
+.plan-scroll:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.plan-page .plan-board { grid-template-columns: repeat(6, minmax(230px, 1fr)); min-width: 1500px; }
+.plan-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--color-outline); }
+.plan-task { display: grid; grid-template-columns: 140px minmax(200px, 1fr) minmax(380px, 1.5fr); gap: var(--space-md); align-items: start; border: 0; border-bottom: 1px solid var(--color-outline); border-radius: 0; padding: var(--space-lg) 0; background: transparent; transition: background-color var(--dur-fast) var(--ease-out); }
+.plan-task__reason, .plan-task__subject { display: grid; gap: var(--space-sm); min-width: 0; }
+.plan-task__reason { font-size: var(--font-body-sm-size); }
+.plan-task:focus-within { background: var(--color-surface-raised); }
+.plan-urgency { font-weight: 600; font-size: var(--font-body-md-size); }
+.plan-urgency--risk, .plan-overdue { color: var(--color-status-at-risk); }
+.plan-urgency--review { color: var(--color-status-in-progress); }
+.plan-urgency--done { color: var(--color-status-implemented); }
+.plan-task__title { font-size: var(--font-body-md-size); min-width: 0; padding: 0; justify-content: flex-start; text-align: left; white-space: normal; overflow-wrap: anywhere; font-weight: 600; }
+.plan-task__subject > .muted { font-size: var(--font-body-sm-size); }
+.plan-task__facts { display: grid; grid-template-columns: minmax(80px, 1fr) minmax(105px, 1fr) minmax(150px, 1.4fr); gap: var(--space-md); margin: 0; font-size: var(--font-body-md-size); }
+.plan-task__facts > div { min-width: 0; }
+.plan-task__facts dt { font-size: var(--font-body-sm-size); color: var(--color-on-surface-muted); margin-bottom: var(--space-xs); }
+.plan-task__facts dd { margin: 0; overflow-wrap: anywhere; }
+.plan-schedule { min-width: 720px; width: 100%; }
+.plan-schedule caption { text-align: left; padding-bottom: var(--space-sm); color: var(--color-on-surface-muted); font-size: var(--font-body-sm-size); }
+.plan-schedule th, .plan-schedule td { text-align: left; vertical-align: top; }
+.plan-schedule tbody th { width: 28%; position: static; background: var(--table-row-bg); border-bottom: 1px solid var(--color-outline); padding-top: var(--space-sm); padding-bottom: var(--space-sm); text-transform: none; letter-spacing: normal; font-family: inherit; font-size: var(--font-body-md-size); }
+.plan-timeline { min-width: 760px; }
+.plan-timeline__row { display: grid; grid-template-columns: 220px minmax(0, 1fr); align-items: center; gap: var(--space-md); min-height: 42px; border-bottom: 1px solid var(--color-outline); }
+.plan-timeline__axis { color: var(--color-on-surface-muted); font-size: var(--font-body-sm-size); }
+.plan-timeline__axis > div { display: flex; justify-content: space-between; }
+.plan-timeline__label { font-size: var(--font-body-sm-size); overflow-wrap: anywhere; }
+.plan-timeline__track { position: relative; height: 36px; }
+.plan-timeline__today { position: absolute; width: 2px; top: 0; bottom: 0; background: var(--color-primary); }
+.plan-timeline__event { position: absolute; top: 4px; height: 28px; border: 1px solid var(--color-outline-strong); border-radius: var(--radius-sm); background: var(--color-surface-raised); color: var(--color-on-surface); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; padding: 0 var(--space-sm); }
+.plan-timeline__event--due { width: 28px; transform: translateX(-50%); padding: 0; font-size: 16px; }
+.plan-timeline__event.is-overdue { color: var(--color-status-at-risk); border-color: var(--color-status-at-risk); background: var(--color-status-at-risk-container); }
+.plan-timeline__event.is-done { background: var(--color-status-implemented-container); }
+.plan-timeline__event:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+@media (max-width: 1200px) {
+  .plan-task { grid-template-columns: 140px minmax(0, 1fr); }
+  .plan-task__facts { grid-column: 2; }
+}
+@media (max-width: 640px) {
+  .plan-task { grid-template-columns: minmax(0, 1fr); }
+  .plan-task__reason { display: flex; flex-wrap: wrap; }
+  .plan-task__facts { grid-column: 1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .plan-task__facts > div:last-child { grid-column: 1 / -1; }
+}

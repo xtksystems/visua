@@ -1,0 +1,36 @@
+{
+  "run_id": "selection-roles-20261003",
+  "node_id": "selection-review",
+  "reviewed_head": "c8a1ed06a8043fe725381ccccd89779b6a3498e0",
+  "start_scope_status": "all 61 pinned inputs matched",
+  "completed_utc": "2026-10-03T20:50:52.718604+00:00",
+  "end_scope_drift": {
+    "apps/web/src/components/agents/Proposals.tsx": {
+      "pinned_sha256": "9f8466f7feb4847eea331483d23e6e631cafc7564e69d55cff02ac9843fc7b56",
+      "end_sha256": "32e2d907d69017a9d26da3090bfa6189f38c8f7a0bdd861ad05c9881e3d34d3d"
+    },
+    "apps/web/src/pages/ObservatoryPage.tsx": {
+      "pinned_sha256": "6293d5a01811328147aed52d79f068f5f296fcc59872e5c6fcba9c5317ed7f50",
+      "end_sha256": "7b10ef7d2611ee7ad73120090126e6bcceb2d9e4c856b20f028820444ba66a73"
+    },
+    "e2e/page-roles.spec.ts": {
+      "pinned_sha256": "89b427dce8c84d878c69146159f63ddd3866ac60c2df37a6637a559bd65ef5e7",
+      "end_sha256": "1b0de9faf01276f21abd1d6e9e58ca77072947009a07f7b3780ab8aab7366ff8"
+    },
+    "e2e/workspace-recovery.spec.ts": {
+      "pinned_sha256": "4893784fda3781adb2236c7604631883dab110c57397a011f280b98c2149b9eb",
+      "end_sha256": "f84bd04bd8fbfbee6000f4f1cd7c262948fd709cba85045d696f364324410ae1"
+    },
+    "e2e/inspector-selection.spec.ts": {
+      "pinned_sha256": "68139d3487f64d2724048095236e0e72042c6739502602d462c8946d74063a1f",
+      "end_sha256": "0bba48d318d2ba2e5d90c148b7ca03e2095bf9cec06892b20eea80354e33a9f9"
+    }
+  },
+  "original_source_observations": {
+    "ObservatoryPage.tsx:162-174": "Deep-link effect ui.select(sel) precedes cleanup effect using captured selectedId and selectNode(null).",
+    "Inspector.tsx:484,532": "Task and evidence useWsMutation have no hook-level onError lifetime guard.",
+    "main.tsx:10-11": "Global onError checks only mutation.options.onError.",
+    "PlanPage.tsx:275,307": "Generate plan and quick add use contextual per-call onError strings.",
+    "agentActivity.ts:21-40": "Global unscoped steps/running/hot stores have no reset; Shell/Session reset clears only query/selection state."
+  }
+}

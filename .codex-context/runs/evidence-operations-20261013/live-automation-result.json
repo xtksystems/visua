@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "checks": [
+    "Two supported autonomy choices; saved task grant confirmed by API",
+    "Public basis, authored headline, implementation/evidence distinction, desktop/phone overflow and audit integrity"
+  ],
+  "browserErrors": [],
+  "syntheticWorkspaceRemoved": true
+}

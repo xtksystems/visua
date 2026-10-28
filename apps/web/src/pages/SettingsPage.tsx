@@ -1,9 +1,10 @@
 /** Workspace settings: organization profile, frameworks, agent autonomy, AI engine. */
 import { Globe, Sparkles, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { OrganizationProfile, ProposalType } from "@visua/core";
 import { AgentBadge, FrameworkBadge, toast } from "../components/ui/index.tsx";
+import { useWorkspaceId } from "../lib/workspace.ts";
 import { api } from "../lib/api.ts";
 import { useCan } from "../lib/auth.ts";
 import { useMeta, useWorkspace, useWsMutation } from "../lib/queries.ts";
@@ -45,16 +46,11 @@ export const DRIVERS: [OrganizationProfile["drivers"][number], string][] = [
 ];
 
 const AUTONOMY: [ProposalType, string, string][] = [
-  ["create-task", "Create tasks", "Low risk: planned work items grounded in official guidance."],
-  ["update-task", "Update tasks", "Checklist progress and status changes proposed by agents."],
-  ["set-target", "Set targets", "Changes to the Target Profile."],
-  ["set-level", "Set implementation levels", "Changes to the Current Profile. Recommended: keep human approval."],
-  ["create-policy", "Create policy drafts", "Drafts land as in-review; approval is always separate."],
-  ["create-evidence", "Create evidence", "Recommended: keep human approval. Evidence must reflect reality."],
-  ["set-applicability", "Scope decisions", "Marking requirements not applicable. Recommended: keep human approval."],
+  ["create-task", "Create tasks", "Adds proposed work without completing tasks or changing assessments."],
+  ["create-evidence", "File recorded checks", "Files passing immutable connector observations. Generated narratives still require human approval."],
 ];
 
-/** A switch; agent autonomy switches use the agent tone (Aurora Violet is reserved for agent activity). */
+/** A switch; agent autonomy switches use the terracotta agent tone. */
 function Toggle({ checked, onChange, label, tone = "primary" }: { checked: boolean; onChange: (v: boolean) => void; label: string; tone?: "primary" | "agent" }) {
   const on = tone === "agent" ? "var(--color-tertiary)" : "var(--color-primary)";
   const knob = tone === "agent" ? "var(--color-on-tertiary)" : "var(--color-on-primary)";
@@ -66,7 +62,7 @@ function Toggle({ checked, onChange, label, tone = "primary" }: { checked: boole
 }
 
 export function SettingsPage() {
-  const { ws = "" } = useParams();
+  const ws = useWorkspaceId();
   const navigate = useNavigate();
   const { data } = useWorkspace(ws);
   const meta = useMeta();
@@ -80,9 +76,11 @@ export function SettingsPage() {
   }, [data]);
   const save = useWsMutation(ws, (body: Record<string, unknown>) => api.patch(`/workspaces/${encodeURIComponent(ws)}`, body));
   const enable = useWsMutation(ws, (v: { fw: string; enabled: boolean }) => api.put(`/workspaces/${encodeURIComponent(ws)}/frameworks/${v.fw}`, { enabled: v.enabled }));
+  const remove = useWsMutation(ws, () => api.del(`/workspaces/${encodeURIComponent(ws)}`));
   const canConfigure = useCan("workspace.configure");
   if (!data || !profile) return <div className="page muted">Loading…</div>;
-  const autonomy = data.workspace.autonomy;
+  const autonomy: Partial<Record<ProposalType, boolean>> = { "create-task": !!data.workspace.autonomy["create-task"], "create-evidence": !!data.workspace.autonomy["create-evidence"] };
+  const retiredAutonomy = Object.entries(data.workspace.autonomy).some(([type, enabled]) => enabled && !AUTONOMY.some(([supported]) => supported === type));
   const toggleList = <T extends string>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
   return (
     <div className="page">
@@ -223,8 +221,9 @@ export function SettingsPage() {
               <AgentBadge label="human-in-the-loop" />
             </div>
             <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
-              By default every agent change waits for approval. Grant autonomy per change type; every applied change is still recorded in the audit trail with the run that produced it.
+              By default every agent change waits for approval. You can allow task creation and filing recorded checks. Assessment, scope, target, policy, narrative evidence and task updates always require human approval. Every applied change stays in the audit trail.
             </p>
+            {retiredAutonomy && <p role="note" className="muted">Earlier grants for other change types are no longer applied automatically. Saving these settings replaces those grants with the two choices below.</p>}
             <div className="stack" style={{ gap: 12 }}>
               {AUTONOMY.map(([type, label, hint]) => (
                 <div key={type} className="row" style={{ gap: 12, alignItems: "flex-start" }}>
@@ -258,9 +257,10 @@ export function SettingsPage() {
             <h2 className="section-title">Danger zone</h2>
             <button
               className="btn btn--danger"
+              disabled={!canConfigure || remove.isPending}
               onClick={() => {
-                if (!window.confirm(`Delete ${data.workspace.name} and all of its data? This cannot be undone.`)) return;
-                void api.del(`/workspaces/${encodeURIComponent(ws)}`).then(() => navigate("/"));
+                if (!canConfigure || !window.confirm(`Delete ${data.workspace.name} and all of its data? This cannot be undone.`)) return;
+                remove.mutate(undefined, { onSuccess: () => navigate("/") });
               }}
             >
               <Trash2 size={14} /> Delete workspace

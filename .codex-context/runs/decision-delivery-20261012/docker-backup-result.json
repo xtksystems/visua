@@ -1,0 +1,9 @@
+{
+  "path": "/app/data/decision-workspace-20261012-backup.db",
+  "integrity": "ok",
+  "bytes": 1052672,
+  "sha256": "6bdd67939174f4a60f76d492e2cd9b3ef5ca6aff5c3d2bb3bda58f5b245fb397",
+  "host_path": "data/deployment-backups/decision-workspace-20261012-backup.db",
+  "host_copy_verified": true,
+  "consistent": "SQLite VACUUM INTO on existing running image; SQLite snapshot transaction, integrity checked"
+}

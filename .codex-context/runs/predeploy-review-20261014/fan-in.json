@@ -1,0 +1,59 @@
+{
+  "run_id": "predeploy-review-20261014",
+  "expected_nodes": 7,
+  "accepted_nodes": 6,
+  "snapshot_checked_files": 380,
+  "stale_sources": [],
+  "nodes": [
+    {
+      "id": "security",
+      "status": "failed",
+      "issues": [
+        "node_failed",
+        "not_accepted",
+        "missing_result"
+      ]
+    },
+    {
+      "id": "integrity",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "automation",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "product",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "assurance",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "operations",
+      "status": "complete",
+      "issues": []
+    },
+    {
+      "id": "deployment-plan",
+      "status": "complete",
+      "issues": []
+    }
+  ],
+  "ready_for_integration": false,
+  "integration": {
+    "status": "blocked",
+    "evidence": [
+      "Five of six application reviews accepted; security worker failed under platform restriction without a report and remains unaccepted.",
+      "Independent deployment-plan review accepted at its pinned digest.",
+      "Eleven supported findings remain open; full check and targeted mobile-history rerun failed. See verification.json.",
+      "Report and deployment plan delivered with explicit gaps; no live deployment readiness claim."
+    ]
+  },
+  "complete": false
+}

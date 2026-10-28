@@ -1,0 +1,11 @@
+{
+  "path": "/app/data/evidence-files-20261004-backup.db",
+  "integrity": "ok",
+  "bytes": 1036288,
+  "sha256": "565de95ccf666353ba2141b91eafd0e8fbab2834eadb01e908ed656472c49e2c",
+  "host_path": "data/deployment-backups/evidence-files-20261004-backup.db",
+  "host_copy_verified": true,
+  "created_utc": "2026-10-04T03:29:20.508395+00:00",
+  "backup_runtime_image": "sha256:b7e94435f020efbfa7e2e134480f9c31c09b355a53f4515bd4f88c49f4da2eea",
+  "consistent": "SQLite VACUUM INTO after service stopped; new image Node entrypoint only; no app or migrations started"
+}

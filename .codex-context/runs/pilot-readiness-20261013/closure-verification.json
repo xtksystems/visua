@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "at": "2026-10-14T01:53:22.254064+00:00",
+  "local_links_checked": 54,
+  "files": {
+    ".codex-context/project.md": "fa08cecbc68634534197bf6f0dd379c6351548dd04b3ca79be4c567a52cb04bb",
+    ".codex-context/tasks/pilot-readiness-20261013.md": "342f1d63b5f9e4ea9149924e34eff24358d4cffbbc15734567f8b5189bb6fdbc",
+    ".codex-context/sessions/20261014T013036Z-feat-light-workspace-design-196147ed6a1f.md": "7af36f5c2bce06db25c2d5cd44b2a659e2b84b9b85d514b448a7d791c627ff75"
+  },
+  "scope": "Documentation and delivery records only; product source unchanged since verified0af9520."
+}

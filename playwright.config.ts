@@ -23,7 +23,7 @@ export default defineConfig({
   webServer: {
     command: "pnpm --filter @visua/web build && node --disable-warning=ExperimentalWarning apps/server/src/index.ts",
     url: `http://localhost:${PORT}/api/health`,
-    env: { VISUA_PORT: String(PORT), VISUA_DB: ":memory:", VISUA_AGENT_MODE: "offline" },
+    env: { VISUA_PORT: String(PORT), VISUA_DB: ":memory:", VISUA_AGENT_MODE: "offline", VISUA_SCORE_HISTORY: "off" },
     reuseExistingServer: false,
     timeout: 240_000,
   },

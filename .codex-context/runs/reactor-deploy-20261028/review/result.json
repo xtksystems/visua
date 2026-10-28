@@ -1,0 +1,21 @@
+{
+  "run_id": "reactor-deploy-20261028",
+  "node_id": "review",
+  "input_sha256": "6d6e0a64addfa429dbb8929cc89cb801cdf10f45861fc005052112616fe4f519",
+  "status": "complete",
+  "summary": "Completed the focused infrastructure/script review with two medium conditional findings: overlapping backups can restart the writer during another snapshot, and preexisting permissive shared directories expose database credential files while preflight accepts them.",
+  "evidence": [
+    "review/review.json conforms to the adversarial-review result shape and records all inspected plan digests.",
+    "Unmodified-source isolated mocked concurrency fixture: A and B complete; B artifact capture occurs after A restarted the app.",
+    "Unmodified-source isolated directory-permission fixture: shared 0755, database credential files 0444, preflight exit 0 and ready true.",
+    "All eight plan input hashes matched inspected bytes; all three deployment Python scripts parsed successfully."
+  ],
+  "limitations": [
+    "Fresh bounded native-subagent context was supplied by the lead. This is one focused infrastructure/script pass, not an application-security assessment or approval for live-user admission.",
+    "No remote or live runtime inspection was authorized. Actual reactor directory ownership/modes, Docker/Compose version, deployed image identities, PostgreSQL entrypoint execution, volume ownership, network behavior, restart success and host workload isolation were not measured.",
+    "Docker subprocesses in the concurrency check returned fixture data. No real SQL or tar archive was produced, no actual corruption was demonstrated and no restore or application-integrity acceptance was performed.",
+    "The confidentiality issue is conditional on traversable installation ancestors and a preexisting permissive shared directory. A newly created shared directory is 0700; an independently protected ancestor also limits exposure.",
+    "Backup archive hashes establish captured-byte checksums only. Consistency relies on a sole writer plus uninterrupted quiescence; independent off-host/encrypted retention, fresh-volume restoration, roles/ownership, database/entity/audit checks and reviewed artifact-byte recovery remain separate acceptance work.",
+    "Package/base-image advisories and previously reported application findings were outside the bounded assignment and remain unresolved. No provider login, owner bootstrap, public HTTPS routing, capacity or release-readiness conclusion is established."
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "Affected-path adjudication confirmed the due-day and evidence/check invalidation corrections. It found one remaining licensing fallback defect in the pinned modelTask: a different criterion in the same document was mistaken for original-source text availability. Root subsequently changed that predicate during review; preliminary rerun withheld text, but this report preserves the supported pinned-source finding for final focused adjudication.",
+  "coverage": [
+    "Start/end SHA-256 comparison of all 32 actual fix-review-source.json pins; all matched at start. Initial review reports preserved.",
+    "Task createTask/planWith initialization, updateTask monotonic contentRequirementIds union, API schema stripping, hostile direct patch overwrite, source/origin preservation, work audit snapshot, and related regression source.",
+    "modelTask current/historical requirement projection, source-document fallback, list_tasks, workspaceContext, and get_requirement related task-title projection; source identity verified against real TSC document/locator construction.",
+    "Executed synthetic licensing checks: initial pinned source leaked original title/description/checklist through same-document different-criterion fallback. A later in-memory harness after concurrent locator patch withheld current/history and source-only legacy task output across list_tasks/workspaceContext/get_requirement, while offline and operator-permitted paths returned original tasks.",
+    "Executed date boundary fixture: calendar day remained due at 00:00, noon, and 23:59:59.999 UTC, became overdue at next midnight; done task false; legacy timestamp false before deadline/true after deadline; invalid now false. Read matching core regression.",
+    "SSE evidence.created/updated and check.completed now invalidate the my-work query prefix; checked query key prefix and MyWork derived status rendering. Read new live evidence browser regression.",
+    "Read new mobile/completed/link-remove/reassignment browser regression and unchanged key-based task/requirement draft/capability paths. Inspected explicit search aria-label and two-line legacy date display addendum."
+  ],
+  "findings": [
+    {
+      "severity": "high",
+      "location": "packages/agents/src/tools.ts:245 (fix-review-source.json pinned hash 2d75c64c395dd46d570e003c3039ac73837ae294f43fad3811535378a01b66e0)",
+      "mechanism": "The pinned fallback marked sourceTextAvailable whenever any available licensed linked/historical node shared the source documentId. A legacy task containing criterion CC6.1 text but linked only to CC6.2 therefore skipped conservative source withholding: both criteria share the same TSC document, while only CC6.2 fragments were redacted. Its retained CC6.1 narrative/checklist remained exposed without model-use permission.",
+      "evidence": "The pinned modelTask used only node.citation.documentId === task.source?.documentId to set sourceTextAvailable. TSC ingestion uses one TSC_DOCUMENT with distinct criterion citation locators (packages/frameworks/src/ingest/tsc.ts:115). First pure in-memory fixture with original locator CC6.1, available node locator CC6.2, recognized AICPA source document, and Claude mode/no permission returned original_description_exposed=true, original_checklist_exposed=true, list_tasks_exposes_title=true, runtime_context_exposes_text=true. Existing frozen licensing regressions covered missing/nonlicensed nodes but not another licensed node from the same document. Root applied a locator predicate after this result; subsequent synthetic projections returned leak=false, which is preliminary counterevidence against the later source rather than the original pinned bytes.",
+      "recommendation": "Identify the exact original source unit with a nonempty matching citation locator (and applicable page/provenance identity), rather than document identity alone. Use conservative fallback when that identity cannot be established. Verify the frozen final predicate with different-criterion/same-document and missing-locator fixtures across all three model-visible task projections."
+    }
+  ],
+  "limitations": [
+    "This is affected-path adjudication with inherited first-pass findings, not a fresh independent review.",
+    "Read-only inspection and synthetic in-memory checks only; integration lead owns browser/integration test execution. No build, browser, server, network/model call, Git operation, or source write was performed by this reviewer.",
+    "Sources changed during adjudication: apps/web/src/pages/PlanPage.tsx, apps/web/src/pages/MyWorkPage.tsx, packages/agents/src/tools.ts, packages/agents/test/licensing.test.ts. The finding below binds to the frozen fix-review-source.json hashes. The display addendum was inspected; the later locator patch produced preliminary counterevidence but requires the requested frozen, narrowly targeted followup."
+  ]
+}

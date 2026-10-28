@@ -3,42 +3,19 @@
  * public endpoint: HTTPS, HTTP→HTTPS redirect, HSTS, TLS certificate and
  * protocol, browser security headers and a vulnerability disclosure contact.
  */
-import { connect } from "node:tls";
+import { checkConnectorUrl, connectorFetch, connectorTlsDetails } from "./network.ts";
 import type { CheckOutput, ConnectorKind } from "./index.ts";
 
 const TRANSIT = { csf: ["PR.DS-02"], soc2: ["CC6.7"], sp80053: ["SC-8", "SC-8(1)"] };
 
 function normalizeUrl(raw: string): URL {
-  const withScheme = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  const value = raw.trim();
+  if (!value || value.length > 2048) throw new Error("Public URL is required and must be at most 2048 characters.");
+  const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(value) ? value : `https://${value}`;
   const url = new URL(withScheme);
+  checkConnectorUrl(url);
   url.protocol = "https:";
   return url;
-}
-
-async function fetchWithTimeout(url: string, init: RequestInit = {}, ms = 12_000): Promise<Response> {
-  return fetch(url, { ...init, signal: AbortSignal.timeout(ms), headers: { "user-agent": "Visua-Posture-Check/1.0", ...(init.headers ?? {}) } });
-}
-
-function tlsDetails(host: string, port = 443, ms = 10_000): Promise<{ validTo: Date; protocol: string | null; issuer: string; subject: string }> {
-  return new Promise((resolve, reject) => {
-    const socket = connect({ host, port, servername: host, timeout: ms }, () => {
-      const cert = socket.getPeerCertificate();
-      const protocol = socket.getProtocol();
-      socket.end();
-      if (!cert || !cert.valid_to) return reject(new Error("No certificate presented"));
-      resolve({
-        validTo: new Date(cert.valid_to),
-        protocol,
-        issuer: String(cert.issuer?.O ?? cert.issuer?.CN ?? "unknown"),
-        subject: String(cert.subject?.CN ?? host),
-      });
-    });
-    socket.on("timeout", () => {
-      socket.destroy();
-      reject(new Error("TLS handshake timed out"));
-    });
-    socket.on("error", reject);
-  });
 }
 
 export const webPostureConnector: ConnectorKind = {
@@ -46,19 +23,20 @@ export const webPostureConnector: ConnectorKind = {
   name: "Web Security Posture",
   description: "Checks a public web endpoint for HTTPS, HSTS, TLS certificate health, security headers and a security.txt disclosure contact.",
   configFields: [{ key: "url", label: "Public URL", placeholder: "https://example.com", required: true }],
-  async run(config) {
+  async run(config, signal) {
     const url = normalizeUrl(String(config["url"] ?? ""));
     const out: CheckOutput[] = [];
     let response: Response | undefined;
 
     try {
-      response = await fetchWithTimeout(url.toString(), { redirect: "follow" });
+      const fetched = await connectorFetch(url, { follow: true, signal });
+      response = fetched.response;
       out.push({
         checkId: "https-reachable",
         title: "Service is served over HTTPS",
         outcome: response.status < 500 ? "pass" : "fail",
         detail: `GET ${url.origin} returned HTTP ${response.status}`,
-        observed: { status: response.status, finalUrl: response.url },
+        observed: { status: response.status, finalUrl: fetched.url.toString() },
         requirements: TRANSIT,
       });
     } catch (err) {
@@ -73,7 +51,7 @@ export const webPostureConnector: ConnectorKind = {
     }
 
     try {
-      const http = await fetchWithTimeout(`http://${url.host}/`, { redirect: "manual" });
+      const { response: http } = await connectorFetch(new URL(`http://${url.host}/`), { signal });
       const location = http.headers.get("location") ?? "";
       const redirects = [301, 302, 307, 308].includes(http.status) && location.startsWith("https://");
       out.push({
@@ -125,7 +103,7 @@ export const webPostureConnector: ConnectorKind = {
     }
 
     try {
-      const tls = await tlsDetails(url.hostname, Number(url.port || 443));
+      const tls = await connectorTlsDetails(url, signal);
       const days = Math.floor((tls.validTo.getTime() - Date.now()) / 86_400_000);
       const modern = tls.protocol === "TLSv1.3" || tls.protocol === "TLSv1.2";
       out.push({
@@ -148,7 +126,7 @@ export const webPostureConnector: ConnectorKind = {
     }
 
     try {
-      const res = await fetchWithTimeout(`${url.origin}/.well-known/security.txt`, { redirect: "follow" });
+      const { response: res } = await connectorFetch(new URL("/.well-known/security.txt", url), { follow: true, signal });
       const body = res.ok ? await res.text() : "";
       const ok = res.ok && /^contact:/im.test(body);
       out.push({

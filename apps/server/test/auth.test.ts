@@ -114,6 +114,8 @@ describe("sign-in and tenant separation", () => {
     for (const [method, path] of [
       ["GET", `/api/workspaces/${wsId}`],
       ["GET", `/api/workspaces/${wsId}/tasks`],
+      ["GET", `/api/workspaces/${wsId}/attention`],
+      ["GET", `/api/workspaces/${wsId}/checks/other-observation`],
       ["GET", `/api/workspaces/${wsId}/events`],
       ["GET", `/api/workspaces/${wsId}/exports/readiness.md`],
       ["PATCH", `/api/workspaces/${wsId}/requirements/nist-csf-2.0:GV.OC-01`],
@@ -198,7 +200,8 @@ describe("roles", () => {
     expect((await c.patch(outcome, { owner: "Legal", notes: "Contributors document the work" })).status).toBe(200);
 
     const approver = clients["approver"]!;
-    const decided = await approver.post<{ status: string; decidedBy: string }>(`/api/workspaces/${wsId}/proposals/${proposal}/decision`, { decision: "approved" });
+    const preview = await approver.get<{ reviewToken: string }>(`/api/workspaces/${wsId}/proposals/${proposal}/preview`);
+    const decided = await approver.post<{ status: string; decidedBy: string }>(`/api/workspaces/${wsId}/proposals/${proposal}/decision`, { decision: "approved", reviewToken: preview.json.reviewToken });
     expect(decided.json.status).toBe("applied");
     expect(decided.json.decidedBy).toBe("approver <approver@acme.example>");
     expect((await approver.patch(`/api/workspaces/${wsId}/policies/${policy.json.id}`, { status: "approved" })).status).toBe(200);

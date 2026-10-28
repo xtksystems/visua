@@ -1,0 +1,109 @@
+{
+  "status": "passed",
+  "at": "2026-10-13T10:13:29.270495+00:00",
+  "base_head": "2f82c735859a10dc1d378ae702d5931b0cda6275",
+  "scope": "M3 reliable automation and supported claims",
+  "files": {
+    "apps/server/src/app.ts": "85e8867657d3e974328fb7304c9743a07268229f9fcaba794a7c4b3ab69995ba",
+    "apps/server/src/auth/http.ts": "39aaef9c85ac8c630f62cc96da2dc4a5b66247d0f9451327d912bd4ccbb063a8",
+    "apps/server/src/auth/service.ts": "71bb1be021f0110af7992b16937e0f9cd37ba7b620d5de1bd5c76ee550298f97",
+    "apps/server/src/bus.ts": "6ea4c5b06b7429f0a52db557b6c09b9d3e98951b0bcd138f8df5c9890f2e4a50",
+    "apps/server/src/connectors/limits.ts": "6e379084b19e0bcadbea21d4179d8813c0e88c9a2d8f81573546e05759edda88",
+    "apps/server/src/context.ts": "175b33033c0b5e8d043daf3e88d829c5e9aa8f1b190d1f4dc59a3e318a0bf757",
+    "apps/server/src/diagnostics.ts": "116bc150c428e247098d173f9dc0a2d7750ea130a0c225b86b959d24806ff17a",
+    "apps/server/src/request-controls.ts": "1bc425d48f78f182215a899593849d96f820df4f9f5c10c7cdf1186a9f48b5cb",
+    "apps/server/src/seed/demo.ts": "5f0d533019b96c60865d3807b83aba6bbd26eacf80c8e777ef99bfc21e3d52cb",
+    "apps/server/src/server.ts": "b9b5e304ab6ab8b78567e5a7ae8d8e5ca3182cd5e2c32d360068e9341dab06ec",
+    "apps/server/src/services/proposal-review.ts": "0dd28f5483806c141c5d084ae45b4bc4c27312c3c062ab65317ae87f84179823",
+    "apps/server/src/services/proposal-validation.ts": "bb90630e85a16522b17ac07edeb38486ba012e99e83e985d3a9292e0203a20b6",
+    "apps/server/src/services/run-execution.ts": "13bdcf03ffd1f81f70126f86433f14ed7c286f8adc3741fd2a4ff432191168f6",
+    "apps/server/src/services/trust.ts": "c9521ad2a4e10ee001b9677d2385b60c55afa048a3e39f869c51872e1e0d9a93",
+    "apps/server/src/services/visua.ts": "a7f83b88b4d6b1c0fa7b13a2b93a18fa926ed073b87e45f545d17523200b4ba7",
+    "apps/server/src/storage/events.ts": "dd65e8f8d7618ebd28b787ea9b9ba851e46199f150bc108baa46d36e94b731b8",
+    "apps/server/src/storage/identity.ts": "509feec94a2abb93d972c86ef49ff8f5b8691346d5e7d8330088b0b5564ad184",
+    "apps/server/src/storage/store.ts": "28123725a4f8e82e2ac0fef1bc6ccf5391725fcfa1a3d62456ba6efab9514515",
+    "apps/server/src/workspace-events.ts": "f79eb96c07b64319fbe38c4450ed24595125632fa8fb150db7c3dec845987d79",
+    "apps/server/test/agent-stages.test.ts": "9711e5c61f5069cf67b01c621f65f590af6228fb133c18102c03fbf2010bcb55",
+    "apps/server/test/api.test.ts": "95387c887e82b11796d72f1404a596fbd815e9f9c5a12dafda27056020d85b02",
+    "apps/server/test/attention.test.ts": "a994a650191b6bc3d98a888e43612505ef3ab1c2bc1e55932abbb51015f8458f",
+    "apps/server/test/diagnostics.test.ts": "d02cedbcf3977eca163bb1fc0fcea05e63359b0b681a0e49ee9dfedee8169e2e",
+    "apps/server/test/mock-idp.ts": "ed13db8850b8dfe643849d879fea870a0b9b00b7594ce69c9c5fcc5f322809ea",
+    "apps/server/test/oidc-current.test.ts": "22ba86a2bd535a8b962f829800432b7a5f5b3a86d14a89ce16b41d269cbbea54",
+    "apps/server/test/proposal-review.test.ts": "77e773494ef1fd16dad39c7b79409a51eb1ea28e01ced5353f1105e426f0b53b",
+    "apps/server/test/proposal-validation.test.ts": "97c9a41276315fed4f2095d858a6fd1660f696aac4193a0040f59a9928586249",
+    "apps/server/test/relay.test.ts": "343d75d8463d01c4439992ef13567d65bd8003189a8428cce78311df2cc99b5c",
+    "apps/server/test/request-controls.test.ts": "4893c770eba3e1ec7a094fa3134399f8db69002c1d38ba4f20eb60843c9b33d1",
+    "apps/server/test/run-reliability.test.ts": "fbbe61901265977fff27dfe6dc144152b9a93379a2ed732b4b8556ce3a72cb1c",
+    "apps/server/test/startup.test.ts": "752b5940e82f323f6e6e4a5d987c06757d9a940de2f4057e5188dcc69e7b4b72",
+    "apps/server/test/stream-auth.test.ts": "987cc84a1ba33074f77a4715f5ddba25925dc1cd10749d3c7b3672e03e45d9a2",
+    "apps/server/test/trust.test.ts": "11436e1158a8e7dfe8bd1043d6803d7e0bd0b9df18beb8a13c49195ed624db0a",
+    "apps/server/test/two-instance-automation.test.ts": "ac168eeb6690b3e55ed79dcdbe004d998b0e6a26a76eb164a27f0478774eea00",
+    "apps/server/test/workspace-events.test.ts": "068351b455a47ec2730f93caa5a93846e29b08a6d3906251bf944867e0a3c775",
+    "apps/web/src/lib/events.ts": "f94758268be187ef131533e67b8dc1789b805568562cdd25372d49f0d78bc083",
+    "apps/web/src/pages/EvidencePage.tsx": "69de835b0783593df118a7740aedd0af3d438c11ec427b89619004a05e140a0a",
+    "apps/web/src/pages/ReportsPage.tsx": "592205f52c741fb9370374a0a0e697d64a359a38ab41552441280bea1b8511ac",
+    "apps/web/src/pages/SettingsPage.tsx": "5892ab67ccb4106eb5282fcaf38524ca3a9bbcf0c9de50bbe7e5956c2c2d485d",
+    "apps/web/src/pages/TrustPage.tsx": "4706d01302b43e8ee5a03664879ada1acccb593a18bd42e94f84b576602e1aad",
+    "apps/web/test/events.test.ts": "3ddb8c16f613daacdca1f531957ca9e202a25bde5aec222e9f076f981c7e0727",
+    "e2e/automation-claims.spec.ts": "32e68067ff301458558fad653b890364f3e34e866331f809cf2100634c438abd",
+    "e2e/visua.spec.ts": "dcfa87d3cabd49ef6759190044ab773ae649427a99a49accd9e1fc86fa6e575a",
+    "e2e/workspace-recovery.spec.ts": "bd9b03462f2d7631d6ea077b21a80338d7a60346efb376e2cafa8c7fc52a3577",
+    "packages/agents/src/agents.ts": "2fd2feb74e7cc417cd038f6e1ed10bf00eda5bb649c14e24db7f9ef0919e1e2c",
+    "packages/agents/src/offline.ts": "3b9ee46121b9a29d85b481a2466db89741f2fb7ea5aecc9243c764e727f33044",
+    "packages/agents/src/policies.ts": "0a9b4f46d83031a651360e51f578131d1df290c9b6ceb05c4b4618dcb2c0c9f2",
+    "packages/agents/src/tools.ts": "e2ad806a35eb9749fa3e03dfbd57f85f399658c85a09137fd22d1feb308226cf",
+    "packages/agents/test/corpus-claims.test.ts": "cc0a337d20c52bf716bdd92930bd68b5ad96677e93308c5050d66170a4ec9520",
+    "packages/agents/test/evidence-provenance.test.ts": "f10b9cb69d3604a1e2e333064c997e8bbef8781d3885ec68a8858ebeffbb2c7f",
+    "packages/core/src/crosswalk.ts": "36bdba35f0e93cb5a4982d11ce1f835a5e5617914927bb46c1cb2919e0359f05",
+    "packages/core/src/types.ts": "b091929edfe13e5dcdeef47e0390a528d1ddfbe47fa83188cbbdbaa568429072",
+    "packages/core/test/core.test.ts": "e9f8dff53b86cfcc2a2c0f84194b6b9b1a0862d9442e58a05a71e5ac5374178f",
+    "packages/core/test/crosswalk-projections.test.ts": "31e4e747e565c925021f6afbf6518c0be84227f39874b4f8faebb2f4488f8211",
+    "packages/frameworks/src/index.ts": "5c587e023602ccae83a8416848ec8d2ce4a62e902bf25943a3e945d28d130abb",
+    "packages/frameworks/src/search.ts": "ea966c8b96e8f50232bb6fcfeaf9ad149e32b1d2895e0d085dd1647717259bc0",
+    "packages/frameworks/test/search-citations.test.ts": "afa5a96bc9e5591c46d63461a3ca7b31afeb7f2ffaf5073590b5815f8edac837"
+  },
+  "checks": {
+    "database": {
+      "command": "pnpm check --no-e2e",
+      "log": "automation-check-release.log",
+      "sqlite_passed": 798,
+      "sqlite_pg_only_skipped": 7,
+      "postgres_passed": 805,
+      "typecheck": "passed",
+      "licensing": "passed",
+      "corpus": "passed",
+      "design": "passed"
+    },
+    "browser": {
+      "full_run": {
+        "command": "pnpm test:e2e",
+        "log": "automation-browser.log",
+        "passed": 144,
+        "failed": 4
+      },
+      "targeted_first": {
+        "log": "automation-browser-corrections.log",
+        "passed": 2,
+        "failed": 2,
+        "note": "Role route.fetch reset did not recur; workspace activity passed after canonical-ID fixture update; scene fixture incorrectly read summary.id and was then corrected to summary.workspace.id."
+      },
+      "targeted_final": {
+        "log": "automation-browser-scenes.log",
+        "passed": 2,
+        "failed": 0
+      },
+      "unique_cases_verified": 148,
+      "single_final_full_command_passed": false,
+      "note": "Product source unchanged after database/full-browser gate. Only synthetic scene/workspace events corrected to include canonical workspaceId."
+    }
+  },
+  "review_resolutions": [
+    "claims-correction-review.json",
+    "request-boundary-review.json",
+    "idle-auth-before.log",
+    "idle-auth-after.log"
+  ],
+  "limits": [
+    "Live local Docker delivery is separate. Hosted identity/storage/capacity not validated. No distributed rate quota or durable lost-notification recovery after publisher death."
+  ]
+}

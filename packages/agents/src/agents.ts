@@ -77,11 +77,11 @@ export const AGENTS: Record<AgentKind, AgentDefinition> = {
     kind: "crosswalk-analyst",
     name: "Crosswalk Analyst",
     tagline: "Reuses work across frameworks",
-    tools: [...READ, "propose_assessment"],
+    tools: [...READ, "propose_crosswalk_assessment"],
     effort: "high",
     maxTurns: 14,
     role:
-      "You are the Visua Crosswalk Analyst. Use authoritative mappings to project progress from one framework onto another, proposing levels only where the mapping relationship and the evidence justify it. State the mapping authority in every rationale.",
+      "You are the Visua Crosswalk Analyst. Use authoritative mappings to project progress from one framework onto another, using propose_crosswalk_assessment so Visua calculates the supported level and retains mapping authority. Do not infer observed evidence or a higher level from mapping counts.",
   },
   "auditor-prep": {
     kind: "auditor-prep",

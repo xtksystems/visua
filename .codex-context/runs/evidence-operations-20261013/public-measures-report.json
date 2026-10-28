@@ -1,0 +1,139 @@
+{
+  "task": "P8 / M3.5 supported public measures",
+  "worker": "/root/lifecycle_ui",
+  "status": "complete",
+  "scope": "Bounded isolated implementation complete; integration and visual/browser verification remain lead-owned.",
+  "checkout": "/Users/artem/visua/.check/evidence-automation-20261013",
+  "root_product_files_edited": false,
+  "changes": [
+    "Added publicTrust(svc, slug, at) service with one supplied evaluation instant, workspace-locked metadata snapshot, shared core scoreOf/effectiveEvidenceState basis, published enabled framework selection and canonical framework ordering.",
+    "Public percentages expose numerator/denominator, in-scope/excluded/upcoming counts, catalog/formula versions and calculation explanations; empty denominators return null instead of implying a measured percentage.",
+    "Added latestMonitoringChecks(checks, at): latest observed result per connector/check/recorded configuration, excluding invalid/future observations, with deterministic equal-time ID tie-breaking.",
+    "Public and authorized private checks routes now load all saved check history before selecting latest sources; results older than 100/200 newer records are retained.",
+    "Public monitoring uses stable workspace-scoped opaque IDs and distinct target/configuration labels, preserving title/outcome/time while excluding raw configuration hashes, addresses, connector names, observed payloads and evidence details.",
+    "Public headline identifies organization-authored text explicitly; generated default is marked template. ReportsPage explains publication accurately.",
+    "Private EvidencePage preserves and labels recorded configurations and observation age separately from current connector settings."
+  ],
+  "verification": [
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL VISUA_AUTH_MODE=dev VISUA_AGENT_MODE=offline pnpm exec vitest run apps/server/test/trust.test.ts apps/server/test/overview.test.ts",
+      "outcome": "passed",
+      "tests": 9,
+      "note": "Final state includes actual public HTTP midnight boundary, all-history public/private feeds, opposite targets/configs, unknown legacy source, metadata privacy, scope/order, no-public-center and no-applicable-denominator cases."
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL VISUA_AUTH_MODE=dev VISUA_AGENT_MODE=offline pnpm exec vitest run apps/server/test/api.test.ts -t 'publishes on the trust center only'",
+      "outcome": "passed",
+      "tests": 1,
+      "skipped": 56,
+      "note": "Existing publication-choice and canonical-order integration regression; targeted execution, not full API suite."
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL VISUA_AUTH_MODE=dev VISUA_AGENT_MODE=offline pnpm exec tsc -p apps/server/tsconfig.json",
+      "outcome": "passed"
+    },
+    {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL VISUA_AUTH_MODE=dev VISUA_AGENT_MODE=offline pnpm exec tsc -p apps/web/tsconfig.json",
+      "outcome": "passed"
+    }
+  ],
+  "corrected_failures": [
+    {
+      "finding": "Initial private-route test received 401 because fake test time exceeded the login session lifetime.",
+      "resolution": "Renew test login after setting the supplied fake clock; private-route 207-record regression then passed."
+    },
+    {
+      "finding": "Lead concurrent integration run found public framework order differed from existing summary order.",
+      "resolution": "Reuse FRAMEWORK_ORDER; existing targeted publication-choice/order test now passes without weakening assertions."
+    }
+  ],
+  "test_accounting": {
+    "unique_focused_tests_passed": 10,
+    "full_suites": false,
+    "browser": false,
+    "visual_inspection": false,
+    "build": false,
+    "live_database": false,
+    "git_commands": false,
+    "deploy": false,
+    "external_providers": false
+  },
+  "contracts": {
+    "publicTrust": "publicTrust(svc: VisuaService, slug: string, at = new Date()) reads only a slug-matched public workspace; returns asOf, headlineSource, shared basis explanations, frameworks with nullable percentage and denominator/scope basis, policy titles/versions and privacy-filtered monitoring.",
+    "latestMonitoringChecks": "latestMonitoringChecks(checks: readonly CheckResult[], at = new Date()) -> CheckResult[]. Key is JSON.stringify([connectorId,checkId,source?.configHash??null]); select greatest observedAt, tie greatest id; observations after at are excluded.",
+    "private_route_change": "GET /api/workspaces/:ws/checks now returns one full authorized CheckResult per recorded source/configuration/check instead of at most 200 recent history rows. Existing /checks/:id still retrieves an individual historical observation.",
+    "public_privacy": "Public target/configuration labels and row IDs are SHA-256-derived from workspace plus recorded source identities; raw config hashes, addresses, connector names, observation detail/payloads, requirement IDs and evidence bodies are not returned.",
+    "evidence_basis": "Each scoped requirement is covered iff shared effectiveEvidenceState(item, allMetadata, at, requirementId).status is valid for an attached artifact. Readiness comes from existing svc.scoreOf(index, sameInput, sameAt).",
+    "scope": "Framework measures honor enabled/published selection and exclude threats; laws remain opt-in and distinguish upcoming/in-force/ended dates. Existing public policy-title and monitoring publication scope is preserved and described separately from framework measure selection."
+  },
+  "ownership_expansions": [
+    "Root explicitly authorized private /api/workspaces/:ws/checks full-list + shared latest selection beyond original public-route-only app.ts ownership.",
+    "Root explicitly authorized narrow EvidencePage recorded configuration/time labels and separation from current settings beyond latestChecks selection."
+  ],
+  "known_limits": [
+    "The supplied asOf evaluates current recorded metadata; it does not reconstruct earlier edits or decisions. UI and API basis explicitly say so.",
+    "Legacy checks without a recorded configHash cannot reconstruct former target/configuration identity; they remain a separate 'Configuration not recorded' series per connector/check.",
+    "All-history latest selection scans saved checks through the existing collection API. The >200 regression proves correctness, not production-scale capacity; no database schema/query optimization was in scope.",
+    "Framework readiness/evidence measures honor publication choices. Existing publication of approved/published policy titles and recorded monitoring outcomes remains workspace-wide; no new raw data disclosure was added.",
+    "Public monitoring distinguishes opaque recorded sources but intentionally does not disclose actual target addresses or connector/configuration details.",
+    "No browser server, build or visual inspection was run under this bounded brief. Lead should verify TrustPage expanded calculation details and EvidencePage source labels at desktop/phone sizes.",
+    "No core shared type or previous corpus-lane source paths were edited."
+  ],
+  "remaining_within_assignment": [],
+  "integration_remaining": [
+    "Lead integrate isolated source changes",
+    "Lead visual/browser verification of public trust and private evidence pages",
+    "Lead broader combined checks and delivery"
+  ],
+  "baseline": {
+    "apps/server/src/app.ts": {
+      "sha256": "0a66015e20cff8485136b19a2d93abebeec6af383c1129efea681bf8f526b2ec",
+      "state": "captured exact isolated bytes before P8 edits"
+    },
+    "apps/server/src/services/trust.ts": {
+      "sha256": null,
+      "state": "absent before creation"
+    },
+    "apps/server/test/trust.test.ts": {
+      "sha256": null,
+      "state": "absent before creation"
+    },
+    "apps/web/src/pages/EvidencePage.tsx": {
+      "sha256": "ff40e62d8921fc4c90ef36d14d9a38e30ed66a9c996d889e1649c3cfcf78b9f2",
+      "state": "captured exact isolated bytes before P8 edits"
+    },
+    "apps/web/src/pages/ReportsPage.tsx": {
+      "sha256": "4cb4aac41172f04d184e7a6079ffc88776a6e6655b84c84b76312720dc039445",
+      "state": "captured exact isolated bytes before P8 edits"
+    },
+    "apps/web/src/pages/TrustPage.tsx": {
+      "sha256": "9f053b5b4734e5e8f748d6565dc9f6435c8075f0b9be0a706e291979184a92d0",
+      "state": "captured exact isolated bytes before P8 edits"
+    }
+  },
+  "completed_at": "2026-10-13T09:10:50.541215+00:00",
+  "input_sha256": {
+    ".codex-context/runs/evidence-operations-20261013/public-measures-brief.txt": "51dbed887fb92312cc919cc8b0a8c79e28cc3773041af36906ca3dd29eabaf11",
+    ".codex-context/runs/evidence-operations-20261013/automation-worktree-baseline.json": "aa80a0adc12d83ec0bbb4df46987a51c12872d950c9dce7c49564f484d4fd7ed",
+    ".codex-context/runs/evidence-operations-20261013/remaining-inventory.json": "08850c3f6238c35fca4997f7477a945184022644e15bcd7a3ef80650a57a8150",
+    "docs/development-phase-2.md": "026bb894267c5d65116bae32cf33087a68d62c1f29d6356b225c575ae18de7aa"
+  },
+  "changed_paths": [
+    "apps/server/src/app.ts",
+    "apps/server/src/services/trust.ts",
+    "apps/server/test/trust.test.ts",
+    "apps/web/src/pages/EvidencePage.tsx",
+    "apps/web/src/pages/ReportsPage.tsx",
+    "apps/web/src/pages/TrustPage.tsx"
+  ],
+  "final_sha256": {
+    "apps/server/src/app.ts": "0316530c7de4bb3337bfb74737168eec6d02c8a5324d8635534eb0b4e00b0e21",
+    "apps/server/src/services/trust.ts": "c9521ad2a4e10ee001b9677d2385b60c55afa048a3e39f869c51872e1e0d9a93",
+    "apps/server/test/trust.test.ts": "11436e1158a8e7dfe8bd1043d6803d7e0bd0b9df18beb8a13c49195ed624db0a",
+    "apps/web/src/pages/EvidencePage.tsx": "e54158cd5f494167a4c06c26daa53fcedf9f32c577b5ac9737dd3b23098ba227",
+    "apps/web/src/pages/ReportsPage.tsx": "592205f52c741fb9370374a0a0e697d64a359a38ab41552441280bea1b8511ac",
+    "apps/web/src/pages/TrustPage.tsx": "63ddbad61743048221788472827465964442002498b386e274dd4f31faf01fba"
+  },
+  "source_identity_sha256": "c71f3983f8f86c5db514c1cb296797cbed8a1e8a28c244541935c7ebc564dc28",
+  "verification_cwd": "/Users/artem/visua/.check/evidence-automation-20261013"
+}

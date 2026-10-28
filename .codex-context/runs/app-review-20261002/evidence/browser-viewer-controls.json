@@ -1,0 +1,58 @@
+{
+  "startedAt": "2026-10-02T07:20:39.337Z",
+  "baseURL": "http://localhost:8787",
+  "checks": [
+    {
+      "route": "/w/northwind-health/plan",
+      "role": "Viewer · read-only",
+      "quickAddInput": {
+        "total": 1,
+        "enabled": 1,
+        "visible": 1
+      },
+      "generatePlan": {
+        "total": 1,
+        "enabled": 1,
+        "visible": 1
+      },
+      "planWithAgent": {
+        "total": 1,
+        "enabled": 1,
+        "visible": 1
+      },
+      "addTaskEmpty": {
+        "total": 1,
+        "enabled": 0,
+        "visible": 1
+      },
+      "addTaskWithText": {
+        "total": 1,
+        "enabled": 1,
+        "visible": 1
+      }
+    },
+    {
+      "route": "/w/northwind-health/evidence",
+      "role": "Viewer · read-only",
+      "addConnector": {
+        "total": 1,
+        "enabled": 1,
+        "visible": 1
+      },
+      "collectWithAgent": {
+        "total": 1,
+        "enabled": 1,
+        "visible": 1
+      },
+      "runConnector": {
+        "total": 2,
+        "enabled": 2,
+        "visible": 2
+      }
+    }
+  ],
+  "blockedMutations": [],
+  "pageErrors": [],
+  "loginStatus": 200,
+  "finishedAt": "2026-10-02T07:20:41.978Z"
+}

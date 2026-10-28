@@ -1,0 +1,40 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "run-reliability",
+  "input_sha256": "e0e4cca6db283e576df8147c2188e431bcf4d5962c792e10dae964399628702c",
+  "status": "complete",
+  "summary": "Bounded run reliability implementation complete in isolated checkout; all 30 unique focused cases pass across main29/30 plus affected2/2 rerun. Lead integration and PostgreSQL verification remain.",
+  "worktree": "/Users/artem/visua/.check/evidence-automation-20261013",
+  "evidence": [
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/run-reliability-report.json",
+      "sha256": "0bc80d36d334a9a95f4fe9e78ed34cfba142b8bf4c1cba632baad2c8b6d3b58e"
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/run-reliability-tests.log",
+      "sha256": "119ab2deec677a1bf6e0592f4c23db3d12a13b1ce72ed6fb2381cc3a21f5c020",
+      "outcome": "Main final focused run: 29 passed, 1 failed due to concurrent tools.ts export edit while startup child imported offline.ts."
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/run-reliability-startup-rerun.log",
+      "sha256": "5a6b408bef031897f880540fbd38a8d513a89b444c4a282dcb8f74895a1babfa",
+      "outcome": "Affected startup subprocess cases: 2 passed, 12 skipped. Resolves the main-run transient import failure."
+    },
+    {
+      "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/run-reliability-stage-tests.log",
+      "sha256": "5353594264d2282ee9fc67d333798ed0bd5534450f32176c900f1176d7bf8a5c",
+      "outcome": "Earlier agent-stages focused run: 7 passed."
+    }
+  ],
+  "limitations": [
+    "Worker ran bounded SQLite focused tests only. The two-service SQLite fixture shares one Store/connection; the same fixture opens independent stores for PostgreSQL, which remains lead-owned and was not run by this worker.",
+    "No full suites, build, browser suite, migration, deployment, git action, dependency modification, live database access or external agent/model dispatch performed. Root M2 application files were not modified.",
+    "New execution metadata is optional for historical records. Startup marks only queued/running work; terminal historical runs are not backfilled. Abandoned running work is failed/interrupted and never automatically replayed.",
+    "Queue options are service configuration (defaults: 2 local executors, 1 executor per workspace, 32 queued per workspace, 30s lease, 5s heartbeat). Scheduler scans at most 256 active records per pass. This is bounded behavior, not a measured pilot capacity claim.",
+    "Uncooperative network work can continue externally after cancellation, but persisted writes require the still-valid owner/attempt/epoch lease under the workspace lock. Shutdown bounds waiting on execution promises; existing server outer deadline also bounds cleanup/database waits.",
+    "Direct recorderless createProposal remains an explicitly trusted service/fixture path. Runtime agent proposal and connector paths carry and validate persisted run fences.",
+    "Whole-file hashes snapshot shared checkout bytes at report time; owned scopes identify only this node delta. Citation type additions and other workers app/auth/claims changes are not claimed here. Lead may subsequently change shared service bytes during strict proposal-validation integration.",
+    "Full integration, independent review, PostgreSQL confirmation and final cross-worker typecheck are lead-owned and pending this report; stream/auth worker separately reported server/web typecheck and 45 auth/stream focused tests passing."
+  ],
+  "next_action": "Lead may integrate strict proposal validation into stable visua.ts, run dedicated PostgreSQL focused suite and cross-worker typecheck, then independent review/integration gate. Preserve run fences and carried M2 expectedReviewId binding."
+}

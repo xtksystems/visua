@@ -1,0 +1,99 @@
+{
+  "status": "verified",
+  "verified_utc": "2026-10-13T01:37:25.949862+00:00",
+  "repo_root": "/Users/artem/visua",
+  "base_commit": "e867494cf6616a4775578d0f109c24848f16fc1e",
+  "branch": "feat/light-workspace-design",
+  "change_state": "uncommitted; not deployed",
+  "source_pins": "final-source.json",
+  "source_pins_checked": 282,
+  "changed_paths": [
+    "apps/server/src/app.ts",
+    "apps/server/src/services/evidence-renewal.ts",
+    "apps/server/test/api.test.ts",
+    "apps/server/test/evidence-renewal.test.ts",
+    "apps/web/src/components/work/AttentionQueue.tsx",
+    "apps/web/src/components/work/EvidenceRenewal.tsx",
+    "apps/web/src/components/work/evidence-renewal.css",
+    "apps/web/src/lib/events.ts",
+    "apps/web/src/pages/EvidencePage.tsx",
+    "docs/architecture.md",
+    "docs/workspace.md",
+    "e2e/evidence-renewal.spec.ts",
+    "e2e/visua.spec.ts",
+    "packages/core/src/evidence-renewal.ts",
+    "packages/core/src/index.ts",
+    "packages/core/test/evidence-renewal.test.ts"
+  ],
+  "checks": {
+    "non_browser": {
+      "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL -u VISUA_AUTH_MODE -u VISUA_SEED pnpm check --no-e2e",
+      "cwd": "/Users/artem/visua",
+      "exit_code": 0,
+      "sqlite_passed": 524,
+      "sqlite_skipped": 2,
+      "postgres_passed": 526,
+      "licensing": "passed",
+      "corpus": "passed",
+      "design": "passed",
+      "log": "check-final-no-e2e.log"
+    },
+    "typecheck": {
+      "command": "pnpm typecheck",
+      "exit_code": 0,
+      "log": "typecheck-final.log"
+    },
+    "browser": {
+      "status": "verified_with_targeted_reruns",
+      "unique_cases": 117,
+      "full_lane": {
+        "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL VISUA_AUTH_MODE=dev VISUA_SEED=1 pnpm test:e2e",
+        "passed": 115,
+        "failed": 2,
+        "exit_code": 1,
+        "duration": "24.0m",
+        "source": "full-browser-source.json",
+        "log": "e2e-final.log"
+      },
+      "rerun": {
+        "command": "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL VISUA_AUTH_MODE=dev VISUA_SEED=1 pnpm test:e2e e2e/page-roles.spec.ts e2e/visua.spec.ts -g 'viewer can view every workspace destination|evidence review binds the inspected artifact'",
+        "passed": 2,
+        "exit_code": 0,
+        "source": "final-source.json",
+        "log": "e2e-final-rerun.log"
+      },
+      "reconciliation": "Viewer role transport reset did not recur unchanged. Bound-review test updated two case-sensitive assertions to the intentional Review: Pending review label; product source remained identical. Other115 passes remain applicable. All7 new renewal cases passed in the full lane."
+    },
+    "independent_review": {
+      "status": "complete",
+      "verdict": "pass",
+      "report": "independent-review.json",
+      "focused_tests": 19,
+      "lead_later_deltas": "lead-delta-review.json"
+    },
+    "visual": {
+      "status": "passed",
+      "report": "visual-result.json",
+      "illustrative_fixture": true,
+      "zero_horizontal_overflow": true,
+      "page_errors": 0,
+      "inspected": [
+        "renewal-7d-1440.png",
+        "renewal-expired-390.png",
+        "renewal-7d-390-impact.png"
+      ]
+    },
+    "diff_check": "passed",
+    "markdown_links": "43 final links checked, zero missing"
+  },
+  "resolved_initial_failures": [
+    "New keyboard test waited for focus but not URL-selected state; explicit selected assertion added without changing app focus.",
+    "Existing agent approval test scanned the whole mutable checkout twice, consuming two15s scan budgets. It now uses a small real repository fixture with all approval/duplicate assertions preserved; separate real-checkout scan remains."
+  ],
+  "delivery": "Prior decision-workspace package e867494 is pushed and running at http://localhost:8787; see ../decision-delivery-20261012/source-verification.json.",
+  "limitations": [
+    "No single clean final full-browser command passed; coverage combines115 full-lane passes and2 targeted passes.",
+    "Forecast assumes unchanged current assessed scope and recorded accepted evidence; no provenance, supersession or historical snapshot feature added.",
+    "Renewal changes are not committed, pushed or deployed. Local worker checkout preserves an earlier reviewed snapshot; main checkout is authoritative."
+  ]
+}

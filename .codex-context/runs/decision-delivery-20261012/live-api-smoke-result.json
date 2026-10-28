@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "assertions": [
+    "Cross-framework attention includes exact secondary-framework task",
+    "Fresh scoped summary has progress, evidence coverage, and as-of time",
+    "Unreviewed approval refused; exact inspected single proposal applies",
+    "Fixed batch review applies only its remaining proposal"
+  ],
+  "synthetic_workspace_removed": true
+}

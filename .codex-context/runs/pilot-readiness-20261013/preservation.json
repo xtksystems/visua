@@ -1,0 +1,102 @@
+{
+  "status": "passed",
+  "integrity": "ok",
+  "tables": {
+    "activity": {
+      "rows": 115,
+      "sha256": "281c9473971938540e7c84721e0fb3d448afe6db4044b1be942aa5ed4a51170b"
+    },
+    "agent_runs": {
+      "rows": 2,
+      "sha256": "fa0e5630a998dd710fc5e03de664d976d7edf51da7bd7982f53ed8e59efaca65"
+    },
+    "api_tokens": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "check_results": {
+      "rows": 18,
+      "sha256": "727a97cda2a7eee0d88b021e8adff44664474c14046e5e45081ad89dd7deed7a"
+    },
+    "connectors": {
+      "rows": 2,
+      "sha256": "80c97ac4d6bec21ddf5008f18c9c0239a67e8ac2d1a0bf450bf96d24e83bfd4b"
+    },
+    "evidence": {
+      "rows": 18,
+      "sha256": "c62afcc204708563905cb4c233bb13c84f3327f39fa02bfdc41c35a9c04abe05"
+    },
+    "evidence_content": {
+      "rows": 18,
+      "sha256": "467020560abe2986481dff7cdda8f4af7633e745e15b7a0effc897dfd8949216"
+    },
+    "identities": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "login_flows": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "memberships": {
+      "rows": 9,
+      "sha256": "507d8eeec617ce32070331da2c354101038bb9517c874c591dc9a97d5c8c8eea"
+    },
+    "policies": {
+      "rows": 3,
+      "sha256": "b8e9a1f003acc4169377b4f038eb4bb3f6394a0a218e7f9613885ee6c4a8136c"
+    },
+    "proposals": {
+      "rows": 20,
+      "sha256": "f90b4f0c371284d9efcd6a1185289acd191cc12e82f841b7e4b9654657764bd9"
+    },
+    "requirement_states": {
+      "rows": 1487,
+      "sha256": "875cf726d975d414c700a66d4d97ca676d3e456eff6134e82fbc3506abdbe0ea"
+    },
+    "risks": {
+      "rows": 2,
+      "sha256": "94eb19956654f12d11b41b4317ea01610c45072b4652dbd5563fcbada59f4584"
+    },
+    "schema_migrations": {
+      "rows": 8,
+      "sha256": "0191776e4d019edd0b9bd5eb25a61d5a15ff4467f56566905a4844cdcd30e0d8"
+    },
+    "score_snapshots": {
+      "rows": 1,
+      "sha256": "ea493a660633ba48b19f1229b30790588ff397994a8989a79723a9137115459c"
+    },
+    "sessions": {
+      "rows": 30,
+      "sha256": "dd792e4fbd84d5d6af1a3d559582103e6bd3150fd936374df43268f8a33fce04"
+    },
+    "sso_connections": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "sso_domains": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "tasks": {
+      "rows": 18,
+      "sha256": "736da59b119ce4af4c723b0a936e9ded290f1034811db80997750e303332870c"
+    },
+    "tenants": {
+      "rows": 2,
+      "sha256": "a5742135f4715c5712b339311f131b199a55675836d0ed2bbe65dbdc389970ef"
+    },
+    "users": {
+      "rows": 8,
+      "sha256": "e56e30692b05b8d687e10a428cebe925b32ff810dcf33c608a9d5f01ebb4195b"
+    },
+    "workspace_access": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "workspaces": {
+      "rows": 1,
+      "sha256": "f62ac6c78be309d5d1dc4330e57f3eeff4224f07e9eb2a9ef3817a30f77fdd6f"
+    }
+  }
+}

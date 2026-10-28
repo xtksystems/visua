@@ -1,0 +1,19 @@
+{
+  "run_id": "selection-roles-20261003",
+  "node_id": "selection-fix-review",
+  "completed_utc": "2026-10-03T21:02:23.989007+00:00",
+  "scope_sha256": "b013e7bf55f32d119584b195b767c0a89900f2f1b411739a79c11ca9a840546f",
+  "start_pin_count": 61,
+  "start_pin_drift": [],
+  "end_pin_count": 61,
+  "end_pin_drift": {},
+  "original_finding_disposition": {
+    "live_activity_workspace_session_isolation": "fixed",
+    "cross_framework_deep_link_cleanup": "fixed",
+    "inspector_task_evidence_delayed_error_lifetime": "fixed",
+    "plan_duplicate_error_notification": "fixed"
+  },
+  "root_regression_log_sha256": "ca27dc8e61d6141b231921fa5fb49f8d38149a6b366c9730576a00e1739886c4",
+  "root_regression_log_result": "8 passed (28.3s)",
+  "runtime_checks_executed_by_reviewer": []
+}

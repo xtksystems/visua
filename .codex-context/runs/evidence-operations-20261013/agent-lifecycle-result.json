@@ -1,0 +1,27 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "agent-lifecycle",
+  "status": "complete",
+  "summary": "Preserves restricted-source evidence titles at model boundary after relinking/removing overlay; narrows narrative artifact kinds; includes withdrawal filters; offline renewal respects scope, accepted replacements, partial coverage and avoids duplicate work. Renewal tasks use requirement codes and artifact IDs instead of propagating possibly restricted artifact titles.",
+  "source_sha256": {
+    "packages/agents/src/tools.ts": "8f51116f6fa9bcd092b9bc6fe918f96fed85deb0d0699d8e65f375b637436cca",
+    "packages/agents/src/offline.ts": "9fd45a837a839e48a32895263dbbc892322b67a1aa2b438cc752e979609a6aa2",
+    "packages/agents/test/evidence-provenance.test.ts": "1ef4a709bff1634af9da70cb848b610eae333739907b06b7c78d77e5c810dc7e",
+    "packages/agents/test/evidence-renewal.test.ts": "38e6e341dd76052c89c789626ada18fdf5f747c6647c6f87486c203ce9c1f9c2"
+  },
+  "verification": [
+    {
+      "command": "pnpm exec vitest run packages/agents/test/evidence-renewal.test.ts packages/agents/test/evidence-provenance.test.ts packages/agents/test/licensing.test.ts",
+      "outcome": "20 passed before core acceptance-time correction; full SQLite integration included same 20 tests and passed",
+      "log": "agent-lifecycle-tests.log"
+    },
+    {
+      "command": "pnpm exec vitest run packages/agents/test/evidence-renewal.test.ts packages/agents/test/evidence-provenance.test.ts packages/agents/test/licensing.test.ts",
+      "outcome": "21 passed after derived restricted-title regression reproduced and corrected",
+      "log": "agent-lifecycle-final-tests.log"
+    }
+  ],
+  "limitations": [
+    "Final combined gate is tracked separately in lifecycle source verification."
+  ]
+}

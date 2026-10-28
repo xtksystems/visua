@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "unchanged_product_source": true,
+  "source_pins": 318,
+  "documentation_only_drift": [
+    "docs/visual-review-plan.md"
+  ],
+  "local_document_links": 53,
+  "licensing_guard": "no ignored file staged or tracked",
+  "runtime_commit": "783ed286691b1ce4e078cdf1b6e668634a7d7dd3"
+}

@@ -1,0 +1,44 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "Completed one fresh independent read-only review of the CSF profile and agent stage implementation at base/HEAD 9755c01873444647c30821ac1d0b88aa16023632 plus the exact dirty source hashes in profile-stages-review-source.json. All six primary hashes matched before and after review. Three medium-severity correctness/lifetime findings remain; no product files changed.",
+  "coverage": [
+    "Read effective AGENTS.md, CLAUDE.md, startup project context, workflow/invariants, docs/visual-review-plan.md packages 3/4, and adversarial-review contract/schema. Fresh bounded reviewer packet; no author reports or conclusions read.",
+    "ProfilePage.tsx and lib/profile.ts: fresh inScope projection, missing-versus-zero treatment, disabled/excluded categories, unweighted means and positive mean gap versus below-target count, priority-weight denominator, numeric table equivalent, deterministic sorting, URL state, requirement links, tab/heading focus and viewer capabilities. Traced frameworkState in server/services/views.ts and core scoring/status semantics.",
+    "Tier lifetime: inspected workspace-keyed ProfileWorkspace state, dirty refresh guard, parent-owned pending save across tab unmounts, failure retention, successful cache replacement, callback liveness and canonical workspace identities. Traced useWsMutation, Tabs/TabPanel and Shell ancestry; found transient parent query-error unmount gap.",
+    "Agent projection: inspected every StageState and legacy unknown, answer-only, collection/analysis failure, interrupted runtime, overlapping pending proposals, approved-but-unapplied, failed/rejected/mixed outcomes, autonomy decisions and workspace/run proposal filtering. Traced AgentsPage stage rendering, stale-load errors and keyboard-expandable flight details.",
+    "Server lifecycle: traced startRun, executeRun stage persistence, hostFor/agentSnapshot, cancellation-wins checks, RunRecorder, atomic collection row updates, createProposal, decideProposal and refreshRunStatus. Read agent-stages server tests for collection and analysis failures/cancellation and actual approval/autonomy persistence.",
+    "Approval invariants: inspected unchanged Proposals.tsx fixed snapshot identity, reviewToken submission, current capability checks, sources/qualitative confidence, server proposal preview and single/batch decision token validation. Traced bearer-token principal label through auth/http.ts actorOf into persisted decidedBy.",
+    "Executed pnpm exec vitest run apps/web/test/profile.test.ts apps/web/test/agent-stages.test.ts apps/server/test/agent-stages.test.ts from /Users/artem/visua: exit 0, 3 test files and 29 tests passed, reported duration 2.43 seconds. Read e2e/profile-analysis.spec.ts and e2e/agent-stages.spec.ts without executing browsers.",
+    "Executed two inline native Node source checks: legacy failed run plus failed proposal returns current=apply and summary=Run failed during Apply despite no stageHistory; applied proposal decidedBy=API token “automation” returns Review complete / 1 human decision. Both observations use the reviewed lib/agent-stages.ts bytes.",
+    "Primary state identity is profile-stages-review-source.json (all six digests unchanged). Relevant dependency digests: Shell.tsx=3ada2af67d6cb2463d47d28f22e5f882dd2ff2d04b8717f7925525ac41cee7d9; auth/service.ts=cee5feeb04f5693b5b9a1777d73c7d40669bbfcc1892956826a3d3bfdc6eb08f; auth/http.ts=f9f6cd220902c6ed6beb5a53f0d0ce7e5240a7e7b2cccc7e7468ff05106e1408; lib/queries.ts=fe4fc0bf92a2a5b2e0e7ca682763891c017857cef651409f0271227406fc3aee; Proposals.tsx=692fc5e8657c32f5447a62f819d6721f97b66815e2981af07ae3b2cedf5961d3."
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "apps/web/src/lib/agent-stages.ts:51-54",
+      "mechanism": "Any persisted non-autonomy decidedBy is classified as a human decision. Approvals made by an authorized bearer API token have a non-autonomy actor label, so automated API decisions are presented as completed human review. A display label alone does not establish a human principal.",
+      "evidence": "auth/service.ts:434 resolves API tokens with label API token “name”; auth/http.ts:45 actorOf returns that label; app.ts:703-706 passes it to decideProposal, which saves it in decidedBy (visua.ts:1903). An inline execution of agentStages with an applied proposal decidedBy=API token “automation” returned {id:review,state:complete,detail:1 human decision.}.",
+      "recommendation": "Use neutral recorded-decision wording when the persisted source is only a label, or persist an explicit decision principal kind and distinguish human, API-token, autonomy and unknown sources. Add a regression using the real token actor shape without changing exact approval-token enforcement."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/web/src/lib/agent-stages.ts:71-75",
+      "mechanism": "For interrupted runs, current is selected from every displayed stage whose state matches the run status. A legacy failed run with a failed proposal therefore acquires current=apply, even though its runtime failure stage is unrecorded. Proposal application failure can have occurred earlier than an unrelated agent execution failure, so the heading invents a runtime boundary.",
+      "evidence": "Inline source execution with run.status=failed, no stageHistory, run.error=Model connection closed, and one failed autonomous proposal produced collect/analyze=not-recorded, apply=failed, current=apply, summary=Run failed during Apply. The projection inferred the summary from the proposal state rather than a recorded runtime stage.",
+      "recommendation": "Attribute an interrupted runtime stage only from persisted collect/analyze start/completion facts. Leave legacy runtime stage unknown while retaining the separate failed application outcome. Add the failed legacy run plus failed proposal regression."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/web/src/pages/ProfilePage.tsx:118-124; apps/web/src/components/shell/Shell.tsx:488",
+      "mechanism": "Tier drafts are retained only while ProfileWorkspace remains mounted. Shell observes the same workspace summary query and returns its error screen on any background summary refetch error, even when cached data exists. After a user edits tier answers, a transient summary refresh failure unmounts ProfileWorkspace; retry mounts fresh state from the saved assessment and silently loses the draft. The local tier error branch cannot retain state through this ancestor unmount.",
+      "evidence": "ProfilePage.tsx initializes answers from existing?.answers and dirty=false in local state; its dirty guard only operates in that mounted component. Shell.tsx:444-446 subscribes to the route/canonical summary, and line 488 replaces the entire provider/outlet for summary.error. events.ts invalidates the summary after workspace activity, and useWsMutation also invalidates it. This is a deterministic source-traced lifetime issue, not a browser reproduction. Existing e2e tests cover POST-save failure and tab changes but not GET-summary refetch failure.",
+      "recommendation": "Preserve the mounted workspace subtree and show a refresh error for transient failures when its same-identity cached data remains usable, or retain drafts above that error boundary keyed by workspace identity. Continue to handle actual access loss appropriately. Verify editing tier answers, forcing a summary refresh 503, retrying, and retaining those answers."
+    }
+  ],
+  "limitations": [
+    "No application edits, browser/server/build runs, full test suite, PostgreSQL-specific lane or production access were performed. The lead owns integration and browser verification.",
+    "The tier draft loss is supported by the actual component/query lifetime trace but was not executed in a browser under the review contract.",
+    "Focused unit passes do not cover the two newly reproduced projection edge cases; their current results are the reported failures. This report remains bound to the original snapshot; subsequent lead fixes require their own affected verification."
+  ]
+}

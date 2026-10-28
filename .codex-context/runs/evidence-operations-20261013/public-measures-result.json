@@ -1,0 +1,89 @@
+{
+  "task": "P8 / M3.5 supported public measures",
+  "worker": "/root/lifecycle_ui",
+  "status": "complete",
+  "scope": "Bounded isolated implementation complete; integration and visual/browser verification remain lead-owned.",
+  "checkout": "/Users/artem/visua/.check/evidence-automation-20261013",
+  "completed_at": "2026-10-13T09:10:50.541215+00:00",
+  "input_sha256": {
+    ".codex-context/runs/evidence-operations-20261013/public-measures-brief.txt": "51dbed887fb92312cc919cc8b0a8c79e28cc3773041af36906ca3dd29eabaf11",
+    ".codex-context/runs/evidence-operations-20261013/automation-worktree-baseline.json": "aa80a0adc12d83ec0bbb4df46987a51c12872d950c9dce7c49564f484d4fd7ed",
+    ".codex-context/runs/evidence-operations-20261013/remaining-inventory.json": "08850c3f6238c35fca4997f7477a945184022644e15bcd7a3ef80650a57a8150",
+    "docs/development-phase-2.md": "026bb894267c5d65116bae32cf33087a68d62c1f29d6356b225c575ae18de7aa"
+  },
+  "changed_paths": [
+    "apps/server/src/app.ts",
+    "apps/server/src/services/trust.ts",
+    "apps/server/test/trust.test.ts",
+    "apps/web/src/pages/EvidencePage.tsx",
+    "apps/web/src/pages/ReportsPage.tsx",
+    "apps/web/src/pages/TrustPage.tsx"
+  ],
+  "baseline": {
+    "apps/server/src/app.ts": {
+      "sha256": "0a66015e20cff8485136b19a2d93abebeec6af383c1129efea681bf8f526b2ec",
+      "state": "captured exact isolated bytes before P8 edits"
+    },
+    "apps/server/src/services/trust.ts": {
+      "sha256": null,
+      "state": "absent before creation"
+    },
+    "apps/server/test/trust.test.ts": {
+      "sha256": null,
+      "state": "absent before creation"
+    },
+    "apps/web/src/pages/EvidencePage.tsx": {
+      "sha256": "ff40e62d8921fc4c90ef36d14d9a38e30ed66a9c996d889e1649c3cfcf78b9f2",
+      "state": "captured exact isolated bytes before P8 edits"
+    },
+    "apps/web/src/pages/ReportsPage.tsx": {
+      "sha256": "4cb4aac41172f04d184e7a6079ffc88776a6e6655b84c84b76312720dc039445",
+      "state": "captured exact isolated bytes before P8 edits"
+    },
+    "apps/web/src/pages/TrustPage.tsx": {
+      "sha256": "9f053b5b4734e5e8f748d6565dc9f6435c8075f0b9be0a706e291979184a92d0",
+      "state": "captured exact isolated bytes before P8 edits"
+    }
+  },
+  "final_sha256": {
+    "apps/server/src/app.ts": "0316530c7de4bb3337bfb74737168eec6d02c8a5324d8635534eb0b4e00b0e21",
+    "apps/server/src/services/trust.ts": "c9521ad2a4e10ee001b9677d2385b60c55afa048a3e39f869c51872e1e0d9a93",
+    "apps/server/test/trust.test.ts": "11436e1158a8e7dfe8bd1043d6803d7e0bd0b9df18beb8a13c49195ed624db0a",
+    "apps/web/src/pages/EvidencePage.tsx": "e54158cd5f494167a4c06c26daa53fcedf9f32c577b5ac9737dd3b23098ba227",
+    "apps/web/src/pages/ReportsPage.tsx": "592205f52c741fb9370374a0a0e697d64a359a38ab41552441280bea1b8511ac",
+    "apps/web/src/pages/TrustPage.tsx": "63ddbad61743048221788472827465964442002498b386e274dd4f31faf01fba"
+  },
+  "source_identity_sha256": "c71f3983f8f86c5db514c1cb296797cbed8a1e8a28c244541935c7ebc564dc28",
+  "test_accounting": {
+    "unique_focused_tests_passed": 10,
+    "full_suites": false,
+    "browser": false,
+    "visual_inspection": false,
+    "build": false,
+    "live_database": false,
+    "git_commands": false,
+    "deploy": false,
+    "external_providers": false
+  },
+  "remaining_within_assignment": [],
+  "integration_remaining": [
+    "Lead integrate isolated source changes",
+    "Lead visual/browser verification of public trust and private evidence pages",
+    "Lead broader combined checks and delivery"
+  ],
+  "report_path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/public-measures-report.json",
+  "verification_summary": "10 unique focused tests pass; server/web typechecks pass. No browser/build/full suites/live DB.",
+  "ownership_expansions": [
+    "Root explicitly authorized private /api/workspaces/:ws/checks full-list + shared latest selection beyond original public-route-only app.ts ownership.",
+    "Root explicitly authorized narrow EvidencePage recorded configuration/time labels and separation from current settings beyond latestChecks selection."
+  ],
+  "known_limits": [
+    "The supplied asOf evaluates current recorded metadata; it does not reconstruct earlier edits or decisions. UI and API basis explicitly say so.",
+    "Legacy checks without a recorded configHash cannot reconstruct former target/configuration identity; they remain a separate 'Configuration not recorded' series per connector/check.",
+    "All-history latest selection scans saved checks through the existing collection API. The >200 regression proves correctness, not production-scale capacity; no database schema/query optimization was in scope.",
+    "Framework readiness/evidence measures honor publication choices. Existing publication of approved/published policy titles and recorded monitoring outcomes remains workspace-wide; no new raw data disclosure was added.",
+    "Public monitoring distinguishes opaque recorded sources but intentionally does not disclose actual target addresses or connector/configuration details.",
+    "No browser server, build or visual inspection was run under this bounded brief. Lead should verify TrustPage expanded calculation details and EvidencePage source labels at desktop/phone sizes.",
+    "No core shared type or previous corpus-lane source paths were edited."
+  ]
+}

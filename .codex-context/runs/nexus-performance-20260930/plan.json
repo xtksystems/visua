@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "run_id": "nexus-performance-20260930",
+  "scope": {
+    "root": "/Users/artem/visua",
+    "branch": "feat/light-workspace-design",
+    "head": "5c497c3316a746d1671245b02e3bfe6394b9d9d2",
+    "files": {
+      "apps/web/src/pages/CrosswalkPage.tsx": "98e6a9a4858c1c3b79f71fb1e183ed8f8190bd4d37425117a765c750b887759e",
+      "apps/web/src/pages/ObservatoryPage.tsx": "bb049769ef69795cc0d2bb2ea747096c1ebf84c46192f4eae99ccaefa0382d3e",
+      "apps/web/src/scene/FrameworkScene.tsx": "6e0927d2a13ca52a6e5a02aa8a2166e6eed2b4f625e9ab6e2af8586573f715ca",
+      "apps/web/src/scene/Nexus.tsx": "310f95903015a335febab66fb09b1ef86891b6598e36ea004be98f242529e38a",
+      "apps/web/src/scene/Observatory.tsx": "f13fdb602a6aa4301df775bf71d8c1aed15d09061071f6cde365eaefcc24ae04",
+      "apps/web/src/scene/ScreenLabels.tsx": "7fd3a3b0743f3715d2944c09467e8cad63cfd7e787fe47f78d9fa89ce931ed40",
+      "apps/web/src/scene/SpatialGround.tsx": "283b060a35461802c777bbaef31f621cb14c8b85334e16a41f8625516b0f7d7e",
+      "apps/web/src/scene/colors.ts": "9d629a2b0b5e55eaf5f211f79f1698b5feb5a2006a49d353412ff4e9379c191f",
+      "apps/web/src/scene/demandRendering.ts": "3990de51755d606499740c240f3ffa21e89e6bb92f5cfa5a08327840f418d074",
+      "apps/web/src/scene/framing.ts": "7c9c3fae607bfc7350070c42627a1fe4ec5decd6e3379c8ffe0439d2935584a0",
+      "apps/web/src/scene/spatialGeometry.ts": "cbf3ecef507c1437c96dd8a181a0cdc25336404bfbf31fa7511f5a2a910b1d2a",
+      "apps/web/src/styles/global.css": "a2ce25791bf9e1befa4ec23432858d04e0d1d0fd8a9bdd86c87e2f04e5409513",
+      "apps/web/test/demand-rendering.test.ts": "9f1b609b1eaba80f3820d3ddc177f288b10542415454e1888ee30ad704b4fa4f",
+      "apps/web/test/nexus-geometry.test.ts": "aef0eea14a464304f615f2096358603623b3d0869d5754905343af837b3f1482",
+      "apps/web/test/spatial-geometry.test.ts": "d1c00c114589155ca9b9f938e255f8576a8f99a8fb113f32aafa1b88fe7dfac3",
+      "docs/architecture.md": "8aaafc770a1a0e7f852fa76d03137d51cf8beac03df37e09d31635223e5e8aa6",
+      "docs/images/crosswalk-nexus.jpg": "809d765e248acbd977003aa7ae06d2baedf4a0f91cfd85d0e17cf867c115c60c",
+      "docs/images/nexus-threat-ring.jpg": "034bd6259ee72bcdcbb9fec98ed0f2a12c53616432ace9224cbf3f8a33192184",
+      "docs/images/observatory-800-53.jpg": "f291d0b5dc0880fe604dfbdee2cc8525950b328310902ef2a97c0d14078f98cf",
+      "docs/images/observatory-csf.jpg": "b88b73c3bb5725234af99c8a36bd156393f3b9a9a7e107ed948bf431e6f8176c",
+      "docs/workspace.md": "eeb26fac7f2bd645f397efcbf009b10e303a2bec1f2613f17f70ab882c42da56",
+      "e2e/visua.spec.ts": "fa61748ae461d78dceef902b08af36bfbb74c3f47c44530de834304f944f53e0",
+      "scripts/scene-profile.ts": "0e7183f9be945536494f9d78e3ce1bb0e1616b66bea20099a74b543efcc770b1",
+      "scripts/screens.ts": "e62c880452edbb73d5eda989c46cd9e4ea2e0d9c3ed17584ecdab0631ff578d5"
+    }
+  },
+  "objective": "Improve Nexus visual quality, measurably reduce 3D render work, prepare draft PR including prior Observatory improvements.",
+  "limits": "Design and fresh Claude review, 300 seconds each, at most one transient retry. Native performance worker bounded to Observatory files.",
+  "nodes": [
+    {
+      "id": "design",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "input": "design-packet.txt",
+      "input_sha256": "2063344ddecbfdd33a5655eeee73b353cd13982c0c029a030bec782a606a78a6",
+      "result": "design-accepted.json",
+      "result_sha256": "be3c0f3d5642a24f3e1b6ad7d526ac1c4f61272e4e43645973286e252eae014c"
+    },
+    {
+      "id": "performance",
+      "depends_on": [],
+      "status": "complete",
+      "accepted": true,
+      "input": "performance-packet.txt",
+      "result": "performance-accepted.json",
+      "handle": "/root/render_performance",
+      "input_sha256": "efe7d073eff80bc4c71a3237c50fde38fccd0ccecce8b7b4b7f01873e4c7c9aa",
+      "result_sha256": "409aa3be9a12f9e070325fbf55283b85cb0707f0ada02d0042639946da46f66a"
+    },
+    {
+      "id": "review",
+      "depends_on": [
+        "design",
+        "performance"
+      ],
+      "status": "complete",
+      "accepted": true,
+      "input": "review-packet.txt",
+      "result": "review-accepted.json",
+      "input_sha256": "c000ed26ba767e50db3bb07b3dea69bdff8f14bc884254637084387a72246bb3",
+      "fresh_context": true,
+      "handle": {
+        "exec_session": 21130,
+        "process_file": "review/process.json"
+      },
+      "result_sha256": "ebc4d19812747d2e7004c4b3ac1e7349a79af0b267395bc74cd2c0acf1641922"
+    }
+  ],
+  "integration": {
+    "status": "passed",
+    "evidence": [
+      "evidence/typecheck.log: final pnpm typecheck passes after test syntax correction",
+      "evidence/sqlite.log: 214 passed, 2 skipped",
+      "evidence/postgres.log: 216 passed",
+      "evidence/full-e2e.log: 22 passed; evidence/demand-e2e.log: corrected final case passed",
+      "evidence/full-check.log: licensing, corpus hashes, design lint pass; overall exit1 due corrected typecheck/test failures, not claimed as an all-green aggregate run",
+      "evidence/profile-final.json: Nexus122-to14 versus profile-before; all five views zero idle frames",
+      "evidence/responsive-screens.json: 12 captures no overflow/errors; desktop/mobile inspected",
+      "review-adjudication.json: two review findings resolved",
+      "https://github.com/xtksystems/visua/pull/13: draft PR, correct branch and two intended commits"
+    ]
+  },
+  "next_action": "User review of draft PR #13. Local redeployment is complete; no implementation work remains.",
+  "preserve": [
+    "README Docker changes",
+    ".dockerignore",
+    "Dockerfile",
+    "compose.yaml",
+    "context adoption files"
+  ],
+  "live_checks": {},
+  "diagnostics": [
+    "Initial profiling with tsx inserted __name into browser serialization; rerun with native node succeeded, only native-node results accepted.",
+    "Agent wake fixture missing title caused AgentPulse truncate error and scene unmount; corrected id/at/title, standalone browser confirms live frames.",
+    "Full final suite passed22 browser tests; new idle test initially sampled software-GPU warmup pause as idle. Added warmup frames and 3-second stability window; focused final idle/wake test passes. Typecheck initially raced test syntax edit; corrected standalone typecheck passes."
+  ],
+  "pull_request": "https://github.com/xtksystems/visua/pull/13",
+  "follow_on_deployment": "../local-redeploy-20261002/result.json"
+}

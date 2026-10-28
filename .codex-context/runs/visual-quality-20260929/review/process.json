@@ -1,0 +1,9 @@
+{
+  "pid": 69350,
+  "process_group_id": 69350,
+  "started_utc": "2026-09-30T02:04:29.896477+00:00",
+  "binary": "/Users/artem/.local/share/claude/versions/2.1.285",
+  "request_sha256": "c858b6d2e25fe70e66eba1db76553d50e74608baf6cc7005c013078f7d057685",
+  "brief_sha256": "9bfaab6aa4edb16bae6a309d2d1bebfc1895b82ca997d2beb8a93875108ae031",
+  "identity_note": "Verify a still-running process before signaling; stored PIDs may be reused."
+}

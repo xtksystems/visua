@@ -1,0 +1,9 @@
+{
+  "command": "pnpm check",
+  "head": "cb438d1083e9ae3e2a38dd8e5d7dba4c778b2e89",
+  "started_at": "2026-10-14T03:10:08.899808+00:00",
+  "seconds": 895.8,
+  "exit_code": 1,
+  "environment": "Allowlisted shell runtime only; no inherited VISUA, database, provider or cloud credentials.",
+  "log": "check.log"
+}

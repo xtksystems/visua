@@ -1,0 +1,38 @@
+{
+  "run_id": "evidence-operations-20261013",
+  "node_id": "lifecycle-ui",
+  "input_sha256": "efc5901ec5178f0e778cc57e21c796518c2830527a09a763f2895ca4a082800b",
+  "status": "complete",
+  "summary": "Evidence lifecycle UI and eight meaningful browser cases implemented; final browser/typecheck/visual verification remains with lead.",
+  "evidence": {
+    "report": ".codex-context/runs/evidence-operations-20261013/lifecycle-ui-report.json",
+    "changed_paths": [
+      "apps/web/src/components/crosswalk/ComparisonMatrix.tsx",
+      "apps/web/src/components/inspector/Inspector.tsx",
+      "apps/web/src/components/work/EvidenceRenewal.tsx",
+      "apps/web/src/components/work/UploadEvidence.tsx",
+      "apps/web/src/lib/queries.ts",
+      "apps/web/src/pages/EvidencePage.tsx",
+      "e2e/crosswalk-comparison.spec.ts",
+      "e2e/evidence-renewal.spec.ts",
+      "e2e/observatory-presets.spec.ts",
+      "apps/web/src/components/work/EditEvidenceScope.tsx",
+      "apps/web/src/components/work/EvidenceAssuranceFields.tsx",
+      "apps/web/src/components/work/EvidenceCollectionDetails.tsx",
+      "apps/web/src/components/work/EvidenceDialog.tsx",
+      "apps/web/src/components/work/EvidenceLineage.tsx",
+      "apps/web/src/components/work/evidence-labels.ts",
+      "apps/web/src/components/work/evidence-lifecycle.css",
+      "apps/web/test/evidence-labels.test.ts",
+      "e2e/evidence-lifecycle.spec.ts"
+    ],
+    "focused_tests": "4 passed",
+    "diff_check": "passed"
+  },
+  "limitations": [
+    "Full typecheck, browser execution, screenshot inspection, full tests/build and local delivery remain lead-owned and were not run by this lane.",
+    "Selected lineage time evaluates current recorded metadata; UI explicitly states it does not reconstruct historical revisions.",
+    "Legacy unknown metadata browser case uses a metadata-response fixture; real legacy storage semantics are backend-tested.",
+    "No new browser gate is reported passing until the lead completes the final integrated rerun."
+  ]
+}

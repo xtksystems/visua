@@ -1,0 +1,20 @@
+{
+  "run_id": "connector-boundaries-20261003",
+  "node_id": "review",
+  "input_sha256": "5374a26f27dc7b4f7c9b1ce9b9b137afc2fd81f670786f600fb64722cdc0d126",
+  "status": "complete",
+  "summary": "One supported capacity-lifetime defect in the connector-boundaries working-tree snapshot: timed-out HTTP/TLS and redirect lookups can remain in flight after connector slots are released. Public/private target checks, scan confinement and incomplete-scan signaling otherwise had no supported findings within the reviewed scope. 195 existing focused/API/auth/startup tests passed, and two isolated stalled-DNS reproductions passed their defect assertions.",
+  "evidence": [
+    ".codex-context/runs/connector-boundaries-20261003/review.json \u2014 schema-shaped independent report with one medium finding and exact reviewed snapshot/coverage.",
+    ".codex-context/runs/connector-boundaries-20261003/review-dns-lifetime.test.ts \u2014 two isolated actual-transport stalled-DNS reproductions.",
+    ".codex-context/runs/connector-boundaries-20261003/review-vitest.config.ts \u2014 configuration restricting scratch execution to review-owned tests.",
+    ".codex-context/runs/connector-boundaries-20261003/review-dns-lifetime.log \u2014 reproduction command completed successfully: 1 file, 2 tests passed.",
+    "Existing focused connector/egress/repository/API/startup suites: 6 files, 162 tests passed; auth.test.ts: 1 file, 33 tests passed."
+  ],
+  "limitations": [
+    "DNS failure was simulated with withheld node:dns.lookup callbacks; the operating-system resolver itself was not intentionally stalled. Policy-deadline reproduction used accelerated durations while asserting the requested production limits.",
+    "Existing suites ran on local SQLite with local mock IdPs; PostgreSQL, browser e2e and the full pnpm check were not rerun by this focused reviewer. Running Docker and external hosts were not accessed.",
+    "Filesystem ancestor replacement and noncancellable kernel filesystem stalls remain the explicitly documented operator-controlled-root/runtime constraints in the brief; the review did not induce those kernel conditions.",
+    "This report describes the stable snapshot read during the first independent pass. Any integration-owner fixes made afterward require focused revalidation and are not included in this verdict."
+  ]
+}

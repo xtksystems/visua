@@ -1,0 +1,67 @@
+{
+  "status": "passed",
+  "recorded_utc": "2026-10-13T05:55:33.072270+00:00",
+  "source_commit": "783ed286691b1ce4e078cdf1b6e668634a7d7dd3",
+  "branch": "feat/light-workspace-design",
+  "url": "http://localhost:8787",
+  "build": "docker compose build visua passed; pnpm build ran inside Node 22 image",
+  "deployment": "docker compose up -d --no-build --wait --wait-timeout 120 passed",
+  "container": {
+    "id": "912206102fba902f71c6fce64034df271eb18fc1db1e1243902e6763068a54dd",
+    "image": "sha256:9445b2515087f4b8bf9eaf46929c45fdf8e57e8c26a90b61a66d1c59fe3eea66",
+    "revision": "783ed286691b1ce4e078cdf1b6e668634a7d7dd3",
+    "health": "healthy",
+    "mounts": [
+      {
+        "name": "visua_visua-data",
+        "destination": "/app/data"
+      }
+    ]
+  },
+  "backup": {
+    "path": "/app/data/visual-review-20261013-backup.db",
+    "integrity": "ok",
+    "bytes": 1056768,
+    "sha256": "0adec980cbb42ccc583fca605a7b03cafb6d9764b68b4d2e23fcf8539f60e97c"
+  },
+  "local_backup_copy": "data/deployment-backups/visual-review-20261013-backup.db (ignored, identical SHA-256)",
+  "migration": "7 applied; all existing rows in every table matched the consistent backup immediately after startup, before scheduled capture and smoke login",
+  "data_preservation": "data-preservation.json",
+  "after_smoke": "Original workspace identity, states, tasks, evidence content/reviews, tenants and memberships still match. Both synthetic workspaces removed. One scheduled observation and two workspace-deletion audit events are expected additions.",
+  "activity_before": 109,
+  "activity_after": 112,
+  "runtime_source": {
+    "status": "passed",
+    "checked": 182,
+    "changed": []
+  },
+  "live_smoke": {
+    "status": "passed",
+    "checks": [
+      "Scheduled snapshot captured after deployment; original audit chain valid",
+      "Manual observation persists through API read with every enabled framework, including the automatically added RMF",
+      "Live crosswalk matrix API returns mapping counts and published relationships",
+      "Desktop: overview history, Observatory presets, matrix, Plan urgency, Profile/Tiers, renewal, exact batch approval and recorded Apply outcome",
+      "390px phone: history, Plan, renewal, matrix and Profile render without page overflow"
+    ],
+    "errors": [],
+    "originalAudit": {
+      "valid": true,
+      "events": 98
+    },
+    "syntheticWorkspaceRemoved": true
+  },
+  "visual_inspection": [
+    "matrix-desktop.png",
+    "plan-phone.png",
+    "agents-desktop.png"
+  ],
+  "capture_directory": ".screens/visual-delivery-20261013 (ignored)",
+  "prior_verification": "../visual-followthrough-20261013/source-verification.json",
+  "test_reuse": "318 source pins matched exactly before commit; no product edits in delivery. 626 SQLite, 628 PostgreSQL, 138 unique browser cases from full lane plus final affected reruns. No single final full-check command passed.",
+  "smoke_harness_corrections": [
+    "History GET returns an observations envelope, not an array.",
+    "SP 800-53 onboarding also enables RMF; compare observations with actual enabled frameworks."
+  ],
+  "remaining": "No delivery work remains. Broader roadmap work is separate."
+}

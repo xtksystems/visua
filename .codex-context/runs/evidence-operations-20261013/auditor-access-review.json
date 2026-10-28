@@ -1,0 +1,53 @@
+{
+  "status": "complete",
+  "verdict": "findings",
+  "summary": "One fresh, bounded read-only M4 auditor HTTP/UI/access review of /Users/artem/visua/.check/evidence-auditor-20261013 found two supported defects: final authorization precedes a potentially blocking access-record lock, and live framework removal leaves an uneditable invalid UI selection. The focused SQLite suites passed 21 tests. Findings are source-supported; neither race nor UI rerender was executed in PostgreSQL or a browser.",
+  "coverage": [
+    "Read effective AGENTS.md, CLAUDE.md, declared startup project context, workflow, M4 requirement excerpt, and adversarial-review skill/contract/schema. Reviewed the current working source, not a Git revision; SHA-256 pins below bind the inspected bytes.",
+    "Traced auditor view, access listing, all existing exports, ZIP route boundary, evidence file download, preparedAccess, authentication middleware, canonical workspace/tenant identity, current credential resolution, capability floors, and access attribution. Confirmed auditor read routes keep workspace.export, evidence downloads keep workspace.read, and unsafe HTTP methods retain work.write floor.",
+    "Inspected migration 8, AccessInput/Principal validation, bounded ordering, service append/read methods, nested transaction handling, and backend locking. Access records are explicitly prepared, separate from assessment revision/hash chain, and migration adds no fabricated history.",
+    "Inspected AuditorPanel, ReportsPage integration, binary API error/401/cancellation/receipt handling, canonical IDs, UTC date selection, no-write auditor table controls, scoped capture clearing, retry, and live summary update dependencies. Inspected all new auditor browser cases but did not execute them.",
+    "Executed from /Users/artem/visua/.check/evidence-auditor-20261013: env -u VISUA_TEST_DATABASE_URL -u VISUA_DATABASE_URL -u VISUA_DB pnpm exec vitest run apps/server/test/auditor-http.test.ts apps/server/test/access-audit.test.ts --maxWorkers=1. Exit 0, 2 files and 21 tests passed, duration 1.72 seconds. Tests use isolated in-memory SQLite; no production database, Docker, PostgreSQL, provider, or browser operation was performed.",
+    "SHA-256 0cb9b481dcfc0be25a460aa17389bd70ef25a080d651235f00e1b7312262f330 apps/server/src/app.ts",
+    "SHA-256 39aaef9c85ac8c630f62cc96da2dc4a5b66247d0f9451327d912bd4ccbb063a8 apps/server/src/auth/http.ts",
+    "SHA-256 71bb1be021f0110af7992b16937e0f9cd37ba7b620d5de1bd5c76ee550298f97 apps/server/src/auth/service.ts",
+    "SHA-256 86695095898e4d7efd50fe4c8fb315a649c9978a3249a24fba95504e8bc6612a apps/server/src/services/visua.ts",
+    "SHA-256 0a19c3efb29656e746ee3cf205df9cef38f7a8f093697abd8ff31968ae2ee31c apps/server/src/storage/access.ts",
+    "SHA-256 732fb0397c8aebbe20b8f65bdff61c00dda0fcc516d2a14c737bdec3e98818e0 apps/server/src/storage/migrations.ts",
+    "SHA-256 90df8df0bb7a7c9c7c6711aa1637df5c174107558fb769f843043f283dc62093 apps/server/src/storage/store.ts",
+    "SHA-256 dc3686f017fe4f979d4bc775f9ec33a5b0d2050da6fa77b54208cb5d47518628 apps/server/src/storage/postgres.ts",
+    "SHA-256 eb8a891df91057e305a612e3b748e886f882d939e0d12a0092abcf58d94fc85f apps/server/src/storage/sqlite.ts",
+    "SHA-256 2d185bc312573a53c1da2a87c5e1785fef5a9c4491483e0d624519b1ca8606c6 apps/server/src/services/export-snapshot.ts",
+    "SHA-256 33551a5f2785d4ef48b6e957f2d0e4c8fca6e9aeceab0336f9484ecd624dd1ca apps/server/src/services/evidence.ts",
+    "SHA-256 3e20982cf1dba30a1367abbd538e7a6b6451c0f7b86ede7457c329d4ba690706 apps/web/src/components/AuditorPanel.tsx",
+    "SHA-256 990c95802582e40a2a99afc744befb03c05d10052d34a59e5a8cbe57cfdbb0cd apps/web/src/pages/ReportsPage.tsx",
+    "SHA-256 3d2b009200f695a7178a4f4e5d5fca8ad4e42053c3ac46d1c0c52ad6813e8de9 apps/web/src/lib/api.ts",
+    "SHA-256 59c874f43d03ece444f22d07e8b467b9003a12f8b0cf01bb54a703c610940df6 apps/web/src/lib/queries.ts",
+    "SHA-256 f94758268be187ef131533e67b8dc1789b805568562cdd25372d49f0d78bc083 apps/web/src/lib/events.ts",
+    "SHA-256 ad3248f290e931ec0fecc06fca67b80dbda7c7db8379d44b25bfce4488fab33d apps/server/test/auditor-http.test.ts",
+    "SHA-256 76e712f4468a90f9e9d0eb31c138bdff0eabdab6f7b8003060c76cbf7ba99b3f apps/server/test/access-audit.test.ts",
+    "SHA-256 60b74390bef057d3ff5228de08e09652aa6ecfaddc9bdf0ac5d5e39445545e5c e2e/auditor-handoff.spec.ts"
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "apps/server/src/app.ts:809-811; apps/server/src/services/visua.ts:205-210,245-258; apps/server/src/auth/service.ts:303-322",
+      "mechanism": "The final current-access check runs before recordAccess acquires the workspace advisory lock. On PostgreSQL, another workspace mutation can hold ws:<workspaceId> after snapshot/blob preparation. preparedAccess can finish assertWorkspaceAccess, then block in recordAccess -> mutate at the workspace lock. During that wait, membership/role revocation can commit under the independent ws:<tenantId> lock, or a session/API-token revocation can commit. After the workspace lock becomes available, recordAccess appends and the route releases previously prepared data without checking the credential or role again. Thus the explicitly fresh authorization can become arbitrarily stale while access recording waits.",
+      "evidence": "Source trace: app.ts:809-811 joins assertWorkspaceAccess and recordAccess in one atomic block, but assertWorkspaceAccess performs only reads. VisuaService.mutate reads the workspace, awaits lock(`ws:${found.id}`), then runs the append callback. Store.atomic joins the current transaction; PostgreSQL starts plain BEGIN and only serializes the explicitly requested advisory key. AuthService.setRole/removeMember use ws:<tenantId>, not the workspace key. The existing auditor-http blob-gate tests revoke before final authorization starts, so their passing results do not cover revocation during the later access-record lock wait. Counterevidence/limit: SQLite transaction serialization prevents the same concurrent storage interleaving on one driver; this is a PostgreSQL source-derived schedule, not an executed PostgreSQL reproduction.",
+      "recommendation": "Acquire the workspace/access-record lock before the final current credential, canonical tenant/workspace, and capability check; keep the append in that same transaction and avoid a later lock wait after authorization. Check cancellation after lock acquisition as well. Add a PostgreSQL regression that holds the workspace lock after blob preparation, commits membership revocation while the response waits, releases the lock, and requires denial with no prepared record or response bytes."
+    },
+    {
+      "severity": "medium",
+      "location": "apps/web/src/components/AuditorPanel.tsx:27-28,40-44,78; apps/web/src/pages/ReportsPage.tsx:129",
+      "mechanism": "selected is initialized from enabled frameworks only on mount, while framework checkboxes are recomputed from each new workspace summary. If another member disables a selected framework while the same workspace remains open, the live summary update removes that framework checkbox but leaves its ID in selected. Both preview and ZIP requests keep submitting the hidden ID. The server rejects it as no longer enabled, and editing any remaining checkbox cannot remove the invisible selection, leaving this panel unable to recover without a remount/page reload.",
+      "evidence": "AuditorPanel.tsx:27 filters current enabled frameworks; line 28 uses a one-time useState initializer. query() emits every selected ID at line 44, while the checkbox removal handler at line 78 can only remove a currently rendered framework ID. ReportsPage keys the component only by canonical workspace ID, so a same-workspace summary refresh preserves selected. events.ts invalidates the workspace summary on live activity/workspace updates; useWorkspace refetches that summary. export-snapshot.ts rejects every requested ID not in the current enabled assessable list. The e2e retry case covers a transient 503 and a different-workspace remount, not a same-workspace framework removal. This is a deterministic source trace; no browser rerender was executed.",
+      "recommendation": "Reconcile selected against the currently selectable framework IDs whenever availability changes, clear the old capture/receipt when effective scope changes, and ensure in-flight results cannot restore a capture for removed scope. Preserve valid user selections. Cover a same-workspace refresh that disables one selected framework and verify a remaining valid framework can still be previewed/downloaded."
+    }
+  ],
+  "limitations": [
+    "No PostgreSQL or browser execution was authorized for this worker; their runtime behavior remains for the lead integration gate. Existing focused tests passing is not a reproduction of either finding.",
+    "ZIP/verifier internals, export rendering/snapshot semantics, local backup correctness, licensed payload packaging, and broader application behavior were separate review assignments and were not re-reviewed. export-snapshot.ts was inspected only for HTTP selection/time validation dependencies.",
+    "Review bound to the listed source hashes before lead corrections. Concurrent work was limited to separately owned bundle/backup corrections; this report does not attest to later changes.",
+    "No product source edits, Git operations, installs, broad tests, external providers, or delegation. Only the assigned JSON report was written."
+  ]
+}

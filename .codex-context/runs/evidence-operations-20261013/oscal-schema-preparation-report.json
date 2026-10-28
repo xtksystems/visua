@@ -1,0 +1,357 @@
+{
+  "task": "M4 / P12 exact OSCAL 1.1.2 SSP and POAM schema preparation",
+  "completed_at": "2026-10-13T09:37:14.303252+00:00",
+  "disposition": "Retain OSCAL 1.1.2. Exact release schemas are available; populated current synthetic outputs pass supported structural/pattern constraints, while empty-result outputs fail required nonempty arrays. Full format validation and semantic corrections remain necessary.",
+  "scope": {
+    "read_only_product": true,
+    "artifact_directory": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation",
+    "application_changes": [],
+    "installs": [],
+    "database_used": false,
+    "all_exported_fixture_text_synthetic": true
+  },
+  "source_identity": [
+    {
+      "path": "/Users/artem/visua/apps/server/src/services/exports.ts",
+      "sha256": "c5c130dc397a5cc3a364972b5a338bf6bac750090a9836ded7424ee0dd25c5b2"
+    },
+    {
+      "path": "/Users/artem/visua/.check/evidence-automation-20261013/apps/server/src/services/exports.ts",
+      "sha256": "c5c130dc397a5cc3a364972b5a338bf6bac750090a9836ded7424ee0dd25c5b2"
+    }
+  ],
+  "official_sources": {
+    "version": "1.1.2",
+    "official_repository": "https://github.com/usnistgov/OSCAL",
+    "release": "https://github.com/usnistgov/OSCAL/releases/tag/v1.1.2",
+    "files": [
+      {
+        "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/release-v1.1.2.json",
+        "url": "https://api.github.com/repos/usnistgov/OSCAL/releases/tags/v1.1.2",
+        "sha256": "8319c0cc64d737a0c3c5edc6edfe967f7db45ee0b4cb3f61258da933237533e7",
+        "bytes": 72248
+      },
+      {
+        "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/tag-root-contents.json",
+        "url": "https://api.github.com/repos/usnistgov/OSCAL/contents?ref=v1.1.2",
+        "sha256": "19bc35f1dfde39f84bf90044c21ea11766d14a3ffd05860ca81715babaf4b741",
+        "bytes": 10177
+      },
+      {
+        "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/LICENSE.md",
+        "url": "https://raw.githubusercontent.com/usnistgov/OSCAL/v1.1.2/LICENSE.md",
+        "sha256": "63407ac41abc46911bc9759fc0c19fd0ba7f66c59bb6746e51d85e2f2f3244b1",
+        "bytes": 5255
+      },
+      {
+        "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/oscal_ssp_schema.json",
+        "url": "https://github.com/usnistgov/OSCAL/releases/download/v1.1.2/oscal_ssp_schema.json",
+        "sha256": "08d3faeb12f0fab7705dec15fb648c72400c7ab6ac0056222d49d21507e02a69",
+        "bytes": 92768
+      },
+      {
+        "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/oscal_ssp_metaschema_RESOLVED.xml",
+        "url": "https://github.com/usnistgov/OSCAL/releases/download/v1.1.2/oscal_ssp_metaschema_RESOLVED.xml",
+        "sha256": "aa88aa47465b3532d194a2334c411483593d4409c9666b16b62c4fd0774cd265",
+        "bytes": 84007
+      },
+      {
+        "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/oscal_poam_schema.json",
+        "url": "https://github.com/usnistgov/OSCAL/releases/download/v1.1.2/oscal_poam_schema.json",
+        "sha256": "906725163d767036c6189aec51252109b203214e121fc1acaff494b4d2dfbc04",
+        "bytes": 129396
+      },
+      {
+        "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/oscal_poam_metaschema_RESOLVED.xml",
+        "url": "https://github.com/usnistgov/OSCAL/releases/download/v1.1.2/oscal_poam_metaschema_RESOLVED.xml",
+        "sha256": "87cc1264a75df0b9a86cef7925890fb2951d7dc1cbb6613ce4e94c42cec7c9f6",
+        "bytes": 12222
+      }
+    ],
+    "notes": [
+      "Schema and license bytes are unmodified. No separate top-level NOTICE is present in the exact tag root contents.",
+      "Additional tutorial HTML downloads returned HTTP 403; those official pages were read through the web tool, and are cited in the report."
+    ]
+  },
+  "reference_pages": [
+    "https://pages.nist.gov/OSCAL-Reference/models/v1.1.2/system-security-plan/json-reference/",
+    "https://pages.nist.gov/OSCAL-Reference/models/v1.1.2/plan-of-action-and-milestones/json-reference/",
+    "https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/",
+    "https://pages.nist.gov/OSCAL/learn/tutorials/general/metadata/"
+  ],
+  "license": {
+    "path": "/Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/LICENSE.md",
+    "sha256": "63407ac41abc46911bc9759fc0c19fd0ba7f66c59bb6746e51d85e2f2f3244b1",
+    "source": "https://raw.githubusercontent.com/usnistgov/OSCAL/v1.1.2/LICENSE.md",
+    "handling": "Preserve the unmodified NIST license and notice with vendored schemas, acknowledge the source, and identify any modifications and dates. NIST software is public domain in the United States and offered under CC0 internationally. This does not license third-party framework text or resolve corpus export rights."
+  },
+  "validation": {
+    "validator": "python-jsonschema",
+    "version": "4.26.0",
+    "dialect": "draft-07",
+    "format_checking": {
+      "enabled": true,
+      "available_required_formats": [
+        "email"
+      ],
+      "unavailable_required_formats": [
+        "date-time",
+        "uri-reference",
+        "uri"
+      ]
+    },
+    "pattern_engine": {
+      "name": "regex",
+      "version": "2026.4.4",
+      "reason": "Exact official schema uses Unicode property escapes not supported by Python re; schema unchanged."
+    },
+    "documents": [
+      {
+        "path": "ssp-populated-first.json",
+        "passes_supported_constraints": true,
+        "errors": []
+      },
+      {
+        "path": "ssp-populated-repeat.json",
+        "passes_supported_constraints": true,
+        "errors": []
+      },
+      {
+        "path": "ssp-tailored-empty.json",
+        "passes_supported_constraints": false,
+        "errors": [
+          {
+            "path": "/system-security-plan/control-implementation/implemented-requirements",
+            "schema_path": "/properties/system-security-plan/properties/control-implementation/properties/implemented-requirements/minItems",
+            "keyword": "minItems",
+            "message": "[] should be non-empty"
+          }
+        ]
+      },
+      {
+        "path": "poam-populated-first.json",
+        "passes_supported_constraints": true,
+        "errors": []
+      },
+      {
+        "path": "poam-populated-repeat.json",
+        "passes_supported_constraints": true,
+        "errors": []
+      },
+      {
+        "path": "poam-no-gaps.json",
+        "passes_supported_constraints": false,
+        "errors": [
+          {
+            "path": "/plan-of-action-and-milestones/poam-items",
+            "schema_path": "/properties/plan-of-action-and-milestones/properties/poam-items/minItems",
+            "keyword": "minItems",
+            "message": "[] should be non-empty"
+          }
+        ]
+      }
+    ],
+    "installed_runtime": "/opt/homebrew/bin/python3.12",
+    "required_format_checkers_present": {
+      "email": true,
+      "date-time": false,
+      "uri-reference": false,
+      "uri": false
+    },
+    "schema_integrity": "No schema modifications. Draft7Validator.check_schema also passed with a Unicode-aware regex format checker.",
+    "initial_attempt": "Unextended Python re rejected the official TokenDatatype Unicode-property regex during schema checking. Installed python-regex was used for the pattern keyword and regex syntax checker, without weakening the patterns.",
+    "commands": [
+      "env -u VISUA_DATABASE_URL -u VISUA_TEST_DATABASE_URL VISUA_AGENT_MODE=offline node /Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/generate-current.mjs",
+      "/opt/homebrew/bin/python3.12 /Users/artem/visua/.codex-context/runs/evidence-operations-20261013/oscal-schema-preparation/validate-current.py"
+    ],
+    "limits": [
+      "Installed FormatChecker has email support but lacks date-time, uri-reference, and uri checkers. Those format annotations were not checked. Four fixtures pass supported constraints, not a claim of full format-checked conformance; the two minItems failures are definitive.",
+      "Six synthetic outputs cover current populated, repeated-state, and all-controls-removed/no-gap paths; this is not exhaustive schema or semantic certification.",
+      "No product source, manifest, package lock, full suite, browser, live database, or deployed artifact was changed.",
+      "JSON Schema does not encode every OSCAL semantic requirement, relationship, or external profile resolution rule."
+    ]
+  },
+  "schema_constraints": {
+    "dialect": "Draft 7; self-contained release JSON schemas with local definition and $id references",
+    "ssp_required_top_level": [
+      "uuid",
+      "metadata",
+      "import-profile",
+      "system-characteristics",
+      "system-implementation",
+      "control-implementation"
+    ],
+    "ssp_required_nonempty_arrays": [
+      "system-characteristics.system-ids",
+      "system-characteristics.system-information.information-types",
+      "system-implementation.users",
+      "system-implementation.components",
+      "control-implementation.implemented-requirements"
+    ],
+    "ssp_user_minimum": "Each user requires uuid only. Authorized privileges are optional in this exact schema; do not invent them to fix validation.",
+    "poam_required_top_level": [
+      "uuid",
+      "metadata",
+      "poam-items"
+    ],
+    "poam_minimum": "poam-items has minItems 1. Item title and description are required; UUID is optional in the schema but useful for stable identity.",
+    "optional_arrays": "Most optional arrays must be nonempty when present. Omit absent optional arrays instead of emitting empty arrays.",
+    "uuid": "UUIDDatatype accepts RFC 4122 version 4 or 5 and valid variant bits. UUID version 7 does not match the 1.1.2 regex.",
+    "formats": [
+      "email",
+      "date-time",
+      "uri-reference",
+      "uri"
+    ],
+    "implementation_state": "The implementation-status state permits locally defined tokens as well as listed values; not-implemented is a possible local token, not a standardized 1.1.2 enum value.",
+    "references": [
+      "https://pages.nist.gov/OSCAL-Reference/models/v1.1.2/system-security-plan/json-reference/",
+      "https://pages.nist.gov/OSCAL-Reference/models/v1.1.2/plan-of-action-and-milestones/json-reference/"
+    ]
+  },
+  "findings": [
+    {
+      "id": "M4-01",
+      "priority": "required",
+      "kind": "executed schema failure",
+      "source_lines": [
+        266,
+        299,
+        356
+      ],
+      "issue": "All controls removed produces an empty implemented-requirements array; no gaps produces an empty poam-items array. Both fail the exact schema minItems constraint.",
+      "smallest_correction": "Do not fabricate controls or a fake remediation item. Return an explicit export-unavailable response with a useful empty-state explanation, or choose an explicitly documented separate non-OSCAL summary. Keep valid nonempty exports. Add route/service tests for these outcomes."
+    },
+    {
+      "id": "M4-02",
+      "priority": "required",
+      "kind": "source and official model semantics",
+      "source_lines": [
+        240,
+        310
+      ],
+      "issue": "Current zero level is exported as planned even when no implementation plan or task exists.",
+      "smallest_correction": "Use a documented local not-implemented token with explanatory remarks, or omit optional implementation-status and preserve level in a namespaced property. Do not emit planned without a real plan. Test zero, planned, partial, implemented, and not-applicable independently; preserve family-specific level meanings.",
+      "official_reference": "https://pages.nist.gov/OSCAL-Reference/models/v1.1.2/system-security-plan/json-reference/"
+    },
+    {
+      "id": "M4-03",
+      "priority": "required",
+      "kind": "official semantic requirement not enforced by JSON schema",
+      "source_lines": [
+        352
+      ],
+      "issue": "Current POAM has neither import-ssp nor system-id. Official model documentation requires a system context via one of them, although the JSON schema allows the populated fixture.",
+      "smallest_correction": "Emit a stable system-id at minimum; include import-ssp only when a real, stable SSP artifact reference is available. Add a semantic assertion beyond schema validation.",
+      "official_reference": "https://pages.nist.gov/OSCAL-Reference/models/v1.1.2/plan-of-action-and-milestones/json-reference/"
+    },
+    {
+      "id": "M4-04",
+      "priority": "required",
+      "kind": "executed identity instability",
+      "source_lines": [
+        255,
+        256,
+        261,
+        282,
+        295,
+        302,
+        308,
+        336,
+        353
+      ],
+      "issue": "Repeated unchanged input changes every entity UUID as well as document UUID and last-modified. Files ssp-repeat-diff.json and poam-repeat-diff.json record the paths.",
+      "smallest_correction": "Use fixed namespace UUID v5 for stable subject entities keyed by immutable workspace ID plus entity kind and source ID. Cover party, system component, user class, information type, implemented requirement, by-component relationship, and POAM item. Exclude titles, level values, status, timestamps, and list positions from stable keys. Maintain references using the same allocator.",
+      "official_reference": "https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/"
+    },
+    {
+      "id": "M4-05",
+      "priority": "required",
+      "kind": "source and identifier semantics",
+      "source_lines": [
+        274
+      ],
+      "issue": "A non-UUID workspace ID is labeled with an RFC 4122 identifier type; https://ietf.org/rfc/rfc4122 is also the deprecated spelling in the 1.1.2 reference. The generic string schema does not catch this.",
+      "smallest_correction": "Either emit a stable actual UUID with http://ietf.org/rfc/rfc4122 or retain the workspace ID under a documented application URI scheme. Reuse exactly the same system identity in SSP and POAM.",
+      "official_reference": "https://pages.nist.gov/OSCAL-Reference/models/v1.1.2/plan-of-action-and-milestones/json-reference/"
+    },
+    {
+      "id": "M4-06",
+      "priority": "required",
+      "kind": "source evidence",
+      "source_lines": [
+        250,
+        272,
+        297,
+        299
+      ],
+      "issue": "SSP points at a mutable main-branch baseline profile while local tailoring is reduced to the words with tailoring. Removed controls and their rationale disappear; additions and parameter choices are not represented by that imported baseline.",
+      "smallest_correction": "Pin the imported baseline artifact/version/hash. Preserve removal/addition IDs, action, rationale, and parameter decisions in exported metadata or back matter with clear local provenance. If claiming a tailored OSCAL profile, generate and schema-validate a companion profile reflecting those actual choices and link to that frozen artifact; SSP remarks alone do not alter the imported baseline. Retain explicit not-applicable rationale where a retained control is marked not applicable. Test frozen profile binding and removal rationale.",
+      "limit": "Only SSP/POAM schemas were downloaded. Profile-schema design and profile-resolution conformance remain M4 implementation work."
+    },
+    {
+      "id": "M4-07",
+      "priority": "required",
+      "kind": "source evidence",
+      "source_lines": [
+        280,
+        292,
+        296
+      ],
+      "issue": "Empty information types and missing authorization-boundary data are replaced by synthetic descriptions; component status is always operational while system status may be under development. Schema validation accepts these claims.",
+      "smallest_correction": "Preserve recorded facts and label unrecorded required narrative data explicitly instead of implying verified boundary/categorization. Align component status with recorded system state or a documented unknown local token. Do not fabricate user privilege detail or assurance. Add semantic assertions for a minimally configured workspace."
+    },
+    {
+      "id": "M4-08",
+      "priority": "separate export-rights gate",
+      "kind": "source evidence",
+      "source_lines": [
+        338,
+        343
+      ],
+      "issue": "POAM uses raw n.text and requirement titles from every enabled framework; successful OSCAL schema validation does not authorize exporting licensed text.",
+      "smallest_correction": "Apply the existing corpus licensing/export policy independently. Use approved identifiers, licensed summaries, or permissible source links; no restricted text is included in this report or its fixtures."
+    },
+    {
+      "id": "M4-09",
+      "priority": "optional follow-up",
+      "kind": "schema design boundary",
+      "source_lines": [
+        343
+      ],
+      "issue": "Task milestones currently exist only as human-readable remarks, not structured OSCAL tasks. A direct milestones key on poam-items would violate additionalProperties false.",
+      "smallest_correction": "Keep truthful remarks for the smallest change. If structured risk remediation is required, map only recorded risk/remediation/task entities to the correct assemblies and validate them; a generic control gap alone does not provide required risk statement/status fields."
+    }
+  ],
+  "document_identity_policy": {
+    "recommendation": "Separate stable per-subject entity IDs from export revision metadata. Keep a stable logical document identifier in metadata.document-ids with an application scheme; use a fresh root document UUID and last-modified for a newly generated revision, or explicitly document a stable-root policy before implementation. Do not silently treat generation timestamps as entity identity.",
+    "official_guidance": "NIST identifier guidance distinguishes per-subject identifiers across revisions. The metadata tutorial recommends new root UUIDs for new document revisions, while assembly descriptions also discuss per-subject roots; define and test the chosen document policy explicitly.",
+    "uuid_v5_options": [
+      "Use a declared supported uuid package directly, with a fixed project namespace and structured key components.",
+      "Alternatively use node:crypto SHA-1 RFC 4122 version 5 construction with a focused known-vector test and version/variant assertions. Do not truncate SHA-256 and label the result UUID v5."
+    ],
+    "references": [
+      "https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/",
+      "https://pages.nist.gov/OSCAL/learn/tutorials/general/metadata/"
+    ]
+  },
+  "reproducible_node_validation": {
+    "available_now": "Python 3.12 jsonschema 4.26.0 and regex 2026.4.4 used without installation. No directly resolvable Node AJV, ajv-formats, jsonschema, or uuid at the isolated project root. uuid 8.3.2 exists transitively only. Python format checker support is incomplete: email available; date-time, URI reference, and URI unavailable. Direct ajv-formats would close this gap in the proposed Node implementation.",
+    "recommended_direct_dev_dependencies": [
+      "ajv",
+      "ajv-formats"
+    ],
+    "reason": "For checked-in Node/Vitest tests, declare runtime validators directly rather than relying on this workstation Python environment or transitive packages. Configure Draft 7, Unicode regexp support, all errors, and URI/email/date-time formats. Preserve schemas unchanged and disable remote fetches for their internal-only validation.",
+    "caution": "Official Metaschema-generated $id anchors and strict mode compatibility need a bounded AJV integration probe before committing the validator wrapper. Do not rewrite schemas or disable substantive validations to make tests green."
+  },
+  "m4_acceptance_tests": [
+    "Load exact vendored hashes and validate nonempty SSP and POAM in Draft 7 with formats.",
+    "Empty applicable-control and no-gap inputs return honest unavailable results rather than invalid documents.",
+    "Stable entity UUIDs and cross references survive repeat exports, title/status changes, and input reorder; different workspace/entity IDs differ.",
+    "Chosen root/document generation metadata policy is tested separately from entity identity.",
+    "Zero level does not imply a plan; retained not-applicable controls include recorded rationale.",
+    "POAM includes stable system context and respects corpus export licensing.",
+    "Frozen baseline/profile source and local tailoring decisions, including removals and rationale, remain inspectable."
+  ],
+  "remaining_work": "Implementation, checked-in schema fixtures/validator dependencies, focused product tests, and any broader M4 integration gates are lead-owned follow-up. This task made no application changes."
+}

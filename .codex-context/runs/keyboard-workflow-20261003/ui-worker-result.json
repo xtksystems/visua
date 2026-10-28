@@ -1,0 +1,20 @@
+{
+  "run_id": "keyboard-workflow-20261003",
+  "node_id": "ui-worker",
+  "input_sha256": "a2a6de9621ca8392da51156437042f27fbe0f52a111fb5c4472885f210ab786e",
+  "status": "complete",
+  "summary": "Implemented a shared topmost modal focus hook, accessible dialog focus entry/trapping/restoration, keyboard tabs with labeled stable panel associations in all three callers, canonical requirement links with preserved callback overrides, and seven focused browser regression cases.",
+  "evidence": [
+    "Owned files only: apps/web/src/components/ui/index.tsx, apps/web/src/lib/modal.ts, apps/web/src/components/inspector/Inspector.tsx, apps/web/src/components/inspector/Threats.tsx, apps/web/src/pages/OrganizationPage.tsx, e2e/keyboard-dialog-tabs.spec.ts, and this result envelope.",
+    "pnpm --filter @visua/web typecheck from /Users/artem/visua passed (exit 0).",
+    "pnpm exec tsc --noEmit --target ES2023 --module ESNext --moduleResolution Bundler --strict --skipLibCheck --types node --allowImportingTsExtensions e2e/keyboard-dialog-tabs.spec.ts from /Users/artem/visua passed (exit 0).",
+    "git diff --check passed for changed tracked owned files; git diff --no-index --check against /dev/null passed for the two new source/test files.",
+    "Dialog callback rerenders do not rerun the focus effect; Escape uses capture and the shared topmost stack, restoration waits for DOM removal and checks connected triggers, and a lifetime guard preserves restoration under StrictMode effect replay.",
+    "Inactive TabPanel elements remain available for aria-controls with hidden=true and no display class/style; their children unmount as before, preserving existing draft lifetimes.",
+    "Authored browser cases cover scope dialog Tab and Shift+Tab wrap, disabled controls, callback rerender focus, trigger restoration, selection preservation on Escape, all three tab groups keyboard/ARIA associations, and viewer/auditor canonical cross-framework evidence-dialog navigation without writes."
+  ],
+  "limitations": [
+    "Browser tests, builds and servers were not executed by this worker per ownership constraints; root owns integrated browser verification.",
+    "Nested simultaneous modal behavior is supported by the shared stack and statically reviewed; root's product guard deliberately refuses palette opening over an existing modal, so no unused nested UI was added for testing."
+  ]
+}

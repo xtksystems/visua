@@ -1,0 +1,51 @@
+{
+  "task": "Deploy Visua using SSH reactor",
+  "head": "5450fc7271332ba09892350c3af28646c0d12dc0",
+  "started_at": "2026-10-28T21:46:03.418987+00:00",
+  "authorization": "User explicitly selected SSH reactor for deployment.",
+  "target": "reactor",
+  "observed": {
+    "os": "Ubuntu24.04.5",
+    "architecture": "x86_64",
+    "cpus": 64,
+    "memory_available_gib": 478,
+    "disk_free_gb": 713,
+    "docker": "29.9.1",
+    "compose": "5.6.0",
+    "visua_existing": false
+  },
+  "scope": "Dedicated /opt/visua deployment, PostgreSQL and local evidence, loopback-only initial listener. Preserve existing services. Production OIDC mode; no demo or invented identity.",
+  "pending_inputs": [
+    "Hostname",
+    "Workspace owner email",
+    "OAuth credential path",
+    "Private versus Cloudflare access"
+  ],
+  "release_status": "Prior F01-F11/T01 and missing independent security assessment remain open; no claim of live admission readiness.",
+  "next": "Private runtime installed. Await hostname, Workspace owner and OAuth credential path to configure sign-in; retain application release gates before live evidence admission.",
+  "status": "installed_private_pending_identity",
+  "updated_at": "2026-10-28T21:56:44.287677+00:00",
+  "remote_root": "/opt/visua",
+  "listener": "127.0.0.1:8787",
+  "app_image": "sha256:a0a92dfcf4edc9150b3632b59be0722608bcdeeea8b9c749ed63e4e1be7263c9",
+  "postgres_image": "sha256:81edcaa5ff2923f7be9c1f43d3e5076f29c6c9c216c86964b5fd038959404429",
+  "application_revision": "5450fc7271332ba09892350c3af28646c0d12dc0",
+  "runtime_source_matches": 265,
+  "verification": [
+    "check-no-e2e.json",
+    "private-smoke.json",
+    "runtime-verification.json",
+    "preflight.json",
+    "identity-preflight.json",
+    "packaging-verification.json",
+    "backup-verification.json",
+    "recovery-result.json"
+  ],
+  "notes": [
+    "No identity provider or bootstrap owner configured; no demo state copied.",
+    "Unrelated services preserved; no firewall, DNS, or Cloudflare changes.",
+    "Backups currently only on reactor; independent encrypted retention remains pending.",
+    "Initial recovery attempt failed a bundle hash assertion because asOf differed. Corrected fixed-time fixture passed; no application change.",
+    "Prior application F01-F11/T01 and missing independent security assessment remain unresolved."
+  ]
+}

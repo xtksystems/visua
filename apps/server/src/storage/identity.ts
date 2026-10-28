@@ -46,6 +46,8 @@ export interface SsoConnection {
   name: string;
   issuer: string;
   clientId: string;
+  /** Non-secret identity, rotated whenever the provider/client/secret configuration changes. */
+  providerGeneration?: string;
   /** AES-256-GCM sealed with the server secret; never returned by the API. */
   clientSecretSealed?: string;
   /** Email domains the connection claims. Only verified ones route and admit people. */
@@ -84,6 +86,8 @@ export interface DomainVerification {
 export interface LoginFlow {
   /** "platform" or an SSO connection id. */
   connection: string;
+  /** Pins the provider that received the authorization request; pre-generation flows must restart. */
+  providerGeneration?: string;
   codeVerifier: string;
   nonce: string;
   returnTo: string;
