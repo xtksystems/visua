@@ -1,0 +1,11 @@
+{
+  "owner": "artem@xtk.us",
+  "role": "owner",
+  "organization": "XTK Systems",
+  "readiness": "passed",
+  "identity_provider": "not configured",
+  "other_environment_values": "preserved",
+  "listener": "127.0.0.1:8787",
+  "hostname": "pending choice; DNS unchanged",
+  "configured_at": "2026-10-28T22:01:26.256223+00:00"
+}

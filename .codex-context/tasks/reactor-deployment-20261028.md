@@ -41,9 +41,12 @@ the previous missing application-security assessment.
 
 ## Pending inputs and next action
 
-Await the final hostname, Workspace owner email, and OAuth credential file path
-on reactor, plus access preference (SSH/VPN or Cloudflare). These were requested
-asynchronously; no answer has arrived. Configure HTTPS and real Google sign-in,
+The owner is now configured as `artem@xtk.us` and verified with the owner role
+in XTK Systems. See [owner verification](../runs/reactor-deploy-20261028/owner-configured.json).
+Await the final hostname and OAuth credential file path on reactor, plus access
+preference (SSH/VPN or Cloudflare). The user can sign in to Google for setup.
+Public DNS currently reports SureServer nameservers for xtk.us and an A record
+for visua.xtk.us; the proposed address needs a choice before any DNS change. Configure HTTPS and real Google sign-in,
 then verify owner/nonmember/role/removal behaviour. Keep JIT disabled pending F01.
 Resolve the earlier F01–F11/T01 findings, retain the missing security coverage,
 and prove independent encrypted backup retention before admitting live evidence.

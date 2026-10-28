@@ -282,3 +282,11 @@ Two deployment-script review findings were fixed and independently rechecked.
 Backups remain on reactor pending independent retention. Prior application
 findings, browser failure, security review gap, and real sign-in/user acceptance
 remain open. Existing server workloads and local Mac demo were preserved.
+
+After installation, the user selected `artem@xtk.us` as owner. The protected
+server environment was updated and owner membership in XTK Systems verified;
+readiness passes and all other environment values were preserved. Google OIDC
+registration and hostname remain pending. `visua.xtk.us` is proposed only: public
+DNS currently reports SureServer nameservers for xtk.us and an existing A record
+for visua.xtk.us. No DNS or exposure change was made. See
+[owner verification](runs/reactor-deploy-20261028/owner-configured.json).

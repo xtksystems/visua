@@ -4,8 +4,8 @@ The October 28, 2026 installation runs on SSH host `reactor` under `/opt/visua`.
 It uses production authentication mode, PostgreSQL 17, and private local evidence
 files. The application image was built from source `5450fc7`; deployment helpers
 are installed separately. Its initial listener is **127.0.0.1:8787 only**.
-Google OAuth and the first owner are pending, so the sign-in page is available
-but users cannot sign in yet. The earlier application review findings remain
+The first owner is configured; Google OAuth and the final hostname remain
+pending, so the sign-in page is available but users cannot sign in yet. The earlier application review findings remain
 open; this private installation is not a live admission signoff.
 
 ## Access and status

@@ -48,3 +48,11 @@ existing authorization. Raw build logs, secrets, source archive, screenshots,
 and backup bytes remain private outside Git. Historical untracked diagnostics
 are preserved. Local Mac demo unchanged. Temporary SSH browser forward will be
 closed after checks; use the runbook command to access the private sign-in page.
+
+Follow-up: owner email `artem@xtk.us` is configured and the XTK Systems owner
+membership verified after app recreation. Readiness passes; other environment
+values are unchanged. Sign-in still requires OAuth and the selected hostname.
+The proposed visua.xtk.us already resolves and xtk.us uses SureServer nameservers;
+no DNS changes made. An address choice is pending asynchronously. Initial owner
+update failed before any config write (unsupported Path.open opener argument),
+then builtin os.open/fdopen corrected it; final owner verification passed.
